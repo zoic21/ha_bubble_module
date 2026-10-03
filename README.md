@@ -4,8 +4,8 @@ Modules réutilisables pour [Bubble Card](https://github.com/Clooos/Bubble-Card)
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature — design des cartes | 1.8.25 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
-| Alert Manager — coloration des alertes | 2.0.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
+| Signature — design des cartes | 1.8.26 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
+| Alert Manager — coloration des alertes | 2.1.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Chaque module possède son propre dossier, avec `dist` pour le fichier YAML complet à importer et `doc` pour sa documentation.
 
@@ -34,3 +34,7 @@ Pour une installation manuelle, réimporter le nouveau fichier YAML. Pour une pu
 ## Configuration
 
 Les deux distributions actuelles ne déclarent pas de schéma `editor`. Leurs options personnalisées se configurent donc dans le YAML de la carte. Les commandes, entités et actions ordinaires restent celles de Bubble Card.
+
+## Vérification
+
+Avec Node.js, lancer `node --test tests/*.test.cjs` depuis la racine du dépôt. Les tests exécutent les distributions et vérifient notamment les sources d’alertes, les filtres, le cache, les traductions et les commandes numériques. Ils ne remplacent pas une vérification du rendu dans Home Assistant.

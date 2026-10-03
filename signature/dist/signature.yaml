@@ -25,7 +25,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 1.8.25
+  version: 1.8.26
   creator: Loïc
   supported:
     - button
@@ -128,6 +128,7 @@ signature:
           // Obsolete heading mode is outside the three tile families.
           if (o.layout === 'heading') return '';
           if (!root) return '';
+          const localeFor = h => h.locale?.language || h.language || globalThis.navigator?.language || 'en';
           const attr = (key,value) => { if (root.getAttribute(key) !== value) root.setAttribute(key,value); };
           let layout = ['square','room','header'].includes(o.layout) ? o.layout : 'compact';
           if (kind !== 'button' || c.button_type === 'switch') layout = 'compact';
@@ -258,18 +259,17 @@ signature:
             if (!nc) {
               const group = document.createElement('div');
               group.className = 'dp-number-control bubble-temperature-container';
-              const makeButton = (className, label, icon) => {
+              const makeButton = (className, icon) => {
                 const b = document.createElement('button');
                 b.type = 'button'; b.className = className;
-                b.setAttribute('aria-label', label);
                 if (icon) {
                   const i = document.createElement('ha-icon'); i.setAttribute('icon',icon); b.append(i);
                 }
                 group.append(b); return b;
               };
-              const minus = makeButton('bubble-climate-minus-button','Diminuer','mdi:minus');
-              const display = makeButton('bubble-climate-temp-display','Ouvrir les détails');
-              const plus = makeButton('bubble-climate-plus-button','Augmenter','mdi:plus');
+              const minus = makeButton('bubble-climate-minus-button','mdi:minus');
+              const display = makeButton('bubble-climate-temp-display');
+              const plus = makeButton('bubble-climate-plus-button','mdi:plus');
               // Prevent the surrounding card's actions from also handling a control gesture.
               for (const event of ['click','dblclick','pointerdown','pointerup','touchstart','touchend','keydown','keyup'])
                 group.addEventListener(event, e => e.stopPropagation());
@@ -289,10 +289,16 @@ signature:
                 if (nc.pending !== null && (!v.valid || v.value !== nc.pending.before)) {
                   nc.pending = null; clearTimeout(nc.timer); nc.timer = null;
                 }
-                const locale = nc.hass.locale?.language || 'fr-FR';
-                if (nc.locale !== locale) {
+                const locale = localeFor(nc.hass);
+                if (nc.locale !== locale || nc.localize !== nc.hass.localize) {
                   nc.locale = locale;
+                  nc.localize = nc.hass.localize;
                   nc.formatter = new Intl.NumberFormat(locale,{maximumFractionDigits:10});
+                  const french = locale.toLowerCase().split(/[-_]/)[0] === 'fr';
+                  const label = (key,fallback) => nc.hass.localize?.(key) || fallback;
+                  minus.setAttribute('aria-label',label('ui.card.counter.actions.decrement',french ? 'Diminuer' : 'Decrease'));
+                  display.setAttribute('aria-label',label('ui.dialogs.more_info_control.details',french ? 'Ouvrir les détails' : 'Show details'));
+                  plus.setAttribute('aria-label',label('ui.card.counter.actions.increment',french ? 'Augmenter' : 'Increase'));
                 }
                 display.textContent = (v.valid ? nc.formatter.format(v.value) : '—') + (v.unit ? ' '+v.unit : '');
                 minus.disabled = !v.valid || nc.pending !== null || v.value <= v.min;
@@ -321,8 +327,12 @@ signature:
                   // An old service rejection must not cancel a more recent request.
                   if (nc.disposed || nc.pending !== request) return;
                   clearTimeout(nc.timer); nc.timer = null; nc.pending = null; nc.refresh();
-                  if (!nc.disposed) group.dispatchEvent(new CustomEvent('hass-notification',
-                    {detail:{message:'Impossible de modifier la valeur : '+(error?.message || error)},bubbles:true,composed:true}));
+                  if (!nc.disposed) {
+                    const message = nc.hass.localize?.('ui.notification_toast.action_failed',{service:nc.id.split('.')[0]+'.set_value'})
+                      || (localeFor(nc.hass).toLowerCase().split(/[-_]/)[0] === 'fr' ? 'Impossible de modifier la valeur.' : 'Failed to set the value.');
+                    group.dispatchEvent(new CustomEvent('hass-notification',
+                      {detail:{message:message+' '+(error?.message || error)},bubbles:true,composed:true}));
+                  }
                 }
               };
               minus.addEventListener('click', () => change(-1));
@@ -352,7 +362,7 @@ signature:
                 // Local display precision: no extra server subscription per numeric tile.
                 const precision = hass.entities?.[c.entity]?.display_precision ?? entityState.attributes?.suggested_display_precision;
                 const digits = precision == null ? Math.min(10,(String(raw).split('.')[1] || '').length) : number(precision,2,0,10);
-                const locale = hass.locale?.language || 'fr-FR';
+                const locale = localeFor(hass);
                 const formatKey = locale+'|'+digits+'|'+(precision == null);
                 if (this._dpFormatKey !== formatKey) {
                   this._dpFormatKey = formatKey;
@@ -901,4 +911,3 @@ signature:
         ha-card[data-dp-layout][data-dp-has-state="no"] .bubble-state.hidden { display: none !important; }
         ` + css;
         })()}
-

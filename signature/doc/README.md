@@ -1,6 +1,6 @@
 # Signature — guide du module de design
 
-Version **1.8.25**. [Fichier complet à importer](../dist/signature.yaml).
+Version **1.8.26**. [Fichier complet à importer](../dist/signature.yaml).
 
 **Identifiant YAML : `signature` ; nom affiché : Signature.**
 
@@ -143,6 +143,8 @@ signature:
 ```
 
 Sur `number` et `input_number`, ce mode ajoute − / valeur et unité / +. Il utilise les attributs réels `min`, `max`, `step` et `unit_of_measurement`, puis appelle le service `set_value` du domaine concerné. Un clic sur la valeur ouvre `more-info`.
+
+Les libellés accessibles des commandes et les messages d’échec utilisent les traductions de Home Assistant. Si elles sont indisponibles, le module fournit un repli français pour une langue française, sinon anglais. Les nombres suivent la langue de Home Assistant, puis celle du navigateur si elle n’est pas fournie. Aucun format français n’est imposé aux autres langues.
 
 Après un appui, les autres appuis attendent un changement effectif de valeur ou un délai maximal de cinq secondes. Les attributs manquants ou invalides désactivent les boutons. Les commandes climate et cover restent natives.
 

@@ -1,4 +1,4 @@
-# Module Bubble Alert Manager 2.0.0
+# Module Bubble Alert Manager 2.1.0
 
 [Module à importer](../dist/alert_manager.yaml), indépendant de `signature`. Il colore uniquement l’icône principale et son fond pastel selon les alertes d’Alert Manager. Il ne recopie ni seuils ni délais dans les cartes.
 
@@ -26,6 +26,7 @@ Le module peut aussi être utilisé seul avec Bubble natif. Avec `signature`, le
 
 | Option | Effet | Valeur par défaut |
 |---|---|---|
+| `sensors.active/acknowledge/pending` | Identifiants des trois capteurs sources | Capteurs créés par défaut par l’intégration |
 | `packs` | Liste des ID de packs automatiques à ajouter aux règles personnalisées | `[]` |
 | `exclude_packs` | Liste des ID de packs à interdire | `[]` |
 | `exclude_rules` | Liste des ID de règles personnalisées à interdire | `[]` |
@@ -38,6 +39,20 @@ Le module peut aussi être utilisé seul avec Bubble natif. Avec `signature`, le
 Chaque entrée de `entities` accepte `exclude: true`, `ignore_pending`, `packs`, `exclude_packs`, `exclude_rules` et `colors.active/pending`. Seuls les booléens YAML `true` et `false` règlent les options booléennes.
 
 Pour désactiver entièrement ce module sur une carte : `alert_manager: false`.
+
+## Capteurs sources
+
+Sans configuration, le module lit les trois capteurs créés par défaut par l’intégration. S’ils ont été renommés, indiquer leurs nouveaux identifiants :
+
+```yaml
+alert_manager:
+  sensors:
+    active: sensor.mes_alertes_actives
+    acknowledge: sensor.mes_alertes_acquittees
+    pending: sensor.mes_alertes_a_venir
+```
+
+Chaque clé est facultative : une clé absente conserve son identifiant par défaut. `acknowledge` correspond aux alertes acquittées, qui restent colorées comme les alertes actives. Ces options choisissent les sources d’alertes ; `entities` choisit les entités à surveiller. Les capteurs sources doivent conserver le compteur et les attributs compacts `alerts` fournis par l’intégration.
 
 ## Exceptions par entité
 
@@ -141,7 +156,7 @@ La disponibilité reste gérée par Bubble et le design de la carte. Le module n
 
 ## Données et performances
 
-Trois capteurs sont lus : `sensor.alert_manager_main_active`, `sensor.alert_manager_main_acknowledge` et `sensor.alert_manager_main_pending`.
+Trois capteurs sont lus : par défaut, `sensor.alert_manager_main_active`, `sensor.alert_manager_main_acknowledge` et `sensor.alert_manager_main_pending`, ou les identifiants configurés dans `sensors`.
 
 Leurs attributs compacts conservent les ID stables : `rule:<rule_id>:<entity_id>` pour les règles personnalisées et `<pack_id>:…` pour les packs. Aucun nom traduit ni registre local de packs n’est nécessaire. L’index partagé conserve **un seul instantané par connexion HA** et se reconstruit quand l’un de ces trois objets d’état change, même à compteur constant. Chaque carte applique ensuite ses filtres et couleurs à cet index. Un compteur nul évite la lecture de sa liste d’alertes ; la découverte des entités et les options sont mises en cache jusqu’au remplacement de la configuration.
 
@@ -155,7 +170,7 @@ Boutons, volets, thermostats et lecteurs multimédias sont pris en charge ; sép
 
 Installer Bubble Card et [Bubble Card Tools](https://github.com/Clooos/Bubble-Card-Tools), puis importer le fichier YAML complet depuis la section Modules de l’éditeur d’une carte. Ajouter `alert_manager` à la liste `modules` de chaque carte concernée. Les options de cette version se configurent en YAML : le fichier ne déclare pas encore de schéma `editor`.
 
-L’intégration [Home Assistant Alert Manager](https://github.com/zoic21/ha_alert_manager) est requise. Vérifier que les trois capteurs mentionnés ci-dessus existent sous ces identifiants et exposent les attributs compacts `alerts`. Cette version du module ne permet pas de configurer leurs noms. Les capteurs renommés ou absents ne fournissent aucune alerte au module.
+L’intégration [Home Assistant Alert Manager](https://github.com/zoic21/ha_alert_manager) est requise. Vérifier que les trois capteurs mentionnés ci-dessus existent sous les identifiants utilisés et exposent les attributs compacts `alerts`. Adapter `sensors` si leurs identifiants ont été renommés. Un capteur absent ne fournit aucune alerte au module.
 
 [Signature](../../signature/doc/README.md) est facultatif : le module fonctionne aussi sur les cartes Bubble natives. Importer les deux distributions si un exemple utilise les deux modules.
 

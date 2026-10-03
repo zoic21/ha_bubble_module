@@ -1,18 +1,18 @@
 # Sans options : toutes les entités de la carte, règles personnalisées uniquement.
-# alert_manager : packs, exclude_packs, exclude_rules, ignore_pending, colors,
+# alert_manager : sensors, packs, exclude_packs, exclude_rules, ignore_pending, colors,
 # pack_colors et entities (exceptions et ajouts indexés par entity_id).
 # Couleurs : active (rouge), pending (orange), priorité entité > pack > général.
 # Aucune disponibilité, souscription ou temporisation ; index partagé par connexion HA.
 alert_manager:
   name: Alert Manager
-  version: 2.0.0
+  version: 2.1.0
   creator: Loïc
   supported:
     - button
     - cover
     - climate
     - media-player
-  description: 'Surveille toutes les entités de la carte et les règles personnalisées par défaut. alert_manager permet d’ajouter des packs par ID, d’exclure des entités/règles/packs, de masquer les alertes à venir et de personnaliser les couleurs par entité, pack ou globalement. Colore uniquement l’icône principale et son fond pastel.'
+  description: 'Surveille toutes les entités de la carte et les règles personnalisées par défaut. alert_manager permet de configurer les capteurs sources, d’ajouter des packs par ID, d’exclure des entités/règles/packs, de masquer les alertes à venir et de personnaliser les couleurs par entité, pack ou globalement. Colore uniquement l’icône principale et son fond pastel.'
   code: |2-
         ${(() => {
           const c = this.config;
@@ -68,13 +68,14 @@ alert_manager:
                 colors:Object.fromEntries(['active','pending'].map(state => [state,color(entry.colors?.[state],null)])),
               });
             }
-            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,packColors};
+            const sensorIds = ['active','acknowledge','pending'].map(state =>
+              options.sensors?.[state] || 'sensor.alert_manager_main_'+state);
+            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,packColors,sensorIds};
           }
           if (typeof onTeardown === 'function') onTeardown(() => { delete this._amConfig; });
           if (!watched.entities.length) return '';
           // Keep all three reads outside the cache so Bubble observes each lifecycle partition.
-          const sources = ['sensor.alert_manager_main_active','sensor.alert_manager_main_acknowledge','sensor.alert_manager_main_pending']
-            .map(id => hass.states[id]);
+          const sources = watched.sensorIds.map(id => hass.states[id]);
           const key = Symbol.for('bubble.alertManager.v3');
           const shared = globalThis[key] || (globalThis[key] = new WeakMap());
           const connection = hass.connection || hass;
@@ -126,4 +127,3 @@ alert_manager:
             }
           `;
         })()}
-
