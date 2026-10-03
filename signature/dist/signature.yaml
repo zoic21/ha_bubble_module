@@ -1,0 +1,904 @@
+# Compact value : la valeur native reste après les sous-boutons, unité séparée conservée.
+# Header/title : seules les couleurs et l’opacité des sous-boutons sont animées.
+# Compact : controls: number ajoute − / valeur et unité / + pour number et input_number.
+# Lock : type: switch avec lock.lock/unlock explicites ; ON = unlocked.
+# Option secondary_bold: true : **texte** en gras dans secondary uniquement.
+# Compact value : mesures à 20px, unités à 13px, textes à 16px ; retrait commun de 6px à droite.
+# Option square : auto_height: true adapte la hauteur au contenu.
+# Associer multiline: true pour les sous-titres sur plusieurs lignes.
+# Sans auto_height, les layouts existants conservent leur hauteur habituelle.
+# Compact : sub_buttons_position: end place les sous-boutons après les commandes natives.
+# Les sous-boutons humidifier acceptent type: switch dans sub_button_styles.
+# Compact : type: mode dans sub_button_styles habille les boutons de mode en 46 × 44 px.
+# Compact : groupe de commandes volet de 128 px, aligné sur la consigne thermostat.
+# Durées calculées h/min : chiffres conservés, unités plus petites et grises.
+# Compact : padding vertical des noms pour préserver accents et jambages.
+# Room : room_control_columns répartit les commandes ; trait au-dessus de toutes les rangées.
+# Room : room_measures_position: header garde deux rangées de commandes dans 156px.
+# Room : ripple circulaire pour les commandes sans libellé.
+# Measure : reserve_measure_detail aligne les secondaires avec ou sans détail EC.
+# Compact value : états calculés des boutons name et durées h/min pris en charge.
+# Couleur limitée à l’icône par défaut ; color_background: true teinte aussi la carte.
+# color_background accepte un booléen ou un template Jinja renvoyant true/false.
+# Style 1.8.5 : icônes compact/square de 36px, retrait de 10px et arrondis concentriques.
+# Room : température agrandie, humidité grise à droite, commandes sous un trait discret.
+# Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
+signature:
+  name: Signature
+  version: 1.8.25
+  creator: Loïc
+  supported:
+    - button
+    - cover
+    - climate
+    - separator
+    - media-player
+  description: 'Cinq layouts : compacte, carrée, pièce, en-tête et titre de section. Le layout title habille les séparateurs natifs sans trait horizontal. Les actions et sub_button restent natifs. Fond neutre par défaut, couleur sur l’icône et son fond pastel ; color_background: true teinte aussi la carte et accepte Jinja. Les lecteurs multimédias suivent ce choix sans modifier leurs commandes natives. Square accepte auto_height: true pour adapter sa hauteur au contenu, avec multiline: true pour les textes longs. Police système, noms compact/square à 14 px, sous-textes compact/square à 13 px, valeurs compactes à 20 px et square à 28 px et espacements compacts communs à tous les écrans. Les popups et sliders restent hors du module.'
+  code: |2-
+        ${(() => {
+          const c = this.config;
+          const o = c.signature || {};
+          const root = this.card;
+          const kind = c.card_type || 'button';
+          const tileEnabled = root && !['title','heading'].includes(o.layout)
+            && c.button_type !== 'slider' && ['button','cover','climate'].includes(kind);
+          let runtime = this._dpRuntime;
+          if (runtime && (runtime.root !== root || !tileEnabled)) {
+            runtime.dispose();
+            runtime = null;
+          }
+          if (tileEnabled && !runtime) {
+            const iconOverrides = new Map();
+            const restoreIcon = (icon, {original,applied}) => {
+              if (icon.getAttribute('icon') !== applied || original === applied) return;
+              if (original === null) icon.removeAttribute('icon');
+              else icon.setAttribute('icon',original);
+            };
+            const restoreAction = binding => {
+              if (!binding) return;
+              const {el, data, classes} = binding;
+              Object.entries(data).forEach(([key,value]) => {
+                if (value === undefined) delete el.dataset[key]; else el.dataset[key] = value;
+              });
+              Object.entries(classes).forEach(([key,present]) => {
+                if (!present) el.classList.remove(key);
+              });
+            };
+            runtime = this._dpRuntime = {root,iconOverrides,restoreIcon,restoreAction};
+            const current = runtime;
+            current.dispose = () => {
+              if (this._dpRuntime !== current) return;
+              iconOverrides.forEach((value,icon) => restoreIcon(icon,value));
+              iconOverrides.clear();
+              this._dpNumber?.dispose();
+              delete this._dpNumber;
+              Object.values(this._dpActions || {}).forEach(restoreAction);
+              delete this._dpActions;
+              this._dpValueWatch?.observer.disconnect();
+              delete this._dpValueWatch;
+              this._dpRoomTemperatureWatch?.observer.disconnect();
+              this._dpRoomTemperatureWatch?.restore();
+              delete this._dpRoomTemperatureWatch;
+              root.querySelector('.dp-secondary')?.remove();
+              for (const attr of [...root.attributes]) if (attr.name.startsWith('data-dp-')) root.removeAttribute(attr.name);
+              if (current.stateEl) delete current.stateEl.dataset.dpSignature;
+              delete this._dpStructure;
+              delete this._dpRuntime;
+            };
+          }
+          // Bubble keeps one teardown callback per module. Register before every early return.
+          if (typeof onTeardown === 'function') onTeardown(() => this._dpRuntime?.dispose());
+          // Section titles are native separators, isolated from tile styling and actions.
+          if (c.card_type === 'separator') {
+            if (o.layout !== 'title') return '';
+            return `
+              .bubble-container { height: 32px !important; }
+              ha-card { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+              .bubble-icon {
+                --mdc-icon-size: 20px !important;
+                margin: 0 9px 0 2px !important;
+                color: var(--secondary-text-color) !important;
+              }
+              .bubble-name {
+                min-width: 0;
+                font-size: 18px !important;
+                font-weight: 600 !important;
+                letter-spacing: -0.3px;
+                margin-right: 14px !important;
+                color: var(--secondary-text-color) !important;
+              }
+              .bubble-line {
+                display: none !important;
+              }
+              /* Native transition: all must not animate initial layout sizing. */
+              .bubble-wrapper { transition: none !important; }
+              .bubble-sub-button {
+                transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease !important;
+              }
+              .bubble-sub-button-container {
+                margin-inline-start: auto !important;
+                flex-shrink: 0;
+              }
+            `;
+          }
+          // A title layout must not turn other card types into compact tiles.
+          if (o.layout === 'title') return '';
+          // Sliders and one-off card families are outside this module.
+          if (c.button_type === 'slider' || !['button','cover','climate','media-player'].includes(c.card_type || 'button')) return '';
+          // Obsolete heading mode is outside the three tile families.
+          if (o.layout === 'heading') return '';
+          if (!root) return '';
+          const attr = (key,value) => { if (root.getAttribute(key) !== value) root.setAttribute(key,value); };
+          let layout = ['square','room','header'].includes(o.layout) ? o.layout : 'compact';
+          if (kind !== 'button' || c.button_type === 'switch') layout = 'compact';
+          if (layout === 'header' && c.button_type !== 'name') layout = 'compact';
+          const render = (v, id = c.entity) => {
+            const s = String(v ?? '');
+            if (!/\{[\{%#]/.test(s)) return s;
+            return typeof renderTemplate === 'function' ? String(renderTemplate(s, id) ?? '') : '';
+          };
+          const number = (v, fallback, min, max) => {
+            const n = typeof v === 'number' ? v : Number(v);
+            return v == null || v === '' || !Number.isFinite(n) ? fallback : Math.min(max, Math.max(min, n));
+          };
+          const colors = {blue:'#2196f3',indigo:'#7986cb',amber:'#ffc107',orange:'#ff9800',green:'#4caf50',red:'#f44336',grey:'#9e9e9e',teal:'#009688',purple:'#9c27b0','light-blue':'#03a9f4',cyan:'#00bcd4',pink:'#e91e63',yellow:'#ffeb3b'};
+          const color = (input, fallback = 'var(--blue-color, #2196f3)', id = c.entity) => {
+            let v = render(input,id).trim();
+            if (Object.hasOwn(colors, v)) v = 'var(--' + v + '-color, ' + colors[v] + ')';
+            return v && CSS.supports('color', v) ? v : fallback;
+          };
+          const accent = color(o.color ?? 'blue');
+          // Jinja booleans are strings here: "False" must never enable the tint.
+          const colorBackground = render(o.color_background).trim().toLowerCase() === 'true';
+          const neutralSurface = 'var(--ha-card-background, var(--card-background-color, #fff))';
+          const iconSurface = 'color-mix(in srgb, var(--dp-accent) 16%, '+neutralSurface+')';
+          const surface = colorBackground
+            ? 'color-mix(in srgb, var(--dp-accent) var(--dp-tint, 16%), '+neutralSurface+')'
+            : neutralSurface;
+          // Media players keep Bubble's native layout, artwork, volume and actions.
+          // Return before the tile DOM transformations and compact sizing rules.
+          if (kind === 'media-player') {
+            return `
+              ha-card {
+                --dp-accent: ${accent};
+                --bubble-media-player-main-background-color: ${surface};
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                --bubble-media-player-border-radius: 22px;
+                --bubble-media-player-buttons-border-radius: 14px;
+                --bubble-media-player-box-shadow: 0 2px 10px rgb(0 0 0 / 0.035);
+                --bubble-media-player-border: 1px solid color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+              }
+              ha-card .bubble-main-icon-container {
+                --bubble-icon-background-color: ${iconSurface};
+                --bubble-icon-border-radius: 12px;
+              }
+              ha-card .bubble-main-icon { color: ${accent} !important; }
+              ha-card .bubble-name { font-size: 15px; font-weight: 600; }
+              ha-card .bubble-state { font-size: 12px; color: var(--secondary-text-color); }
+            `;
+          }
+          // setConfig replaces the config object. Cache only structure, never template results.
+          let structure = this._dpStructure;
+          if (!structure || structure.config !== c || structure.options !== c.signature
+              || structure.sub !== c.sub_button || structure.main !== c.sub_button?.main
+              || structure.bottom !== c.sub_button?.bottom || structure.overrides !== o.sub_button_styles) {
+            const flat = [];
+            // Bubble 3.4 numbers explicit groups before individual buttons in each section.
+            // This differs from visual/YAML order when both kinds are mixed.
+            const collect = list => {
+              const items = Array.isArray(list) ? list.filter(Boolean) : [];
+              items.forEach(b => { if (Array.isArray(b.group)) flat.push(...b.group.filter(Boolean)); });
+              items.forEach(b => { if (!Array.isArray(b.group)) flat.push(b); });
+            };
+            const sub = c.sub_button;
+            collect(Array.isArray(sub) ? sub : sub?.main);
+            collect(Array.isArray(sub) ? [] : sub?.bottom);
+            const normalize = v => String(v || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+            const byClass = new Map();
+            flat.forEach(b => {
+              const cls = normalize(b.css_class);
+              if (!byClass.has(cls)) byClass.set(cls,b);
+            });
+            const roleButtons = flat.filter(b => /^room-control-\d+$/.test(b.css_class || ''));
+            roleButtons.sort((a,b)=>Number(a.css_class.split('-').pop())-Number(b.css_class.split('-').pop()));
+            const roles = [...roleButtons,...flat.filter(b => b.css_class === 'room-climate')];
+            const overrides = o.sub_button_styles && typeof o.sub_button_styles === 'object' ? o.sub_button_styles : {};
+            const styles = Object.entries(overrides).filter(([,spec]) => spec && typeof spec === 'object').map(([key,spec]) => {
+              const numeric = /^\d+$/.test(key);
+              const cls = numeric ? 'bubble-sub-button-'+key : normalize(key);
+              return {cls,spec,b:byClass.get(cls) || (numeric ? flat[Number(key)-1] : null) || {}};
+            });
+            structure = this._dpStructure = {config:c,options:c.signature,sub,main:sub?.main,bottom:sub?.bottom,overrides:o.sub_button_styles,
+              flat,styles,roleSet:new Set(roles),roles:roles.map(b => ({b,selector:'ha-card .'+normalize(b.css_class)}))};
+          }
+          const {flat,styles,roleSet} = structure;
+          const {iconOverrides,restoreIcon,restoreAction} = runtime;
+          const desiredIcons = new Map();
+          const custom = String(o.state ?? '').trim() !== '';
+          // Computed summaries have no single entity; name buttons can use the same value layout.
+          const compactValue = layout === 'compact' && kind === 'button' && o.compact_mode === 'value'
+            && (c.button_type === 'state' || (c.button_type === 'name' && custom));
+          const secondary = render(o.secondary).trim();
+          const multiline = o.multiline === true;
+          // Opt-in natural sizing; fixed-height cards retain their existing layout.
+          const autoHeight = layout === 'square' && o.auto_height === true;
+          const stateEl = this.elements?.state;
+          runtime.stateEl = stateEl;
+          const nameBox = this.elements?.nameContainer;
+          const content = this.elements?.contentContainer;
+          attr('data-dp-layout',layout);
+          attr('data-dp-kind',kind);
+          attr('data-dp-color-background',colorBackground ? 'yes' : 'no');
+          attr('data-dp-compact-mode',compactValue ? 'value' : 'standard');
+          attr('data-dp-icon',c.show_icon === false ? 'no' : 'yes');
+          attr('data-dp-secondary',secondary ? 'yes' : 'no');
+          attr('data-dp-multiline',multiline ? 'yes' : 'no');
+          if (autoHeight) attr('data-dp-auto-height','yes');
+          else root.removeAttribute('data-dp-auto-height');
+          attr('data-dp-controls',o.controls === 'measure' && layout === 'square' ? 'measure' : 'native');
+          attr('data-dp-measure-detail',o.controls === 'measure' && (flat.length > 1 || o.reserve_measure_detail === true) ? 'yes' : 'no');
+          // Keep native state_content and legacy attributes/timestamps. Explicit module state wins.
+          const explicitState = c.state_content != null;
+          const legacy = !!(c.show_attribute !== false && c.attribute) || !!c.show_last_changed || !!c.show_last_updated;
+          const nativeEmpty = explicitState && (Array.isArray(c.state_content) ? c.state_content.length === 0 : String(c.state_content).trim() === '');
+          const show = (explicitState ? !nativeEmpty : c.show_state !== false);
+          const entityState = hass.states[c.entity];
+          const domain = (c.entity || '').split('.')[0];
+          // Numeric controls are opt-in; never replace native climate/cover controls.
+          const numberEnabled = o.controls === 'number' && layout === 'compact' && kind === 'button'
+            && c.button_type === 'state' && ['number','input_number'].includes(domain);
+          const numberHost = numberEnabled ? root.querySelector('.bubble-wrapper') : null;
+          let nc = this._dpNumber;
+          if (nc && (!numberHost || nc.host !== numberHost || nc.id !== c.entity)) {
+            nc.dispose();
+            delete this._dpNumber;
+            nc = null;
+          }
+          if (numberHost) {
+            if (!nc) {
+              const group = document.createElement('div');
+              group.className = 'dp-number-control bubble-temperature-container';
+              const makeButton = (className, label, icon) => {
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = className;
+                b.setAttribute('aria-label', label);
+                if (icon) {
+                  const i = document.createElement('ha-icon'); i.setAttribute('icon',icon); b.append(i);
+                }
+                group.append(b); return b;
+              };
+              const minus = makeButton('bubble-climate-minus-button','Diminuer','mdi:minus');
+              const display = makeButton('bubble-climate-temp-display','Ouvrir les détails');
+              const plus = makeButton('bubble-climate-plus-button','Augmenter','mdi:plus');
+              // Prevent the surrounding card's actions from also handling a control gesture.
+              for (const event of ['click','dblclick','pointerdown','pointerup','touchstart','touchend','keydown','keyup'])
+                group.addEventListener(event, e => e.stopPropagation());
+              nc = this._dpNumber = {id:c.entity,host:numberHost,group,minus,plus,display,hass,pending:null,timer:null,disposed:false};
+              nc.read = () => {
+                const state = nc.hass.states[nc.id];
+                const a = state?.attributes || {};
+                const validNumber = v => v != null && String(v).trim() !== '' && Number.isFinite(Number(v));
+                return {value:Number(state?.state),min:Number(a.min),max:Number(a.max),step:Number(a.step),
+                  unit:a.unit_of_measurement || '',valid:[state?.state,a.min,a.max,a.step].every(validNumber)
+                    && Number(a.step) > 0 && Number(a.min) <= Number(a.max)};
+              };
+              nc.refresh = () => {
+                if (nc.disposed) return;
+                const v = nc.read();
+                // Devices may round the requested target; a changed value is enough to resume.
+                if (nc.pending !== null && (!v.valid || v.value !== nc.pending.before)) {
+                  nc.pending = null; clearTimeout(nc.timer); nc.timer = null;
+                }
+                const locale = nc.hass.locale?.language || 'fr-FR';
+                if (nc.locale !== locale) {
+                  nc.locale = locale;
+                  nc.formatter = new Intl.NumberFormat(locale,{maximumFractionDigits:10});
+                }
+                display.textContent = (v.valid ? nc.formatter.format(v.value) : '—') + (v.unit ? ' '+v.unit : '');
+                minus.disabled = !v.valid || nc.pending !== null || v.value <= v.min;
+                plus.disabled = !v.valid || nc.pending !== null || v.value >= v.max;
+                group.setAttribute('aria-busy',String(nc.pending !== null));
+              };
+              nc.dispose = () => { nc.disposed = true; clearTimeout(nc.timer); group.remove(); };
+              display.addEventListener('click', () => group.dispatchEvent(new CustomEvent('hass-more-info',
+                {detail:{entityId:nc.id},bubbles:true,composed:true})));
+              const change = async direction => {
+                const v = nc.read();
+                if (nc.disposed || nc.pending !== null || !v.valid) return;
+                const next = Math.min(v.max,Math.max(v.min,Number((v.value+direction*v.step).toFixed(10))));
+                if (next === v.value) return;
+                const request = {before:v.value,target:next};
+                nc.pending = request;
+                nc.refresh();
+                // Wait for HA to acknowledge the state, avoiding repeated writes from a stale value.
+                nc.timer = setTimeout(() => {
+                  if (nc.disposed || nc.pending !== request) return;
+                  nc.pending = null; nc.timer = null; nc.refresh();
+                },5000);
+                try {
+                  await nc.hass.callService(nc.id.split('.')[0],'set_value',{entity_id:nc.id,value:request.target});
+                } catch (error) {
+                  // An old service rejection must not cancel a more recent request.
+                  if (nc.disposed || nc.pending !== request) return;
+                  clearTimeout(nc.timer); nc.timer = null; nc.pending = null; nc.refresh();
+                  if (!nc.disposed) group.dispatchEvent(new CustomEvent('hass-notification',
+                    {detail:{message:'Impossible de modifier la valeur : '+(error?.message || error)},bubbles:true,composed:true}));
+                }
+              };
+              minus.addEventListener('click', () => change(-1));
+              plus.addEventListener('click', () => change(1));
+              numberHost.append(group);
+            }
+            nc.hass = hass;
+            nc.refresh();
+          }
+          if (numberEnabled) attr('data-dp-controls','number');
+          const plainState = !explicitState || c.state_content === 'state' || (Array.isArray(c.state_content) && c.state_content.length === 1 && c.state_content[0] === 'state');
+          const simple = kind === 'button' && c.button_type === 'state' && plainState && !legacy && ['sensor','number','input_number','counter'].includes(domain) && !['timestamp','date'].includes(entityState?.attributes?.device_class);
+          let owned = false;
+          if (stateEl && show && (custom || simple)) {
+            let value, unit = '', duration = null;
+            if (custom) {
+              value = render(o.state);
+              // Keep calculated labels literal; split only quantities and the explicit h/min duration format.
+              const parts = value.trim().match(/^([+\-−]?(?:\d+(?:[ .,'’]\d+)*|[.,]\d+)(?:[eE][+\-]?\d+)?)[^\S\r\n]*([\p{L}°%€$£][^\d\s]*)$/u);
+              if (parts) { value = parts[1]; unit = parts[2]; }
+              else duration = value.match(/^([^\S\r\n]*\d+)([^\S\r\n]+h)([^\S\r\n]+\d+)([^\S\r\n]+min[^\S\r\n]*)$/);
+            } else {
+              const raw = entityState?.state;
+              const numeric = raw != null && String(raw).trim() !== '' && Number.isFinite(Number(raw));
+              if (raw == null || ['unknown','unavailable'].includes(raw)) value = '—';
+              else if (numeric) {
+                // Local display precision: no extra server subscription per numeric tile.
+                const precision = hass.entities?.[c.entity]?.display_precision ?? entityState.attributes?.suggested_display_precision;
+                const digits = precision == null ? Math.min(10,(String(raw).split('.')[1] || '').length) : number(precision,2,0,10);
+                const locale = hass.locale?.language || 'fr-FR';
+                const formatKey = locale+'|'+digits+'|'+(precision == null);
+                if (this._dpFormatKey !== formatKey) {
+                  this._dpFormatKey = formatKey;
+                  this._dpFormatter = new Intl.NumberFormat(locale,{minimumFractionDigits:precision == null ? 0 : digits,maximumFractionDigits:digits});
+                }
+                value = this._dpFormatter.format(Number(raw));
+                unit = entityState.attributes?.unit_of_measurement || '';
+              } else value = typeof hass.formatEntityState === 'function' ? hass.formatEntityState(entityState) : raw;
+            }
+            const signature = String(value) + '\u0001' + unit + (duration ? '\u0001duration' : '');
+            if (stateEl.dataset.dpSignature !== signature || !stateEl.querySelector('.dp-value')) {
+              const val = document.createElement('span'); val.className = 'dp-value'; val.textContent = value;
+              if (duration) {
+                const durationUnit = text => {
+                  const el = document.createElement('span'); el.className = 'dp-unit dp-duration-unit'; el.textContent = text;
+                  return el;
+                };
+                val.replaceChildren(document.createTextNode(duration[1]),durationUnit(duration[2]),
+                  document.createTextNode(duration[3]),durationUnit(duration[4]));
+              }
+              const u = document.createElement('span'); u.className = 'dp-unit'; u.textContent = unit;
+              stateEl.replaceChildren(val,u); stateEl.dataset.dpSignature = signature;
+            }
+            if (stateEl.classList.contains('hidden')) stateEl.classList.remove('hidden');
+            if (!stateEl.classList.contains('display-state')) stateEl.classList.add('display-state');
+            owned = true;
+          }
+          if (stateEl && !owned) delete stateEl.dataset.dpSignature;
+          // Inspect the displayed text, not the raw entity: templates can turn numbers into labels.
+          // Observe native asynchronous rendering without rewriting Bubble's state or its actions.
+          let valueWatch = this._dpValueWatch;
+          if (valueWatch && (!compactValue || valueWatch.el !== stateEl || valueWatch.root !== root)) {
+            valueWatch.observer.disconnect();
+            valueWatch.root.removeAttribute('data-dp-value-text');
+            delete this._dpValueWatch;
+            valueWatch = null;
+          }
+          if (compactValue && stateEl) {
+            if (!valueWatch) {
+              const update = () => {
+                const valueNode = stateEl.querySelector('.dp-value');
+                const text = (valueNode || stateEl).textContent.trim().replace(/\s+/g, ' ');
+                // Decimal/grouping separators, signs and a unit (°C, kWh, µS/cm…) stay large.
+                const numeric = /^[+\-−]?(?:\d+(?:[ .,'’]\d+)*|[.,]\d+)(?:[eE][+\-]?\d+)?(?:\s*[^\d\s]+)?$/.test(text);
+                if (!text || numeric || text === '—' || stateEl.querySelector('.dp-duration-unit')) root.removeAttribute('data-dp-value-text');
+                else attr('data-dp-value-text', 'yes');
+              };
+              const observer = new MutationObserver(update);
+              observer.observe(stateEl, {childList:true, characterData:true, subtree:true});
+              valueWatch = this._dpValueWatch = {el:stateEl, root, observer, update};
+            }
+            valueWatch.update();
+          } else root.removeAttribute('data-dp-value-text');
+          // Keep the native temperature text and actions; only separate its unit visually.
+          // Bubble can replace the label after an asynchronous Jinja response.
+          const temperatureLabel = layout === 'room' ? root.querySelector('.room-temperature .bubble-sub-button-name-container') : null;
+          let roomWatch = this._dpRoomTemperatureWatch;
+          if (roomWatch && (roomWatch.el !== temperatureLabel || roomWatch.root !== root)) {
+            roomWatch.observer.disconnect();
+            roomWatch.restore();
+            delete this._dpRoomTemperatureWatch;
+            roomWatch = null;
+          }
+          if (temperatureLabel) {
+            if (!roomWatch) {
+              const update = () => {
+                const text = temperatureLabel.textContent;
+                const match = text.match(/^(\s*[+\-−]?\d+(?:[.,]\d+)?)(\s*(?:°[CF]|K)\s*)$/);
+                if (!match) { attr('data-dp-room-temperature-text','yes'); return; }
+                root.removeAttribute('data-dp-room-temperature-text');
+                const value = temperatureLabel.querySelector('.dp-room-value');
+                const unit = temperatureLabel.querySelector('.dp-room-unit');
+                if (value?.textContent === match[1] && unit?.textContent === match[2]) return;
+                const v = document.createElement('span'); v.className = 'dp-room-value'; v.textContent = match[1];
+                const u = document.createElement('span'); u.className = 'dp-room-unit'; u.textContent = match[2];
+                temperatureLabel.replaceChildren(v,u);
+              };
+              const restore = () => {
+                if (temperatureLabel.querySelector('.dp-room-value')) temperatureLabel.textContent = temperatureLabel.textContent;
+                root.removeAttribute('data-dp-room-temperature-text');
+              };
+              const observer = new MutationObserver(update);
+              observer.observe(temperatureLabel,{childList:true,characterData:true,subtree:true});
+              roomWatch = this._dpRoomTemperatureWatch = {el:temperatureLabel,root,observer,update,restore};
+            }
+            roomWatch.update();
+          }
+          // A dedicated secondary node leaves Bubble's native line and event handlers intact.
+          let secondaryEl = root.querySelector('.dp-secondary');
+          if (secondary && nameBox && content) {
+            if (!secondaryEl) { secondaryEl = document.createElement('div'); secondaryEl.className = 'dp-secondary'; }
+            const parent = ['square','room'].includes(layout) ? content : nameBox;
+            if (secondaryEl.parentElement !== parent) parent.appendChild(secondaryEl);
+            // Opt-in emphasis only: never interpret HTML from templates or entity states.
+            const secondaryBold = o.secondary_bold === true;
+            const signature = JSON.stringify([secondaryBold, secondary]);
+            if (secondaryEl.dataset.dpSecondarySignature !== signature) {
+              const fragment = document.createDocumentFragment();
+              const pattern = /\*\*([^*\r\n]+)\*\*/g;
+              let cursor = 0;
+              if (secondaryBold) {
+                for (const match of secondary.matchAll(pattern)) {
+                  fragment.appendChild(document.createTextNode(secondary.slice(cursor, match.index)));
+                  const strong = document.createElement('strong');
+                  strong.textContent = match[1];
+                  fragment.appendChild(strong);
+                  cursor = match.index + match[0].length;
+                }
+              }
+              fragment.appendChild(document.createTextNode(secondary.slice(cursor)));
+              secondaryEl.replaceChildren(fragment);
+              secondaryEl.dataset.dpSecondarySignature = signature;
+            }
+          } else secondaryEl?.remove();
+          // Enrol values in Bubble's existing delegated action handler: no new listeners.
+          const bindings = this._dpActions || (this._dpActions = {});
+          const bindAction = (key, el, data, value = true) => {
+            let binding = bindings[key];
+            if (binding && binding.el !== el) { restoreAction(binding); delete bindings[key]; binding = null; }
+            if (!el) return;
+            const signature = JSON.stringify(data);
+            if (binding?.signature === signature) return;
+            if (!binding) {
+              const classes = ['bubble-action','bubble-action-enabled',...(value ? ['dp-value-action'] : [])];
+              binding = bindings[key] = {el, data:Object.fromEntries(Object.keys(data).map(k => [k,el.dataset[k]])),
+                classes:Object.fromEntries(classes.map(k => [k,el.classList.contains(k)]))};
+              el.classList.add(...classes);
+            }
+            Object.entries(data).forEach(([k,v]) => { if (el.dataset[k] !== v) el.dataset[k] = v; });
+            binding.signature = signature;
+          };
+          const info = id => ({entity:id,tapAction:'{"action":"more-info"}',holdAction:'{"action":"more-info"}',doubleTapAction:'{"action":"none"}'});
+          bindAction('state', c.entity ? stateEl : null, info(c.entity));
+          bindAction('secondary', secondary && o.secondary_entity ? secondaryEl : null, info(o.secondary_entity));
+          if (kind === 'climate') {
+            for (const key of ['tempDisplay','lowTempDisplay','highTempDisplay']) bindAction(key,this.elements?.[key],info(c.entity));
+          }
+          // The main icon belongs to the tile. Explicit control sub-buttons stay native.
+          const navigation = c.tap_action ?? c.button_action?.tap_action;
+          bindAction('icon', navigation?.action === 'navigate' && navigation.navigation_path ? this.elements?.iconContainer : null,
+            {tapAction:JSON.stringify(navigation)}, false);
+          const visibleState = !!stateEl && !stateEl.classList.contains('hidden') && show;
+          attr('data-dp-has-state',visibleState ? 'yes' : 'no');
+          attr('data-dp-value-trailing',compactValue && visibleState && flat.length > 0 && !numberEnabled ? 'yes' : 'no');
+          let css = 'ha-card { --dp-accent: '+accent+'; }';
+          // Opt-in trailing controls: leave native buttons and their actions intact.
+          if (layout === 'compact' && o.sub_buttons_position === 'end') {
+            css += 'ha-card[data-dp-layout="compact"] .bubble-wrapper > .bubble-sub-button-container { order: 1 !important; }';
+          }
+          if (layout === 'compact' && kind === 'climate' && !String(o.icon_color ?? '').trim()) {
+            const action = entityState?.attributes?.hvac_action;
+            const fg = ['heating','preheating'].includes(action) ? 'var(--orange-color,#ff9800)' : action === 'cooling' ? 'var(--blue-color,#2196f3)' : entityState?.state === 'off' ? 'var(--secondary-text-color)' : accent;
+            css += 'ha-card .bubble-main-icon { color:'+fg+' !important; }';
+          }
+          const iconOverride = String(o.icon_color ?? '').trim();
+          const iconTint = iconOverride ? color(o.icon_color,accent) : accent;
+          if (iconOverride || layout === 'square') css += 'ha-card .bubble-main-icon { color: '+iconTint+' !important; }';
+          const iconOpacity = o.icon_opacity == null ? null : number(render(o.icon_opacity),null,0,1);
+          if (iconOpacity !== null) css += 'ha-card[data-dp-layout] .bubble-main-icon { opacity: '+iconOpacity+' !important; }';
+          if (String(o.border_color ?? '').trim()) css += 'ha-card .bubble-container { box-shadow: inset 0 0 0 2px '+color(o.border_color,'transparent')+' !important; }';
+          if (String(o.icon_border_color ?? '').trim()) css += 'ha-card .bubble-icon-container { box-shadow: inset 0 0 0 2px '+color(o.icon_border_color,'transparent')+' !important; }';
+          // Only room roles are repositioned. Other native sub-button groups stay native.
+          const roles = layout === 'room' ? structure.roles : [];
+          const roomColumns = Math.round(number(o.room_control_columns,4,1,6));
+          const roomRows = Math.max(1,Math.ceil(roles.length / roomColumns));
+          // Header measures free the second row for controls without enlarging the room tile.
+          // A main state or secondary still needs the regular content rows.
+          const roomHeaderMeasures = layout === 'room' && o.room_measures_position === 'header' && !visibleState && !secondary;
+          const roomExtraHeight = Math.max(0,roomRows - (roomHeaderMeasures ? 2 : 1)) * 48;
+          // Keep an 8px visual gap below the header without shrinking the 44px action targets.
+          const roomControlPitch = roomHeaderMeasures ? 44 : 48;
+          const roomControlBottom = roomHeaderMeasures ? 4 : 8;
+          const roomDividerBottom = roomControlBottom + 47 + (roomRows - 1) * roomControlPitch;
+          roles.forEach(({b,selector},i) => {
+            css += selector+' { --dp-room-column: '+(i % roomColumns)+'; --dp-room-row: '+Math.floor(i / roomColumns)+'; }';
+            // Native ripple feedback must follow the circular icon, not its wider action target.
+            if (b.show_name !== true && b.show_state !== true && !b.state_content && !b.attribute
+                && !b.show_last_changed && !b.show_last_updated)
+              css += selector+' > ha-ripple { clip-path: circle(18px at 50% 50%); }';
+          });
+          const paint = (selector,b,spec = {},auto = false) => {
+            const st = hass.states[b.entity];
+            const d = (b.entity || '').split('.')[0];
+            let fg = '', bg = '', opacity = '';
+            if (auto && st) {
+              const active = d === 'climate' ? ['heating','preheating','cooling'].includes(st.attributes.hvac_action) : d === 'cover' ? ['open','opening','closing'].includes(st.state) : st.state === 'on';
+              const activeColor = d === 'cover' || st.attributes.hvac_action === 'cooling' ? 'var(--info-color, #039be5)' : 'var(--warning-color, #ff9800)';
+              fg = active ? activeColor : 'var(--secondary-text-color)';
+              bg = active ? 'color-mix(in srgb, '+activeColor+' 16%, '+neutralSurface+')' : 'color-mix(in srgb, var(--primary-text-color) 4%, '+neutralSurface+')';
+              opacity = ['unknown','unavailable'].includes(st.state) ? '0.4' : '1';
+            }
+            if (String(spec.color ?? '').trim()) fg = color(spec.color,fg || accent,b.entity);
+            if (String(spec.background ?? '').trim()) bg = color(spec.background,bg || 'transparent',b.entity);
+            if (spec.opacity != null) opacity = number(render(spec.opacity,b.entity),1,0,1);
+            const target = layout === 'room' && auto ? selector+' .bubble-sub-button-icon' : selector;
+            const declarations = (fg?'color:'+fg+' !important;':'')+(bg?'background:'+bg+' !important;':'')+(opacity!==''?'opacity:'+opacity+' !important;':'');
+            if (declarations) css += target+' {'+declarations+'}';
+            if (spec.column != null) css += selector+' { --room-control-column:'+ (number(spec.column,1,1,roomColumns)-1) +'; }';
+          };
+          if (layout === 'room' && o.room_auto_colors !== false) roles.forEach(({b,selector}) => paint(selector,b,{},true));
+          if (layout === 'header') flat.forEach((b,i) => paint('ha-card .bubble-sub-button-'+(i+1), b, {background:'color-mix(in srgb, '+accent+' 12%, '+neutralSurface+')'}));
+          styles.forEach(({cls,b,spec}) => {
+            paint('ha-card .'+cls,b,spec,layout === 'room' && roleSet.has(b));
+            if (spec.type === 'mode' && layout === 'compact'
+                && (!b.sub_button_type || b.sub_button_type === 'default')) {
+              css += `
+                ha-card[data-dp-layout="compact"] .${cls} {
+                  width: 46px; min-width: 46px; height: 44px; padding: 0;
+                  box-sizing: border-box; font-size: 11px; font-weight: 600;
+                }
+              `;
+            }
+            // Reuse Bubble's Jinja renderer, including dependencies on other entities.
+            const iconName = render(spec.icon,b.entity).trim();
+            if (/^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$/.test(iconName)) {
+              root.querySelectorAll('ha-card .'+cls+' .bubble-sub-button-icon').forEach(icon => {
+                desiredIcons.set(icon,iconName);
+              });
+            }
+            // Style only: explicit lock actions, visibility and native handlers stay untouched.
+            const switchDomain = (b.entity || '').split('.')[0];
+            const lockSwitch = switchDomain === 'lock'
+              && b.tap_action?.action === 'perform-action'
+              && ['lock.lock','lock.unlock'].includes(b.tap_action.perform_action);
+            const toggleSwitch = b.tap_action?.action === 'toggle'
+              && ['switch','input_boolean','light','automation','humidifier'].includes(switchDomain);
+            if (spec.type === 'switch' && ['square','compact'].includes(layout)
+                && (!b.sub_button_type || b.sub_button_type === 'default')
+                && (lockSwitch || toggleSwitch)) {
+              const state = hass.states[b.entity]?.state;
+              // ON means passage allowed for locks; transitional/unknown states are dimmed.
+              const on = state === (lockSwitch ? 'unlocked' : 'on');
+              const available = (lockSwitch ? ['locked','unlocked'] : ['on','off']).includes(state);
+              const selector = 'ha-card[data-dp-layout] .bubble-sub-button.'+cls;
+              // Inherit the configured icon/card color unless this switch has its own color.
+              const tint = color(spec.color,iconTint,b.entity);
+              const track = on ? tint : 'color-mix(in srgb, var(--primary-text-color) 18%, '+neutralSurface+')';
+              css += `
+                ${selector} {
+                  position: relative; width: 52px !important; min-width: 52px !important;
+                  height: 34px !important; flex: 0 0 52px; padding: 0 !important;
+                  background: transparent !important; border-radius: 17px !important;
+                  box-shadow: none !important; opacity: ${available ? '1' : '.4'} !important;
+                }
+                ${selector} .bubble-sub-button-icon,
+                ${selector} .bubble-sub-button-name-container { display: none !important; }
+                ${selector}::before {
+                  content: ''; position: absolute; left: 2px; top: 3px;
+                  width: 48px; height: 28px; border-radius: 14px;
+                  background: ${track}; pointer-events: none;
+                  transition: background 160ms ease;
+                }
+                ${selector}::after {
+                  content: ''; position: absolute; left: 4px; top: 5px;
+                  width: 24px; height: 24px; border-radius: 50%;
+                  background: #fff;
+                  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+                  transform: translateX(${on ? '20px' : '0'});
+                  transition: transform 160ms ease, background 160ms ease;
+                  pointer-events: none;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                  ${selector}::before, ${selector}::after { transition: none; }
+                }
+              `;
+              if (layout === 'square' && o.controls === 'measure' && b === flat[0])
+                css += 'ha-card[data-dp-controls="measure"] .bubble-name { padding-right: 54px; }';
+            }
+
+          });
+          iconOverrides.forEach((value,icon) => {
+            if (desiredIcons.has(icon)) return;
+            restoreIcon(icon,value);
+            iconOverrides.delete(icon);
+          });
+          desiredIcons.forEach((iconName,icon) => {
+            const current = icon.getAttribute('icon');
+            const previous = iconOverrides.get(icon);
+            const original = previous && current === previous.applied ? previous.original : current;
+            iconOverrides.set(icon,{original,applied:iconName});
+            if (current !== iconName) icon.setAttribute('icon',iconName);
+          });
+          return `/* Shared design tokens for all three tile families. */
+        ha-card[data-dp-layout] {
+          --dp-radius: 22px;
+          --dp-divider-color: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          --dp-tint: 16%;
+          --dp-surface: ${surface};
+          --bubble-border-radius: var(--dp-radius, 22px);
+          --bubble-main-background-color: var(--dp-surface);
+          --bubble-accent-color: var(--dp-accent);
+          --dp-icon-surface: ${iconSurface};
+          --bubble-icon-background-color: ${neutralSurface};
+          --bubble-icon-border-radius: 12px;
+          --bubble-sub-button-border-radius: 14px;
+          --bubble-box-shadow: 0 2px 10px rgb(0 0 0 / 0.035);
+          --bubble-border: 1px solid color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+          border: 0; box-shadow: none;
+        }
+        /* Scope the tint to the main icon: native sub-buttons share Bubble's fallback token. */
+        ha-card[data-dp-layout] .bubble-main-icon-container { --bubble-icon-background-color: var(--dp-icon-surface); border-radius: var(--bubble-icon-border-radius) !important; }
+        ha-card[data-dp-layout] :is(.bubble-name,.bubble-state,.bubble-sub-button-name-container) { font-family: inherit; }
+        ha-card[data-dp-layout] .dp-unit { font-size: .8em; letter-spacing: 0; color: var(--secondary-text-color); }
+        ha-card[data-dp-layout] .dp-unit:not(:empty) { margin-inline-start: 4px; }
+        /* Compound durations keep their original spaces between numbers and units. */
+        ha-card[data-dp-layout] .dp-unit.dp-duration-unit { margin-inline-start: 0; }
+        ha-card[data-dp-layout] .dp-secondary { font-size: 12px; line-height: 16px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; pointer-events: none; }
+        ha-card[data-dp-layout] .dp-secondary strong { font-weight: 600; color: var(--primary-text-color); }
+        ha-card[data-dp-multiline="yes"] .bubble-state, ha-card[data-dp-multiline="yes"] .dp-secondary { white-space: pre-line !important; overflow-wrap: anywhere; }
+        /* Never undo native visibility, including grouped sub-buttons and conditional badges. */
+        ha-card[data-dp-layout] .hidden, ha-card[data-dp-layout] [hidden] { display: none !important; }
+
+        /* Native active states must not override the chosen card surface. */
+        ha-card[data-dp-layout] .bubble-button-background { background: transparent !important; }
+
+        /* Native active badges keep their state color, with a readable pastel surface. */
+        ha-card[data-dp-layout] .bubble-sub-button.background-on:not(.is-select) {
+          background-color: color-mix(in srgb, var(--bubble-sub-button-light-background-color, var(--dp-accent)) 16%, ${neutralSurface});
+          color: var(--primary-text-color);
+        }
+
+        /* Only the displayed value catches the pointer; surrounding space belongs to the tile. */
+        ha-card[data-dp-layout] .dp-value-action { pointer-events: auto; cursor: pointer; }
+        ha-card[data-dp-layout] .bubble-state.dp-value-action { width: fit-content; max-width: 100%; }
+        ha-card[data-dp-layout] .dp-secondary.dp-value-action { width: fit-content; max-width: 100%; }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-state.dp-value-action { justify-self: end; }
+        ` + (layout === 'header' ? `/* Page header: native sub-buttons retain their labels, visibility and actions. */
+        ha-card[data-dp-layout="header"] {
+          background: transparent !important; border: none !important;
+          box-shadow: none !important; width: 100% !important; height: auto !important;
+          container-type: inline-size;
+        }
+        ha-card[data-dp-layout="header"] .card-content { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        ha-card[data-dp-layout="header"] .bubble-button-card-container {
+          width: 100% !important; height: auto !important; min-height: 0 !important;
+          background: transparent !important; border: none !important;
+          box-shadow: none !important; overflow: visible !important;
+        }
+        /* Keep native layout changes immediate when the module styles are applied. */
+        ha-card[data-dp-layout="header"] .bubble-wrapper {
+          transition: none !important;
+          position: relative !important; display: grid !important;
+          grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+          gap: 16px; padding: 6px 0 !important;
+          width: 100% !important; height: auto !important; box-sizing: border-box;
+        }
+        ha-card[data-dp-layout="header"] .bubble-content-container { min-width: 0 !important; }
+        ha-card[data-dp-layout="header"] .bubble-name-container { margin: 0 !important; min-width: 0 !important; overflow: visible !important; }
+        /* Bubble's non-scrolling line clamp clips large glyphs, including the descender in Étage. */
+        ha-card[data-dp-layout="header"] .bubble-name { display: block !important; overflow: visible !important; font-size: 38px !important; line-height: 1.15 !important; font-weight: 700 !important; letter-spacing: -1.2px; white-space: normal; }
+        ha-card[data-dp-layout="header"] .bubble-sub-button-container {
+          position: static !important; display: flex !important;
+          flex-wrap: wrap !important; justify-content: flex-end !important;
+          width: auto !important; min-width: 0; margin: 0 !important; gap: 8px !important;
+        }
+        ha-card[data-dp-layout="header"] .bubble-sub-button-group { display: contents !important; }
+        ha-card[data-dp-layout="header"] .bubble-sub-button {
+          transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease !important;
+          height: 44px !important; min-width: 0 !important; padding: 0 14px !important;
+          border-radius: 24px !important; border: none !important; box-shadow: none !important;
+        }
+        @container (max-width: 900px) {
+          ha-card[data-dp-layout="header"] .bubble-wrapper { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+          ha-card[data-dp-layout="header"] .bubble-sub-button-container { justify-content: flex-start !important; }
+        }
+        @container (max-width: 600px) {
+          ha-card[data-dp-layout="header"] .bubble-name { font-size: 32px !important; letter-spacing: -0.8px; }
+          ha-card[data-dp-layout="header"] .bubble-sub-button { padding: 0 10px !important; }
+        }
+        ` : layout === 'square' ? `/* Layout changes are confined to button name/state cards. */
+        ha-card[data-dp-layout="square"] .bubble-container { container-type: inline-size; }
+        ha-card[data-dp-layout="square"] .bubble-state:not(.hidden) { min-width: 0; margin: 0 !important; color: var(--primary-text-color); font-variant-numeric: tabular-nums; opacity: 1 !important; white-space: nowrap; }
+        /* Square: title / value / optional secondary. */
+        /* 9px inside the 1px border gives a 10px inset: card radius 22px, icon radius 12px. */
+        ha-card[data-dp-layout="square"] .bubble-content-container { min-width: 0; margin: 0 !important; pointer-events: none; position: absolute; inset: 9px; display: grid !important; grid-template-columns: 36px minmax(0,1fr); grid-template-rows: 36px minmax(0,1fr); gap: 6px 10px; }
+        ha-card[data-dp-layout="square"] .bubble-name-container { display: contents !important; }
+        ha-card[data-dp-layout="square"] .bubble-icon-container { margin: 0 !important; pointer-events: auto; grid-area: 1 / 1; width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; --mdc-icon-size: 22px; }
+        ha-card[data-dp-layout="square"] .bubble-name { min-width: 0; font-size: 14px !important; font-weight: 600; line-height: 20px; letter-spacing: -0.2px; color: var(--primary-text-color); grid-area: 1 / 2; align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        ha-card[data-dp-layout="square"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center; font-size: 28px !important; line-height: 1.1; letter-spacing: -.8px; font-weight: 500 !important; overflow: hidden; text-overflow: ellipsis; }
+        ha-card[data-dp-layout="square"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px minmax(0,1fr) 16px; row-gap: 4px; }
+        ha-card[data-dp-layout="square"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; font-size: 13px; line-height: 16px; }
+        ha-card[data-dp-layout="square"][data-dp-icon="no"] .bubble-name { grid-column: 1 / 3; }
+
+        ha-card[data-dp-layout="square"] .bubble-button-card { transition: none !important; }
+
+        ha-card[data-dp-layout="square"] .dp-unit { font-size: 16px; font-weight: 400; }
+        ` : layout === 'room' ? `/* A room has a stable height and only explicitly identified roles are moved. */
+        ha-card[data-dp-layout="room"] .bubble-container { height: ${156 + roomExtraHeight}px !important; min-height: ${156 + roomExtraHeight}px !important; container-type: inline-size; }
+        ha-card[data-dp-layout="room"] .bubble-wrapper { position: static !important; }
+        ha-card[data-dp-layout="room"] .bubble-content-container { position: absolute; inset: 12px; display: grid !important; grid-template-columns: 38px minmax(0,1fr); grid-template-rows: 38px 32px; gap: 10px 10px; margin: 0 !important; pointer-events: none; }
+        ha-card[data-dp-layout="room"] .bubble-name-container { display: contents !important; }
+        ha-card[data-dp-layout="room"] .bubble-icon-container { grid-area: 1 / 1; width: 38px; height: 38px; min-width: 38px !important; min-height: 38px !important; margin: 0 !important; background: var(--bubble-icon-background-color); --mdc-icon-size: 24px; pointer-events: auto; }
+        ha-card[data-dp-layout="room"] .bubble-name { grid-area: 1 / 2; align-self: center; font-size: 14px !important; font-weight: 600; letter-spacing: -0.2px; line-height: 19px; white-space: normal; max-height: 38px; overflow: hidden; }
+        ha-card[data-dp-layout="room"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center; font-size: 17px; line-height: 22px; opacity: 1; }
+        /* Secondary text gets its own row; reserve the footer even when it wraps. */
+        ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-container { height: auto !important; min-height: ${180 + (roomRows - 1) * 48}px !important; }
+        ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-wrapper { display: block !important; height: auto !important; }
+        ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-content-container { position: relative; inset: auto; width: 100%; box-sizing: border-box; padding: 12px 12px ${68 + (roomRows - 1) * 48}px; grid-template-rows: 38px 32px auto; }
+        ha-card[data-dp-layout="room"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; line-height: 14px; }
+        ha-card[data-dp-layout="room"][data-dp-has-state="yes"] :is(.room-temperature,.room-humidity) { display: none !important; }
+        ha-card[data-dp-layout="room"] :is(.bubble-sub-button-container,.bubble-sub-button-group) { position: static !important; transform: none !important; }
+        ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity,.room-status,.room-climate,[class*="room-control-"]) { position: absolute !important; margin: 0 !important; padding: 0 !important; min-width: 0 !important; box-sizing: border-box; transform: none !important; }
+        ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity) { top: 62px; bottom: auto; width: max-content; height: 32px; background: transparent !important; font-variant-numeric: tabular-nums; }
+        ha-card[data-dp-layout="room"] .room-temperature { left: 12px; right: auto; max-width: calc(100% - 78px); font-size: clamp(20px,14cqw,30px); font-weight: 600; letter-spacing: -0.6px; color: var(--primary-text-color); }
+        ha-card[data-dp-layout="room"] .room-humidity { left: auto; right: 12px; max-width: 58px; flex-direction: row !important; gap: 3px; font-size: 12px; font-weight: 400; color: var(--secondary-text-color); }
+        ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity) .bubble-sub-button-name-container { margin: 0 !important; white-space: nowrap; line-height: 32px; font-size: inherit; overflow: hidden; text-overflow: ellipsis; }
+        ha-card[data-dp-layout="room"] .dp-room-unit { font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--secondary-text-color); }
+        ha-card[data-dp-layout="room"][data-dp-room-temperature-text="yes"] .room-temperature { font-size: 15px; letter-spacing: 0; }
+        ha-card[data-dp-layout="room"] .room-humidity .bubble-sub-button-icon { --mdc-icon-size: 13px; color: inherit; }
+        ha-card[data-dp-layout="room"] .room-humidity:not(:has(.bubble-sub-button-icon:not(.hidden):not([hidden])))::before {
+          content: ''; display: block; width: 11px; height: 14px; flex: 0 0 11px; background: currentColor;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3C10 7 5 12 5 16a7 7 0 0 0 14 0c0-4-5-9-7-13Z' fill='none' stroke='black' stroke-width='1.8'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+        ${roomHeaderMeasures ? `
+        ha-card[data-dp-layout="room"] .bubble-content-container { right: 100px; }
+        ha-card[data-dp-layout="room"] .room-temperature { top: 12px; left: auto; right: 12px; height: 22px; max-width: 82px; font-size: 20px; letter-spacing: -0.2px; }
+        ha-card[data-dp-layout="room"] .room-temperature .bubble-sub-button-name-container { line-height: 22px; }
+        ha-card[data-dp-layout="room"] .room-humidity { top: 34px; height: 16px; }
+        ha-card[data-dp-layout="room"] .room-humidity .bubble-sub-button-name-container { line-height: 16px; }
+        ` : ''}
+        /* The divider exists only for real controls and never intercepts a tap. */
+        ha-card[data-dp-layout="room"] .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden]))::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: ${roomDividerBottom}px; height: 1px; background: var(--dp-divider-color); pointer-events: none; }
+        ha-card[data-dp-layout="room"] :is([class*="room-control-"],.room-climate) { top: auto; right: auto; bottom: calc(${roomControlBottom}px + (${roomRows - 1} - var(--dp-room-row,0)) * ${roomControlPitch}px); left: calc(8px + var(--room-control-column,var(--dp-room-column,0)) * (100% - 16px) / ${roomColumns}); width: calc((100% - 16px) / ${roomColumns}); height: 44px; justify-content: center; background: transparent !important; box-shadow: none !important; }
+        ha-card[data-dp-layout="room"] :is([class*="room-control-"],.room-climate) .bubble-sub-button-icon { width: 36px; height: 36px; padding: 8px; box-sizing: border-box; border-radius: 50%; --mdc-icon-size: 20px; }
+        ha-card[data-dp-layout="room"] .room-status { top: 7px; left: 43px; width: 22px; height: 22px; border-radius: 50%; background: ${neutralSurface}; --mdc-icon-size: 16px; z-index: 2; }
+
+        ha-card[data-dp-layout="room"] .bubble-main-icon { color: var(--primary-text-color); opacity: 1; }
+        ha-card[data-dp-layout="room"] .room-status { color: var(--warning-color,#ff9800); }
+        ha-card[data-dp-layout="room"] .room-status .bubble-sub-button-icon { color: inherit; }
+
+        ha-card[data-dp-layout="room"] .dp-unit { font-size: 11px; }
+        ` : `/* One compact tile for native cover, climate and button controls. */
+        ha-card[data-dp-layout="compact"] { container-type: inline-size; --bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: 12px; --bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface}; }
+        /* Match the centered 36px icon's 10px vertical inset, including the 1px card border. */
+        ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 2px; padding: 0 4px; padding-inline-start: 9px; box-sizing: border-box; transition: none !important; }
+        ha-card[data-dp-layout="compact"] .bubble-content-container { flex: 1; display: flex !important; align-items: center; min-width: 0; }
+        ha-card[data-dp-layout="compact"] .bubble-icon-container { width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; margin: 0 4px 0 0 !important; background: var(--bubble-icon-background-color) !important; border-radius: var(--bubble-icon-border-radius) !important; }
+        ha-card[data-dp-layout="compact"] .bubble-main-icon { --mdc-icon-size: 22px; color: var(--dp-accent); }
+        ha-card[data-dp-layout="compact"] .bubble-name-container { margin: 0 !important; min-width: 0; }
+        /* Keep glyphs inside Bubble's clipped name; max-height still measures the two content lines. */
+        ha-card[data-dp-layout="compact"] .bubble-name { color: var(--primary-text-color); font-size: 14px; font-weight: 600; letter-spacing: -0.2px; line-height: 16px; padding-block: 2px; box-sizing: content-box; white-space: normal; }
+        ha-card[data-dp-layout="compact"] .bubble-state { color: var(--secondary-text-color); font-size: 13px; line-height: 16px; white-space: normal; }
+        /* Two name lines and one state line fit the 56px tile; multiline remains an explicit opt-in. */
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: 32px; overflow: hidden; }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-state { display: block; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Native inline wrapping must not turn a compact state into an extra row. */
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"][data-dp-multiline="no"] .bubble-state { display: block !important; white-space: nowrap !important; }
+        ha-card[data-dp-layout="compact"] .dp-secondary { font-size: 13px; line-height: 16px; }
+        ha-card[data-dp-layout="compact"] .bubble-sub-button-container { position: relative !important; inset-inline-end: 0 !important; margin: 0 !important; flex-shrink: 0; z-index: 2; }
+        ha-card[data-dp-layout="compact"] .bubble-buttons-container { position: static !important; margin: 0 !important; gap: 4px; flex-shrink: 0; }
+        /* Match the 128px thermostat group so mode badges share the same column. */
+        ha-card[data-dp-layout="compact"][data-dp-kind="cover"] .bubble-buttons-container { width: 128px; justify-content: space-between; }
+        /* Two compact rows plus the native row gap equal a two-row square. */
+        ha-card[data-dp-layout="compact"] .bubble-container { height: var(--row-height, 56px) !important; }
+        ha-card[data-dp-layout="compact"] .bubble-cover-button { transition: none !important; }
+        ha-card[data-dp-layout="compact"] .bubble-cover-button-icon { --mdc-icon-size: 20px; }
+        ha-card[data-dp-layout="compact"] :is(.bubble-temperature-container,.bubble-low-temp-container,.bubble-high-temp-container) { width: 128px; height: 44px; flex-shrink: 0; justify-content: space-between; }
+        ha-card[data-dp-layout="compact"] :is(.bubble-cover-button,.bubble-climate-minus-button,.bubble-climate-plus-button) { width: 38px; min-width: 38px; height: 44px; margin: 0; }
+        ha-card[data-dp-layout="compact"] .bubble-climate-temp-display { flex: 1; padding: 0 2px; font-size: 12px; font-weight: 600; }
+
+        ha-card[data-dp-layout="compact"] .dp-unit { font-size: 10px; }
+
+        ` + (numberEnabled ? `/* Button cards do not load Bubble's climate CSS. Geometry is shared above. */
+        ha-card[data-dp-controls="number"] .bubble-state { display: none !important; }
+        ha-card .dp-number-control { display: inline-flex; position: relative; align-items: center; border-radius: var(--bubble-sub-button-border-radius); background: var(--bubble-climate-button-background-color, var(--dp-surface)); }
+        ha-card .dp-number-control button { display: flex; align-items: center; justify-content: center; position: relative; appearance: none; border: 0; padding: 0; background: transparent; color: var(--primary-text-color); font-family: inherit; cursor: pointer; border-radius: var(--bubble-sub-button-border-radius); box-sizing: border-box; }
+        ha-card .dp-number-control .bubble-climate-temp-display { height: 44px; white-space: nowrap; }
+        ha-card .dp-number-control ha-icon { --mdc-icon-size: 16px; }
+        ha-card .dp-number-control button:disabled { opacity: 0.35; cursor: default; }
+        ha-card .dp-number-control button:focus-visible { outline: 2px solid var(--dp-accent); outline-offset: -2px; }
+
+        ` : '') + `/* A value is the native main state, placed beside the title in the compact tile. */
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-name-container {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) fit-content(60%);
+          align-items: center;
+          column-gap: 6px;
+        }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-name {
+          grid-area: 1 / 1 / 3 / 2;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-state {
+          grid-area: 1 / 2 / 3 / 3;
+          display: block !important;
+          min-width: 0;
+          font-size: 20px;
+          font-weight: 500;
+          color: var(--primary-text-color);
+          padding-inline-end: 6px;
+          box-sizing: border-box;
+          line-height: 1.1;
+          white-space: nowrap;
+          text-align: right;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          opacity: 1;
+        }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-multiline="no"] .bubble-state { white-space: nowrap !important; }
+        /* Text values need room for accents and descenders inside Bubble's clipped native state. */
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"] .bubble-state { font-size: 16px; font-weight: 400; color: var(--secondary-text-color); line-height: 1.3; padding-block: 2px; }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"][data-dp-color-background="yes"] .bubble-state { color: var(--dp-accent); }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-unit { font-size: 13px; font-weight: 400; }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-secondary { grid-area: 2 / 1; }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 1; }
+        /* Flatten only layout boxes: keep the native state node, formatting and action bindings. */
+        ha-card[data-dp-value-trailing="yes"] .bubble-wrapper {
+          display: grid !important;
+          grid-template-columns: 36px minmax(0, 1fr) auto fit-content(60%);
+          grid-template-rows: 1fr 1fr;
+          column-gap: 4px;
+          row-gap: 0;
+        }
+        ha-card[data-dp-value-trailing="yes"] :is(.bubble-content-container,.bubble-name-container) { display: contents !important; }
+        ha-card[data-dp-value-trailing="yes"] .bubble-icon-container { grid-area: 1 / 1 / 3 / 2; margin: 0 !important; }
+        ha-card[data-dp-value-trailing="yes"] .bubble-name { grid-area: 1 / 2 / 3 / 3 !important; align-self: center; min-width: 0; }
+        ha-card[data-dp-value-trailing="yes"] .bubble-sub-button-container { grid-area: 1 / 3 / 3 / 4; align-self: center; }
+        ha-card[data-dp-value-trailing="yes"] .bubble-state { grid-area: 1 / 4 / 3 / 5 !important; align-self: center; }
+        ha-card[data-dp-value-trailing="yes"] .dp-secondary { grid-area: 2 / 2 / 3 / 3 !important; align-self: start; min-width: 0; }
+        ha-card[data-dp-value-trailing="yes"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 2 / 2 / 3 !important; align-self: end; }
+        ha-card[data-dp-value-trailing="yes"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) auto fit-content(60%); }
+        `) + (autoHeight ? `/* Let square cards grow with their content without altering the shared typography. */
+        /* The grid provides a shared height; flex keeps intrinsic text sizing and fills each cell. */
+        :host { height: 100%; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] { height: 100%; display: flex; flex-direction: column; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .card-content { flex: 1; display: flex; flex-direction: column; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .bubble-container { height: auto !important; flex: 1; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .bubble-wrapper { position: relative !important; height: auto !important; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .bubble-content-container {
+          position: relative; inset: auto; width: 100%; box-sizing: border-box;
+          padding: 9px; grid-template-rows: 36px auto;
+        }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px auto auto; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .dp-secondary { overflow: visible; text-overflow: clip; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-measure-detail="yes"] .bubble-content-container { bottom: auto; padding-bottom: 26px; }
+        ` : '') + (layout === 'square' && o.controls === 'measure' ? `/* Optional measurement controls; leave visibility and state_background native. */
+        ha-card[data-dp-controls="measure"] .bubble-name { padding-right: 34px; }
+        ha-card[data-dp-controls="measure"][data-dp-measure-detail="yes"] .bubble-content-container { bottom: 26px; }
+        ha-card[data-dp-controls="measure"] :is(.bubble-sub-button-container,.bubble-sub-button-group) { position: static !important; }
+        ha-card[data-dp-controls="measure"] .bubble-sub-button-1 { position: absolute !important; top: 8px; right: 10px; width: 34px; min-width: 34px !important; height: 34px; padding: 0; border-radius: 50%; --mdc-icon-size: 20px; }
+        ha-card[data-dp-controls="measure"] .bubble-sub-button-2 { position: absolute !important; top: auto; bottom: 3px; right: 14px; width: auto; min-width: 0 !important; height: 24px; padding: 0; background: transparent !important; box-shadow: none; font-size: 12px; }
+        ` : '') + `/* Hidden binary states must stay hidden despite compact display rules. */
+        ha-card[data-dp-layout][data-dp-has-state="no"] .bubble-state.hidden { display: none !important; }
+        ` + css;
+        })()}
+
