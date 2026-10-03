@@ -1,4 +1,4 @@
-# Module Bubble Alert Manager 2.1.0
+# Module Bubble Alert Manager 3.0.0
 
 [Module à importer](../dist/alert_manager.yaml), indépendant de `signature`. Il colore uniquement l’icône principale et son fond pastel selon les alertes d’Alert Manager. Il ne recopie ni seuils ni délais dans les cartes.
 
@@ -27,16 +27,14 @@ Le module peut aussi être utilisé seul avec Bubble natif. Avec `signature`, le
 | Option | Effet | Valeur par défaut |
 |---|---|---|
 | `sensors.active/acknowledge/pending` | Identifiants des trois capteurs sources | Capteurs créés par défaut par l’intégration |
-| `packs` | Liste des ID de packs automatiques à ajouter aux règles personnalisées | `[]` |
-| `exclude_packs` | Liste des ID de packs à interdire | `[]` |
+| `packs.<pack_id>` | Active un pack et définit éventuellement ses `colors.active/pending` | Aucun pack activé |
 | `exclude_rules` | Liste des ID de règles personnalisées à interdire | `[]` |
 | `ignore_pending` | Masquer les alertes à venir | `false` |
 | `colors.active` | Couleur des alertes actives ou acquittées | Rouge du thème |
 | `colors.pending` | Couleur des alertes à venir | Orange du thème |
-| `pack_colors.<pack_id>.active/pending` | Couleurs propres à un pack | Couleurs générales |
 | `entities.<entity_id>` | Exceptions pour une entité de la carte, ou ajout d’une entité extérieure | Aucune exception |
 
-Chaque entrée de `entities` accepte `exclude: true`, `ignore_pending`, `packs`, `exclude_packs`, `exclude_rules` et `colors.active/pending`. Seuls les booléens YAML `true` et `false` règlent les options booléennes.
+Chaque entrée de `entities` accepte `exclude: true`, `ignore_pending`, `packs.<pack_id>`, `exclude_rules` et `colors.active/pending`. Les packs utilisent le même objet de configuration au niveau général et dans une entité. Seuls les booléens YAML `true` et `false` règlent les options booléennes.
 
 Pour désactiver entièrement ce module sur une carte : `alert_manager: false`.
 
@@ -87,54 +85,67 @@ alert_manager:
     sensor.cave_temperature: {}
 ```
 
-## Ajouter ou interdire des packs
+## Activer des packs
 
-Les packs sont ajoutés par leur ID, sans liste codée en dur dans le module. Un futur pack utilisant le contrat d’ID d’Alert Manager sera immédiatement pris en charge.
+Les packs sont déclarés par leur ID dans un objet `packs`, sans liste codée en dur dans le module. Un futur pack utilisant le contrat d’ID d’Alert Manager sera immédiatement pris en charge. Un pack absent de la configuration reste ignoré ; un objet vide `{}` suffit à l’activer.
 
 ```yaml
 alert_manager:
   packs:
-    - battery
-    - connectivity
+    battery: {}
+    connectivity: {}
   entities:
-    sensor.frigo_temperature:
-      exclude_packs:
-        - connectivity
     sensor.prise_frigo_puissance:
       packs:
-        - flapping
+        flapping: {}
 ```
 
-Ici, `battery` et `connectivity` s’appliquent à toutes les entités surveillées, sauf l’exclusion de `connectivity` pour la température. `flapping` s’ajoute uniquement à la puissance.
+Ici, `battery` et `connectivity` s’appliquent à toutes les entités surveillées. `flapping` s’ajoute uniquement à la puissance.
 
-Les listes générales et celles de l’entité **s’additionnent**. Une exclusion gagne toujours sur un ajout, y compris si un pack interdit globalement est ajouté pour une entité. Les règles personnalisées restent activées ; `exclude_rules` permet d’en retirer certaines. Un ID dans `exclude_rules` n’exclut pas le pack qui porterait le même ID, et réciproquement.
+Les packs généraux et ceux de l’entité **s’additionnent**. Pour activer un pack sur certaines entités seulement, le déclarer dans leurs entrées `entities`, sans le déclarer au niveau général. Un objet `packs: {}` dans une entité n’annule pas les packs généraux.
+
+Les règles personnalisées restent activées ; `exclude_rules` permet d’en retirer certaines. Un ID dans `exclude_rules` n’exclut pas le pack qui porterait le même ID.
 
 Les exclusions et `ignore_pending` modifient uniquement l’affichage de cette carte. Ils ne désactivent pas la détection ni les notifications dans Alert Manager. `ignore_pending: false` sur une entité peut réactiver son orange si l’option générale est `true`.
 
 ## Personnaliser les couleurs
 
-Priorité, **séparément pour chaque état** : **entité → pack → général → défaut rouge/orange**.
+Priorité, **séparément pour chaque état** : **pack de l’entité → entité → pack général → général → défaut rouge/orange**.
 
 ```yaml
 alert_manager:
   packs:
-    - battery
+    battery:
+      colors:
+        active: '#c62828'
+        pending: '#ffb300'
   colors:
     active: '#d32f2f'
     pending: '#fb8c00'
-  pack_colors:
-    battery:
-      active: '#c62828'
-      pending: '#ffb300'
   entities:
     sensor.frigo_temperature:
       colors:
         active: '#b71c1c'
 ```
 
-La température utilise sa couleur d’entité lorsqu’une alerte est active ou acquittée. Pour ses alertes à venir, la couleur du pack s’applique lorsqu’il s’agit d’un pack personnalisé ici ; sinon, la couleur générale s’applique. Une règle personnalisée utilise les couleurs d’entité ou générales.
+La température utilise sa couleur d’entité lorsqu’une alerte est active ou acquittée. Pour ses alertes à venir du pack `battery`, la couleur du pack général s’applique ; pour une règle personnalisée, la couleur générale s’applique.
 
-Les valeurs acceptent une couleur CSS valide : hexadécimal, nom (`red`, `teal`…), `rgb(...)` ou variable (`var(--my-alert-color)`). Une couleur invalide conserve la couleur du niveau inférieur. Définir une couleur dans `pack_colors` **n’active pas le pack** : il doit aussi figurer dans `packs`.
+Pour personnaliser un pack sur une seule entité, utiliser exactement le même format sous cette entité :
+
+```yaml
+alert_manager:
+  entities:
+    sensor.frigo_temperature:
+      packs:
+        battery:
+          colors:
+            active: '#c62828'
+            pending: '#ffb300'
+```
+
+Cet exemple active `battery` uniquement pour la température et choisit ses couleurs. Une couleur définie à ce niveau est prioritaire sur les couleurs générales de l’entité et du pack. Les états non renseignés héritent du niveau suivant ; déclarer un pack local avec `{}` conserve les couleurs héritées selon cette priorité.
+
+Les valeurs acceptent une couleur CSS valide : hexadécimal, nom (`red`, `teal`…), `rgb(...)` ou variable (`var(--my-alert-color)`). Une couleur invalide conserve la couleur du niveau inférieur. Déclarer un pack avec ses couleurs suffit à l’activer ; aucune liste d’activation séparée n’est nécessaire.
 
 | Situation | Affichage |
 |---|---|

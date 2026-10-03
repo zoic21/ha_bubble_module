@@ -56,7 +56,7 @@ test('literal Jinja and JS references are discovered; dynamic IDs can be explici
 });
 
 test('entity-like labels, service names, pack colors and nested cards do not expand discovery',()=>{
-  const ctx = context({pack_colors:{battery:{active:'var(--sensor-color)'}}},{name:'sensor.label',
+  const ctx = context({packs:{battery:{colors:{active:'var(--sensor-color)'}}}},{name:'sensor.label',
     tap_action:{action:'call-service',service:'switch.toggle'},card:{entity:'sensor.child'},cards:[{entity:target}]});
   for (const entity of ['sensor.label','switch.toggle','sensor.child',target,'var.sensor']) {
     assert.equal(run(ctx,withAlerts([custom(entity)])),'',entity);
@@ -73,7 +73,7 @@ test('excluded entities never produce a color and additional entities are opt-in
   const ctx = context({entities:{[primary]:{exclude:true},[target]:{}}});
   assert.equal(run(ctx,withAlerts([custom()])),'');
   assert.equal(accent(run(ctx,withAlerts([custom(target)]))),red);
-  assert.equal(run(context({entities:{[primary]:{exclude:true,packs:['battery']}}}),forbiddenHass),'');
+  assert.equal(run(context({entities:{[primary]:{exclude:true,packs:{battery:{}}}}}),forbiddenHass),'');
 });
 
 test('ignore_pending affects only pending; active and acknowledged still win',()=>{
@@ -99,21 +99,17 @@ test('all automatic packs are excluded by default and arbitrary future IDs work'
     for (const partition of [0,1,2]) {
       const hass=withAlerts([pack(primary,id)],partition);
       assert.equal(run(context(),hass),'',id);
-      assert.equal(accent(run(context({packs:[id]}),hass)),partition === 2 ? orange : red,id);
+      assert.equal(accent(run(context({packs:{[id]:{}}}),hass)),partition === 2 ? orange : red,id);
     }
   }
 });
 
-test('global and entity pack additions are cumulative and exclusions take priority',()=>{
-  const ctx = context({packs:['battery'],entities:{[target]:{packs:['future_pack']}}},{sub_button:[{entity:target}]});
+test('global and entity pack objects activate cumulatively without leaking local packs',()=>{
+  const ctx = context({packs:{battery:{}},entities:{[target]:{packs:{future_pack:{}}}}},{sub_button:[{entity:target}]});
   for (const entity of [primary,target]) assert.equal(accent(run(ctx,withAlerts([pack(entity)]))),red);
   assert.equal(accent(run(ctx,withAlerts([pack(target,'future_pack')]))),red);
   assert.equal(run(ctx,withAlerts([pack(primary,'future_pack')])),'');
-  for (const options of [
-    {packs:['battery'],entities:{[primary]:{exclude_packs:['battery']}}},
-    {exclude_packs:['battery'],entities:{[primary]:{packs:['battery']}}},
-    {packs:['battery'],exclude_packs:['battery'],entities:{[primary]:{packs:['battery']}}},
-  ]) assert.equal(run(context(options),withAlerts([pack()])),'');
+  assert.equal(accent(run(context({packs:{battery:{}},entities:{[primary]:{packs:{}}}}),withAlerts([pack()]))),red);
 });
 
 test('rule exclusions apply by stable rule ID and preserve other errors and other entities',()=>{
@@ -127,30 +123,31 @@ test('rule exclusions apply by stable rule ID and preserve other errors and othe
   assert.equal(accent(run(ctx,withAlerts([{...custom(),rule:'notification',message:'notification'}]))),red);
 });
 
-test('rule and pack exclusion namespaces are independent',()=>{
-  assert.equal(accent(run(context({packs:['battery'],exclude_rules:['battery']}),withAlerts([pack()]))),red);
-  assert.equal(accent(run(context({exclude_packs:['battery']}),withAlerts([custom(primary,'battery')]))),red);
+test('excluding a custom rule never excludes an enabled pack with the same ID',()=>{
+  const ctx=context({packs:{battery:{}},exclude_rules:['battery']});
+  assert.equal(accent(run(ctx,withAlerts([pack()]))),red);
+  assert.equal(run(ctx,withAlerts([custom(primary,'battery')])),'');
 });
 
 test('pack pending policies and simultaneous custom/pack alerts use lifecycle severity',()=>{
-  const ctx = context({packs:['battery'],entities:{[primary]:{ignore_pending:true}}});
+  const ctx = context({packs:{battery:{}},entities:{[primary]:{ignore_pending:true}}});
   assert.equal(run(ctx,withAlerts([pack()],2)),'');
   assert.equal(accent(run(ctx,withAlerts([pack()],1))),red);
   const hass=withAlerts([custom()],2);hass.states[ids[1]]=manager([pack()]);
-  assert.equal(accent(run(context({packs:['battery']}),hass)),red);
+  assert.equal(accent(run(context({packs:{battery:{}}}),hass)),red);
 });
 
 test('colors cascade entity > pack > general separately for each lifecycle state',()=>{
-  const options={packs:['battery'],colors:{active:'#111111',pending:'#222222'},
-    pack_colors:{battery:{active:'#333333',pending:'#444444'}},entities:{[primary]:{colors:{active:'#555555'}}}};
+  const options={packs:{battery:{colors:{active:'#333333',pending:'#444444'}}},
+    colors:{active:'#111111',pending:'#222222'},entities:{[primary]:{colors:{active:'#555555'}}}};
   assert.equal(accent(run(context(options),withAlerts([pack()]))),'#555555');
   assert.equal(accent(run(context(options),withAlerts([pack()],1))),'#555555');
   assert.equal(accent(run(context(options),withAlerts([pack()],2))),'#444444');
   assert.equal(accent(run(context(options),withAlerts([custom()],2))),'#222222');
-  const partial={packs:['battery'],colors:{active:'#111111'},pack_colors:{battery:{pending:'#444444'}}};
+  const partial={packs:{battery:{colors:{pending:'#444444'}}},colors:{active:'#111111'}};
   assert.equal(accent(run(context(partial),withAlerts([pack()]))),'#111111');
   assert.equal(accent(run(context(partial),withAlerts([pack()],2))),'#444444');
-  assert.equal(accent(run(context({packs:['battery'],pack_colors:{battery:{active:'#333333'}}}),withAlerts([pack()],2))),orange);
+  assert.equal(accent(run(context({packs:{battery:{colors:{active:'#333333'}}}}),withAlerts([pack()],2))),orange);
 });
 
 test('valid CSS colors work; invalid colors fall back without emitting CSS injection',()=>{
@@ -159,17 +156,65 @@ test('valid CSS colors work; invalid colors fall back without emitting CSS injec
     assert.equal(accent(css),value);
     assert.ok(css.includes(`color-mix(in srgb, ${value} 16%`));
   }
-  const options={packs:['battery'],colors:{active:'not-a-color'},pack_colors:{battery:{active:'#123456'}},entities:{[primary]:{colors:{active:'red; } body {display:none'}}}};
+  const options={packs:{battery:{colors:{active:'#123456'}}},colors:{active:'not-a-color'},entities:{[primary]:{colors:{active:'red; } body {display:none'}}}};
   const css=run(context(options),withAlerts([pack()]));
   assert.equal(accent(css),'#123456');assert.ok(!css.includes('display:none'));
 });
 
-test('configuring pack colors alone does not enable a pack',()=>{
-  assert.equal(run(context({pack_colors:{battery:{active:'#123456'}}}),withAlerts([pack()])),'');
+test('declaring a pack with colors activates it without a separate list',()=>{
+  const ctx=context({packs:{battery:{colors:{active:'#123456'}}}});
+  assert.equal(accent(run(ctx,withAlerts([pack()]))),'#123456');
+  assert.equal(accent(run(ctx,withAlerts([pack()],2))),orange);
+});
+
+test('entity pack colors override entity colors and missing states inherit independently',()=>{
+  const options={colors:{active:'#111111',pending:'#222222'},packs:{battery:{colors:{active:'#333333',pending:'#444444'}}},
+    entities:{[primary]:{colors:{active:'#555555'},packs:{battery:{colors:{pending:'#666666'}}}}}};
+  const ctx=context(options);
+  assert.equal(accent(run(ctx,withAlerts([pack()]))),'#555555','Missing local active inherits entity active');
+  assert.equal(accent(run(ctx,withAlerts([pack()],2))),'#666666','Local pack pending wins');
+  assert.equal(accent(run(ctx,withAlerts([custom()],2))),'#222222','Local pack colors never affect custom rules');
+  ctx.config.alert_manager={...options,entities:{[primary]:{colors:{active:'#555555'},packs:{battery:{colors:{active:'#777777'}}}}}};
+  assert.equal(accent(run(ctx,withAlerts([pack()]))),'#777777');
+  assert.equal(accent(run(ctx,withAlerts([pack()],1))),'#777777');
+  assert.equal(accent(run(ctx,withAlerts([pack()],2))),'#444444','Missing local pending inherits global pack pending');
+});
+
+test('a local pack object enables only that entity and inherits global colors',()=>{
+  const ctx=context({colors:{active:'#111111'},entities:{[target]:{packs:{future_pack:{colors:{pending:'#222222'}}}}}},
+    {sub_button:[{entity:target}]});
+  assert.equal(run(ctx,withAlerts([pack(primary,'future_pack')])),'');
+  assert.equal(accent(run(ctx,withAlerts([pack(target,'future_pack')]))),'#111111');
+  assert.equal(accent(run(ctx,withAlerts([pack(target,'future_pack')],2))),'#222222');
+});
+
+test('empty local pack colors inherit and invalid local colors cannot inject CSS',()=>{
+  const options={
+    packs:{battery:{colors:{active:'#123456',pending:'#654321'}}},
+    entities:{[primary]:{packs:{battery:{}}}},
+  };
+  const ctx=context(options);
+  assert.equal(accent(run(ctx,withAlerts([pack()]))),'#123456');
+  ctx.config.alert_manager={...options,entities:{[primary]:{packs:{battery:{colors:{active:'red; } body {display:none'}}}}}};
+  const css=run(ctx,withAlerts([pack()]));
+  assert.equal(accent(css),'#123456');
+  assert.ok(!css.includes('display:none'));
+  assert.equal(accent(run(ctx,withAlerts([pack()],2))),'#654321');
+});
+
+test('replacing pack options updates activation and colors on an existing card',()=>{
+  const ctx=context({packs:{battery:{}}});
+  const hass=withAlerts([pack()]);
+  assert.equal(accent(run(ctx,hass)),red);
+  ctx.config.alert_manager={packs:{battery:{colors:{active:'#123456'}}}};
+  assert.equal(accent(run(ctx,hass)),'#123456');
+  ctx.config.alert_manager={packs:{}};
+  assert.equal(run(ctx,hass),'');
+  assert.equal(accent(run(ctx,withAlerts([custom()]))),red);
 });
 
 test('equal severity chooses first card entity; same-entity ties are stable across list order',()=>{
-  const options={packs:['battery','connectivity'],pack_colors:{battery:{active:'#111111'},connectivity:{active:'#222222'}},
+  const options={packs:{battery:{colors:{active:'#111111'}},connectivity:{colors:{active:'#222222'}}},
     entities:{[target]:{colors:{active:'#333333'}}}};
   const ctx=context(options,{sub_button:[{entity:target}]});
   const records=[pack(primary,'connectivity'),custom(target),pack()];
@@ -214,7 +259,7 @@ test('same connection shares one alert traversal across 100 cards with different
     get(array,prop){if(prop===Symbol.iterator) return function*(){for(const item of array){visits++;yield item;}};return Reflect.get(array,prop);},
   });
   const hass=withAlerts(records);
-  for(let i=0;i<100;i++) assert.equal(accent(run(context(i%2 ? {packs:['battery']} : {exclude_rules:['temperature'],packs:['battery']}),hass)),red);
+  for(let i=0;i<100;i++) assert.equal(accent(run(context(i%2 ? {packs:{battery:{}}} : {exclude_rules:['temperature'],packs:{battery:{}}}),hass)),red);
   assert.equal(visits,1002);
   run(context(),{...hass,connection:{}});
   assert.equal(visits,2004,'Different HA connections have independent snapshots');
@@ -368,6 +413,27 @@ test('all documented configuration examples are valid YAML',() => {
   const blocks=[...doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)];
   assert.ok(blocks.length>0);
   for (const [,example] of blocks) assert.doesNotThrow(()=>YAML.parse(example));
+});
+
+test('documented pack examples activate the declared packs in the real module',()=>{
+  const doc=fs.readFileSync(path.resolve(__dirname,'../doc/README.md'),'utf8');
+  let checked=0;
+  for (const [,example] of doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)) {
+    const options=YAML.parse(example).alert_manager;
+    if (!options) continue;
+    const checks=Object.keys(options.packs || {}).map(id=>({id,entity:primary,policy:{}}));
+    for (const [entity,policy] of Object.entries(options.entities || {})) {
+      for (const id of Object.keys(policy.packs || {})) checks.push({id,entity,policy});
+    }
+    for (const {id,entity,policy} of checks) {
+      for (const partition of [0,1,2]) {
+        if (policy.exclude === true || (partition === 2 && (policy.ignore_pending ?? options.ignore_pending) === true)) continue;
+        assert.notEqual(accent(run(context(options),withAlerts([pack(entity,id)],partition))),'',`${entity}: ${id}, partition ${partition}`);
+        checked++;
+      }
+    }
+  }
+  assert.ok(checked>0);
 });
 
 test('documentation links resolve to local files',() => {
