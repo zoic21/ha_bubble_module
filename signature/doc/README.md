@@ -1,21 +1,21 @@
-# Signature — guide du module de design
+# Signature — design module guide
 
-Version **1.8.26**. [Fichier complet à importer](../dist/signature.yaml).
+Version **1.8.26**. [Complete file to import](../dist/signature.yaml).
 
-**Identifiant YAML : `signature` ; nom affiché : Signature.**
+**YAML ID: `signature`; display name: Signature.**
 
-Le module fournit cinq dispositions, des surfaces neutres, des icônes colorées, des arrondis et une typographie système commune. Il fonctionne dans Bubble Card sans `card-mod` ni CSS global. Il ne remplace pas les entités, conditions de visibilité et actions natives de la carte.
+The module provides five layouts, neutral surfaces, colored icons, rounded corners, and consistent system typography. It works in Bubble Card without `card-mod` or global CSS. It preserves the card's native entities, visibility conditions, and actions.
 
-## Installation et premier exemple
+## Installation and first example
 
-Installer Bubble Card et Bubble Card Tools, puis importer le fichier YAML complet depuis la section Modules de l’éditeur d’une carte. Les options personnalisées de cette version se règlent en YAML : le module ne déclare pas encore de schéma `editor`.
+Install Bubble Card and Bubble Card Tools, then import the complete YAML file from the Modules section of a card's editor. Custom options in this version are configured in YAML: the module does not yet declare an `editor` schema.
 
 ```yaml
 type: custom:bubble-card
 card_type: button
 button_type: state
-entity: sensor.temperature_salon
-name: Salon
+entity: sensor.living_room_temperature
+name: Living room
 icon: mdi:thermometer
 card_layout: large
 show_state: true
@@ -27,81 +27,81 @@ signature:
   color: orange
 ```
 
-`signature` se place à la racine de la carte, au même niveau que `entity` et `modules`. Remplacer les entités des exemples par celles de son installation.
+Place `signature` at the card's root, at the same level as `entity` and `modules`. Replace the example entities with those from your installation.
 
-## Dispositions et compatibilité
+## Layouts and compatibility
 
-| Disposition | Usage | Conditions |
+| Layout | Use | Requirements |
 |---|---|---|
-| `compact` | Ligne d’information ou de commande ; hauteur habituelle 56 px | Disposition par défaut |
-| `square` | Tuile de mesure, valeur principale et sous-texte | Carte `button`, hors bouton `switch` |
-| `room` | Résumé de pièce, mesures et commandes | Carte `button`, hors bouton `switch` |
-| `header` | Bandeau de titre avec pastilles | Carte `button`, `button_type: name` |
-| `title` | Titre de section sans trait, boutons en fin de ligne | Carte `separator` |
+| `compact` | Information or control row; typically 56 px tall | Default layout |
+| `square` | Measurement tile with a main value and secondary text | `button` card, except a `switch` button |
+| `room` | Room summary, measurements, and controls | `button` card, except a `switch` button |
+| `header` | Title banner with pill buttons | `button` card, `button_type: name` |
+| `title` | Section title without a divider, with buttons at the end of the row | `separator` card |
 
-Les cartes `cover`, `climate` et les boutons `switch` utilisent toujours `compact`. Un `header` sur un bouton autre que `name` revient à `compact`. Une carte `media-player` reçoit un habillage dédié : ses commandes, illustrations et dimensions natives sont conservées.
+`cover` and `climate` cards and `switch` buttons always use `compact`. A `header` on a button other than `name` falls back to `compact`. A `media-player` card receives dedicated styling that preserves its native controls, artwork, and dimensions.
 
-Les boutons `slider`, popups et autres familles non déclarées dans `supported` restent hors du module. `layout: title` sur une carte autre qu’un séparateur ne produit aucun style. L’ancien mode `heading` ne produit aucun style.
+`slider` buttons, popups, and other card types not listed in `supported` are outside the module's scope. `layout: title` adds no styling to cards other than separators. The former `heading` mode adds no styling.
 
-La hauteur d’une tuile `square` dépend de la carte et de la grille Home Assistant : le module n’impose pas une hauteur universelle de 252 px. La hauteur compacte dépend de `--row-height`, avec un repli à 56 px.
+A `square` tile's height depends on the card and the Home Assistant grid: the module does not enforce a universal height of 252 px. Compact height uses `--row-height`, with a fallback of 56 px.
 
 ## Options
 
-| Option | Type / valeurs | Défaut | Effet |
+| Option | Type / values | Default | Effect |
 |---|---|---|---|
-| `layout` | `compact`, `square`, `room`, `header`, `title` | `compact` | Choisit la disposition, sous réserve de la compatibilité ci-dessus |
-| `color` | Couleur CSS, nom de palette ou Jinja | `blue` | Accent et teinte du fond d’icône |
-| `color_background` | Booléen ou Jinja donnant `true`/`false` | `false` | Teinte également le fond de la carte |
-| `icon_color` | Couleur ou Jinja | Selon le layout et l’état | Remplace la couleur du pictogramme principal |
-| `icon_opacity` | Nombre de 0 à 1 ou Jinja | Comportement natif | Opacité du pictogramme principal |
-| `border_color` | Couleur ou Jinja | Aucun liseré ajouté | Liseré intérieur de carte de 2 px |
-| `icon_border_color` | Couleur ou Jinja | Aucun liseré ajouté | Liseré intérieur du fond d’icône de 2 px |
-| `compact_mode` | `value` | Standard | Affiche la valeur à droite sur un bouton `state`, ou un bouton `name` avec un `state` personnalisé |
-| `state` | Texte ou Jinja | État natif | Valeur calculée à afficher ; respecter les options natives d’affichage de l’état |
-| `secondary` | Texte ou Jinja | Aucun | Texte secondaire supplémentaire |
-| `secondary_entity` | Identifiant d’entité | Aucun | Cible du clic sur le secondaire ; ne fournit pas son texte |
-| `secondary_bold` | Booléen | `false` | Interprète `**texte**` dans le secondaire |
-| `multiline` | Booléen | `false` | Autorise les retours à la ligne de l’état et du secondaire |
-| `auto_height` | Booléen | `false` | Hauteur adaptée au contenu, uniquement en `square` |
-| `controls` | `measure` ou `number` | Commandes natives | Placement de commandes de mesure en square, ou contrôle numérique en compact |
-| `reserve_measure_detail` | Booléen | `false` | Réserve la ligne de détail inférieure en square avec `controls: measure` |
-| `sub_buttons_position` | `end` | Placement habituel | Place les sous-boutons après les commandes natives en compact |
-| `sub_button_styles` | Objet indexé par classe ou numéro | Aucun | Personnalise les sous-boutons existants |
-| `room_auto_colors` | Booléen | `true` | Coloration automatique des commandes actives d’une pièce |
-| `room_control_columns` | Nombre de 1 à 6 | `4` | Nombre de colonnes des commandes room, arrondi et borné |
-| `room_measures_position` | `header` | Mesures dans le contenu | Place température/humidité dans l’en-tête si aucun état principal ni secondaire n’est affiché |
+| `layout` | `compact`, `square`, `room`, `header`, `title` | `compact` | Selects the layout, subject to the compatibility rules above |
+| `color` | CSS color, palette name, or Jinja | `blue` | Accent color and icon background tint |
+| `color_background` | Boolean or Jinja returning `true`/`false` | `false` | Also tints the card background |
+| `icon_color` | Color or Jinja | Depends on layout and state | Overrides the main icon color |
+| `icon_opacity` | Number from 0 to 1, or Jinja | Native behavior | Main icon opacity |
+| `border_color` | Color or Jinja | No added border | Adds a 2 px inner card border |
+| `icon_border_color` | Color or Jinja | No added border | Adds a 2 px inner border to the icon background |
+| `compact_mode` | `value` | Standard | Shows the value on the right for a `state` button, or a `name` button with a custom `state` |
+| `state` | Text or Jinja | Native state | Computed value to display; follows native state display options |
+| `secondary` | Text or Jinja | None | Additional secondary text |
+| `secondary_entity` | Entity ID | None | Target when clicking the secondary text; does not supply its text |
+| `secondary_bold` | Boolean | `false` | Interprets `**text**` in the secondary text |
+| `multiline` | Boolean | `false` | Allows line breaks in the state and secondary text |
+| `auto_height` | Boolean | `false` | Adjusts height to content, only in `square` |
+| `controls` | `measure` or `number` | Native controls | Positions measurement controls in square, or adds numeric controls in compact |
+| `reserve_measure_detail` | Boolean | `false` | Reserves the lower detail row in square with `controls: measure` |
+| `sub_buttons_position` | `end` | Standard position | Places sub-buttons after native controls in compact |
+| `sub_button_styles` | Object keyed by class or number | None | Customizes existing sub-buttons |
+| `room_auto_colors` | Boolean | `true` | Automatically colors active room controls |
+| `room_control_columns` | Number from 1 to 6 | `4` | Number of room control columns, rounded and clamped |
+| `room_measures_position` | `header` | Measurements in the content area | Places temperature/humidity in the header when neither a main state nor secondary text is displayed |
 
-Les options de tuile ne s’appliquent pas toutes aux branches `title` et `media-player`. Pour `title`, utiliser les options natives des sous-boutons ; pour `media-player`, les options de couleur traitées sont `color` et `color_background`.
+Not all tile options apply to `title` and `media-player`. For `title`, use the native sub-button options; for `media-player`, the supported color options are `color` and `color_background`.
 
-## Couleurs et apparence
+## Colors and appearance
 
-La surface neutre utilise `--ha-card-background`, puis `--card-background-color`, puis le blanc. Le fond d’icône mélange l’accent à cette surface à 16 %. `color_background: true` applique aussi une teinte à la carte. `icon_color` modifie le pictogramme, sans changer la teinte issue de `color`.
+The neutral surface uses `--ha-card-background`, then `--card-background-color`, then white. The icon background blends 16% of the accent color into that surface. `color_background: true` also tints the card. `icon_color` changes the icon itself without changing the tint derived from `color`.
 
-Noms de palette : `blue`, `indigo`, `amber`, `orange`, `green`, `red`, `grey`, `teal`, `purple`, `light-blue`, `cyan`, `pink`, `yellow`. Les variables correspondantes du thème sont prioritaires sur les replis intégrés. Les couleurs CSS valides, comme `#2196f3`, `rgb(...)` et `var(...)`, sont également acceptées.
+Palette names: `blue`, `indigo`, `amber`, `orange`, `green`, `red`, `grey`, `teal`, `purple`, `light-blue`, `cyan`, `pink`, `yellow`. The corresponding theme variables take precedence over built-in fallbacks. Valid CSS colors such as `#2196f3`, `rgb(...)`, and `var(...)` are also accepted.
 
-`color_background` doit produire exactement `true`, sans tenir compte des majuscules et espaces périphériques. `1` n’active pas cette option. Une opacité principale absente ou invalide conserve le comportement natif ; une valeur numérique valide est bornée entre 0 et 1.
+`color_background` must return exactly `true`, ignoring case and surrounding whitespace. `1` does not enable it. A missing or invalid main icon opacity preserves native behavior; a valid numeric value is clamped between 0 and 1.
 
-| Élément | Présentation actuelle |
+| Element | Current appearance |
 |---|---|
-| Carte de tuile | Arrondi 22 px, bordure discrète et ombre légère |
-| Icône compact / square | Fond 36 × 36 px, arrondi 12 px ; pictogramme 22 px |
-| Nom compact / square | 14 px |
-| Sous-texte compact / square | 13 px |
-| Valeur numérique compact à droite | 20 px ; unité 13 px |
-| Valeur textuelle compact à droite | 16 px |
-| Valeur square | 28 px ; unité 16 px |
-| Room | Base 156 px ; taille supérieure selon le texte et les rangées de commandes |
+| Tile card | 22 px corner radius, subtle border, and light shadow |
+| Compact / square icon | 36 × 36 px background with 12 px corner radius; 22 px icon |
+| Compact / square name | 14 px |
+| Compact / square secondary text | 13 px |
+| Compact numeric value on the right | 20 px; 13 px unit |
+| Compact text value on the right | 16 px |
+| Square value | 28 px; 16 px unit |
+| Room | 156 px base height; grows with text and control rows |
 
-Le module utilise la police système ; il n’embarque aucune police Apple. Les dimensions compactes sont communes au mobile et au desktop.
+The module uses the system font; it does not bundle an Apple font. Compact dimensions are shared across mobile and desktop.
 
-## Mesure square et sous-texte
+## Square measurement and secondary text
 
 ```yaml
 type: custom:bubble-card
 card_type: button
 button_type: state
-entity: sensor.humidite_salon
-name: Humidité
+entity: sensor.living_room_humidity
+name: Humidity
 icon: mdi:water-percent
 card_layout: large
 rows: 2
@@ -114,24 +114,24 @@ signature:
   auto_height: true
   multiline: true
   secondary_bold: true
-  secondary_entity: sensor.temperature_salon
+  secondary_entity: sensor.living_room_temperature
   secondary: |-
-    {{ states('sensor.temperature_salon') }} °C
-    **Confort intérieur**
+    {{ states('sensor.living_room_temperature') }} °C
+    **Indoor comfort**
 ```
 
-`secondary` n’est pas une entité automatiquement résolue. `secondary_entity` sert uniquement à ouvrir ses détails. Le gras ne prend en charge que les paires `**…**` sur une même ligne, pas le Markdown complet ni du HTML.
+`secondary` is not an automatically resolved entity. `secondary_entity` is used only to open that entity's details. Bold formatting supports only `**…**` pairs on the same line, not full Markdown or HTML.
 
-`controls: measure` positionne les deux premiers sous-boutons existants : une commande en haut à droite et un détail en bas à droite. `reserve_measure_detail: true` réserve l’espace inférieur même sans deuxième sous-bouton. Le module ne crée pas ces boutons.
+`controls: measure` positions the first two existing sub-buttons: a control at the top right and a detail at the bottom right. `reserve_measure_detail: true` reserves the lower space even without a second sub-button. The module does not create these buttons.
 
-## Contrôle numérique
+## Numeric controls
 
 ```yaml
 type: custom:bubble-card
 card_type: button
 button_type: state
-entity: input_number.consigne
-name: Consigne
+entity: input_number.setpoint
+name: Setpoint
 icon: mdi:tune
 card_layout: large
 modules:
@@ -142,32 +142,32 @@ signature:
   controls: number
 ```
 
-Sur `number` et `input_number`, ce mode ajoute − / valeur et unité / +. Il utilise les attributs réels `min`, `max`, `step` et `unit_of_measurement`, puis appelle le service `set_value` du domaine concerné. Un clic sur la valeur ouvre `more-info`.
+For `number` and `input_number`, this mode adds − / value and unit / +. It uses the actual `min`, `max`, `step`, and `unit_of_measurement` attributes, then calls the domain's `set_value` service. Clicking the value opens `more-info`.
 
-Les libellés accessibles des commandes et les messages d’échec utilisent les traductions de Home Assistant. Si elles sont indisponibles, le module fournit un repli français pour une langue française, sinon anglais. Les nombres suivent la langue de Home Assistant, puis celle du navigateur si elle n’est pas fournie. Aucun format français n’est imposé aux autres langues.
+Accessible control labels and failure messages use Home Assistant translations. If these are unavailable, the module falls back to French for a French language setting, or English otherwise. Numbers follow the Home Assistant language, then the browser language if none is provided. French formatting is not imposed on other languages.
 
-Après un appui, les autres appuis attendent un changement effectif de valeur ou un délai maximal de cinq secondes. Les attributs manquants ou invalides désactivent les boutons. Les commandes climate et cover restent natives.
+After a press, further presses wait for an actual value change or a timeout of five seconds. Missing or invalid attributes disable the buttons. Climate and cover controls remain native.
 
-## Sous-boutons personnalisés
+## Custom sub-buttons
 
-Les clés de `sub_button_styles` désignent le `css_class` d’un sous-bouton ou son numéro natif, sous forme de chaîne (`'1'`, `'2'`…). Préférer une classe explicite pour les boutons susceptibles d’être réordonnés. Avec les groupes Bubble, la numérotation native peut différer de l’ordre visuel du YAML : le module parcourt les groupes avant les boutons individuels, puis la section inférieure.
+Keys in `sub_button_styles` refer to a sub-button's `css_class` or its native number as a string (`'1'`, `'2'`…). Prefer an explicit class for buttons that may be reordered. With Bubble groups, native numbering may differ from the visual YAML order: the module visits groups before individual buttons, then the bottom section.
 
-| Option du sous-bouton | Effet |
+| Sub-button option | Effect |
 |---|---|
-| `color` | Couleur du pictogramme ou de la piste de switch ; Jinja accepté |
-| `background` | Fond personnalisé ; Jinja accepté |
-| `opacity` | Opacité bornée de 0 à 1 ; Jinja accepté |
-| `icon` | Icône fixe ou Jinja ; une valeur vide/invalide restaure l’icône native |
-| `type: switch` | Habille une commande compatible comme un interrupteur, en compact/square |
-| `type: mode` | Habille un sous-bouton compact de mode en 46 × 44 px |
-| `column` | Colonne d’une commande room, bornée au nombre de colonnes configuré |
+| `color` | Icon or switch track color; accepts Jinja |
+| `background` | Custom background; accepts Jinja |
+| `opacity` | Opacity clamped from 0 to 1; accepts Jinja |
+| `icon` | Fixed icon or Jinja; an empty/invalid value restores the native icon |
+| `type: switch` | Styles a compatible control as a switch in compact/square |
+| `type: mode` | Styles a compact mode sub-button at 46 × 44 px |
+| `column` | Room control column, clamped to the configured number of columns |
 
 ```yaml
 type: custom:bubble-card
 card_type: button
 button_type: state
-entity: sensor.temperature_salon
-name: Salon
+entity: sensor.living_room_temperature
+name: Living room
 card_layout: large
 show_state: true
 sub_button:
@@ -188,42 +188,42 @@ signature:
       color: teal
 ```
 
-Les switchs visuels ordinaires exigent un sous-bouton natif de type absent ou `default`, une action `toggle` et un domaine `switch`, `input_boolean`, `light`, `automation` ou `humidifier`. Ils conservent l’action native.
+Standard visual switches require a native sub-button with no type or `default` type, a `toggle` action, and a domain of `switch`, `input_boolean`, `light`, `automation`, or `humidifier`. They preserve the native action.
 
-Pour `lock`, utiliser deux boutons conditionnels avec les actions explicites `lock.unlock` et `lock.lock`. ON signifie `unlocked`, OFF signifie `locked` ; les états transitoires restent atténués. Le module ne transforme pas une action `toggle` en commande de verrouillage.
+For `lock`, use two conditional buttons with explicit `lock.unlock` and `lock.lock` actions. ON means `unlocked`, OFF means `locked`; transitional states remain dimmed. The module does not turn a `toggle` action into a lock command.
 
-## Résumé de pièce
+## Room summary
 
-Le layout room reconnaît les classes suivantes dans les sous-boutons :
+The room layout recognizes these sub-button classes:
 
-| `css_class` | Rôle |
+| `css_class` | Role |
 |---|---|
-| `room-temperature` | Mesure de température, unité séparée |
-| `room-humidity` | Humidité |
-| `room-status` | Badge de statut |
-| `room-control-N` | Commande de pièce, triée par numéro N |
-| `room-climate` | Commande de chauffage/climatisation, après les commandes numérotées |
+| `room-temperature` | Temperature measurement with a separate unit |
+| `room-humidity` | Humidity |
+| `room-status` | Status badge |
+| `room-control-N` | Room control, sorted by number N |
+| `room-climate` | Heating/cooling control, after numbered controls |
 
 ```yaml
 type: custom:bubble-card
 card_type: button
 button_type: name
-name: Salon
+name: Living room
 icon: mdi:sofa
 card_layout: large
 rows: 3
 show_state: false
 sub_button:
   main:
-    - entity: sensor.temperature_salon
+    - entity: sensor.living_room_temperature
       css_class: room-temperature
       show_state: true
       show_icon: false
-    - entity: sensor.humidite_salon
+    - entity: sensor.living_room_humidity
       css_class: room-humidity
       show_state: true
       show_icon: true
-    - entity: light.salon
+    - entity: light.living_room
       css_class: room-control-1
       show_icon: true
       tap_action:
@@ -235,18 +235,18 @@ signature:
   room_control_columns: 4
 ```
 
-Les commandes utilisent quatre colonnes par défaut, configurables de 1 à 6. Chaque rangée supplémentaire réserve de la hauteur ; ajuster aussi la grille Home Assistant. Un état principal affiché masque les rôles température/humidité. Un secondaire peut agrandir la carte.
+Controls use four columns by default, configurable from 1 to 6. Each additional row reserves more height; also adjust the Home Assistant grid. Displaying a main state hides the temperature/humidity roles. Secondary text can enlarge the card.
 
-Avec `room_measures_position: header` et sans état principal ni secondaire, température/humidité se placent à droite du titre. Deux rangées de commandes tiennent alors dans la base de 156 px ; les suivantes ajoutent 48 px. La géométrie de la version 1.8.25 laisse 8 px entre les mesures/l’icône et le trait.
+With `room_measures_position: header` and neither a main state nor secondary text, temperature/humidity appear to the right of the title. Two control rows then fit within the 156 px base height; each subsequent row adds 48 px. The geometry introduced in version 1.8.25 leaves 8 px between the measurements/icon and the divider.
 
-Les commandes actives reçoivent des couleurs automatiques, sauf `room_auto_colors: false` ou couleur explicite. Les boutons masqués conservent leur emplacement logique ; leur masquage ne redistribue pas les autres colonnes.
+Active controls receive automatic colors unless `room_auto_colors: false` or an explicit color is set. Hidden buttons retain their logical positions; hiding them does not redistribute the other columns.
 
-## Titres et bandeaux
+## Titles and banners
 
 ```yaml
 type: custom:bubble-card
 card_type: separator
-name: Climat
+name: Climate
 icon: mdi:thermometer
 modules:
   - signature
@@ -254,20 +254,20 @@ signature:
   layout: title
 ```
 
-Le titre de section mesure 32 px de haut, avec un texte de 18 px. Il masque le trait horizontal et pousse les sous-boutons en fin de ligne. Utiliser leurs options natives `show_background` et `state_background` pour leur fond.
+The section title is 32 px tall with 18 px text. It hides the horizontal divider and pushes sub-buttons to the end of the row. Use their native `show_background` and `state_background` options for their backgrounds.
 
-Pour un bandeau, utiliser `card_type: button`, `button_type: name` et `layout: header`. Le fond est transparent ; les sous-boutons deviennent des pastilles. Le titre passe de 38 à 32 px sur un petit conteneur ; les pastilles reviennent sous le titre selon la largeur du conteneur.
+For a banner, use `card_type: button`, `button_type: name`, and `layout: header`. The background is transparent and sub-buttons become pills. The title shrinks from 38 to 32 px in a small container; pills wrap below the title depending on the container width.
 
-## Textes, unités et actions
+## Text, units, and actions
 
-- Les champs acceptant Jinja utilisent le moteur `renderTemplate` de Bubble. Leur actualisation dépend du rendu et des dépendances suivies par Bubble ; aucun polling propre au module n’est ajouté.
-- Les mesures numériques simples respectent la langue et les précisions de Home Assistant. Un état numérique manquant ou indisponible devient `—`, sans unité.
-- Une valeur personnalisée doit inclure son unité. Les quantités simples (`500 g`, `50 %`, `−4,5 °C`) et les durées `2 h 52 min` sont séparées visuellement en chiffres et unités sans modifier le calcul.
-- `state_content` et les options natives d’attribut/horodatage restent prises en compte. Un état explicitement masqué reste masqué.
-- Le clic et l’appui long sur une valeur principale ouvrent `more-info` pour l’entité principale. Le secondaire fait de même si `secondary_entity` est défini. Les sous-boutons conservent leurs actions natives.
-- L’icône principale reprend une navigation explicite définie par `tap_action`, ou à défaut `button_action.tap_action`. Le clic sur la carte et le clic sur sa valeur peuvent donc avoir des actions différentes.
+- Fields that accept Jinja use Bubble's `renderTemplate` engine. Updates depend on rendering and the dependencies tracked by Bubble; the module adds no polling of its own.
+- Simple numeric measurements follow Home Assistant's language and precision settings. A missing or unavailable numeric state becomes `—`, without a unit.
+- A custom value must include its unit. Simple quantities (`500 g`, `50 %`, `−4.5 °C`) and durations such as `2 h 52 min` are visually split into numbers and units without changing the calculation.
+- `state_content` and native attribute/timestamp options are respected. An explicitly hidden state stays hidden.
+- Clicking or holding the main value opens `more-info` for the main entity. Secondary text does the same when `secondary_entity` is defined. Sub-buttons retain their native actions.
+- The main icon uses explicit navigation from `tap_action`, or otherwise `button_action.tap_action`. Clicking the card and clicking its value can therefore perform different actions.
 
-## Association avec Alert Manager
+## Using with Alert Manager
 
 ```yaml
 modules:
@@ -278,10 +278,10 @@ signature:
   compact_mode: value
 ```
 
-Le [module Alert Manager](../../alert_manager/doc/README.md) colore l’icône selon les alertes retenues ; il ne nécessite pas Signature. Les deux ordres fonctionnent avec ces versions, mais placer Alert Manager en dernier facilite la lecture de la configuration.
+The [Alert Manager module](../../alert_manager/doc/README.md) colors the icon according to matching alerts; it does not require Signature. Both module orders work with these versions, but placing Alert Manager last makes the configuration easier to read.
 
-## Limites et vérification
+## Limitations and validation
 
-Le module cible le DOM de Bubble Card. Les styles locaux, le thème, les dimensions de grille et les évolutions de Bubble peuvent modifier le rendu. Utiliser une version récente de Bubble ; les templates Jinja et le nettoyage de cycle de vie bénéficient des fonctions `renderTemplate` et `onTeardown` lorsqu’elles sont disponibles. Aucune version minimale spécifique n’est annoncée sans validation sur cette version.
+The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, and changes in Bubble can affect rendering. Use a recent Bubble version; Jinja templates and lifecycle cleanup use `renderTemplate` and `onTeardown` when available. No specific minimum version is claimed without validation against that version.
 
-Après importation, vérifier les layouts utilisés sur mobile et desktop, les noms longs, les unités et les commandes numériques dans son installation. Une vérification syntaxique du YAML/JavaScript ne valide pas le rendu ni les commandes d’une instance Home Assistant réelle.
+After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.

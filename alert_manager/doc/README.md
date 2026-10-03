@@ -1,16 +1,18 @@
-# Module Bubble Alert Manager 3.2.0
+# Bubble Alert Manager module 3.2.0
 
-[Module à importer](../dist/alert_manager.yaml), indépendant de `signature`. Il colore uniquement l’icône principale et son fond pastel selon les alertes d’Alert Manager. Il ne recopie ni seuils ni délais dans les cartes.
+[Module to import](../dist/alert_manager.yaml), independent of `signature`. It colors only the main icon and its pastel background based on Alert Manager alerts. Thresholds and delays are not duplicated in cards.
 
-## Configuration minimale
+Requires the [Home Assistant Alert Manager integration](https://github.com/zoic21/ha_alert_manager).
 
-Ajouter le module à la carte suffit : **toutes ses entités sont surveillées**, et **seules les règles personnalisées sont prises en compte**.
+## Minimal configuration
+
+Simply add the module to the card: **all its entities are monitored**, and **only custom rules are considered**.
 
 ```yaml
 type: custom:bubble-card
 card_type: button
 button_type: state
-entity: sensor.frigo_temperature
+entity: sensor.fridge_temperature
 modules:
   - signature
   - alert_manager
@@ -18,77 +20,77 @@ signature:
   layout: compact
 ```
 
-Les options se placent dans **`alert_manager`, à la racine de la carte**. 
+Place options under **`alert_manager`, at the card's root**.
 
-Le module peut aussi être utilisé seul avec Bubble natif. Avec `signature`, les deux ordres fonctionnent ; placer `alert_manager` en dernier reste conseillé avec d’autres modules.
+The module can also be used on its own with native Bubble cards. With `signature`, either order works; placing `alert_manager` last is still recommended when using other modules.
 
 ## Options
 
-| Option | Effet | Valeur par défaut |
+| Option | Effect | Default |
 |---|---|---|
-| `sensors.active/pending` | Identifiants des deux capteurs sources | Capteurs créés par défaut par l’intégration |
-| `packs.<pack_id>` | Active un pack et définit éventuellement ses `ignore_pending` et `colors.active/pending` | Aucun pack activé |
-| `ignore_pending` | Masquer les alertes à venir | `false` |
-| `colors.active` | Couleur des alertes actives | Rouge du thème |
-| `colors.pending` | Couleur des alertes à venir | Orange du thème |
-| `entities.<entity_id>` | Exceptions pour une entité de la carte, ou ajout d’une entité extérieure | Aucune exception |
-| `entities.<entity_id>.exclude` | `true` exclut toute l’entité ; une liste exclut ses règles ou packs par ID | `[]` |
+| `sensors.active/pending` | IDs of the two source sensors | Sensors created by the integration by default |
+| `packs.<pack_id>` | Enables a pack and optionally sets its `ignore_pending` and `colors.active/pending` | No packs enabled |
+| `ignore_pending` | Hides pending alerts | `false` |
+| `colors.active` | Active alert color | Theme red |
+| `colors.pending` | Pending alert color | Theme orange |
+| `entities.<entity_id>` | Overrides for a card entity, or adds an external entity | No overrides |
+| `entities.<entity_id>.exclude` | `true` excludes the entire entity; a list excludes its rules or packs by ID | `[]` |
 
-Chaque entrée de `entities` accepte `exclude`, `ignore_pending`, `packs.<pack_id>` et `colors.active/pending`. Les packs utilisent le même objet de configuration au niveau général et dans une entité. Seuls les booléens YAML `true` et `false` règlent les options booléennes.
+Each `entities` entry accepts `exclude`, `ignore_pending`, `packs.<pack_id>`, and `colors.active/pending`. Packs use the same configuration object globally and within an entity. Boolean options use only YAML booleans `true` and `false`.
 
-Pour désactiver le module sur une carte, retirer `alert_manager` de sa liste `modules`.
+To disable the module on a card, remove `alert_manager` from its `modules` list.
 
-## Capteurs sources
+## Source sensors
 
-Sans configuration, le module lit les capteurs d’alertes actives et à venir créés par défaut par l’intégration. S’ils ont été renommés, indiquer leurs nouveaux identifiants :
+Without configuration, the module reads the active and pending alert sensors created by the integration by default. If they have been renamed, specify their new IDs:
 
 ```yaml
 alert_manager:
   sensors:
-    active: sensor.mes_alertes_actives
-    pending: sensor.mes_alertes_a_venir
+    active: sensor.my_active_alerts
+    pending: sensor.my_pending_alerts
 ```
 
-Chaque clé est facultative : une clé absente conserve son identifiant par défaut. Ces options choisissent les sources d’alertes ; `entities` choisit les entités à surveiller. Les capteurs sources doivent conserver le compteur et les attributs compacts `alerts` fournis par l’intégration.
+Each key is optional: an omitted key keeps its default ID. These options select alert sources; `entities` selects the entities to monitor. Source sensors must retain the counter and compact `alerts` attributes provided by the integration.
 
-## Exceptions par entité
+## Entity overrides
 
-Cette carte surveille automatiquement la température et la puissance. L’orange de puissance est ignoré ; sa règle de notification est exclue, mais ses autres erreurs restent prises en compte. Le switch est entièrement exclu.
+This card automatically monitors temperature and power. Pending power alerts are ignored; its notification rule is excluded, but its other errors are still considered. The switch is excluded entirely.
 
 ```yaml
-entity: sensor.frigo_temperature
+entity: sensor.fridge_temperature
 sub_button:
   main:
-    - entity: sensor.prise_frigo_puissance
-    - entity: switch.prise_frigo
+    - entity: sensor.fridge_plug_power
+    - entity: switch.fridge_plug
 modules:
   - signature
   - alert_manager
 alert_manager:
   entities:
-    sensor.prise_frigo_puissance:
+    sensor.fridge_plug_power:
       ignore_pending: true
       exclude:
-        - notification_frigo
-    switch.prise_frigo:
+        - fridge_notification
+    switch.fridge_plug:
       exclude: true
 ```
 
-`exclude` accepte soit `true` pour exclure toute l’entité, soit une liste pouvant mélanger des **ID de règles personnalisées et de packs**. Une liste vide `[]`, `false` ou une option absente laisse toutes les alertes autorisées par les autres réglages. Les exclusions concernent les alertes actives et à venir de cette entité seulement.
+`exclude` accepts either `true` to exclude the entire entity, or a list that can mix **custom rule IDs and pack IDs**. An empty list `[]`, `false`, or an omitted option leaves all alerts allowed by the other settings. Exclusions apply to active and pending alerts for that entity only.
 
-Les ID de règles de cet exemple sont à remplacer par les ID réels de la configuration Alert Manager. Le filtrage porte sur les **identifiants**, jamais les noms affichés, messages ou labels. Une notification et une vraie erreur sur le même appareil restent ainsi indépendantes. Si une règle et un pack partagent le même ID, les deux sont exclus.
+Replace the example rule IDs with the actual IDs from your Alert Manager configuration. Filtering uses **IDs**, never display names, messages, or labels. A notification and an actual error on the same device therefore remain independent. If a rule and a pack share the same ID, both are excluded.
 
-Pour ajouter une entité qui n’apparaît pas ailleurs dans la carte, la déclarer dans `entities`, éventuellement avec un objet vide :
+To add an entity that does not appear elsewhere in the card, declare it in `entities`, optionally with an empty object:
 
 ```yaml
 alert_manager:
   entities:
-    sensor.cave_temperature: {}
+    sensor.cellar_temperature: {}
 ```
 
-## Activer des packs
+## Enabling packs
 
-Les packs sont déclarés par leur ID dans un objet `packs`, sans liste codée en dur dans le module. Un futur pack utilisant le contrat d’ID d’Alert Manager sera immédiatement pris en charge. Un pack absent de la configuration reste ignoré ; un objet vide `{}` suffit à l’activer.
+Packs are declared by ID in a `packs` object, with no hardcoded list in the module. A future pack following Alert Manager's ID format will be supported immediately. A pack absent from the configuration remains ignored; an empty object `{}` is enough to enable it.
 
 ```yaml
 alert_manager:
@@ -96,16 +98,16 @@ alert_manager:
     battery: {}
     connectivity: {}
   entities:
-    sensor.prise_frigo_puissance:
+    sensor.fridge_plug_power:
       packs:
         flapping: {}
 ```
 
-Ici, `battery` et `connectivity` s’appliquent à toutes les entités surveillées. `flapping` s’ajoute uniquement à la puissance.
+Here, `battery` and `connectivity` apply to all monitored entities. `flapping` is added only for the power sensor.
 
-Les packs généraux et ceux de l’entité **s’additionnent**. Pour activer un pack sur certaines entités seulement, le déclarer dans leurs entrées `entities`, sans le déclarer au niveau général. Un objet `packs: {}` dans une entité n’annule pas les packs généraux.
+Global and entity packs **are cumulative**. To enable a pack for selected entities only, declare it in their `entities` entries without declaring it globally. A `packs: {}` object within an entity does not cancel global packs.
 
-Pour exclure un pack sur une entité seulement, ajouter son ID dans `exclude`, éventuellement à côté d’ID de règles :
+To exclude a pack for a single entity, add its ID to `exclude`, optionally alongside rule IDs:
 
 ```yaml
 alert_manager:
@@ -113,19 +115,19 @@ alert_manager:
     battery: {}
     connectivity: {}
   entities:
-    sensor.frigo_temperature:
+    sensor.fridge_temperature:
       exclude:
         - battery
-        - notification_frigo
+        - fridge_notification
 ```
 
-Ici, la température ignore le pack `battery` et la règle `notification_frigo`, tout en conservant `connectivity` et ses autres règles personnalisées. Les autres entités conservent les deux packs. **Une exclusion est prioritaire sur l’activation du pack**, qu’il soit déclaré au niveau général ou dans cette même entité.
+Here, the temperature sensor ignores the `battery` pack and the `fridge_notification` rule while keeping `connectivity` and its other custom rules. Other entities keep both packs. **An exclusion takes precedence over pack activation**, whether the pack is declared globally or within that same entity.
 
-Les exclusions et `ignore_pending` modifient uniquement l’affichage de cette carte. Ils ne désactivent pas la détection ni les notifications dans Alert Manager.
+Exclusions and `ignore_pending` affect only this card's display. They do not disable detection or notifications in Alert Manager.
 
-## Alertes à venir par pack
+## Pending alerts per pack
 
-Chaque pack accepte `ignore_pending`, au niveau général ou dans une entité, à côté de `colors` :
+Each pack accepts `ignore_pending`, globally or within an entity, alongside `colors`:
 
 ```yaml
 alert_manager:
@@ -135,19 +137,19 @@ alert_manager:
       colors:
         active: '#c62828'
   entities:
-    sensor.frigo_temperature:
+    sensor.fridge_temperature:
       packs:
         battery:
           ignore_pending: false
 ```
 
-Ici, les alertes à venir du pack `battery` sont masquées, sauf pour la température du frigo. Les alertes actives restent affichées ; les autres packs et les règles personnalisées gardent leurs propres réglages.
+Here, pending alerts from the `battery` pack are hidden except for the fridge temperature sensor. Active alerts remain visible; other packs and custom rules keep their own settings.
 
-La priorité est la même que pour les couleurs : **pack de l’entité → entité → pack général → général → `false`**. Une option absente hérite du niveau suivant. Un `false` explicite réactive l’affichage à son niveau, même si un niveau moins précis le masque. Pour les règles personnalisées, seuls les réglages de l’entité puis le réglage général s’appliquent.
+The priority is the same as for colors: **entity pack → entity → global pack → global → `false`**. An omitted option inherits from the next level. An explicit `false` restores pending alert display at its level, even if a less specific level hides it. For custom rules, only the entity setting followed by the global setting applies.
 
-## Personnaliser les couleurs
+## Customizing colors
 
-Priorité, **séparément pour chaque état** : **pack de l’entité → entité → pack général → général → défaut rouge/orange**.
+Priority, **independently for each state**: **entity pack → entity → global pack → global → red/orange default**.
 
 ```yaml
 alert_manager:
@@ -160,19 +162,19 @@ alert_manager:
     active: '#d32f2f'
     pending: '#fb8c00'
   entities:
-    sensor.frigo_temperature:
+    sensor.fridge_temperature:
       colors:
         active: '#b71c1c'
 ```
 
-La température utilise sa couleur d’entité lorsqu’une alerte est active. Pour ses alertes à venir du pack `battery`, la couleur du pack général s’applique ; pour une règle personnalisée, la couleur générale s’applique.
+The temperature sensor uses its entity color when an alert is active. For its pending alerts from the `battery` pack, the global pack color applies; for a custom rule, the global color applies.
 
-Pour personnaliser un pack sur une seule entité, utiliser exactement le même format sous cette entité :
+To customize a pack for a single entity, use exactly the same format under that entity:
 
 ```yaml
 alert_manager:
   entities:
-    sensor.frigo_temperature:
+    sensor.fridge_temperature:
       packs:
         battery:
           colors:
@@ -180,52 +182,52 @@ alert_manager:
             pending: '#ffb300'
 ```
 
-Cet exemple active `battery` uniquement pour la température et choisit ses couleurs. Une couleur définie à ce niveau est prioritaire sur les couleurs générales de l’entité et du pack. Les états non renseignés héritent du niveau suivant ; déclarer un pack local avec `{}` conserve les couleurs héritées selon cette priorité.
+This example enables `battery` only for the temperature sensor and sets its colors. A color defined at this level takes precedence over the entity and global pack colors. Omitted states inherit from the next level; declaring a local pack with `{}` keeps inherited colors according to this priority.
 
-Les valeurs acceptent une couleur CSS valide : hexadécimal, nom (`red`, `teal`…), `rgb(...)` ou variable (`var(--my-alert-color)`). Une couleur invalide conserve la couleur du niveau inférieur. Déclarer un pack avec ses couleurs suffit à l’activer ; aucune liste d’activation séparée n’est nécessaire.
+Values accept a valid CSS color: hexadecimal, a name (`red`, `teal`…), `rgb(...)`, or a variable (`var(--my-alert-color)`). An invalid color keeps the color from the lower level. Declaring a pack with its colors is enough to enable it; no separate activation list is needed.
 
-| Situation | Affichage |
+| Situation | Display |
 |---|---|
-| Alerte active retenue | `active`, rouge par défaut |
-| Alerte à venir retenue, sans active | `pending`, orange par défaut |
-| Aucune alerte retenue | Couleurs propres à la carte, aucun style ajouté |
+| Matching active alert | `active`, red by default |
+| Matching pending alert, with no active alert | `pending`, orange by default |
+| No matching alert | The card's own colors, with no added styling |
 
-Une alerte active gagne sur une alerte à venir, quelle que soit sa couleur personnalisée. À gravité égale, la première entité rencontrée dans la configuration de la carte gagne ; pour plusieurs alertes de cette entité, l’ID d’alerte le plus petit dans l’ordre lexical départage les couleurs. Réordonner les données reçues du manager ne change donc pas la couleur gagnante.
+An active alert takes precedence over a pending alert, regardless of its custom color. At equal severity, the first entity encountered in the card configuration wins; for multiple alerts on that entity, the lexically smallest alert ID determines the color. Reordering data received from the manager therefore does not change the winning color.
 
-Les valeurs, switchs, autres sous-boutons et le fond de la carte conservent leur présentation. Les sélecteurs précis avec `!important` donnent priorité au module sur `signature` en alerte ; un style tiers plus précis peut encore les surcharger.
+Values, switches, other sub-buttons, and the card background retain their appearance. Specific selectors with `!important` give the module priority over `signature` during an alert; a more specific third-party style may still override them.
 
-## Entités détectées et limites
+## Entity discovery and limitations
 
-La recherche couvre l’entité principale, les champs `entity`, `entity_id`, `entities`, `entity_ids` et `*_entity`, y compris les sous-boutons simples/groupés, les cibles d’actions et `secondary_entity`. Elle détecte aussi les ID littéraux entre guillemets dans les templates Jinja/JavaScript, ainsi que `states.sensor.nom` dans Jinja. Les doublons sont supprimés. Les cartes enfants ont leur propre périmètre de surveillance.
+Discovery covers the main entity and the `entity`, `entity_id`, `entities`, `entity_ids`, and `*_entity` fields, including individual/grouped sub-buttons, action targets, and `secondary_entity`. It also detects quoted literal IDs in Jinja/JavaScript templates and `states.sensor.name` in Jinja. Duplicates are removed. Child cards have their own monitoring scope.
 
-Un ID construit dynamiquement dans un template ne peut pas être déduit : l’ajouter dans `alert_manager.entities`. La présence d’une entité sous un bouton masqué ne la retire pas automatiquement de la surveillance ; utiliser `exclude: true` si nécessaire.
+A dynamically constructed ID in a template cannot be inferred: add it to `alert_manager.entities`. An entity referenced by a hidden button is not automatically removed from monitoring; use `exclude: true` if needed.
 
-La disponibilité reste gérée par Bubble et le design de la carte. Le module ne lit pas les états des entités pour imposer du gris. Le pack `unavailable`, comme les autres packs automatiques, reste ignoré tant qu’il n’est pas ajouté explicitement.
+Availability remains handled by Bubble and the card's design. The module does not read entity states to force a grey color. The `unavailable` pack, like other automatic packs, remains ignored until explicitly added.
 
-## Données et performances
+## Data and performance
 
-Deux capteurs sont lus : par défaut, `sensor.alert_manager_main_active` et `sensor.alert_manager_main_pending`, ou les identifiants configurés dans `sensors`.
+Two sensors are read: by default, `sensor.alert_manager_main_active` and `sensor.alert_manager_main_pending`, or the IDs configured in `sensors`.
 
-Leurs attributs compacts conservent les ID stables : `rule:<rule_id>:<entity_id>` pour les règles personnalisées et `<pack_id>:…` pour les packs. Aucun nom traduit ni registre local de packs n’est nécessaire. L’index partagé conserve **un seul instantané par connexion HA** et se reconstruit quand l’un de ces deux objets d’état change, même à compteur constant. Chaque carte applique ensuite ses filtres et couleurs à cet index. Un compteur nul évite la lecture de sa liste d’alertes ; la découverte des entités et les options sont mises en cache jusqu’au remplacement de la configuration.
+Their compact attributes retain stable IDs: `rule:<rule_id>:<entity_id>` for custom rules and `<pack_id>:…` for packs. No translated name or local pack registry is needed. The shared index keeps **a single snapshot per HA connection** and rebuilds when either of these two state objects changes, even if the counter stays the same. Each card then applies its filters and colors to this index. A zero counter skips reading its alert list; entity discovery and options are cached until the configuration is replaced.
 
-Aucun abonnement, appel externe, polling ou temporisateur ajouté. Les deux lectures restent visibles au moteur de dépendances Bubble sur les accès au cache. Sans entité surveillée, aucun accès HA pour cette fonctionnalité. Sans `alert_manager` dans `modules`, Bubble n’exécute pas ce module.
+No subscriptions, external calls, polling, or timers are added. Both sensor reads remain visible to Bubble's dependency engine on cache hits. With no monitored entity, this feature does not access HA. Without `alert_manager` in `modules`, Bubble does not execute the module.
 
-Seules les alertes présentes dans les attributs compacts peuvent être colorées. Si une liste est tronquée (`alerts_omitted`) ou si des données manquent, le module n’invente ni alerte ni couleur grise ; l’absence de couleur ne prouve pas l’absence d’une alerte omise.
+Only alerts present in the compact attributes can affect colors. If a list is truncated (`alerts_omitted`) or data is missing, the module does not invent alerts or add a grey color; the absence of a color does not prove there are no omitted alerts.
 
-Boutons, volets, thermostats et lecteurs multimédias sont pris en charge ; séparateurs, popups et sliders sont exclus. Les résumés de pièces ne nécessitent pas l’ajout du module : il reste activé carte par carte via `modules`.
+Buttons, covers, thermostats, and media players are supported; separators, popups, and sliders are excluded. Room summaries do not require the module to be added: it remains enabled per card through `modules`.
 
 ## Installation
 
-Installer Bubble Card et [Bubble Card Tools](https://github.com/Clooos/Bubble-Card-Tools), puis importer le fichier YAML complet depuis la section Modules de l’éditeur d’une carte. Ajouter `alert_manager` à la liste `modules` de chaque carte concernée. Les options de cette version se configurent en YAML : le fichier ne déclare pas encore de schéma `editor`.
+Install Bubble Card and [Bubble Card Tools](https://github.com/Clooos/Bubble-Card-Tools), then import the complete YAML file from the Modules section of a card's editor. Add `alert_manager` to the `modules` list of each relevant card. Options in this version are configured in YAML: the file does not yet declare an `editor` schema.
 
-L’intégration [Home Assistant Alert Manager](https://github.com/zoic21/ha_alert_manager) est requise. Vérifier que les deux capteurs mentionnés ci-dessus existent sous les identifiants utilisés et exposent les attributs compacts `alerts`. Adapter `sensors` si leurs identifiants ont été renommés. Un capteur absent ne fournit aucune alerte au module.
+The [Home Assistant Alert Manager integration](https://github.com/zoic21/ha_alert_manager) is required. Check that the two sensors listed above exist under the IDs you use and expose the compact `alerts` attributes. Adjust `sensors` if their IDs have been renamed. A missing sensor supplies no alerts to the module.
 
-[Signature](../../signature/doc/README.md) est facultatif : le module fonctionne aussi sur les cartes Bubble natives. Importer les deux distributions si un exemple utilise les deux modules.
+[Signature](../../signature/doc/README.md) is optional: the module also works on native Bubble cards. Import both distributions if an example uses both modules.
 
-Après une mise à jour manuelle, réimporter le YAML puis recharger le frontend. Un commit dans ce dépôt n’actualise pas l’installation Home Assistant. Les cartes enfants nécessitent leur propre activation du module.
+After a manual update, import the YAML again and reload the frontend. A commit in this repository does not update your Home Assistant installation. Child cards need their own module activation.
 
-## Vérification dans Home Assistant
+## Validation in Home Assistant
 
-Sur une entité de test, vérifier une alerte personnalisée active et à venir, une exclusion, puis l’ajout explicite d’un pack. La disparition de toutes les alertes retenues rend ses couleurs ordinaires à la carte.
+On a test entity, check active and pending custom alerts, an exclusion, and then explicitly enabling a pack. When all matching alerts disappear, the card returns to its normal colors.
 
-La vérification syntaxique du YAML/JavaScript ne valide pas le rendu ni les données d’une instance Home Assistant réelle. Vérifier le fonctionnement des capteurs compacts et la réactivité des cartes dans son installation.
+YAML/JavaScript syntax checks do not validate rendering or data in a real Home Assistant instance. Check that the compact sensors work and cards respond correctly in your installation.
