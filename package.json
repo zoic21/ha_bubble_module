@@ -1,0 +1,15 @@
+{
+  "name": "ha-bubble-module",
+  "private": true,
+  "scripts": {
+    "test": "node --test */test/*.test.cjs",
+    "test:signature": "node --test signature/test/*.test.cjs",
+    "test:alert-manager": "node --test alert_manager/test/*.test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "yaml": "2.9.1"
+  }
+}

@@ -2,9 +2,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {test} = require('node:test');
+const YAML = require('yaml');
 
-const file = process.argv[2] || path.resolve(__dirname, '../alert_manager/dist/alert_manager.yaml');
-const code = fs.readFileSync(file, 'utf8').split('  code: |2-\n')[1];
+const file = process.argv[2] || path.resolve(__dirname, '../dist/alert_manager.yaml');
+const definition = YAML.parse(fs.readFileSync(file, 'utf8')).alert_manager;
+const code = definition.code;
 assert.ok(code, 'Module code missing');
 const render = new Function('hass', 'onTeardown', 'return `'+code+'`;');
 // This stub validates the test fixtures; it does not replace browser CSS validation.
@@ -334,4 +336,47 @@ test('custom source cache hits observe all configured dependencies and share ale
   for (let i=0;i<100;i++) assert.equal(accent(run(context(options),tracked)),red);
   assert.deepEqual([...dependencies],renamed);
   assert.equal(visits,1);
+});
+
+test('renamed sensors refresh cached alerts and lifecycle colors at unchanged counts',()=>{
+  const ctx=context({sensors:{active:'sensor.custom_active',pending:'sensor.custom_pending'}});
+  const hass=normal();
+  hass.states['sensor.custom_active']=manager([custom()]);
+  assert.equal(accent(run(ctx,hass)),red);
+  hass.states['sensor.custom_active']=manager([custom(target)]);
+  assert.equal(run(ctx,hass),'');
+  hass.states['sensor.custom_pending']=manager([custom()]);
+  assert.equal(accent(run(ctx,hass)),orange);
+  ctx.config.alert_manager={...ctx.config.alert_manager,ignore_pending:true};
+  assert.equal(run(ctx,hass),'');
+  hass.states['sensor.custom_active']=manager([custom()]);
+  assert.equal(accent(run(ctx,hass)),red);
+});
+
+test('distribution metadata and documented versions agree',() => {
+  assert.equal(definition.name,'Alert Manager');
+  assert.match(definition.version,/^\d+\.\d+\.\d+$/);
+  assert.ok(definition.description);
+  assert.ok(definition.supported.every(type=>typeof type === 'string'));
+  for (const file of ['../doc/README.md','../../README.md']) {
+    assert.ok(fs.readFileSync(path.resolve(__dirname,file),'utf8').includes(definition.version),file);
+  }
+});
+
+test('all documented configuration examples are valid YAML',() => {
+  const doc=fs.readFileSync(path.resolve(__dirname,'../doc/README.md'),'utf8');
+  const blocks=[...doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)];
+  assert.ok(blocks.length>0);
+  for (const [,example] of blocks) assert.doesNotThrow(()=>YAML.parse(example));
+});
+
+test('documentation links resolve to local files',() => {
+  for (const file of ['../doc/README.md','../../README.md']) {
+    const location=path.resolve(__dirname,file);
+    const doc=fs.readFileSync(location,'utf8');
+    for (const [,target] of doc.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
+      if (/^[a-z]+:|^#/i.test(target)) continue;
+      assert.ok(fs.existsSync(path.resolve(path.dirname(location),target.split('#')[0])),target);
+    }
+  }
 });
