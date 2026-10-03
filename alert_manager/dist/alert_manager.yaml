@@ -5,18 +5,18 @@
 # Aucune disponibilité, souscription ou temporisation ; index partagé par connexion HA.
 alert_manager:
   name: Alert Manager
-  version: 3.0.0
+  version: 3.1.0
   creator: Loïc
   supported:
     - button
     - cover
     - climate
     - media-player
-  description: 'Surveille toutes les entités de la carte et les règles personnalisées par défaut. alert_manager permet de configurer les capteurs sources, d’activer des packs par ID, d’exclure des entités ou règles, de masquer les alertes à venir et de personnaliser les couleurs par entité, pack ou globalement. Chaque pack déclaré dans packs est activé et peut définir colors.active/pending. Colore uniquement l’icône principale et son fond pastel.'
+  description: 'Surveille toutes les entités de la carte et les règles personnalisées par défaut. alert_manager permet de configurer les capteurs sources, d’activer des packs par ID, d’exclure des entités ou règles, de masquer les alertes à venir et de personnaliser les couleurs par entité, pack ou globalement. Chaque pack déclaré dans packs est activé et peut définir ignore_pending et colors.active/pending. Colore uniquement l’icône principale et son fond pastel.'
   code: |2-
         ${(() => {
           const c = this.config;
-          if (!this.card || c.alert_manager === false || c.button_type === 'slider'
+          if (!this.card || c.button_type === 'slider'
               || !['button','cover','climate','media-player'].includes(c.card_type || 'button')) {
             delete this._amConfig;
             return '';
@@ -52,33 +52,42 @@ alert_manager:
             const readColors = (values,fallback = {}) => Object.fromEntries(
               ['active','pending'].map(state => [state,color(values?.[state],fallback[state] ?? null)]));
             const packSettings = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-            const readPackColors = (packs,fallback) => new Map(Object.entries(packSettings(packs))
-              .map(([id,spec]) => [id,readColors(spec?.colors,fallback)]));
+            const readPacks = (packs,fallback) => new Map(Object.entries(packSettings(packs))
+              .map(([id,spec]) => [id,{colors:readColors(spec?.colors,fallback),ignorePending:spec?.ignore_pending}]));
             const defaults = {active:'var(--red-color, #f44336)',pending:'var(--orange-color, #ff9800)'};
             const colors = readColors(options.colors,defaults);
-            const packColors = readPackColors(options.packs,colors);
+            const packs = readPacks(options.packs,colors);
             const entities = [];
             for (const id of ids) {
               const entry = exceptions[id] || {};
               if (entry.exclude === true) continue;
-              const localPackColors = readPackColors(entry.packs);
+              const localPacks = readPacks(entry.packs);
+              const entityColors = readColors(entry.colors);
+              const enabledPacks = new Map();
+              for (const pack of new Set([...packs.keys(),...localPacks.keys()])) {
+                const general = packs.get(pack), local = localPacks.get(pack);
+                enabledPacks.set(pack,{
+                  ignorePending:local?.ignorePending ?? entry.ignore_pending ?? general?.ignorePending ?? options.ignore_pending ?? false,
+                  colors:Object.fromEntries(['active','pending'].map(state =>
+                    [state,local?.colors[state] ?? entityColors[state] ?? general?.colors[state] ?? colors[state]])),
+                });
+              }
               entities.push({id,
                 ignorePending:entry.ignore_pending ?? options.ignore_pending ?? false,
-                packs:new Set([...packColors.keys(),...localPackColors.keys()]),
-                packColors:localPackColors,
+                packs:enabledPacks,
                 excludedRules:merge('exclude_rules',entry),
-                colors:readColors(entry.colors),
+                colors:entityColors,
               });
             }
-            const sensorIds = ['active','acknowledge','pending'].map(state =>
+            const sensorIds = ['active','pending'].map(state =>
               options.sensors?.[state] || 'sensor.alert_manager_main_'+state);
-            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,packColors,sensorIds};
+            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,sensorIds};
           }
           if (typeof onTeardown === 'function') onTeardown(() => { delete this._amConfig; });
           if (!watched.entities.length) return '';
-          // Keep all three reads outside the cache so Bubble observes each lifecycle partition.
+          // Keep both reads outside the cache so Bubble observes active and pending alerts.
           const sources = watched.sensorIds.map(id => hass.states[id]);
-          const key = Symbol.for('bubble.alertManager.v3');
+          const key = Symbol.for('bubble.alertManager.v4');
           const shared = globalThis[key] || (globalThis[key] = new WeakMap());
           const connection = hass.connection || hass;
           let snapshot = shared.get(connection);
@@ -97,7 +106,7 @@ alert_manager:
                 if (!records) byEntity.set(alert.entity_id,records = []);
                 // The prefix is the pack ID; custom rules use rule:<rule_id>:<entity_id>.
                 records.push({id:alert.id,pack:source === 'rule' ? null : source,
-                  rule:source === 'rule' ? rule : null,severity:index === 2 ? 1 : 2});
+                  rule:source === 'rule' ? rule : null,severity:index === 1 ? 1 : 2});
               }
             });
             snapshot = {sources,byEntity};
@@ -108,20 +117,19 @@ alert_manager:
           for (const entry of watched.entities) {
             let match = null;
             for (const alert of snapshot.byEntity.get(entry.id) || []) {
-              if (alert.severity === 1 && entry.ignorePending === true) continue;
-              if (alert.pack ? !entry.packs.has(alert.pack)
-                  : entry.excludedRules.has(alert.rule)) continue;
+              const pack = entry.packs.get(alert.pack);
+              if (alert.pack ? !pack : entry.excludedRules.has(alert.rule)) continue;
+              if (alert.severity === 1 && (pack?.ignorePending ?? entry.ignorePending) === true) continue;
               if (!match || alert.severity > match.severity
                   || (alert.severity === match.severity && alert.id < match.id)) match = alert;
             }
-            // Active/acknowledged wins; equal severity keeps the first entity in card order.
+            // Active wins; equal severity keeps the first entity in card order.
             if (match && (!selected || match.severity > selected.severity)) { selected = match; policy = entry; }
           }
           // Native Bubble remains responsible for availability and restores its own colors.
           if (!selected) return '';
           const state = selected.severity === 2 ? 'active' : 'pending';
-          const accent = policy.packColors.get(selected.pack)?.[state] ?? policy.colors[state]
-            ?? watched.packColors.get(selected.pack)?.[state] ?? watched.colors[state];
+          const accent = policy.packs.get(selected.pack)?.colors[state] ?? policy.colors[state] ?? watched.colors[state];
           const surface = 'var(--ha-card-background, var(--card-background-color, #fff))';
           return `
             ha-card .bubble-main-icon-container .bubble-main-icon { color: ${accent} !important; }

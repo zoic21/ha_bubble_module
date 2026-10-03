@@ -1,4 +1,4 @@
-# Module Bubble Alert Manager 3.0.0
+# Module Bubble Alert Manager 3.1.0
 
 [Module à importer](../dist/alert_manager.yaml), indépendant de `signature`. Il colore uniquement l’icône principale et son fond pastel selon les alertes d’Alert Manager. Il ne recopie ni seuils ni délais dans les cartes.
 
@@ -26,31 +26,30 @@ Le module peut aussi être utilisé seul avec Bubble natif. Avec `signature`, le
 
 | Option | Effet | Valeur par défaut |
 |---|---|---|
-| `sensors.active/acknowledge/pending` | Identifiants des trois capteurs sources | Capteurs créés par défaut par l’intégration |
-| `packs.<pack_id>` | Active un pack et définit éventuellement ses `colors.active/pending` | Aucun pack activé |
+| `sensors.active/pending` | Identifiants des deux capteurs sources | Capteurs créés par défaut par l’intégration |
+| `packs.<pack_id>` | Active un pack et définit éventuellement ses `ignore_pending` et `colors.active/pending` | Aucun pack activé |
 | `exclude_rules` | Liste des ID de règles personnalisées à interdire | `[]` |
 | `ignore_pending` | Masquer les alertes à venir | `false` |
-| `colors.active` | Couleur des alertes actives ou acquittées | Rouge du thème |
+| `colors.active` | Couleur des alertes actives | Rouge du thème |
 | `colors.pending` | Couleur des alertes à venir | Orange du thème |
 | `entities.<entity_id>` | Exceptions pour une entité de la carte, ou ajout d’une entité extérieure | Aucune exception |
 
 Chaque entrée de `entities` accepte `exclude: true`, `ignore_pending`, `packs.<pack_id>`, `exclude_rules` et `colors.active/pending`. Les packs utilisent le même objet de configuration au niveau général et dans une entité. Seuls les booléens YAML `true` et `false` règlent les options booléennes.
 
-Pour désactiver entièrement ce module sur une carte : `alert_manager: false`.
+Pour désactiver le module sur une carte, retirer `alert_manager` de sa liste `modules`.
 
 ## Capteurs sources
 
-Sans configuration, le module lit les trois capteurs créés par défaut par l’intégration. S’ils ont été renommés, indiquer leurs nouveaux identifiants :
+Sans configuration, le module lit les capteurs d’alertes actives et à venir créés par défaut par l’intégration. S’ils ont été renommés, indiquer leurs nouveaux identifiants :
 
 ```yaml
 alert_manager:
   sensors:
     active: sensor.mes_alertes_actives
-    acknowledge: sensor.mes_alertes_acquittees
     pending: sensor.mes_alertes_a_venir
 ```
 
-Chaque clé est facultative : une clé absente conserve son identifiant par défaut. `acknowledge` correspond aux alertes acquittées, qui restent colorées comme les alertes actives. Ces options choisissent les sources d’alertes ; `entities` choisit les entités à surveiller. Les capteurs sources doivent conserver le compteur et les attributs compacts `alerts` fournis par l’intégration.
+Chaque clé est facultative : une clé absente conserve son identifiant par défaut. Ces options choisissent les sources d’alertes ; `entities` choisit les entités à surveiller. Les capteurs sources doivent conserver le compteur et les attributs compacts `alerts` fournis par l’intégration.
 
 ## Exceptions par entité
 
@@ -106,7 +105,29 @@ Les packs généraux et ceux de l’entité **s’additionnent**. Pour activer u
 
 Les règles personnalisées restent activées ; `exclude_rules` permet d’en retirer certaines. Un ID dans `exclude_rules` n’exclut pas le pack qui porterait le même ID.
 
-Les exclusions et `ignore_pending` modifient uniquement l’affichage de cette carte. Ils ne désactivent pas la détection ni les notifications dans Alert Manager. `ignore_pending: false` sur une entité peut réactiver son orange si l’option générale est `true`.
+Les exclusions et `ignore_pending` modifient uniquement l’affichage de cette carte. Ils ne désactivent pas la détection ni les notifications dans Alert Manager.
+
+## Alertes à venir par pack
+
+Chaque pack accepte `ignore_pending`, au niveau général ou dans une entité, à côté de `colors` :
+
+```yaml
+alert_manager:
+  packs:
+    battery:
+      ignore_pending: true
+      colors:
+        active: '#c62828'
+  entities:
+    sensor.frigo_temperature:
+      packs:
+        battery:
+          ignore_pending: false
+```
+
+Ici, les alertes à venir du pack `battery` sont masquées, sauf pour la température du frigo. Les alertes actives restent affichées ; les autres packs et les règles personnalisées gardent leurs propres réglages.
+
+La priorité est la même que pour les couleurs : **pack de l’entité → entité → pack général → général → `false`**. Une option absente hérite du niveau suivant. Un `false` explicite réactive l’affichage à son niveau, même si un niveau moins précis le masque. Pour les règles personnalisées, seuls les réglages de l’entité puis le réglage général s’appliquent.
 
 ## Personnaliser les couleurs
 
@@ -128,7 +149,7 @@ alert_manager:
         active: '#b71c1c'
 ```
 
-La température utilise sa couleur d’entité lorsqu’une alerte est active ou acquittée. Pour ses alertes à venir du pack `battery`, la couleur du pack général s’applique ; pour une règle personnalisée, la couleur générale s’applique.
+La température utilise sa couleur d’entité lorsqu’une alerte est active. Pour ses alertes à venir du pack `battery`, la couleur du pack général s’applique ; pour une règle personnalisée, la couleur générale s’applique.
 
 Pour personnaliser un pack sur une seule entité, utiliser exactement le même format sous cette entité :
 
@@ -149,11 +170,11 @@ Les valeurs acceptent une couleur CSS valide : hexadécimal, nom (`red`, `teal`�
 
 | Situation | Affichage |
 |---|---|
-| Alerte active ou acquittée retenue | `active`, rouge par défaut |
-| Alerte à venir retenue, sans active/acquittée | `pending`, orange par défaut |
+| Alerte active retenue | `active`, rouge par défaut |
+| Alerte à venir retenue, sans active | `pending`, orange par défaut |
 | Aucune alerte retenue | Couleurs propres à la carte, aucun style ajouté |
 
-Une alerte active ou acquittée gagne sur une alerte à venir, quelle que soit sa couleur personnalisée. À gravité égale, la première entité rencontrée dans la configuration de la carte gagne ; pour plusieurs alertes de cette entité, l’ID d’alerte le plus petit dans l’ordre lexical départage les couleurs. Réordonner les données reçues du manager ne change donc pas la couleur gagnante.
+Une alerte active gagne sur une alerte à venir, quelle que soit sa couleur personnalisée. À gravité égale, la première entité rencontrée dans la configuration de la carte gagne ; pour plusieurs alertes de cette entité, l’ID d’alerte le plus petit dans l’ordre lexical départage les couleurs. Réordonner les données reçues du manager ne change donc pas la couleur gagnante.
 
 Les valeurs, switchs, autres sous-boutons et le fond de la carte conservent leur présentation. Les sélecteurs précis avec `!important` donnent priorité au module sur `signature` en alerte ; un style tiers plus précis peut encore les surcharger.
 
@@ -167,11 +188,11 @@ La disponibilité reste gérée par Bubble et le design de la carte. Le module n
 
 ## Données et performances
 
-Trois capteurs sont lus : par défaut, `sensor.alert_manager_main_active`, `sensor.alert_manager_main_acknowledge` et `sensor.alert_manager_main_pending`, ou les identifiants configurés dans `sensors`.
+Deux capteurs sont lus : par défaut, `sensor.alert_manager_main_active` et `sensor.alert_manager_main_pending`, ou les identifiants configurés dans `sensors`.
 
-Leurs attributs compacts conservent les ID stables : `rule:<rule_id>:<entity_id>` pour les règles personnalisées et `<pack_id>:…` pour les packs. Aucun nom traduit ni registre local de packs n’est nécessaire. L’index partagé conserve **un seul instantané par connexion HA** et se reconstruit quand l’un de ces trois objets d’état change, même à compteur constant. Chaque carte applique ensuite ses filtres et couleurs à cet index. Un compteur nul évite la lecture de sa liste d’alertes ; la découverte des entités et les options sont mises en cache jusqu’au remplacement de la configuration.
+Leurs attributs compacts conservent les ID stables : `rule:<rule_id>:<entity_id>` pour les règles personnalisées et `<pack_id>:…` pour les packs. Aucun nom traduit ni registre local de packs n’est nécessaire. L’index partagé conserve **un seul instantané par connexion HA** et se reconstruit quand l’un de ces deux objets d’état change, même à compteur constant. Chaque carte applique ensuite ses filtres et couleurs à cet index. Un compteur nul évite la lecture de sa liste d’alertes ; la découverte des entités et les options sont mises en cache jusqu’au remplacement de la configuration.
 
-Aucun abonnement, appel externe, polling ou temporisateur ajouté. Les trois lectures restent visibles au moteur de dépendances Bubble sur les accès au cache. Sans entité surveillée, ou avec `alert_manager: false`, aucun accès HA pour cette fonctionnalité.
+Aucun abonnement, appel externe, polling ou temporisateur ajouté. Les deux lectures restent visibles au moteur de dépendances Bubble sur les accès au cache. Sans entité surveillée, aucun accès HA pour cette fonctionnalité. Sans `alert_manager` dans `modules`, Bubble n’exécute pas ce module.
 
 Seules les alertes présentes dans les attributs compacts peuvent être colorées. Si une liste est tronquée (`alerts_omitted`) ou si des données manquent, le module n’invente ni alerte ni couleur grise ; l’absence de couleur ne prouve pas l’absence d’une alerte omise.
 
@@ -181,7 +202,7 @@ Boutons, volets, thermostats et lecteurs multimédias sont pris en charge ; sép
 
 Installer Bubble Card et [Bubble Card Tools](https://github.com/Clooos/Bubble-Card-Tools), puis importer le fichier YAML complet depuis la section Modules de l’éditeur d’une carte. Ajouter `alert_manager` à la liste `modules` de chaque carte concernée. Les options de cette version se configurent en YAML : le fichier ne déclare pas encore de schéma `editor`.
 
-L’intégration [Home Assistant Alert Manager](https://github.com/zoic21/ha_alert_manager) est requise. Vérifier que les trois capteurs mentionnés ci-dessus existent sous les identifiants utilisés et exposent les attributs compacts `alerts`. Adapter `sensors` si leurs identifiants ont été renommés. Un capteur absent ne fournit aucune alerte au module.
+L’intégration [Home Assistant Alert Manager](https://github.com/zoic21/ha_alert_manager) est requise. Vérifier que les deux capteurs mentionnés ci-dessus existent sous les identifiants utilisés et exposent les attributs compacts `alerts`. Adapter `sensors` si leurs identifiants ont été renommés. Un capteur absent ne fournit aucune alerte au module.
 
 [Signature](../../signature/doc/README.md) est facultatif : le module fonctionne aussi sur les cartes Bubble natives. Importer les deux distributions si un exemple utilise les deux modules.
 
@@ -189,6 +210,6 @@ Après une mise à jour manuelle, réimporter le YAML puis recharger le frontend
 
 ## Vérification dans Home Assistant
 
-Sur une entité de test, vérifier une alerte personnalisée active, acquittée et à venir, une exclusion, puis l’ajout explicite d’un pack. Une alerte acquittée reste colorée en rouge tant qu’elle est présente dans le capteur correspondant. La disparition de toutes les alertes retenues rend ses couleurs ordinaires à la carte.
+Sur une entité de test, vérifier une alerte personnalisée active et à venir, une exclusion, puis l’ajout explicite d’un pack. La disparition de toutes les alertes retenues rend ses couleurs ordinaires à la carte.
 
 La vérification syntaxique du YAML/JavaScript ne valide pas le rendu ni les données d’une instance Home Assistant réelle. Vérifier le fonctionnement des capteurs compacts et la réactivité des cartes dans son installation.

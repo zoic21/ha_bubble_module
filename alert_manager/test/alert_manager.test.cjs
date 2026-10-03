@@ -11,8 +11,8 @@ assert.ok(code, 'Module code missing');
 const render = new Function('hass', 'onTeardown', 'return `'+code+'`;');
 // This stub validates the test fixtures; it does not replace browser CSS validation.
 globalThis.CSS = {supports: (property,value) => property === 'color' && /^(#[a-f0-9]{6}|red|orange|teal|rgb\([\d ,]+\)|var\(--[a-z-]+(?:, #[a-f0-9]{6})?\))$/i.test(value)};
-const key = Symbol.for('bubble.alertManager.v3');
-const ids = ['sensor.alert_manager_main_active','sensor.alert_manager_main_acknowledge','sensor.alert_manager_main_pending'];
+const key = Symbol.for('bubble.alertManager.v4');
+const ids = ['sensor.alert_manager_main_active','sensor.alert_manager_main_pending'];
 const primary = 'switch.appliance';
 const target = 'sensor.temperature';
 const power = 'sensor.power';
@@ -29,10 +29,26 @@ const withAlerts = (alerts,partition=0) => {const hass=normal();hass.states[ids[
 const forbiddenHass = new Proxy({}, {get(){throw new Error('Unexpected hass access');}});
 
 test('no options watches the main entity; every lifecycle partition has the right color',()=>{
-  for (const partition of [0,1,2]) {
-    assert.equal(accent(run(context(),withAlerts([custom()],partition))),partition === 2 ? orange : red);
+  for (const partition of [0,1]) {
+    assert.equal(accent(run(context(),withAlerts([custom()],partition))),partition === 1 ? orange : red);
   }
   assert.equal(run(context(),normal()),'');
+});
+
+test('acknowledged alerts never color the card or become source dependencies',()=>{
+  const hass=withAlerts([custom()]);
+  const acknowledged='sensor.alert_manager_main_acknowledge';
+  hass.states[acknowledged]=manager([custom(),pack()]);
+  const reads=new Set();
+  const tracked={...hass,states:new Proxy(hass.states,{get(states,id){reads.add(id);return states[id];}})};
+  const ctx=context({packs:{battery:{}}});
+  assert.equal(accent(run(ctx,tracked)),red);
+  hass.states[ids[0]]=manager();
+  assert.equal(run(ctx,tracked),'','Moving out of active restores the normal card colors');
+  hass.states[ids[1]]=manager([pack()]);
+  assert.equal(accent(run(ctx,tracked)),orange,'Ignored alerts never hide the pending color');
+  assert.deepEqual([...reads],ids);
+  assert.equal(reads.has(acknowledged),false);
 });
 
 test('default discovery covers sub-button arrays, main/bottom groups, targets and secondary entities',()=>{
@@ -76,30 +92,28 @@ test('excluded entities never produce a color and additional entities are opt-in
   assert.equal(run(context({entities:{[primary]:{exclude:true,packs:{battery:{}}}}}),forbiddenHass),'');
 });
 
-test('ignore_pending affects only pending; active and acknowledged still win',()=>{
+test('ignore_pending affects only pending; active still wins',()=>{
   const ctx = context({entities:{[primary]:{ignore_pending:true}}},{sub_button:[{entity:target}]});
-  assert.equal(run(ctx,withAlerts([custom()],2)),'');
-  assert.equal(accent(run(ctx,withAlerts([custom(target)],2))),orange);
-  for (const partition of [0,1]) {
-    const hass=withAlerts([custom()],partition);hass.states[ids[2]]=manager([custom(target)]);
-    assert.equal(accent(run(ctx,hass)),red);
-  }
+  assert.equal(run(ctx,withAlerts([custom()],1)),'');
+  assert.equal(accent(run(ctx,withAlerts([custom(target)],1))),orange);
+  const hass=withAlerts([custom()]);hass.states[ids[1]]=manager([custom(target)]);
+  assert.equal(accent(run(ctx,hass)),red);
 });
 
 test('global pending policy can be overridden explicitly per entity',()=>{
-  assert.equal(run(context({ignore_pending:true}),withAlerts([custom()],2)),'');
-  assert.equal(accent(run(context({ignore_pending:true,entities:{[primary]:{ignore_pending:false}}}),withAlerts([custom()],2))),orange);
+  assert.equal(run(context({ignore_pending:true}),withAlerts([custom()],1)),'');
+  assert.equal(accent(run(context({ignore_pending:true,entities:{[primary]:{ignore_pending:false}}}),withAlerts([custom()],1))),orange);
   for (const value of [false,'true',1]) {
-    assert.equal(accent(run(context({entities:{[primary]:{ignore_pending:value}}}),withAlerts([custom()],2))),orange);
+    assert.equal(accent(run(context({entities:{[primary]:{ignore_pending:value}}}),withAlerts([custom()],1))),orange);
   }
 });
 
 test('all automatic packs are excluded by default and arbitrary future IDs work',()=>{
   for (const id of ['battery','connectivity','unavailable','unifi','execution_errors','flapping','update_available','future_pack']) {
-    for (const partition of [0,1,2]) {
+    for (const partition of [0,1]) {
       const hass=withAlerts([pack(primary,id)],partition);
       assert.equal(run(context(),hass),'',id);
-      assert.equal(accent(run(context({packs:{[id]:{}}}),hass)),partition === 2 ? orange : red,id);
+      assert.equal(accent(run(context({packs:{[id]:{}}}),hass)),partition === 1 ? orange : red,id);
     }
   }
 });
@@ -114,10 +128,10 @@ test('global and entity pack objects activate cumulatively without leaking local
 
 test('rule exclusions apply by stable rule ID and preserve other errors and other entities',()=>{
   const ctx = context({entities:{[primary]:{exclude_rules:['notification']}}},{sub_button:[{entity:target}]});
-  for (const partition of [0,1,2]) {
+  for (const partition of [0,1]) {
     assert.equal(run(ctx,withAlerts([custom(primary,'notification')],partition)),'');
-    assert.equal(accent(run(ctx,withAlerts([custom(primary,'notification'),custom(primary,'error')],partition))),partition === 2 ? orange : red);
-    assert.equal(accent(run(ctx,withAlerts([custom(target,'notification')],partition))),partition === 2 ? orange : red);
+    assert.equal(accent(run(ctx,withAlerts([custom(primary,'notification'),custom(primary,'error')],partition))),partition === 1 ? orange : red);
+    assert.equal(accent(run(ctx,withAlerts([custom(target,'notification')],partition))),partition === 1 ? orange : red);
   }
   assert.equal(run(context({exclude_rules:['notification']}),withAlerts([custom(primary,'notification')])),'');
   assert.equal(accent(run(ctx,withAlerts([{...custom(),rule:'notification',message:'notification'}]))),red);
@@ -131,23 +145,90 @@ test('excluding a custom rule never excludes an enabled pack with the same ID',(
 
 test('pack pending policies and simultaneous custom/pack alerts use lifecycle severity',()=>{
   const ctx = context({packs:{battery:{}},entities:{[primary]:{ignore_pending:true}}});
-  assert.equal(run(ctx,withAlerts([pack()],2)),'');
-  assert.equal(accent(run(ctx,withAlerts([pack()],1))),red);
-  const hass=withAlerts([custom()],2);hass.states[ids[1]]=manager([pack()]);
+  assert.equal(run(ctx,withAlerts([pack()],1)),'');
+  assert.equal(accent(run(ctx,withAlerts([pack()]))),red);
+  const hass=withAlerts([custom()],1);hass.states[ids[0]]=manager([pack()]);
   assert.equal(accent(run(context({packs:{battery:{}}}),hass)),red);
+});
+
+test('a global pack pending mask affects only that pack and preserves active alerts',()=>{
+  const ctx=context({packs:{battery:{ignore_pending:true},connectivity:{}}});
+  assert.equal(run(ctx,withAlerts([pack()],1)),'');
+  assert.equal(accent(run(ctx,withAlerts([pack(primary,'connectivity')],1))),orange);
+  assert.equal(accent(run(ctx,withAlerts([custom()],1))),orange);
+  assert.equal(accent(run(ctx,withAlerts([pack()]))),red);
+});
+
+test('an entity pack pending mask is scoped to one entity and one pack',()=>{
+  const ctx=context({packs:{battery:{},connectivity:{}},entities:{[target]:{packs:{battery:{ignore_pending:true}}}}},
+    {sub_button:[{entity:target}]});
+  assert.equal(run(ctx,withAlerts([pack(target)],1)),'');
+  assert.equal(accent(run(ctx,withAlerts([pack()],1))),orange);
+  assert.equal(accent(run(ctx,withAlerts([pack(target,'connectivity')],1))),orange);
+  assert.equal(accent(run(ctx,withAlerts([custom(target)],1))),orange);
+  assert.equal(accent(run(ctx,withAlerts([pack(target)]))),red);
+});
+
+test('pack pending settings inherit and explicit booleans follow specificity',()=>{
+  for (const [general,globalPack,entity,localPack,ignored] of [
+    [undefined,undefined,undefined,undefined,false],
+    [true,undefined,undefined,undefined,true],
+    [true,false,undefined,undefined,false],
+    [false,true,undefined,undefined,true],
+    [false,true,false,undefined,false],
+    [false,false,true,undefined,true],
+    [false,true,true,false,false],
+    [true,false,false,true,true],
+  ]) {
+    const options={ignore_pending:general,packs:{battery:{ignore_pending:globalPack}},
+      entities:{[primary]:{ignore_pending:entity,packs:{battery:{ignore_pending:localPack}}}}};
+    assert.equal(accent(run(context(options),withAlerts([pack()],1))),ignored ? '' : orange,
+      JSON.stringify([general,globalPack,entity,localPack]));
+  }
+});
+
+test('a pack exception to the global pending mask never re-enables custom rule pending alerts',()=>{
+  const ctx=context({ignore_pending:true,packs:{battery:{ignore_pending:false},connectivity:{}}});
+  assert.equal(accent(run(ctx,withAlerts([pack()],1))),orange);
+  assert.equal(run(ctx,withAlerts([custom()],1)),'');
+  assert.equal(run(ctx,withAlerts([pack(primary,'connectivity')],1)),'');
+  assert.equal(accent(run(ctx,withAlerts([custom()]))),red);
+});
+
+test('pending masks discard only matching records when several alerts coexist',()=>{
+  const ctx=context({packs:{battery:{ignore_pending:true},connectivity:{colors:{pending:'#123456'}}}});
+  const hass=withAlerts([pack(),pack(primary,'connectivity')],1);
+  assert.equal(accent(run(ctx,hass)),'#123456');
+  hass.states[ids[0]]=manager([pack()]);
+  assert.equal(accent(run(ctx,hass)),red);
+});
+
+test('changing pending pack options refreshes the policy without traversing unchanged alerts',()=>{
+  let visits=0;
+  const records=new Proxy([pack()],{get(array,prop) {
+    if (prop === Symbol.iterator) return function*() {for(const record of array) {visits++;yield record;}};
+    return Reflect.get(array,prop);
+  }});
+  const hass=withAlerts(records,1);
+  const ctx=context({packs:{battery:{ignore_pending:true}}});
+  assert.equal(run(ctx,hass),'');
+  ctx.config.alert_manager={packs:{battery:{ignore_pending:false}}};
+  assert.equal(accent(run(ctx,hass)),orange);
+  ctx.config.alert_manager={entities:{[primary]:{packs:{battery:{ignore_pending:true}}}}};
+  assert.equal(run(ctx,hass),'');
+  assert.equal(visits,1);
 });
 
 test('colors cascade entity > pack > general separately for each lifecycle state',()=>{
   const options={packs:{battery:{colors:{active:'#333333',pending:'#444444'}}},
     colors:{active:'#111111',pending:'#222222'},entities:{[primary]:{colors:{active:'#555555'}}}};
   assert.equal(accent(run(context(options),withAlerts([pack()]))),'#555555');
-  assert.equal(accent(run(context(options),withAlerts([pack()],1))),'#555555');
-  assert.equal(accent(run(context(options),withAlerts([pack()],2))),'#444444');
-  assert.equal(accent(run(context(options),withAlerts([custom()],2))),'#222222');
+  assert.equal(accent(run(context(options),withAlerts([pack()],1))),'#444444');
+  assert.equal(accent(run(context(options),withAlerts([custom()],1))),'#222222');
   const partial={packs:{battery:{colors:{pending:'#444444'}}},colors:{active:'#111111'}};
   assert.equal(accent(run(context(partial),withAlerts([pack()]))),'#111111');
-  assert.equal(accent(run(context(partial),withAlerts([pack()],2))),'#444444');
-  assert.equal(accent(run(context({packs:{battery:{colors:{active:'#333333'}}}}),withAlerts([pack()],2))),orange);
+  assert.equal(accent(run(context(partial),withAlerts([pack()],1))),'#444444');
+  assert.equal(accent(run(context({packs:{battery:{colors:{active:'#333333'}}}}),withAlerts([pack()],1))),orange);
 });
 
 test('valid CSS colors work; invalid colors fall back without emitting CSS injection',()=>{
@@ -164,7 +245,7 @@ test('valid CSS colors work; invalid colors fall back without emitting CSS injec
 test('declaring a pack with colors activates it without a separate list',()=>{
   const ctx=context({packs:{battery:{colors:{active:'#123456'}}}});
   assert.equal(accent(run(ctx,withAlerts([pack()]))),'#123456');
-  assert.equal(accent(run(ctx,withAlerts([pack()],2))),orange);
+  assert.equal(accent(run(ctx,withAlerts([pack()],1))),orange);
 });
 
 test('entity pack colors override entity colors and missing states inherit independently',()=>{
@@ -172,12 +253,11 @@ test('entity pack colors override entity colors and missing states inherit indep
     entities:{[primary]:{colors:{active:'#555555'},packs:{battery:{colors:{pending:'#666666'}}}}}};
   const ctx=context(options);
   assert.equal(accent(run(ctx,withAlerts([pack()]))),'#555555','Missing local active inherits entity active');
-  assert.equal(accent(run(ctx,withAlerts([pack()],2))),'#666666','Local pack pending wins');
-  assert.equal(accent(run(ctx,withAlerts([custom()],2))),'#222222','Local pack colors never affect custom rules');
+  assert.equal(accent(run(ctx,withAlerts([pack()],1))),'#666666','Local pack pending wins');
+  assert.equal(accent(run(ctx,withAlerts([custom()],1))),'#222222','Local pack colors never affect custom rules');
   ctx.config.alert_manager={...options,entities:{[primary]:{colors:{active:'#555555'},packs:{battery:{colors:{active:'#777777'}}}}}};
   assert.equal(accent(run(ctx,withAlerts([pack()]))),'#777777');
-  assert.equal(accent(run(ctx,withAlerts([pack()],1))),'#777777');
-  assert.equal(accent(run(ctx,withAlerts([pack()],2))),'#444444','Missing local pending inherits global pack pending');
+  assert.equal(accent(run(ctx,withAlerts([pack()],1))),'#444444','Missing local pending inherits global pack pending');
 });
 
 test('a local pack object enables only that entity and inherits global colors',()=>{
@@ -185,7 +265,7 @@ test('a local pack object enables only that entity and inherits global colors',(
     {sub_button:[{entity:target}]});
   assert.equal(run(ctx,withAlerts([pack(primary,'future_pack')])),'');
   assert.equal(accent(run(ctx,withAlerts([pack(target,'future_pack')]))),'#111111');
-  assert.equal(accent(run(ctx,withAlerts([pack(target,'future_pack')],2))),'#222222');
+  assert.equal(accent(run(ctx,withAlerts([pack(target,'future_pack')],1))),'#222222');
 });
 
 test('empty local pack colors inherit and invalid local colors cannot inject CSS',()=>{
@@ -199,7 +279,7 @@ test('empty local pack colors inherit and invalid local colors cannot inject CSS
   const css=run(ctx,withAlerts([pack()]));
   assert.equal(accent(css),'#123456');
   assert.ok(!css.includes('display:none'));
-  assert.equal(accent(run(ctx,withAlerts([pack()],2))),'#654321');
+  assert.equal(accent(run(ctx,withAlerts([pack()],1))),'#654321');
 });
 
 test('replacing pack options updates activation and colors on an existing card',()=>{
@@ -220,13 +300,13 @@ test('equal severity chooses first card entity; same-entity ties are stable acro
   const records=[pack(primary,'connectivity'),custom(target),pack()];
   assert.equal(accent(run(ctx,withAlerts(records))),'#111111');
   assert.equal(accent(run(ctx,withAlerts([...records].reverse()))),'#111111');
-  const hass=withAlerts([custom(target)]);hass.states[ids[2]]=manager([pack()]);
+  const hass=withAlerts([custom(target)]);hass.states[ids[1]]=manager([pack()]);
   assert.equal(accent(run(ctx,hass)),'#333333');
 });
 
-test('disabled, unsupported and entity-free cards do not access HA or build an index',()=>{
+test('unsupported and entity-free cards do not access HA or build an index',()=>{
   delete globalThis[key];
-  const contexts=[context(false),context(undefined,{card_type:'separator'}),context(undefined,{card_type:'pop-up'}),
+  const contexts=[context(undefined,{card_type:'separator'}),context(undefined,{card_type:'pop-up'}),
     context(undefined,{button_type:'slider'}),context(undefined,{entity:undefined}),{config:{entity:primary}}];
   for (const ctx of contexts) assert.equal(run(ctx,forbiddenHass),'');
   assert.equal(globalThis[key],undefined);
@@ -279,8 +359,8 @@ test('attribute changes with unchanged counts and lifecycle changes invalidate t
   const first=globalThis[key].get(hass.connection);
   hass.states[ids[0]]=manager([custom(target)]);
   assert.equal(run(ctx,hass),'');assert.notEqual(globalThis[key].get(hass.connection),first);
-  hass.states[ids[2]]=manager([custom()]);assert.equal(accent(run(ctx,hass)),orange);
-  hass.states[ids[1]]=manager([custom()]);assert.equal(accent(run(ctx,hass)),red);
+  hass.states[ids[1]]=manager([custom()]);assert.equal(accent(run(ctx,hass)),orange);
+  hass.states[ids[0]]=manager([custom()]);assert.equal(accent(run(ctx,hass)),red);
   for (const id of ids) hass.states[id]=manager();assert.equal(run(ctx,hass),'');
 });
 
@@ -292,12 +372,12 @@ test('default configuration structure is cached and setConfig/option replacement
   ctx.config.alert_manager={entities:{[primary]:{exclude:true}}};assert.equal(run(ctx,hass),'');
 });
 
-test('teardown and disabling clear local policies; reactivation restores default detection',()=>{
+test('teardown and unsupported cards clear local policies; reactivation restores default detection',()=>{
   const ctx=context();const hass=withAlerts([custom()]);
   assert.equal(accent(run(ctx,hass)),red);ctx.teardown();assert.equal(ctx._amConfig,undefined);
-  assert.equal(accent(run(ctx,hass)),red);ctx.config.alert_manager=false;
+  assert.equal(accent(run(ctx,hass)),red);ctx.config.card_type='separator';
   assert.equal(run(ctx,forbiddenHass),'');assert.equal(ctx._amConfig,undefined);
-  delete ctx.config.alert_manager;assert.equal(accent(run(ctx,hass)),red);
+  ctx.config.card_type='button';assert.equal(accent(run(ctx,hass)),red);
 });
 
 test('button, cover, climate and media-player cards preserve commands and only style the main icon',()=>{
@@ -310,12 +390,12 @@ test('button, cover, climate and media-player cards preserve commands and only s
 });
 
 test('renamed sensors preserve the severity of every lifecycle partition',()=>{
-  const renamed = ['sensor.custom_active','sensor.custom_acknowledged','sensor.custom_pending'];
-  const sensors = {active:renamed[0],acknowledge:renamed[1],pending:renamed[2]};
-  for (const partition of [0,1,2]) {
+  const renamed = ['sensor.custom_active','sensor.custom_pending'];
+  const sensors = {active:renamed[0],pending:renamed[1]};
+  for (const partition of [0,1]) {
     const hass = normal();
     renamed.forEach((id,index) => hass.states[id] = manager(index === partition ? [custom()] : []));
-    assert.equal(accent(run(context({sensors}),hass)),partition === 2 ? orange : red);
+    assert.equal(accent(run(context({sensors}),hass)),partition === 1 ? orange : red);
     assert.equal(run(context(),hass),'','Custom source IDs are opt-in');
   }
 });
@@ -328,9 +408,6 @@ test('partial sensor overrides keep default sources for the other partitions',()
   assert.equal(accent(run(ctx,hass)),red);
   hass.states['sensor.custom_active'] = manager();
   hass.states[ids[1]] = manager([custom()]);
-  assert.equal(accent(run(ctx,hass)),red);
-  hass.states[ids[1]] = manager();
-  hass.states[ids[2]] = manager([custom()]);
   assert.equal(accent(run(ctx,hass)),orange);
 });
 
@@ -343,7 +420,7 @@ test('configured source sensors are not added to the watched card entities',()=>
 });
 
 test('cards with different sources on one connection do not leak colors',()=>{
-  const hass = withAlerts([custom()],2);
+  const hass = withAlerts([custom()],1);
   hass.states['sensor.custom_active'] = manager([custom(target)]);
   const first = context();
   const second = context({sensors:{active:'sensor.custom_active',pending:'sensor.custom_pending'}});
@@ -368,8 +445,8 @@ test('replacing sensor options updates sources on an existing card',()=>{
 });
 
 test('custom source cache hits observe all configured dependencies and share alert traversal',()=>{
-  const renamed = ['sensor.custom_active','sensor.custom_acknowledged','sensor.custom_pending'];
-  const options = {sensors:{active:renamed[0],acknowledge:renamed[1],pending:renamed[2]}};
+  const renamed = ['sensor.custom_active','sensor.custom_pending'];
+  const options = {sensors:{active:renamed[0],pending:renamed[1]}};
   let visits = 0;
   const records = new Proxy([custom()],{get(array,prop) {
     if (prop === Symbol.iterator) return function*() { for(const item of array) {visits++;yield item;} };
@@ -415,7 +492,7 @@ test('all documented configuration examples are valid YAML',() => {
   for (const [,example] of blocks) assert.doesNotThrow(()=>YAML.parse(example));
 });
 
-test('documented pack examples activate the declared packs in the real module',()=>{
+test('documented pack examples activate declared packs for active alerts',()=>{
   const doc=fs.readFileSync(path.resolve(__dirname,'../doc/README.md'),'utf8');
   let checked=0;
   for (const [,example] of doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)) {
@@ -426,9 +503,26 @@ test('documented pack examples activate the declared packs in the real module',(
       for (const id of Object.keys(policy.packs || {})) checks.push({id,entity,policy});
     }
     for (const {id,entity,policy} of checks) {
-      for (const partition of [0,1,2]) {
-        if (policy.exclude === true || (partition === 2 && (policy.ignore_pending ?? options.ignore_pending) === true)) continue;
-        assert.notEqual(accent(run(context(options),withAlerts([pack(entity,id)],partition))),'',`${entity}: ${id}, partition ${partition}`);
+      if (policy.exclude === true) continue;
+      assert.notEqual(accent(run(context(options),withAlerts([pack(entity,id)]))),'',`${entity}: ${id}`);
+      checked++;
+    }
+  }
+  assert.ok(checked>0);
+});
+
+test('documented pending masks hide pack alerts and explicit entity pack exceptions restore them',()=>{
+  const doc=fs.readFileSync(path.resolve(__dirname,'../doc/README.md'),'utf8');
+  let checked=0;
+  for (const [,example] of doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)) {
+    const options=YAML.parse(example).alert_manager;
+    if (!options) continue;
+    for (const [id,spec] of Object.entries(options.packs || {})) {
+      if (spec?.ignore_pending !== true) continue;
+      assert.equal(run(context(options),withAlerts([pack(primary,id)],1)),'');
+      for (const [entity,policy] of Object.entries(options.entities || {})) {
+        if (policy.packs?.[id]?.ignore_pending !== false) continue;
+        assert.notEqual(accent(run(context(options),withAlerts([pack(entity,id)],1))),'');
         checked++;
       }
     }

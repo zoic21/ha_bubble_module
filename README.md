@@ -5,7 +5,7 @@ Modules réutilisables pour [Bubble Card](https://github.com/Clooos/Bubble-Card)
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
 | Signature — design des cartes | 1.8.26 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
-| Alert Manager — coloration des alertes | 3.0.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
+| Alert Manager — coloration des alertes | 3.1.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Chaque module possède son propre dossier, avec `dist` pour le fichier YAML complet à importer, `doc` pour sa documentation et `test` pour ses tests.
 
