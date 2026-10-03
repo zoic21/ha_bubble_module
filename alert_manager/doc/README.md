@@ -1,4 +1,4 @@
-# Module Bubble Alert Manager 3.1.0
+# Module Bubble Alert Manager 3.2.0
 
 [Module à importer](../dist/alert_manager.yaml), indépendant de `signature`. Il colore uniquement l’icône principale et son fond pastel selon les alertes d’Alert Manager. Il ne recopie ni seuils ni délais dans les cartes.
 
@@ -28,13 +28,13 @@ Le module peut aussi être utilisé seul avec Bubble natif. Avec `signature`, le
 |---|---|---|
 | `sensors.active/pending` | Identifiants des deux capteurs sources | Capteurs créés par défaut par l’intégration |
 | `packs.<pack_id>` | Active un pack et définit éventuellement ses `ignore_pending` et `colors.active/pending` | Aucun pack activé |
-| `exclude_rules` | Liste des ID de règles personnalisées à interdire | `[]` |
 | `ignore_pending` | Masquer les alertes à venir | `false` |
 | `colors.active` | Couleur des alertes actives | Rouge du thème |
 | `colors.pending` | Couleur des alertes à venir | Orange du thème |
 | `entities.<entity_id>` | Exceptions pour une entité de la carte, ou ajout d’une entité extérieure | Aucune exception |
+| `entities.<entity_id>.exclude` | `true` exclut toute l’entité ; une liste exclut ses règles ou packs par ID | `[]` |
 
-Chaque entrée de `entities` accepte `exclude: true`, `ignore_pending`, `packs.<pack_id>`, `exclude_rules` et `colors.active/pending`. Les packs utilisent le même objet de configuration au niveau général et dans une entité. Seuls les booléens YAML `true` et `false` règlent les options booléennes.
+Chaque entrée de `entities` accepte `exclude`, `ignore_pending`, `packs.<pack_id>` et `colors.active/pending`. Les packs utilisent le même objet de configuration au niveau général et dans une entité. Seuls les booléens YAML `true` et `false` règlent les options booléennes.
 
 Pour désactiver le module sur une carte, retirer `alert_manager` de sa liste `modules`.
 
@@ -68,13 +68,15 @@ alert_manager:
   entities:
     sensor.prise_frigo_puissance:
       ignore_pending: true
-      exclude_rules:
+      exclude:
         - notification_frigo
     switch.prise_frigo:
       exclude: true
 ```
 
-Les ID de règles de cet exemple sont à remplacer par les ID réels de la configuration Alert Manager. Le filtrage porte sur les **identifiants**, jamais les noms affichés, messages ou labels. Une notification et une vraie erreur sur le même appareil restent ainsi indépendantes.
+`exclude` accepte soit `true` pour exclure toute l’entité, soit une liste pouvant mélanger des **ID de règles personnalisées et de packs**. Une liste vide `[]`, `false` ou une option absente laisse toutes les alertes autorisées par les autres réglages. Les exclusions concernent les alertes actives et à venir de cette entité seulement.
+
+Les ID de règles de cet exemple sont à remplacer par les ID réels de la configuration Alert Manager. Le filtrage porte sur les **identifiants**, jamais les noms affichés, messages ou labels. Une notification et une vraie erreur sur le même appareil restent ainsi indépendantes. Si une règle et un pack partagent le même ID, les deux sont exclus.
 
 Pour ajouter une entité qui n’apparaît pas ailleurs dans la carte, la déclarer dans `entities`, éventuellement avec un objet vide :
 
@@ -103,7 +105,21 @@ Ici, `battery` et `connectivity` s’appliquent à toutes les entités surveill�
 
 Les packs généraux et ceux de l’entité **s’additionnent**. Pour activer un pack sur certaines entités seulement, le déclarer dans leurs entrées `entities`, sans le déclarer au niveau général. Un objet `packs: {}` dans une entité n’annule pas les packs généraux.
 
-Les règles personnalisées restent activées ; `exclude_rules` permet d’en retirer certaines. Un ID dans `exclude_rules` n’exclut pas le pack qui porterait le même ID.
+Pour exclure un pack sur une entité seulement, ajouter son ID dans `exclude`, éventuellement à côté d’ID de règles :
+
+```yaml
+alert_manager:
+  packs:
+    battery: {}
+    connectivity: {}
+  entities:
+    sensor.frigo_temperature:
+      exclude:
+        - battery
+        - notification_frigo
+```
+
+Ici, la température ignore le pack `battery` et la règle `notification_frigo`, tout en conservant `connectivity` et ses autres règles personnalisées. Les autres entités conservent les deux packs. **Une exclusion est prioritaire sur l’activation du pack**, qu’il soit déclaré au niveau général ou dans cette même entité.
 
 Les exclusions et `ignore_pending` modifient uniquement l’affichage de cette carte. Ils ne désactivent pas la détection ni les notifications dans Alert Manager.
 

@@ -127,20 +127,89 @@ test('global and entity pack objects activate cumulatively without leaking local
 });
 
 test('rule exclusions apply by stable rule ID and preserve other errors and other entities',()=>{
-  const ctx = context({entities:{[primary]:{exclude_rules:['notification']}}},{sub_button:[{entity:target}]});
+  const ctx = context({entities:{[primary]:{exclude:['notification']}}},{sub_button:[{entity:target}]});
   for (const partition of [0,1]) {
     assert.equal(run(ctx,withAlerts([custom(primary,'notification')],partition)),'');
     assert.equal(accent(run(ctx,withAlerts([custom(primary,'notification'),custom(primary,'error')],partition))),partition === 1 ? orange : red);
     assert.equal(accent(run(ctx,withAlerts([custom(target,'notification')],partition))),partition === 1 ? orange : red);
   }
-  assert.equal(run(context({exclude_rules:['notification']}),withAlerts([custom(primary,'notification')])),'');
   assert.equal(accent(run(ctx,withAlerts([{...custom(),rule:'notification',message:'notification'}]))),red);
 });
 
-test('excluding a custom rule never excludes an enabled pack with the same ID',()=>{
-  const ctx=context({packs:{battery:{}},exclude_rules:['battery']});
-  assert.equal(accent(run(ctx,withAlerts([pack()]))),red);
-  assert.equal(run(ctx,withAlerts([custom(primary,'battery')])),'');
+test('mixed rule and pack exclusions preserve other alerts and other entities',()=>{
+  const ctx=context({packs:{battery:{},connectivity:{}},entities:{[primary]:{exclude:['notification','battery']}}},
+    {sub_button:[{entity:target}]});
+  for (const partition of [0,1]) {
+    const expected=partition === 1 ? orange : red;
+    assert.equal(run(ctx,withAlerts([custom(primary,'notification'),pack()],partition)),'');
+    for (const remaining of [custom(primary,'error'),pack(primary,'connectivity')]) {
+      assert.equal(accent(run(ctx,withAlerts([custom(primary,'notification'),pack(),remaining],partition))),expected);
+    }
+    for (const other of [custom(target,'notification'),pack(target)]) {
+      assert.equal(accent(run(ctx,withAlerts([other],partition))),expected);
+    }
+  }
+});
+
+test('pack exclusions win over global, local and combined activation by stable pack ID',()=>{
+  for (const activation of [{packs:{battery:{}}},{entities:{[primary]:{packs:{battery:{}}}}},
+    {packs:{battery:{}},entities:{[primary]:{packs:{battery:{}}}}}]) {
+    const options={...activation,entities:{[primary]:{...activation.entities?.[primary],exclude:['battery']}}};
+    const ctx=context(options);
+    for (const partition of [0,1]) {
+      assert.equal(run(ctx,withAlerts([{...pack(),rule:'different',message:'different'}],partition)),'');
+      assert.equal(accent(run(ctx,withAlerts([custom()],partition))),partition === 1 ? orange : red);
+    }
+  }
+});
+
+test('an excluded ID suppresses both a rule and an enabled pack with that ID',()=>{
+  const ctx=context({packs:{battery:{}},entities:{[primary]:{exclude:['battery']}}});
+  for (const partition of [0,1]) {
+    for (const records of [[pack()],[custom(primary,'battery')],[pack(),custom(primary,'battery')]]) {
+      assert.equal(run(ctx,withAlerts(records,partition)),'');
+    }
+  }
+});
+
+test('empty or false exclusions keep the entity watched and unknown IDs do not activate packs',()=>{
+  for (const exclude of [[],false,['unknown_rule','future_pack']]) {
+    const ctx=context({packs:{battery:{}},entities:{[primary]:{exclude}}});
+    for (const partition of [0,1]) {
+      for (const records of [[custom()],[pack()]]) {
+        assert.equal(accent(run(ctx,withAlerts(records,partition))),partition === 1 ? orange : red);
+      }
+      assert.equal(run(ctx,withAlerts([pack(primary,'future_pack')],partition)),'');
+    }
+  }
+});
+
+test('excluding active alerts allows an eligible pending alert to determine the color',()=>{
+  const ctx=context({packs:{battery:{},connectivity:{colors:{pending:'#123456'}}},
+    entities:{[primary]:{exclude:['notification','battery']}}});
+  const hass=withAlerts([custom(primary,'notification'),pack()]);
+  hass.states[ids[1]]=manager([pack(primary,'connectivity')]);
+  assert.equal(accent(run(ctx,hass)),'#123456');
+  hass.states[ids[1]]=manager();
+  assert.equal(run(ctx,hass),'');
+});
+
+test('replacing entity exclusions refreshes the policy without traversing unchanged alerts',()=>{
+  let visits=0;
+  const records=new Proxy([custom(),pack()],{get(array,prop) {
+    if (prop === Symbol.iterator) return function*(){for (const item of array){visits++;yield item;}};
+    return Reflect.get(array,prop);
+  }});
+  const hass=withAlerts(records);
+  const ctx=context({packs:{battery:{}}});
+  assert.equal(accent(run(ctx,hass)),red);
+  ctx.config.alert_manager={packs:{battery:{}},entities:{[primary]:{exclude:['temperature','battery']}}};
+  assert.equal(run(ctx,hass),'');
+  ctx.config.alert_manager={packs:{battery:{}},entities:{[primary]:{exclude:['battery']}}};
+  assert.equal(accent(run(ctx,hass)),red);
+  ctx.config={...ctx.config,alert_manager:{packs:{battery:{}},entities:{[primary]:{exclude:[]}}}};
+  assert.equal(accent(run(ctx,hass)),red);
+  assert.equal(visits,2);
 });
 
 test('pack pending policies and simultaneous custom/pack alerts use lifecycle severity',()=>{
@@ -339,7 +408,7 @@ test('same connection shares one alert traversal across 100 cards with different
     get(array,prop){if(prop===Symbol.iterator) return function*(){for(const item of array){visits++;yield item;}};return Reflect.get(array,prop);},
   });
   const hass=withAlerts(records);
-  for(let i=0;i<100;i++) assert.equal(accent(run(context(i%2 ? {packs:{battery:{}}} : {exclude_rules:['temperature'],packs:{battery:{}}}),hass)),red);
+  for(let i=0;i<100;i++) assert.equal(accent(run(context(i%2 ? {packs:{battery:{}}} : {entities:{[primary]:{exclude:['temperature']}},packs:{battery:{}}}),hass)),red);
   assert.equal(visits,1002);
   run(context(),{...hass,connection:{}});
   assert.equal(visits,2004,'Different HA connections have independent snapshots');
@@ -509,6 +578,35 @@ test('documented pack examples activate declared packs for active alerts',()=>{
     }
   }
   assert.ok(checked>0);
+});
+
+test('documented entity exclusion lists filter rules and packs while preserving other alerts',()=>{
+  const doc=fs.readFileSync(path.resolve(__dirname,'../doc/README.md'),'utf8');
+  let rules=0,packs=0;
+  for (const [,example] of doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)) {
+    const options=YAML.parse(example).alert_manager;
+    if (!options) continue;
+    for (const [entity,policy] of Object.entries(options.entities || {})) {
+      if (!Array.isArray(policy.exclude)) continue;
+      const enabled=new Set([...Object.keys(options.packs || {}),...Object.keys(policy.packs || {})]);
+      for (const id of policy.exclude) {
+        for (const partition of [0,1]) {
+          assert.equal(run(context(options),withAlerts([custom(entity,id)],partition)),'');
+          if (enabled.has(id)) assert.equal(run(context(options),withAlerts([pack(entity,id)],partition)),'');
+        }
+        rules++;
+        if (enabled.has(id)) packs++;
+      }
+      assert.notEqual(accent(run(context(options),withAlerts([custom(entity,'other_rule')]))),'');
+      for (const id of enabled) {
+        if (!policy.exclude.includes(id)) {
+          assert.notEqual(accent(run(context(options),withAlerts([pack(entity,id)]))),'');
+        }
+      }
+    }
+  }
+  assert.ok(rules>0);
+  assert.ok(packs>0);
 });
 
 test('documented pending masks hide pack alerts and explicit entity pack exceptions restore them',()=>{
