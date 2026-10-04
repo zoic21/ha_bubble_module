@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.0.0**. [Complete file to import](../dist/signature.yaml).
+Version **2.1.0**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -298,6 +298,12 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 
 ## Release notes
 
+### 2.1.0 — 4 October 2026
+
+- Adds optional `signature-*` CSS variables for typography, card surfaces, corners, shadows and dividers, with existing values as fallbacks.
+- Supports the Signature light/dark theme without new JavaScript style reads or subscriptions. Layout geometry, actions and the cached CSS lifecycle remain unchanged.
+- Verification: 188 automated repository tests passed, including theme reference and contrast checks. Rendering on a live Home Assistant dashboard remains to be checked.
+
 ### 2.0.0 — 4 October 2026
 
 - Keeps the main entity and its details action native to Bubble; `state` remains an optional display override.
@@ -305,3 +311,7 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 - Caches secondary source detection until its configuration changes, while continuing to refresh rendered values and entity dependencies. Numeric values reuse locale/precision formatters; no polling or additional subscriptions are introduced.
 - Replaces the secondary action node only when its target changes, avoiding Bubble's previously cached action handler opening the old entity.
 - Verification: 184 automated repository tests passed, including one proving that 1,000 updates and an equivalent configuration replacement trigger only one secondary source analysis. A Node.js 24 benchmark with simulated DOM fixtures measured about 0.11–0.14 µs additional execution time per update for secondary templates (about 2%), with no increase in the compact/room samples. A direct secondary retained its source cache and formatter over 50,000 updates without observed heap growth. These measurements cover module execution, not real Home Assistant layout or asynchronous template rendering.
+
+## Signature theme
+
+This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The existing styles remain the fallback when the theme is absent. Card options and actions are unchanged.
