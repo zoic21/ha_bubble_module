@@ -4,7 +4,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature — card design | 1.8.27 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
+| Signature — card design | 1.8.28 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
 | Alert Manager — alert colors | 3.2.1 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Each module has its own folder: `dist` contains the complete YAML file to import, `doc` contains its documentation, and `test` contains its tests.

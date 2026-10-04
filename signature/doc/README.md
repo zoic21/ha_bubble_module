@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **1.8.27**. [Complete file to import](../dist/signature.yaml).
+Version **1.8.28**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -284,7 +284,9 @@ The [Alert Manager module](../../alert_manager/doc/README.md) colors the icon ac
 
 ## Limitations and validation
 
-Layout CSS is reused while its geometry and surface are unchanged. Dynamic entity states, Jinja results, colors, and actions are still evaluated on each module execution; this cache does not suppress dependency reads or template updates.
+Layout CSS includes only the active compact mode, native control type, secondary text, and multiline option. It is reused while these options, geometry, and surface are unchanged. An empty/nonempty secondary template result or a change in trailing controls updates the cached styles. Dynamic entity states, Jinja results, colors, and actions are still evaluated on each module execution; this cache does not suppress dependency reads or template updates.
+
+A standard compact state button without optional controls or secondary text generates about 6.0 kB of CSS (4.4 kB after Bubble's CSS cleanup), down from 11.4 kB (9.0 kB after cleanup) in 1.8.27. These are generated style sizes for this configuration, not the imported YAML file size; enabled features add their own rules.
 
 The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, and changes in Bubble can affect rendering. Use a recent Bubble version; Jinja templates and lifecycle cleanup use `renderTemplate` and `onTeardown` when available. No specific minimum version is claimed without validation against that version.
 

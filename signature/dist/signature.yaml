@@ -25,7 +25,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 1.8.27
+  version: 1.8.28
   creator: Loïc
   supported:
     - button
@@ -517,7 +517,8 @@ signature:
             {tapAction:JSON.stringify(navigation)}, false);
           const visibleState = !!stateEl && !stateEl.classList.contains('hidden') && show;
           attr('data-dp-has-state',visibleState ? 'yes' : 'no');
-          attr('data-dp-value-trailing',compactValue && visibleState && flat.length > 0 && !numberEnabled ? 'yes' : 'no');
+          const valueTrailing = compactValue && visibleState && flat.length > 0 && !numberEnabled;
+          attr('data-dp-value-trailing',valueTrailing ? 'yes' : 'no');
           let css = 'ha-card { --dp-accent: '+accent+'; }';
           // Opt-in trailing controls: leave native buttons and their actions intact.
           if (layout === 'compact' && o.sub_buttons_position === 'end') {
@@ -658,7 +659,7 @@ signature:
             if (current !== iconName) icon.setAttribute('icon',iconName);
           });
           // Cache the layout CSS only. Dynamic states, templates and actions still run above.
-          const styleKey = [layout,surface,roomColumns,roomRows,roomHeaderMeasures,autoHeight,numberEnabled,o.controls === 'measure'].join('\u0001');
+          const styleKey = [layout,kind,surface,roomColumns,roomRows,roomHeaderMeasures,autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline].join('\u0001');
           if (runtime.styleKey !== styleKey) {
             runtime.styleCSS = `/* Shared design tokens for all three tile families. */
         ha-card[data-dp-layout] {
@@ -685,9 +686,9 @@ signature:
         ha-card[data-dp-layout] .dp-unit:not(:empty) { margin-inline-start: 4px; }
         /* Compound durations keep their original spaces between numbers and units. */
         ha-card[data-dp-layout] .dp-unit.dp-duration-unit { margin-inline-start: 0; }
-        ha-card[data-dp-layout] .dp-secondary { font-size: 12px; line-height: 16px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; pointer-events: none; }
-        ha-card[data-dp-layout] .dp-secondary strong { font-weight: 600; color: var(--primary-text-color); }
-        ha-card[data-dp-multiline="yes"] .bubble-state, ha-card[data-dp-multiline="yes"] .dp-secondary { white-space: pre-line !important; overflow-wrap: anywhere; }
+        ${secondary ? `ha-card[data-dp-layout] .dp-secondary { font-size: 12px; line-height: 16px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; pointer-events: none; }
+        ha-card[data-dp-layout] .dp-secondary strong { font-weight: 600; color: var(--primary-text-color); }` : ''}
+        ${multiline ? `ha-card[data-dp-multiline="yes"] .bubble-state, ha-card[data-dp-multiline="yes"] .dp-secondary { white-space: pre-line !important; overflow-wrap: anywhere; }` : ''}
         /* Never undo native visibility, including grouped sub-buttons and conditional badges. */
         ha-card[data-dp-layout] .hidden, ha-card[data-dp-layout] [hidden] { display: none !important; }
 
@@ -703,8 +704,8 @@ signature:
         /* Only the displayed value catches the pointer; surrounding space belongs to the tile. */
         ha-card[data-dp-layout] .dp-value-action { pointer-events: auto; cursor: pointer; }
         ha-card[data-dp-layout] .bubble-state.dp-value-action { width: fit-content; max-width: 100%; }
-        ha-card[data-dp-layout] .dp-secondary.dp-value-action { width: fit-content; max-width: 100%; }
-        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-state.dp-value-action { justify-self: end; }
+        ${secondary ? `ha-card[data-dp-layout] .dp-secondary.dp-value-action { width: fit-content; max-width: 100%; }` : ''}
+        ${compactValue ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-state.dp-value-action { justify-self: end; }` : ''}
         ` + (layout === 'header' ? `/* Page header: native sub-buttons retain their labels, visibility and actions. */
         ha-card[data-dp-layout="header"] {
           background: transparent !important; border: none !important;
@@ -758,8 +759,8 @@ signature:
         ha-card[data-dp-layout="square"] .bubble-icon-container { margin: 0 !important; pointer-events: auto; grid-area: 1 / 1; width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; --mdc-icon-size: 22px; }
         ha-card[data-dp-layout="square"] .bubble-name { min-width: 0; font-size: 14px !important; font-weight: 600; line-height: 20px; letter-spacing: -0.2px; color: var(--primary-text-color); grid-area: 1 / 2; align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         ha-card[data-dp-layout="square"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center; font-size: 28px !important; line-height: 1.1; letter-spacing: -.8px; font-weight: 500 !important; overflow: hidden; text-overflow: ellipsis; }
-        ha-card[data-dp-layout="square"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px minmax(0,1fr) 16px; row-gap: 4px; }
-        ha-card[data-dp-layout="square"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; font-size: 13px; line-height: 16px; }
+        ${secondary ? `ha-card[data-dp-layout="square"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px minmax(0,1fr) 16px; row-gap: 4px; }
+        ha-card[data-dp-layout="square"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; font-size: 13px; line-height: 16px; }` : ''}
         ha-card[data-dp-layout="square"][data-dp-icon="no"] .bubble-name { grid-column: 1 / 3; }
 
         ha-card[data-dp-layout="square"] .bubble-button-card { transition: none !important; }
@@ -773,11 +774,11 @@ signature:
         ha-card[data-dp-layout="room"] .bubble-icon-container { grid-area: 1 / 1; width: 38px; height: 38px; min-width: 38px !important; min-height: 38px !important; margin: 0 !important; background: var(--bubble-icon-background-color); --mdc-icon-size: 24px; pointer-events: auto; }
         ha-card[data-dp-layout="room"] .bubble-name { grid-area: 1 / 2; align-self: center; font-size: 14px !important; font-weight: 600; letter-spacing: -0.2px; line-height: 19px; white-space: normal; max-height: 38px; overflow: hidden; }
         ha-card[data-dp-layout="room"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center; font-size: 17px; line-height: 22px; opacity: 1; }
-        /* Secondary text gets its own row; reserve the footer even when it wraps. */
+        ${secondary ? `/* Secondary text gets its own row; reserve the footer even when it wraps. */
         ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-container { height: auto !important; min-height: ${180 + (roomRows - 1) * 48}px !important; }
         ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-wrapper { display: block !important; height: auto !important; }
         ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-content-container { position: relative; inset: auto; width: 100%; box-sizing: border-box; padding: 12px 12px ${68 + (roomRows - 1) * 48}px; grid-template-rows: 38px 32px auto; }
-        ha-card[data-dp-layout="room"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; line-height: 14px; }
+        ha-card[data-dp-layout="room"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; line-height: 14px; }` : ''}
         ha-card[data-dp-layout="room"][data-dp-has-state="yes"] :is(.room-temperature,.room-humidity) { display: none !important; }
         ha-card[data-dp-layout="room"] :is(.bubble-sub-button-container,.bubble-sub-button-group) { position: static !important; transform: none !important; }
         ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity,.room-status,.room-climate,[class*="room-control-"]) { position: absolute !important; margin: 0 !important; padding: 0 !important; min-width: 0 !important; box-sizing: border-box; transform: none !important; }
@@ -811,7 +812,7 @@ signature:
 
         ha-card[data-dp-layout="room"] .dp-unit { font-size: 11px; }
         ` : `/* One compact tile for native cover, climate and button controls. */
-        ha-card[data-dp-layout="compact"] { container-type: inline-size; --bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: 12px; --bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface}; }
+        ha-card[data-dp-layout="compact"] { container-type: inline-size; ${kind === 'cover' ? `--bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: 12px;` : ''} ${kind === 'climate' || numberEnabled ? `--bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface};` : ''} }
         /* Match the centered 36px icon's 10px vertical inset, including the 1px card border. */
         ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 2px; padding: 0 4px; padding-inline-start: 9px; box-sizing: border-box; transition: none !important; }
         ha-card[data-dp-layout="compact"] .bubble-content-container { flex: 1; display: flex !important; align-items: center; min-width: 0; }
@@ -821,27 +822,27 @@ signature:
         /* Keep glyphs inside Bubble's clipped name; max-height still measures the two content lines. */
         ha-card[data-dp-layout="compact"] .bubble-name { color: var(--primary-text-color); font-size: 14px; font-weight: 600; letter-spacing: -0.2px; line-height: 16px; padding-block: 2px; box-sizing: content-box; white-space: normal; }
         ha-card[data-dp-layout="compact"] .bubble-state { color: var(--secondary-text-color); font-size: 13px; line-height: 16px; white-space: normal; }
-        /* Two name lines and one state line fit the 56px tile; multiline remains an explicit opt-in. */
+        ${!compactValue ? `/* Two name lines and one state line fit the 56px tile; multiline remains an explicit opt-in. */
         ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: 32px; overflow: hidden; }
         ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-state { display: block; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         /* Native inline wrapping must not turn a compact state into an extra row. */
-        ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"][data-dp-multiline="no"] .bubble-state { display: block !important; white-space: nowrap !important; }
-        ha-card[data-dp-layout="compact"] .dp-secondary { font-size: 13px; line-height: 16px; }
+        ${!multiline ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"][data-dp-multiline="no"] .bubble-state { display: block !important; white-space: nowrap !important; }` : ''}` : ''}
+        ${secondary ? `ha-card[data-dp-layout="compact"] .dp-secondary { font-size: 13px; line-height: 16px; }` : ''}
         ha-card[data-dp-layout="compact"] .bubble-sub-button-container { position: relative !important; inset-inline-end: 0 !important; margin: 0 !important; flex-shrink: 0; z-index: 2; }
         ha-card[data-dp-layout="compact"] .bubble-buttons-container { position: static !important; margin: 0 !important; gap: 4px; flex-shrink: 0; }
-        /* Match the 128px thermostat group so mode badges share the same column. */
-        ha-card[data-dp-layout="compact"][data-dp-kind="cover"] .bubble-buttons-container { width: 128px; justify-content: space-between; }
         /* Two compact rows plus the native row gap equal a two-row square. */
         ha-card[data-dp-layout="compact"] .bubble-container { height: var(--row-height, 56px) !important; }
-        ha-card[data-dp-layout="compact"] .bubble-cover-button { transition: none !important; }
-        ha-card[data-dp-layout="compact"] .bubble-cover-button-icon { --mdc-icon-size: 20px; }
-        ha-card[data-dp-layout="compact"] :is(.bubble-temperature-container,.bubble-low-temp-container,.bubble-high-temp-container) { width: 128px; height: 44px; flex-shrink: 0; justify-content: space-between; }
-        ha-card[data-dp-layout="compact"] :is(.bubble-cover-button,.bubble-climate-minus-button,.bubble-climate-plus-button) { width: 38px; min-width: 38px; height: 44px; margin: 0; }
-        ha-card[data-dp-layout="compact"] .bubble-climate-temp-display { flex: 1; padding: 0 2px; font-size: 12px; font-weight: 600; }
+        ${kind === 'cover' ? `/* Match the 128px thermostat group so mode badges share the same column. */
+        ha-card[data-dp-layout="compact"][data-dp-kind="cover"] .bubble-buttons-container { width: 128px; justify-content: space-between; }
+        ha-card[data-dp-layout="compact"] .bubble-cover-button { transition: none !important; width: 38px; min-width: 38px; height: 44px; margin: 0; }
+        ha-card[data-dp-layout="compact"] .bubble-cover-button-icon { --mdc-icon-size: 20px; }` : ''}
+        ${kind === 'climate' || numberEnabled ? `ha-card[data-dp-layout="compact"] :is(.bubble-temperature-container,.bubble-low-temp-container,.bubble-high-temp-container) { width: 128px; height: 44px; flex-shrink: 0; justify-content: space-between; }
+        ha-card[data-dp-layout="compact"] :is(.bubble-climate-minus-button,.bubble-climate-plus-button) { width: 38px; min-width: 38px; height: 44px; margin: 0; }
+        ha-card[data-dp-layout="compact"] .bubble-climate-temp-display { flex: 1; padding: 0 2px; font-size: 12px; font-weight: 600; }` : ''}
 
         ha-card[data-dp-layout="compact"] .dp-unit { font-size: 10px; }
 
-        ` + (numberEnabled ? `/* Button cards do not load Bubble's climate CSS. Geometry is shared above. */
+        ` + (numberEnabled ? `/* Button cards do not load Bubble's climate CSS. Geometry is included above. */
         ha-card[data-dp-controls="number"] .bubble-state { display: none !important; }
         ha-card .dp-number-control { display: inline-flex; position: relative; align-items: center; border-radius: var(--bubble-sub-button-border-radius); background: var(--bubble-climate-button-background-color, var(--dp-surface)); }
         ha-card .dp-number-control button { display: flex; align-items: center; justify-content: center; position: relative; appearance: none; border: 0; padding: 0; background: transparent; color: var(--primary-text-color); font-family: inherit; cursor: pointer; border-radius: var(--bubble-sub-button-border-radius); box-sizing: border-box; }
@@ -850,7 +851,7 @@ signature:
         ha-card .dp-number-control button:disabled { opacity: 0.35; cursor: default; }
         ha-card .dp-number-control button:focus-visible { outline: 2px solid var(--dp-accent); outline-offset: -2px; }
 
-        ` : '') + `/* A value is the native main state, placed beside the title in the compact tile. */
+        ` : '') + (compactValue ? `/* A value is the native main state, placed beside the title in the compact tile. */
         ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-name-container {
           display: grid;
           grid-template-columns: minmax(0, 1fr) fit-content(60%);
@@ -879,14 +880,14 @@ signature:
           text-overflow: ellipsis;
           opacity: 1;
         }
-        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-multiline="no"] .bubble-state { white-space: nowrap !important; }
+        ${!multiline ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-multiline="no"] .bubble-state { white-space: nowrap !important; }` : ''}
         /* Text values need room for accents and descenders inside Bubble's clipped native state. */
         ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"] .bubble-state { font-size: 16px; font-weight: 400; color: var(--secondary-text-color); line-height: 1.3; padding-block: 2px; }
         ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"][data-dp-color-background="yes"] .bubble-state { color: var(--dp-accent); }
         ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-unit { font-size: 13px; font-weight: 400; }
-        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-secondary { grid-area: 2 / 1; }
-        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 1; }
-        /* Flatten only layout boxes: keep the native state node, formatting and action bindings. */
+        ${secondary ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-secondary { grid-area: 2 / 1; }
+        ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 1; }` : ''}
+        ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep the native state node, formatting and action bindings. */
         ha-card[data-dp-value-trailing="yes"] .bubble-wrapper {
           display: grid !important;
           grid-template-columns: 36px minmax(0, 1fr) auto fit-content(60%);
@@ -899,10 +900,10 @@ signature:
         ha-card[data-dp-value-trailing="yes"] .bubble-name { grid-area: 1 / 2 / 3 / 3 !important; align-self: center; min-width: 0; }
         ha-card[data-dp-value-trailing="yes"] .bubble-sub-button-container { grid-area: 1 / 3 / 3 / 4; align-self: center; }
         ha-card[data-dp-value-trailing="yes"] .bubble-state { grid-area: 1 / 4 / 3 / 5 !important; align-self: center; }
-        ha-card[data-dp-value-trailing="yes"] .dp-secondary { grid-area: 2 / 2 / 3 / 3 !important; align-self: start; min-width: 0; }
-        ha-card[data-dp-value-trailing="yes"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 2 / 2 / 3 !important; align-self: end; }
+        ${secondary ? `ha-card[data-dp-value-trailing="yes"] .dp-secondary { grid-area: 2 / 2 / 3 / 3 !important; align-self: start; min-width: 0; }
+        ha-card[data-dp-value-trailing="yes"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 2 / 2 / 3 !important; align-self: end; }` : ''}
         ha-card[data-dp-value-trailing="yes"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) auto fit-content(60%); }
-        `) + (autoHeight ? `/* Let square cards grow with their content without altering the shared typography. */
+        ` : '')) + (autoHeight ? `/* Let square cards grow with their content without altering the shared typography. */
         /* The grid provides a shared height; flex keeps intrinsic text sizing and fills each cell. */
         :host { height: 100%; }
         ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] { height: 100%; display: flex; flex-direction: column; }
@@ -913,8 +914,8 @@ signature:
           position: relative; inset: auto; width: 100%; box-sizing: border-box;
           padding: 9px; grid-template-rows: 36px auto;
         }
-        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px auto auto; }
-        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .dp-secondary { overflow: visible; text-overflow: clip; }
+        ${secondary ? `ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px auto auto; }
+        ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .dp-secondary { overflow: visible; text-overflow: clip; }` : ''}
         ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-measure-detail="yes"] .bubble-content-container { bottom: auto; padding-bottom: 26px; }
         ` : '') + (layout === 'square' && o.controls === 'measure' ? `/* Optional measurement controls; leave visibility and state_background native. */
         ha-card[data-dp-controls="measure"] .bubble-name { padding-right: 34px; }

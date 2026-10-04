@@ -214,12 +214,107 @@ test('cached layout CSS follows geometry, controls, surface and layout changes l
     [{layout:'room',room_control_columns:2},{button_type:'name',show_state:false,sub_button:buttons}],
     [{layout:'room',room_control_columns:3,room_measures_position:'header'},{button_type:'name',show_state:false,sub_button:buttons}],
     [{layout:'header'},{button_type:'name',show_state:false,sub_button:buttons}],
+    [{layout:'square',auto_height:true,secondary:'Details',multiline:true},{button_type:'state'}],
+    [{layout:'room',secondary:'Details',multiline:true},{button_type:'name',show_state:false,sub_button:buttons}],
+    [{compact_mode:'value'},{button_type:'state'}],
+    [{compact_mode:'value',secondary:'Details'},{button_type:'state',sub_button:buttons}],
+    [{compact_mode:'value',multiline:true},{button_type:'state',sub_button:buttons,show_state:false}],
+    [{compact_mode:'value',state:'Summary'},{button_type:'name',sub_button:buttons}],
+    [{compact_mode:'value'},{button_type:'name',sub_button:buttons}],
+    [{},{card_type:'cover'}],
+    [{secondary:'Details',multiline:true},{card_type:'climate'}],
     [{controls:'number'},{button_type:'state'}],
     [{},{button_type:'state'}],
   ]) {
     ctx.config={card_type:'button',entity:id,signature:options,...config};
     const fresh=fixture(t,extra,options,config);
     assert.equal(run(ctx,hass),run(fresh.ctx,fresh.hass),JSON.stringify(options));
+  }
+});
+
+test('a standard compact tile stays below its CSS budget and preserves native visibility',t => {
+  const {ctx,hass}=fixture(t,{},{});
+  const css=run(ctx,hass);
+  assert.ok(Buffer.byteLength(css) < 7000,'A simple compact tile must not include every optional layout');
+  assert.doesNotMatch(css,/data-dp-compact-mode="value"|data-dp-value-trailing|bubble-cover-button|bubble-climate|dp-secondary|pre-line/);
+  assert.match(css,/\.hidden, ha-card\[data-dp-layout\] \[hidden\] \{ display: none !important; \}/);
+  assert.match(css,/data-dp-has-state="no"\] \.bubble-state.hidden \{ display: none !important; \}/);
+});
+
+test('cover, climate and numeric controls retain their geometry when a card changes type',t => {
+  const {ctx,hass}=fixture(t,{},{});
+  for (const [kind,options] of [['cover',{}],['climate',{}],['button',{controls:'number'}],['button',{}]]) {
+    ctx.config={card_type:kind,button_type:'state',entity:id,signature:options};
+    const css=run(ctx,hass);
+    const fresh=fixture(t,{},options,{card_type:kind});
+    assert.equal(css,run(fresh.ctx,fresh.hass),kind);
+    if (kind === 'cover') {
+      assert.match(css,/bubble-cover-button \{[^}]*width: 38px; min-width: 38px; height: 44px;/);
+      assert.match(css,/data-dp-kind="cover"\] \.bubble-buttons-container \{ width: 128px;/);
+      assert.doesNotMatch(css,/bubble-climate|bubble-temperature-container/);
+    } else if (kind === 'climate' || options.controls === 'number') {
+      assert.match(css,/bubble-climate-minus-button,.bubble-climate-plus-button\) \{ width: 38px; min-width: 38px; height: 44px;/);
+      assert.match(css,/bubble-high-temp-container\) \{ width: 128px; height: 44px;/);
+      assert.match(css,/--bubble-climate-button-background-color:/);
+      assert.doesNotMatch(css,/bubble-cover/);
+    } else assert.doesNotMatch(css,/bubble-cover|bubble-climate/);
+  }
+});
+
+test('trailing value CSS follows sub-buttons, state visibility and numeric controls',t => {
+  const button={entity:'switch.room',css_class:'mode'};
+  const {ctx,hass}=fixture(t,{}, {compact_mode:'value'});
+  for (const [buttons,hidden,controls,trailing] of [
+    [[],false,undefined,false],[[button],false,undefined,true],[[button],true,undefined,false],
+    [[button],false,undefined,true],[[button],false,'number',false],[[button],false,undefined,true],
+  ]) {
+    ctx.config.sub_button=buttons;
+    ctx.config.signature={compact_mode:'value',controls};
+    ctx.config.show_state=!hidden;
+    if (hidden) ctx.elements.state.classList.add('hidden');
+    else ctx.elements.state.classList.remove('hidden');
+    const css=run(ctx,hass);
+    assert.equal(ctx.card.getAttribute('data-dp-value-trailing'),trailing ? 'yes' : 'no');
+    assert.equal(css.includes('ha-card[data-dp-value-trailing="yes"] .bubble-wrapper'),trailing);
+    assert.match(css,/data-dp-compact-mode="value"\] \.bubble-name-container/);
+    assert.match(css,/data-dp-has-state="no"\] \.bubble-state.hidden \{ display: none !important; \}/);
+  }
+});
+
+test('secondary template presence updates cached CSS without rebuilding it for text-only changes',t => {
+  for (const [layout,options] of [
+    ['compact',{}],['compact',{compact_mode:'value'}],['square',{auto_height:true}],['room',{}],['header',{}],
+  ]) {
+    const config={button_type:layout === 'header' ? 'name' : 'state',sub_button:[{entity:'switch.room'}]};
+    const signature={...options,layout,secondary:'{{ text }}',secondary_entity:id};
+    const {ctx,hass}=fixture(t,{},signature,config);
+    const content=new Element(),name=new Element();content.append(name);ctx.card.append(content);
+    ctx.elements.contentContainer=content;ctx.elements.nameContainer=name;
+    run(ctx,hass,()=> '');
+    let layoutCSS=ctx._dpRuntime.styleCSS,writes=0;
+    Object.defineProperty(ctx._dpRuntime,'styleCSS',{get:()=>layoutCSS,set:value=>{writes++;layoutCSS=value;},configurable:true});
+    for (const [text,expectedWrites] of [['Details',1],['Other details',1],['',2],['**Details**',3]]) {
+      const css=run(ctx,hass,()=> text);
+      const fresh=fixture(t,{},signature,config);
+      assert.equal(css,run(fresh.ctx,fresh.hass,()=> text),layout);
+      assert.equal(writes,expectedWrites,layout+': '+text);
+      assert.equal(css.includes('.dp-secondary'),!!text,layout);
+      assert.equal(ctx.card.querySelector('.dp-secondary') !== null,!!text,layout);
+    }
+  }
+});
+
+test('multiline changes restore the correct wrapping rules in cached standard and value tiles',t => {
+  for (const compact_mode of ['standard','value']) {
+    const {ctx,hass}=fixture(t,{}, {compact_mode});
+    for (const multiline of [true,false,true]) {
+      ctx.config.signature={compact_mode,multiline};
+      const css=run(ctx,hass);
+      assert.equal(css.includes('white-space: pre-line !important;'),multiline);
+      assert.equal(css.includes('data-dp-multiline="no"'),!multiline);
+      const fresh=fixture(t,{},ctx.config.signature);
+      assert.equal(css,run(fresh.ctx,fresh.hass));
+    }
   }
 });
 
