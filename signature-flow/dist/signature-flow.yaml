@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 1.0.3
+  version: 1.0.4
   creator: Loïc
   supported:
     - button
@@ -9,7 +9,7 @@ signature_flow:
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '1.0.3';
+      const version = '1.0.4';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -38,6 +38,7 @@ signature_flow:
         const current = runtime;
         current.dispose = () => {
           current.observer?.disconnect();
+          if (current.fitFrame !== undefined) cancelAnimationFrame(current.fitFrame);
           current.motionPreference?.removeEventListener('change', current.motionChanged);
           Object.values(current.edges).forEach(edge => edge.animation?.cancel());
           canvas.removeEventListener('keydown', current.keyboard);
@@ -97,7 +98,23 @@ signature_flow:
         };
         current.motionChanged = () => Object.values(current.edges).forEach(current.updateMotion);
         current.motionPreference?.addEventListener('change', current.motionChanged);
-        // Only card size changes require geometry reads. Sensor updates reuse the paths.
+        // Fit only the grid number; keep its unit, baseline and short values intact.
+        // Coalesce text/size updates into one frame, without an animation loop.
+        current.fitGrid = () => {
+          if (current.fitFrame !== undefined || typeof requestAnimationFrame !== 'function') return;
+          current.fitFrame = requestAnimationFrame(() => {
+            delete current.fitFrame;
+            const node = current.nodes.grid;
+            node.number.style.fontSize = '';
+            const width = node.number.getBoundingClientRect().width;
+            const available = node.value.parentElement.getBoundingClientRect().width-node.unit.getBoundingClientRect().width-2;
+            if (width > available && available > 0) {
+              const size = parseFloat(getComputedStyle(node.value).fontSize);
+              node.number.style.fontSize = (size*available/width)+'px';
+            }
+          });
+        };
+        // Layout changes measure connection geometry. Sensor updates reuse the paths.
         current.draw = () => {
           const box = canvas.getBoundingClientRect();
           if (!box.width || !box.height) return;
@@ -124,7 +141,7 @@ signature_flow:
           };
           route('solar', canvas.classList.contains('sf-has-top') || canvas.classList.contains('sf-narrow') ?
             [[solar.right,solar.cy],[x,solar.cy],[x,y]] : [[x,solar.bottom],[x,y]]);
-          route('grid', [[grid.right,y],[x,y]]);
+          route('grid', [[grid.right+10,y],[x,y]]);
           route('home', [[x,y],[home.left,y]]);
           route('battery', canvas.classList.contains('sf-narrow') ?
             [[battery.right,battery.cy],[x,battery.cy],[x,y]] : [[x,battery.top],[x,y]]);
@@ -133,6 +150,7 @@ signature_flow:
             const r = local(key);
             route(key, key === 'top' ? [[r.cx,r.bottom],[r.cx,home.top]] : [[r.cx,r.top],[r.cx,home.bottom]]);
           }
+          current.fitGrid();
           attr(current.junction, 'cx', x); attr(current.junction, 'cy', y);
         };
         for (const key of ['solar','grid','home','battery','top','bottom']) {
@@ -231,6 +249,8 @@ signature_flow:
         const color = globalThis.CSS?.supports('color',configuredColor) ? configuredColor : colors[key];
         if (node.el.style.getPropertyValue('--sf-color') !== color) node.el.style.setProperty('--sf-color',color);
         if (edge.group.style.getPropertyValue('--sf-color') !== color) edge.group.style.setProperty('--sf-color',color);
+        if (key === 'grid' && (node.number.textContent !== value || node.unit.textContent !== (unit ? ' '+unit : '')))
+          runtime.fitGrid();
         text(node.label, name); text(node.number,value); text(node.unit,unit ? ' '+unit : '');
         const flowScale = key === 'battery' ? (numeric(cfg.power_scale) ?? 1) : scale;
         const signed = rawPower === null ? null : numeric(rawPower * flowScale * (cfg.invert_flow === true ? -1 : 1));
@@ -274,7 +294,7 @@ signature_flow:
         '.sf-canvas{position:relative;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--primary-text-color);--sf-surface:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))}\n'+
         '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-arrow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{offset-distance:0%;offset-rotate:auto 0deg;offset-anchor:0px 0px;transition:offset-rotate .18s ease}.sf-edge[data-direction="-1"] .sf-flow{offset-rotate:auto 180deg}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
         '.sf-node{position:absolute;display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:2px 0;border-radius:16px;background:var(--sf-surface);text-align:left;line-height:1.2;cursor:pointer}.sf-node[hidden]{display:none}.sf-content{display:grid;grid-template-rows:17px 34px 16px;gap:2px;min-width:0;align-items:start}.sf-label{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;color:var(--sf-color);background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))}.sf-icon ha-icon{--mdc-icon-size:22px}.sf-value{font-size:28px;font-weight:500;letter-spacing:-.7px;white-space:nowrap;line-height:34px;font-variant-numeric:tabular-nums;border-radius:6px}.sf-unit{font-size:16px;font-weight:400;letter-spacing:0;color:var(--secondary-text-color)}.sf-secondary{font-size:13px;white-space:nowrap;color:var(--secondary-text-color);pointer-events:none}.sf-secondary.sf-detail{pointer-events:auto;cursor:pointer;border-radius:4px}.sf-node:focus,.sf-value:focus,.sf-detail:focus{outline:none}.sf-canvas[data-sf-keyboard] .sf-node:focus-visible,.sf-canvas[data-sf-keyboard] .sf-value:focus-visible,.sf-canvas[data-sf-keyboard] .sf-detail:focus-visible{outline:2px solid var(--sf-color);outline-offset:3px}\n'+
-        '.sf-solar{width:180px;top:0;left:calc(50% - 90px)}.sf-grid{width:128px;top:calc(50% - 42px);left:0}.sf-home{width:140px;top:calc(50% - 42px);right:0}.sf-battery{width:180px;bottom:0;left:calc(50% - 90px)}.sf-top,.sf-bottom{width:140px;right:0}.sf-top{top:0}.sf-bottom{bottom:0}.sf-top .sf-value,.sf-bottom .sf-value{font-size:24px}.sf-top .sf-unit,.sf-bottom .sf-unit{font-size:13px}.sf-narrow .sf-solar,.sf-narrow .sf-battery{left:0;width:170px}.sf-has-top .sf-solar{left:0}\n'+
-        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-grid,.sf-small .sf-home{width:112px}.sf-small .sf-battery,.sf-small .sf-solar{width:140px}.sf-small .sf-battery .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-top,.sf-small .sf-bottom{width:112px}.sf-small .sf-top .sf-value,.sf-small .sf-bottom .sf-value{font-size:20px}.sf-small .sf-top .sf-unit,.sf-small .sf-bottom .sf-unit{font-size:12px}\n'+
+        '.sf-solar{width:180px;top:0;left:calc(50% - 90px)}.sf-grid{width:min(170px,calc(50% - 20px));top:calc(50% - 42px);left:0}.sf-home{width:140px;top:calc(50% - 42px);right:0}.sf-battery{width:180px;bottom:0;left:calc(50% - 90px)}.sf-top,.sf-bottom{width:140px;right:0}.sf-top{top:0}.sf-bottom{bottom:0}.sf-top .sf-value,.sf-bottom .sf-value{font-size:24px}.sf-top .sf-unit,.sf-bottom .sf-unit{font-size:13px}.sf-narrow .sf-solar,.sf-narrow .sf-battery{left:0;width:170px}.sf-has-top .sf-solar{left:0}\n'+
+        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-home{width:112px}.sf-small .sf-battery,.sf-small .sf-solar{width:140px}.sf-small .sf-battery .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-top,.sf-small .sf-bottom{width:112px}.sf-small .sf-top .sf-value,.sf-small .sf-bottom .sf-value{font-size:20px}.sf-small .sf-top .sf-unit,.sf-small .sf-bottom .sf-unit{font-size:12px}\n'+
         '@media(prefers-reduced-motion:reduce){.sf-flow{offset-distance:50%;transition:none}}';
     })()}

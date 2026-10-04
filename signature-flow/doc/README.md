@@ -8,7 +8,7 @@ Signature Flow displays instantaneous solar, grid, home and battery power in one
 2. Add `signature_flow` to the `modules` list of a Bubble `button` card with `button_type: state`.
 3. Configure its nodes under `signature_flow`. The module is self-contained: use it without the `signature` design module on this card.
 
-The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.3**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.4**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
 
 [Home configuration](../examples/home.yaml) contains the existing sensors, the remaining solar forecast, battery charge and power, water conversion, and the five existing popup hashes. It replaces the five Energy/Water cards, excludes the car charging card, and leaves the section title outside the module. It does not create popup cards: the corresponding popups must already exist in the view. Importing the module does not modify the dashboard.
 
@@ -75,7 +75,7 @@ signature_flow:
 
 `min_speed` and `max_speed` are pixels per second; `reference_power` is watts. The module normalizes W/kW/MW power units, including configured display scaling. Above the reference, speed remains capped. A node's `animation_reference` overrides the reference in its scaled flow units: the home example uses `20` for water measured in L/min. An explicit `max_speed` in an existing dashboard overrides the module default; update it to `40` to use the new maximum.
 
-Each connection reuses a native Web Animation. Changes in power adjust its playback rate without resetting its position. When the flow changes sign, the arrow turns over 180 ms and travels back from its current position. A temporary zero or unavailable measurement hides and pauses the arrow; it resumes at that position when the flow returns, including in the opposite direction. Sensor updates do not measure geometry again or add a JavaScript animation loop.
+Each connection reuses a native Web Animation. Changes in power adjust its playback rate without resetting its position. When the flow changes sign, the arrow turns over 180 ms and travels back from its current position. A temporary zero or unavailable measurement hides and pauses the arrow; it resumes at that position when the flow returns, including in the opposite direction. Sensor updates reuse connection geometry and do not add a JavaScript animation loop.
 
 ## Direction and interactions
 
@@ -109,7 +109,9 @@ signature_flow:
 
 ## Runtime and validation
 
-DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the configured entities through Bubble's tracked `hass` object; Jinja uses Bubble's `renderTemplate` helper. There is no polling, service call, extra WebSocket subscription or global CSS injection. A single `ResizeObserver` per card adjusts paths on size changes. Teardown cancels the animations and removes the observer, reduced-motion listener, keyboard/input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
+The Grid block reserves space before its connection so the arrow cannot touch the unit. Its width follows the available space. If a long number still does not fit, only that number is reduced; the unit and value baseline stay the same. Short values keep the normal font size. A single scheduled frame measures the text when its content or the card size changes.
+
+DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the configured entities through Bubble's tracked `hass` object; Jinja uses Bubble's `renderTemplate` helper. There is no polling, service call, extra WebSocket subscription or global CSS injection. A single `ResizeObserver` per card adjusts paths on size changes. Teardown cancels the animations and pending text measurement and removes the observer, reduced-motion listener, keyboard/input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
 
 This module replaces the native button content. Alert Manager's native main-icon badge is therefore not exposed on the custom flow nodes; no per-node alert integration is included in this first version.
 
