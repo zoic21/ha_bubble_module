@@ -44,6 +44,10 @@ Signature Wind Rose replaces the button content with a time-weighted, 16-directi
 
 The optional [Signature theme](themes/README.md) provides light and dark modes for Home Assistant and shared CSS variables for all five modules. Download [signature.yaml](themes/signature.yaml) and follow the installation guide. No card-mod or additional JavaScript is required.
 
+## Technical style rules
+
+Read [STYLE_GUIDE.md](STYLE_GUIDE.md) before changing the Signature modules or theme. It defines typography roles, exact surface fallbacks, corners, control metrics, divider lengths, intentional layout differences and required computed-style checks.
+
 ## Testing
 
 With Node.js 22 or later, run these commands from the repository root:

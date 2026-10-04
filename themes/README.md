@@ -37,14 +37,14 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-font-family` | Font stack for Signature, Flow, Weather and Wind Rose | System fonts, Apple first |
 | `signature-font-weight-normal` | Ordinary text and units | `400` |
 | `signature-font-weight-medium` | Main numeric values | `500` |
-| `signature-font-weight-semibold` | Names, emphasized text and selection | `600` |
+| `signature-font-weight-semibold` | Names and emphasized text | `600` |
 | `signature-font-weight-bold` | Large Signature headings | `700` |
 | `signature-name-font-size` | Standard compact/square/room, Flow, Weather and Wind Rose names | `14px` |
 | `signature-secondary-font-size` | Secondary text, media states and period selectors | `13px` |
 | `signature-caption-font-size` | Weather details, rose labels and small measurements | `12px` |
 | `signature-value-font-size` | Square and Flow primary values | `28px` |
 | `signature-compact-value-font-size` | Compact numeric values | `20px` |
-| `signature-temperature-font-size` | Room and current-weather temperatures | `30px` maximum; responsive layouts may reduce it |
+| `signature-temperature-font-size` | Room and current-weather temperatures | `30px`; responsive layouts may reduce it |
 | `signature-value-unit-font-size` | Square and primary Flow units | `16px` |
 | `signature-temperature-unit-font-size` | Room and current-weather temperature units | `13px` |
 | `signature-card-background` | Neutral card surfaces | `var(--card-background-color)` |
@@ -61,7 +61,7 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-tooltip-border-radius` | Wind Rose tooltip corners | Shared icon radius |
 | `signature-tooltip-box-shadow` | Wind Rose tooltip shadow | Shared control shadow |
 | `signature-control-background` | Weather segmented-control track | Mode-specific |
-| `signature-control-box-shadow` | Weather selected-tab shadow | Mode-specific |
+| `signature-control-box-shadow` | Weather and Wind Rose selected-tab shadow | Mode-specific |
 | `signature-alert-badge-background` | Alert Manager badge fill | Card surface |
 | `signature-alert-badge-neutral-color` | Alert badge when `color_badge: false` | Primary text color |
 | `signature-weather-cool-color` | Low end of Weather temperature ranges | `#8bc3d2` |
