@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.0.1** · Module ID: `signature_weather`
+**Version: 1.1.0** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -194,3 +194,7 @@ npm test
 Tests execute the code from the actual distribution. They cover the three layouts, provider capabilities, local measurements and updates, units, date/time formatting, temperature ranges, subscriptions, teardown races, selection persistence, and examples.
 
 API references: [Home Assistant weather entities](https://developers.home-assistant.io/docs/core/entity/weather/), [frontend weather subscription](https://github.com/home-assistant/frontend/blob/dev/src/data/weather.ts), and [Bubble Card module lifecycle](https://github.com/Clooos/Bubble-Card/blob/main/src/modules/module-documentation.md#release-what-your-module-started).
+
+## Signature theme
+
+This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The existing styles remain the fallback when the theme is absent. Card options and actions are unchanged.
