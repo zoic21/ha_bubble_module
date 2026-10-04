@@ -6,7 +6,7 @@
 # Aucune disponibilité, souscription ou temporisation ; index partagé par connexion HA.
 alert_manager:
   name: Alert Manager
-  version: 3.2.0
+  version: 3.2.1
   creator: Loïc
   supported:
     - button
@@ -81,17 +81,27 @@ alert_manager:
             }
             const sensorIds = ['active','pending'].map(state =>
               options.sensors?.[state] || 'sensor.alert_manager_main_'+state);
-            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,sensorIds};
+            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,sensorIds,sensorKey:sensorIds.join('\u0001')};
           }
           if (typeof onTeardown === 'function') onTeardown(() => { delete this._amConfig; });
           if (!watched.entities.length) return '';
           // Keep both reads outside the cache so Bubble observes active and pending alerts.
           const sources = watched.sensorIds.map(id => hass.states[id]);
-          const key = Symbol.for('bubble.alertManager.v4');
+          const key = Symbol.for('bubble.alertManager.v5');
           const shared = globalThis[key] || (globalThis[key] = new WeakMap());
           const connection = hass.connection || hass;
-          let snapshot = shared.get(connection);
-          if (!snapshot || sources.some((state,index) => state !== snapshot.sources[index])) {
+          let indices = shared.get(connection);
+          if (!indices) shared.set(connection,indices = new Map());
+          const versions = sources.map(state => {
+            const count = Number(state?.state);
+            if (!Number.isInteger(count) || count <= 0) return state?.state;
+            const revision = state.attributes?.alerts_revision;
+            // Source IDs separate indices; last_changed also detects a recreated sensor.
+            // Sources without a revision retain state-object invalidation.
+            return revision == null ? state : [state.state,revision,state.last_changed].join('\u0001');
+          });
+          let snapshot = indices.get(watched.sensorKey);
+          if (!snapshot || versions.some((version,index) => version !== snapshot.versions[index])) {
             const byEntity = new Map();
             sources.forEach((state,index) => {
               const count = Number(state?.state);
@@ -109,8 +119,8 @@ alert_manager:
                   rule:source === 'rule' ? rule : null,severity:index === 1 ? 1 : 2});
               }
             });
-            snapshot = {sources,byEntity};
-            shared.set(connection,snapshot);
+            snapshot = {versions,byEntity};
+            indices.set(watched.sensorKey,snapshot);
           }
           let selected = null;
           let policy = null;

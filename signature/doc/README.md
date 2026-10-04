@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **1.8.26**. [Complete file to import](../dist/signature.yaml).
+Version **1.8.27**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -144,7 +144,7 @@ signature:
 
 For `number` and `input_number`, this mode adds − / value and unit / +. It uses the actual `min`, `max`, `step`, and `unit_of_measurement` attributes, then calls the domain's `set_value` service. Clicking the value opens `more-info`.
 
-Accessible control labels and failure messages use Home Assistant translations. If these are unavailable, the module falls back to French for a French language setting, or English otherwise. Numbers follow the Home Assistant language, then the browser language if none is provided. French formatting is not imposed on other languages.
+Accessible control labels and failure messages use Home Assistant translations. If these are unavailable, the module falls back to French for a French language setting, or English otherwise. Values and numeric controls respect Home Assistant's number format preference, including system formatting and no grouping. With no explicit preference, they follow the Home Assistant language, then the browser language if none is provided. Changing only the number format refreshes existing controls.
 
 After a press, further presses wait for an actual value change or a timeout of five seconds. Missing or invalid attributes disable the buttons. Climate and cover controls remain native.
 
@@ -189,6 +189,8 @@ signature:
 ```
 
 Standard visual switches require a native sub-button with no type or `default` type, a `toggle` action, and a domain of `switch`, `input_boolean`, `light`, `automation`, or `humidifier`. They preserve the native action.
+
+Visual switches retain their configured `opacity`, clamped from 0 to 1. Unknown, unavailable, or transitional states multiply that opacity by 0.4; with no custom opacity, available switches use 1 and unavailable switches use 0.4.
 
 For `lock`, use two conditional buttons with explicit `lock.unlock` and `lock.lock` actions. ON means `unlocked`, OFF means `locked`; transitional states remain dimmed. The module does not turn a `toggle` action into a lock command.
 
@@ -239,7 +241,7 @@ Controls use four columns by default, configurable from 1 to 6. Each additional 
 
 With `room_measures_position: header` and neither a main state nor secondary text, temperature/humidity appear to the right of the title. Two control rows then fit within the 156 px base height; each subsequent row adds 48 px. The geometry introduced in version 1.8.25 leaves 8 px between the measurements/icon and the divider.
 
-Active controls receive automatic colors unless `room_auto_colors: false` or an explicit color is set. Hidden buttons retain their logical positions; hiding them does not redistribute the other columns.
+Active controls receive automatic colors unless `room_auto_colors: false` or an explicit color is set. Disabling automatic colors also applies to controls customized through `sub_button_styles`; explicit colors and backgrounds still apply to their icons. Hidden buttons retain their logical positions; hiding them does not redistribute the other columns.
 
 ## Titles and banners
 
@@ -261,7 +263,7 @@ For a banner, use `card_type: button`, `button_type: name`, and `layout: header`
 ## Text, units, and actions
 
 - Fields that accept Jinja use Bubble's `renderTemplate` engine. Updates depend on rendering and the dependencies tracked by Bubble; the module adds no polling of its own.
-- Simple numeric measurements follow Home Assistant's language and precision settings. A missing or unavailable numeric state becomes `—`, without a unit.
+- Simple numeric measurements follow Home Assistant's number format and precision settings. Scientific notation contributes its exponent to inferred decimal precision, up to 20 decimal places; an explicit display precision takes precedence. A missing or unavailable numeric state becomes `—`, without a unit.
 - A custom value must include its unit. Simple quantities (`500 g`, `50 %`, `−4.5 °C`) and durations such as `2 h 52 min` are visually split into numbers and units without changing the calculation.
 - `state_content` and native attribute/timestamp options are respected. An explicitly hidden state stays hidden.
 - Clicking or holding the main value opens `more-info` for the main entity. Secondary text does the same when `secondary_entity` is defined. Sub-buttons retain their native actions.
@@ -281,6 +283,8 @@ signature:
 The [Alert Manager module](../../alert_manager/doc/README.md) colors the icon according to matching alerts; it does not require Signature. Both module orders work with these versions, but placing Alert Manager last makes the configuration easier to read.
 
 ## Limitations and validation
+
+Layout CSS is reused while its geometry and surface are unchanged. Dynamic entity states, Jinja results, colors, and actions are still evaluated on each module execution; this cache does not suppress dependency reads or template updates.
 
 The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, and changes in Bubble can affect rendering. Use a recent Bubble version; Jinja templates and lifecycle cleanup use `renderTemplate` and `onTeardown` when available. No specific minimum version is claimed without validation against that version.
 

@@ -1,4 +1,4 @@
-# Bubble Alert Manager module 3.2.0
+# Bubble Alert Manager module 3.2.1
 
 [Module to import](../dist/alert_manager.yaml), independent of `signature`. It colors only the main icon and its pastel background based on Alert Manager alerts. Thresholds and delays are not duplicated in cards.
 
@@ -208,7 +208,7 @@ Availability remains handled by Bubble and the card's design. The module does no
 
 Two sensors are read: by default, `sensor.alert_manager_main_active` and `sensor.alert_manager_main_pending`, or the IDs configured in `sensors`.
 
-Their compact attributes retain stable IDs: `rule:<rule_id>:<entity_id>` for custom rules and `<pack_id>:…` for packs. No translated name or local pack registry is needed. The shared index keeps **a single snapshot per HA connection** and rebuilds when either of these two state objects changes, even if the counter stays the same. Each card then applies its filters and colors to this index. A zero counter skips reading its alert list; entity discovery and options are cached until the configuration is replaced.
+Their compact attributes retain stable IDs: `rule:<rule_id>:<entity_id>` for custom rules and `<pack_id>:…` for packs. No translated name or local pack registry is needed. The shared index keeps **one snapshot per HA connection and source sensor pair**, so cards using different sources do not evict each other's index. For sensors exposing `alerts_revision`, the index rebuilds when the revision, counter, or `last_changed` changes; history-only updates reuse it. The timestamp also distinguishes a recreated sensor with the same revision and count. Sources without a revision rebuild when their state object changes. Each card then applies its filters and colors to this index. A zero counter skips reading its alert attributes; entity discovery and options are cached until the configuration is replaced.
 
 No subscriptions, external calls, polling, or timers are added. Both sensor reads remain visible to Bubble's dependency engine on cache hits. With no monitored entity, this feature does not access HA. Without `alert_manager` in `modules`, Bubble does not execute the module.
 

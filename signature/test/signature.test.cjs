@@ -21,6 +21,7 @@ class Element {
   getAttribute(name) { return this.attrs.get(name) ?? null; }
   setAttribute(name,value) { this.attrs.set(name,String(value)); }
   removeAttribute(name) { this.attrs.delete(name); }
+  contains(element) { return this === element || this.children.some(child => child.contains?.(element)); }
   append(...children) { children.forEach(child => {child.parentElement=this;this.children.push(child);}); }
   appendChild(child) { this.append(child);return child; }
   replaceChildren(...children) { this.children=[];this._text='';this.append(...children); }
@@ -41,7 +42,8 @@ class Element {
   dispatchEvent(event) { this.events.push(event);return true; }
   remove() { if (this.parentElement) this.parentElement.children=this.parentElement.children.filter(child => child!==this); }
 }
-globalThis.document = {createElement: () => new Element(),createTextNode: text => ({textContent:text})};
+globalThis.document = {createElement: () => new Element(),createTextNode: text => ({textContent:text}),createDocumentFragment: () => new Element()};
+globalThis.MutationObserver = class { observe(){} disconnect(){this.disconnected=true;} };
 globalThis.CSS = {supports: () => true};
 globalThis.CustomEvent = class {constructor(type,options) {this.type=type;Object.assign(this,options);}};
 Object.defineProperty(globalThis,'navigator',{value:{language:'en-US'},configurable:true});
@@ -112,6 +114,134 @@ test('ordinary numeric states use the same locale fallback without number contro
   const {ctx}=fixture(t,{language:'en-US'},{});
   assert.equal(ctx.elements.state.textContent,'2.5kW');
   assert.equal(ctx._dpNumber,undefined);
+});
+
+test('numeric states and controls respect every Home Assistant number format',t => {
+  const formats={comma_decimal:'en-US',decimal_comma:'de',space_comma:'fr',quote_decimal:'de-CH',none:'en-US',system:undefined};
+  for (const [number_format,locale] of Object.entries(formats)) {
+    const hass={locale:{language:'en-US',number_format},states:{[id]:{...state,state:'1234.5'}}};
+    const expected=new Intl.NumberFormat(locale,{useGrouping:number_format !== 'none'}).format(1234.5);
+    const ordinary=fixture(t,hass,{});
+    const controls=fixture(t,hass);
+    assert.equal(ordinary.ctx.elements.state.querySelector('.dp-value').textContent,expected,number_format);
+    assert.equal(controls.ctx._dpNumber.display.textContent,expected+' kW',number_format);
+  }
+});
+
+test('changing only number_format refreshes existing formatters and preserves translated labels',t => {
+  const hass={locale:{language:'fr-FR',number_format:'language'},states:{[id]:{...state,state:'1234.5'}}};
+  const ordinary=fixture(t,hass,{}),controls=fixture(t,hass);
+  const group=controls.ctx._dpNumber;
+  for (const item of [ordinary,controls]) run(item.ctx,{...item.hass,locale:{language:'fr-FR',number_format:'none'}});
+  assert.equal(ordinary.ctx.elements.state.querySelector('.dp-value').textContent,'1234.5');
+  assert.equal(group.display.textContent,'1234.5 kW');
+  assert.equal(group.minus.getAttribute('aria-label'),'Diminuer');
+  assert.equal(controls.ctx._dpNumber,group);
+});
+
+test('scientific notation retains decimal precision and explicit precision still wins',t => {
+  for (const [raw,expected] of [['1e-6','0.000001'],['1.234e-6','0.000001234'],['5e-12','0.000000000005'],['1.2e3','1,200']]) {
+    const {ctx}=fixture(t,{locale:{language:'en-US'},states:{[id]:{...state,state:raw}}},{});
+    assert.equal(ctx.elements.state.querySelector('.dp-value').textContent,expected,raw);
+  }
+  const {ctx}=fixture(t,{entities:{[id]:{display_precision:2}},states:{[id]:{...state,state:'1.234e-2'}}},{});
+  assert.equal(ctx.elements.state.querySelector('.dp-value').textContent,'0.01');
+});
+
+test('room overrides do not reactivate automatic colors when room_auto_colors is false',t => {
+  const button={entity:'light.room',css_class:'room-control-1'};
+  const options={layout:'room',room_auto_colors:false,sub_button_styles:{'room-control-1':{column:2,icon:'mdi:lightbulb'}}};
+  const {ctx,hass}=fixture(t,{states:{'light.room':{state:'on',attributes:{}}}},options,{button_type:'name',sub_button:[button]});
+  const css=run(ctx,hass);
+  assert.doesNotMatch(css,/ha-card \.room-control-1 \.bubble-sub-button-icon \{(?:color|background|opacity):/);
+  assert.match(css,/ha-card \.room-control-1 \{ --room-control-column:1;/);
+  ctx.config.signature={...options,sub_button_styles:{'room-control-1':{color:'teal',background:'#ff0000'}}};
+  assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon \{color:var\(--teal-color, #009688\) !important;background:#ff0000 !important;/);
+  ctx.config.signature={...options,room_auto_colors:true};
+  assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon \{color:var\(--warning-color/);
+});
+
+test('visual switches combine custom opacity with availability without changing their actions',t => {
+  for (const [raw,opacity,expected] of [['on',0.2,0.2],['off',0,0],['unavailable',0.5,0.2],['unknown',undefined,0.4],['on',undefined,1],['on',2,1]]) {
+    const button={entity:'switch.ventilation',css_class:'ventilation',tap_action:{action:'toggle'}};
+    const options={sub_button_styles:{ventilation:{type:'switch',...(opacity == null ? {} : {opacity})}}};
+    const {ctx,hass}=fixture(t,{states:{[button.entity]:{state:raw,attributes:{}}}},options,{button_type:'name',sub_button:[button]});
+    const before=JSON.stringify(ctx.config);
+    assert.match(run(ctx,hass),new RegExp('box-shadow: none !important; opacity: '+expected+' !important;'));
+    assert.equal(JSON.stringify(ctx.config),before);
+  }
+});
+
+test('visual switch opacity templates refresh without being evaluated twice',t => {
+  const button={entity:'switch.ventilation',css_class:'ventilation',tap_action:{action:'toggle'}};
+  const {ctx,hass}=fixture(t,{states:{[button.entity]:{state:'on',attributes:{}}}},
+    {sub_button_styles:{ventilation:{type:'switch',opacity:'{{ opacity }}'}}},{button_type:'name',sub_button:[button]});
+  let calls=0;
+  assert.match(run(ctx,hass,()=>{calls++;return '0.3';}),/box-shadow: none !important; opacity: 0.3 !important;/);
+  assert.equal(calls,1);
+  assert.match(run(ctx,hass,()=> '0.6'),/box-shadow: none !important; opacity: 0.6 !important;/);
+});
+
+test('reusing layout CSS still updates numeric values, Jinja colors and observed state dependencies',t => {
+  const {ctx,hass}=fixture(t,{}, {compact_mode:'value',color:'{{ color }}'});
+  const runtime=ctx._dpRuntime;
+  let layoutCSS=runtime.styleCSS,writes=0;
+  Object.defineProperty(runtime,'styleCSS',{get:()=>layoutCSS,set:value=>{writes++;layoutCSS=value;},configurable:true});
+  let queries=0;
+  const query=ctx.card.querySelector.bind(ctx.card);
+  ctx.card.querySelector=selector=>{queries++;return query(selector);};
+  const dependencies=new Set();
+  const states=new Proxy({[id]:{...state,state:'3.5'}},{get(states,key){dependencies.add(key);return states[key];}});
+  const css=run(ctx,{...hass,states},()=> '#123456');
+  assert.equal(ctx.elements.state.querySelector('.dp-value').textContent,'3.5');
+  assert.match(css,/ha-card \{ --dp-accent: #123456; \}/);
+  assert.ok(dependencies.has(id));
+  assert.equal(writes,0,'A value or accent change reuses layout CSS');
+  assert.equal(queries,0,'A card with no secondary text does not search for a secondary node');
+  ctx.elements.state.textContent='native update';
+  run(ctx,{...hass,states},()=> '#654321');
+  assert.equal(ctx.elements.state.querySelector('.dp-value').textContent,'3.5','Native DOM replacement is still repaired');
+});
+
+test('cached layout CSS follows geometry, controls, surface and layout changes like a fresh card',t => {
+  const buttons=Array.from({length:5},(_,i)=>({css_class:'room-control-'+(i+1),entity:'light.room'}));
+  const extra={states:{...{[id]:state},'light.room':{state:'on',attributes:{}}}};
+  const {ctx,hass}=fixture(t,extra,{});
+  for (const [options,config] of [
+    [{layout:'square',controls:'measure'},{button_type:'state',sub_button:buttons.slice(0,2)}],
+    [{layout:'square',controls:'measure',auto_height:true},{button_type:'state',sub_button:buttons}],
+    [{layout:'square',color_background:true},{button_type:'state'}],
+    [{layout:'room',room_control_columns:2},{button_type:'name',show_state:false,sub_button:buttons}],
+    [{layout:'room',room_control_columns:3,room_measures_position:'header'},{button_type:'name',show_state:false,sub_button:buttons}],
+    [{layout:'header'},{button_type:'name',show_state:false,sub_button:buttons}],
+    [{controls:'number'},{button_type:'state'}],
+    [{},{button_type:'state'}],
+  ]) {
+    ctx.config={card_type:'button',entity:id,signature:options,...config};
+    const fresh=fixture(t,extra,options,config);
+    assert.equal(run(ctx,hass),run(fresh.ctx,fresh.hass),JSON.stringify(options));
+  }
+});
+
+test('cached secondary text refreshes templates, survives DOM replacement and is removed on teardown',t => {
+  const {ctx,hass}=fixture(t,{}, {secondary:'{{ text }}',secondary_entity:id});
+  const content=new Element(),name=new Element();
+  content.append(name);ctx.card.append(content);
+  ctx.elements.contentContainer=content;ctx.elements.nameContainer=name;
+  run(ctx,hass,()=> 'First');
+  const first=ctx.card.querySelector('.dp-secondary');
+  assert.equal(first.textContent,'First');
+  run(ctx,hass,()=> 'Second');
+  assert.equal(ctx.card.querySelector('.dp-secondary'),first);
+  assert.equal(first.textContent,'Second');
+  first.remove();
+  run(ctx,hass,()=> 'Third');
+  const replacement=ctx.card.querySelector('.dp-secondary');
+  assert.notEqual(replacement,first);
+  assert.equal(replacement.textContent,'Third');
+  ctx.teardown();
+  assert.equal(ctx.card.querySelector('.dp-secondary'),null);
+  assert.equal(ctx._dpRuntime,undefined);
 });
 
 test('service errors use native translations and retain the original error detail',async t => {

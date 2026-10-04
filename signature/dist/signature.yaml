@@ -25,7 +25,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 1.8.26
+  version: 1.8.27
   creator: Loïc
   supported:
     - button
@@ -79,7 +79,7 @@ signature:
               this._dpRoomTemperatureWatch?.observer.disconnect();
               this._dpRoomTemperatureWatch?.restore();
               delete this._dpRoomTemperatureWatch;
-              root.querySelector('.dp-secondary')?.remove();
+              current.secondaryEl?.remove();
               for (const attr of [...root.attributes]) if (attr.name.startsWith('data-dp-')) root.removeAttribute(attr.name);
               if (current.stateEl) delete current.stateEl.dataset.dpSignature;
               delete this._dpStructure;
@@ -129,6 +129,12 @@ signature:
           if (o.layout === 'heading') return '';
           if (!root) return '';
           const localeFor = h => h.locale?.language || h.language || globalThis.navigator?.language || 'en';
+          const formatterFor = (h,options) => {
+            const preference = h.locale?.number_format;
+            const locales = {comma_decimal:'en-US',decimal_comma:'de',space_comma:'fr',quote_decimal:'de-CH',none:'en-US'};
+            const locale = preference === 'system' ? undefined : locales[preference] ?? localeFor(h);
+            return new Intl.NumberFormat(locale,{...options,useGrouping:preference !== 'none'});
+          };
           const attr = (key,value) => { if (root.getAttribute(key) !== value) root.setAttribute(key,value); };
           let layout = ['square','room','header'].includes(o.layout) ? o.layout : 'compact';
           if (kind !== 'button' || c.button_type === 'switch') layout = 'compact';
@@ -290,10 +296,12 @@ signature:
                   nc.pending = null; clearTimeout(nc.timer); nc.timer = null;
                 }
                 const locale = localeFor(nc.hass);
-                if (nc.locale !== locale || nc.localize !== nc.hass.localize) {
+                const numberFormat = nc.hass.locale?.number_format;
+                if (nc.locale !== locale || nc.numberFormat !== numberFormat || nc.localize !== nc.hass.localize) {
                   nc.locale = locale;
+                  nc.numberFormat = numberFormat;
                   nc.localize = nc.hass.localize;
-                  nc.formatter = new Intl.NumberFormat(locale,{maximumFractionDigits:10});
+                  nc.formatter = formatterFor(nc.hass,{maximumFractionDigits:10});
                   const french = locale.toLowerCase().split(/[-_]/)[0] === 'fr';
                   const label = (key,fallback) => nc.hass.localize?.(key) || fallback;
                   minus.setAttribute('aria-label',label('ui.card.counter.actions.decrement',french ? 'Diminuer' : 'Decrease'));
@@ -361,12 +369,13 @@ signature:
               else if (numeric) {
                 // Local display precision: no extra server subscription per numeric tile.
                 const precision = hass.entities?.[c.entity]?.display_precision ?? entityState.attributes?.suggested_display_precision;
-                const digits = precision == null ? Math.min(10,(String(raw).split('.')[1] || '').length) : number(precision,2,0,10);
-                const locale = localeFor(hass);
-                const formatKey = locale+'|'+digits+'|'+(precision == null);
+                const [mantissa,exponent = '0'] = String(raw).toLowerCase().split('e');
+                const inferredDigits = Math.max(0,(mantissa.split('.')[1] || '').length - Number(exponent));
+                const digits = precision == null ? Math.min(20,inferredDigits) : number(precision,2,0,20);
+                const formatKey = localeFor(hass)+'|'+hass.locale?.number_format+'|'+digits+'|'+(precision == null);
                 if (this._dpFormatKey !== formatKey) {
                   this._dpFormatKey = formatKey;
-                  this._dpFormatter = new Intl.NumberFormat(locale,{minimumFractionDigits:precision == null ? 0 : digits,maximumFractionDigits:digits});
+                  this._dpFormatter = formatterFor(hass,{minimumFractionDigits:precision == null ? 0 : digits,maximumFractionDigits:digits});
                 }
                 value = this._dpFormatter.format(Number(raw));
                 unit = entityState.attributes?.unit_of_measurement || '';
@@ -451,7 +460,8 @@ signature:
             roomWatch.update();
           }
           // A dedicated secondary node leaves Bubble's native line and event handlers intact.
-          let secondaryEl = root.querySelector('.dp-secondary');
+          let secondaryEl = runtime.secondaryEl;
+          if (secondaryEl && !root.contains(secondaryEl)) secondaryEl = null;
           if (secondary && nameBox && content) {
             if (!secondaryEl) { secondaryEl = document.createElement('div'); secondaryEl.className = 'dp-secondary'; }
             const parent = ['square','room'].includes(layout) ? content : nameBox;
@@ -476,7 +486,8 @@ signature:
               secondaryEl.replaceChildren(fragment);
               secondaryEl.dataset.dpSecondarySignature = signature;
             }
-          } else secondaryEl?.remove();
+          } else { secondaryEl?.remove(); secondaryEl = null; }
+          runtime.secondaryEl = secondaryEl;
           // Enrol values in Bubble's existing delegated action handler: no new listeners.
           const bindings = this._dpActions || (this._dpActions = {});
           const bindAction = (key, el, data, value = true) => {
@@ -557,15 +568,16 @@ signature:
             if (String(spec.color ?? '').trim()) fg = color(spec.color,fg || accent,b.entity);
             if (String(spec.background ?? '').trim()) bg = color(spec.background,bg || 'transparent',b.entity);
             if (spec.opacity != null) opacity = number(render(spec.opacity,b.entity),1,0,1);
-            const target = layout === 'room' && auto ? selector+' .bubble-sub-button-icon' : selector;
+            const target = layout === 'room' && roleSet.has(b) ? selector+' .bubble-sub-button-icon' : selector;
             const declarations = (fg?'color:'+fg+' !important;':'')+(bg?'background:'+bg+' !important;':'')+(opacity!==''?'opacity:'+opacity+' !important;':'');
             if (declarations) css += target+' {'+declarations+'}';
             if (spec.column != null) css += selector+' { --room-control-column:'+ (number(spec.column,1,1,roomColumns)-1) +'; }';
+            return opacity;
           };
           if (layout === 'room' && o.room_auto_colors !== false) roles.forEach(({b,selector}) => paint(selector,b,{},true));
           if (layout === 'header') flat.forEach((b,i) => paint('ha-card .bubble-sub-button-'+(i+1), b, {background:'color-mix(in srgb, '+accent+' 12%, '+neutralSurface+')'}));
           styles.forEach(({cls,b,spec}) => {
-            paint('ha-card .'+cls,b,spec,layout === 'room' && roleSet.has(b));
+            const opacity = paint('ha-card .'+cls,b,spec,layout === 'room' && o.room_auto_colors !== false && roleSet.has(b));
             if (spec.type === 'mode' && layout === 'compact'
                 && (!b.sub_button_type || b.sub_button_type === 'default')) {
               css += `
@@ -605,7 +617,7 @@ signature:
                   position: relative; width: 52px !important; min-width: 52px !important;
                   height: 34px !important; flex: 0 0 52px; padding: 0 !important;
                   background: transparent !important; border-radius: 17px !important;
-                  box-shadow: none !important; opacity: ${available ? '1' : '.4'} !important;
+                  box-shadow: none !important; opacity: ${(opacity === '' ? 1 : opacity) * (available ? 1 : .4)} !important;
                 }
                 ${selector} .bubble-sub-button-icon,
                 ${selector} .bubble-sub-button-name-container { display: none !important; }
@@ -645,7 +657,10 @@ signature:
             iconOverrides.set(icon,{original,applied:iconName});
             if (current !== iconName) icon.setAttribute('icon',iconName);
           });
-          return `/* Shared design tokens for all three tile families. */
+          // Cache the layout CSS only. Dynamic states, templates and actions still run above.
+          const styleKey = [layout,surface,roomColumns,roomRows,roomHeaderMeasures,autoHeight,numberEnabled,o.controls === 'measure'].join('\u0001');
+          if (runtime.styleKey !== styleKey) {
+            runtime.styleCSS = `/* Shared design tokens for all three tile families. */
         ha-card[data-dp-layout] {
           --dp-radius: 22px;
           --dp-divider-color: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
@@ -909,5 +924,8 @@ signature:
         ha-card[data-dp-controls="measure"] .bubble-sub-button-2 { position: absolute !important; top: auto; bottom: 3px; right: 14px; width: auto; min-width: 0 !important; height: 24px; padding: 0; background: transparent !important; box-shadow: none; font-size: 12px; }
         ` : '') + `/* Hidden binary states must stay hidden despite compact display rules. */
         ha-card[data-dp-layout][data-dp-has-state="no"] .bubble-state.hidden { display: none !important; }
-        ` + css;
+        `;
+            runtime.styleKey = styleKey;
+          }
+          return runtime.styleCSS + css;
         })()}

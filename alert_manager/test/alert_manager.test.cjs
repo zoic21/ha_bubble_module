@@ -11,7 +11,7 @@ assert.ok(code, 'Module code missing');
 const render = new Function('hass', 'onTeardown', 'return `'+code+'`;');
 // This stub validates the test fixtures; it does not replace browser CSS validation.
 globalThis.CSS = {supports: (property,value) => property === 'color' && /^(#[a-f0-9]{6}|red|orange|teal|rgb\([\d ,]+\)|var\(--[a-z-]+(?:, #[a-f0-9]{6})?\))$/i.test(value)};
-const key = Symbol.for('bubble.alertManager.v4');
+const key = Symbol.for('bubble.alertManager.v5');
 const ids = ['sensor.alert_manager_main_active','sensor.alert_manager_main_pending'];
 const primary = 'switch.appliance';
 const target = 'sensor.temperature';
@@ -425,9 +425,9 @@ test('cache hits observe all lifecycle dependencies without reading watched enti
 test('attribute changes with unchanged counts and lifecycle changes invalidate the shared cache',()=>{
   const ctx=context();const hass=withAlerts([custom()]);
   assert.equal(accent(run(ctx,hass)),red);
-  const first=globalThis[key].get(hass.connection);
+  const first=globalThis[key].get(hass.connection).get(ids.join('\u0001'));
   hass.states[ids[0]]=manager([custom(target)]);
-  assert.equal(run(ctx,hass),'');assert.notEqual(globalThis[key].get(hass.connection),first);
+  assert.equal(run(ctx,hass),'');assert.notEqual(globalThis[key].get(hass.connection).get(ids.join('\u0001')),first);
   hass.states[ids[1]]=manager([custom()]);assert.equal(accent(run(ctx,hass)),orange);
   hass.states[ids[0]]=manager([custom()]);assert.equal(accent(run(ctx,hass)),red);
   for (const id of ids) hass.states[id]=manager();assert.equal(run(ctx,hass),'');
@@ -500,6 +500,52 @@ test('cards with different sources on one connection do not leak colors',()=>{
   hass.states['sensor.custom_active'] = manager([custom()]);
   assert.equal(accent(run(second,hass)),red);
   assert.equal(accent(run(first,hass)),orange);
+});
+
+test('interleaved source pairs on one connection each traverse unchanged alerts only once',()=>{
+  let visits=0;
+  const records=new Proxy([custom()],{get(array,prop) {
+    if (prop === Symbol.iterator) return function*() {for(const record of array) {visits++;yield record;}};
+    return Reflect.get(array,prop);
+  }});
+  const hass=withAlerts(records);
+  hass.states['sensor.custom_active']=manager(records);
+  hass.states['sensor.custom_pending']=manager();
+  const standard=context(),customSources=context({sensors:{active:'sensor.custom_active',pending:'sensor.custom_pending'}});
+  for(let i=0;i<100;i++) assert.equal(accent(run(i%2 ? customSources : standard,hass)),red);
+  assert.equal(visits,2);
+  hass.states['sensor.custom_active']=manager([custom(target)]);
+  assert.equal(run(customSources,hass),'');
+  assert.equal(accent(run(standard,hass)),red);
+  assert.equal(visits,2,'Updating custom sources preserves the default-source index');
+});
+
+test('history-only changes preserve a revisioned index and still record source dependencies',()=>{
+  let visits=0;
+  const records=new Proxy([custom()],{get(array,prop) {
+    if (prop === Symbol.iterator) return function*() {for(const record of array) {visits++;yield record;}};
+    return Reflect.get(array,prop);
+  }});
+  const hass=withAlerts(records);
+  const revisioned=(alerts,alerts_revision,history_revision=0,last_changed='2026-10-04T06:00:00Z')=>({
+    ...manager(alerts),last_changed,attributes:{alerts,alerts_revision,history_revision},
+  });
+  hass.states[ids[0]]=revisioned(records,1);
+  const ctx=context();
+  assert.equal(accent(run(ctx,hass)),red);
+  const reads=new Set();
+  const tracked={...hass,states:new Proxy(hass.states,{get(states,id){reads.add(id);return states[id];}})};
+  hass.states[ids[0]]=revisioned(records,1,1);
+  assert.equal(accent(run(ctx,tracked)),red);
+  assert.equal(visits,1);
+  assert.deepEqual([...reads],ids);
+  hass.states[ids[0]]=revisioned([custom(target)],2,1);
+  assert.equal(run(ctx,hass),'','A new revision refreshes alerts at an unchanged count');
+  hass.states[ids[0]]=revisioned(records,2,1,'2026-10-04T06:05:00Z');
+  assert.equal(accent(run(ctx,hass)),red,'A sensor re-created with the same revision refreshes its index');
+  assert.equal(visits,2);
+  hass.states[ids[0]]={...revisioned(records,2),state:'0'};
+  assert.equal(run(ctx,hass),'','A changed count invalidates even when the revision is unchanged');
 });
 
 test('replacing sensor options updates sources on an existing card',()=>{
