@@ -1,0 +1,211 @@
+const assert = require('node:assert/strict');
+const {test, before, after} = require('node:test');
+const {chromium} = require('playwright');
+const {setup, render, theme} = require('./fixtures.cjs');
+
+let browser;
+before(async () => {
+  browser = await chromium.launch({
+    headless: true,
+    ...(process.env.BUBBLE_STYLE_BROWSER_PATH ? {executablePath: process.env.BUBBLE_STYLE_BROWSER_PATH} : {}),
+    args: ['--no-sandbox', '--disable-dev-shm-usage']
+  });
+});
+after(async () => { await browser?.close(); });
+async function fixture(t, touch = false) {
+  const page = await browser.newPage({viewport: {width: 1400, height: 1400}, hasTouch: touch});
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  t.after(async () => { await page.close(); assert.deepEqual(errors, []); });
+  await setup(page);
+  return page;
+}
+const card = (result, id) => {
+  assert.deepEqual(result.errors, []);
+  const found = result.cards.find(item => item.id === id);
+  assert.ok(found, id);
+  return found;
+};
+const style = (result, id, selector) => {
+  const found = card(result, id).styles[selector];
+  assert.ok(found, `${id}: ${selector}`);
+  return found;
+};
+const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
+const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
+
+test('light/dark surfaces agree across five widths and fine/coarse pointers', async t => {
+  for (const touch of [false, true]) {
+    const page = await fixture(t, touch);
+    for (const mode of ['light', 'dark']) for (const width of [288, 328, 358, 382, 600]) {
+      const result = await render(page, {mode, width});
+      const reference = style(result, 'compact', '.bubble-container');
+      assert.equal(reference.borderRadius, '22px');
+      assert.equal(reference.borderTopWidth, '1px');
+      for (const id of surfaceIds) same(style(result, id, '.bubble-container'), reference,
+        ['backgroundColor', 'borderRadius', 'borderTopWidth', 'borderTopColor', 'boxShadow']);
+      assert.equal(style(result, 'weather-summary', '.sw-tab').height, touch ? 44 : 40);
+      assert.equal(style(result, 'wind', '.swr-tab').height, touch ? 44 : 40);
+      for (const id of ['flow', 'wind', 'weather-summary']) assert.deepEqual(card(result, id).overflow, [], `${id} ${width}`);
+    }
+  }
+});
+
+test('without Signature theme the same HA surface, border and shadow fallbacks apply', async t => {
+  const page = await fixture(t);
+  for (const overrides of [
+    {'ha-card-background': '#123456', 'card-background-color': '#abcdef'},
+    {'ha-card-background': '#1c1c1e', 'primary-text-color': '#f5f5f7', 'secondary-text-color': '#a1a1a6'},
+    {'ha-card-box-shadow': '0 3px 8px rgb(0 0 0 / .2)'},
+    {'signature-card-background': '#eeddcc', 'signature-card-box-shadow': 'none', 'signature-card-border-color': '#445566'}
+  ]) {
+    const result = await render(page, {plain: true, width: 600, overrides});
+    const reference = style(result, 'compact', '.bubble-container');
+    for (const id of surfaceIds) same(style(result, id, '.bubble-container'), reference,
+      ['backgroundColor', 'borderTopColor', 'boxShadow']);
+    if (overrides['ha-card-background'] === '#123456') assert.equal(reference.backgroundColor, 'rgb(18, 52, 86)');
+    if (overrides['signature-card-background']) assert.equal(reference.backgroundColor, 'rgb(238, 221, 204)');
+  }
+});
+
+test('ordinary native and media states use secondary color at full opacity', async t => {
+  const page = await fixture(t);
+  for (const mode of ['light', 'dark']) {
+    const result = await render(page, {mode});
+    const reference = style(result, 'weather-summary', '.sw-condition');
+    for (const id of ['compact-standard', 'cover', 'climate', 'media']) {
+      const state = style(result, id, '.bubble-state');
+      assert.equal(state.opacity, '1');
+      assert.equal(state.fontWeight, '400');
+      assert.equal(state.fontSize, '13px');
+      assert.equal(state.color, reference.color);
+    }
+  }
+});
+
+test('names, numeric values, temperature units and captions retain distinct roles', async t => {
+  const page = await fixture(t);
+  const result = await render(page, {width: 600});
+  for (const [id, selector] of [['compact', '.bubble-name'], ['media', '.bubble-name'], ['flow', '.sf-label'], ['weather-summary', '.sw-name']]) {
+    const name = style(result, id, selector);
+    assert.equal(name.fontSize, '14px'); assert.equal(name.fontWeight, '600');
+    assert.equal(name.letterSpacing, '-0.2px');
+  }
+  for (const [id, selector, size] of [['compact', '.bubble-state', '20px'], ['square', '.bubble-state', '28px'], ['flow', '.sf-value', '28px'], ['room', '.room-temperature', '30px'], ['weather-summary', '.sw-current-temperature', '30px']]) {
+    assert.equal(style(result, id, selector).fontSize, size);
+    assert.equal(style(result, id, selector).fontWeight, '500');
+  }
+  same(style(result, 'room', '.dp-room-unit'), style(result, 'weather-summary', '.sw-current-unit'), ['fontSize', 'fontWeight', 'color']);
+  assert.equal(style(result, 'wind', '.swr-cardinal').fontSize, '12px');
+  assert.equal(style(result, 'weather-summary', '.sw-entry-label').fontSize, '12px');
+});
+
+test('period controls agree in active/inactive colors, font, padding and corners', async t => {
+  const page = await fixture(t);
+  for (const mode of ['light', 'dark']) {
+    const result = await render(page, {mode});
+    for (const suffix of ['[aria-pressed="true"]', '[aria-pressed="false"]']) same(
+      style(result, 'weather-summary', '.sw-tab' + suffix), style(result, 'wind', '.swr-tab' + suffix),
+      ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'color', 'backgroundColor', 'boxShadow', 'borderRadius', 'paddingLeft', 'paddingRight', 'minHeight']);
+    same(style(result, 'weather-summary', '.sw-tabs'), style(result, 'wind', '.swr-tabs'), ['borderRadius', 'backgroundColor', 'paddingLeft', 'paddingRight']);
+  }
+});
+
+test('custom fonts grow secondary rows and reach media and Flow mobile text', async t => {
+  const page = await fixture(t);
+  const result = await render(page, {overrides: {'signature-name-font-size': '18px', 'signature-secondary-font-size': '17px', 'signature-font-weight-normal': 450}});
+  for (const id of ['compact-standard', 'media']) assert.equal(style(result, id, '.bubble-state').fontSize, '17px');
+  for (const id of ['compact', 'square', 'room']) {
+    const secondary = style(result, id, '.dp-secondary');
+    assert.equal(secondary.fontSize, '17px');
+    assert.ok(parseFloat(secondary.lineHeight) >= 20.4);
+  }
+  assert.equal(style(result, 'media', '.bubble-name').fontSize, '18px');
+  assert.equal(style(result, 'flow', '.sf-slot-3 .sf-secondary').fontSize, '17px');
+  assert.equal(style(result, 'flow', '.sf-secondary').fontWeight, '450');
+  const rows = await page.locator('[data-id="square"] .bubble-content-container').evaluate(el => getComputedStyle(el).gridTemplateRows.split(' ').map(parseFloat));
+  assert.ok(rows.at(-1) >= 20.39);
+});
+
+test('derived small/control/tooltip radii honor custom values and explicit overrides', async t => {
+  const page = await fixture(t);
+  const result = await render(page, {overrides: {'signature-icon-border-radius': '8px', 'signature-control-border-radius': '9px', 'signature-card-border-radius': '18px', 'signature-control-box-shadow': 'none'}});
+  for (const id of surfaceIds) assert.equal(style(result, id, '.bubble-container').borderRadius, '18px');
+  assert.equal(style(result, 'flow', '.sf-icon').borderRadius, '6px');
+  for (const [id, selector] of [['weather-summary', '.sw-tab'], ['wind', '.swr-tab']]) assert.equal(style(result, id, selector).borderRadius, '6px');
+  assert.equal(style(result, 'wind', '.swr-tooltip').borderRadius, '8px');
+  assert.equal(style(result, 'wind', '.swr-tooltip').boxShadow, 'none');
+  const explicit = await render(page, {overrides: {'signature-icon-small-border-radius': '4px', 'signature-tooltip-border-radius': '7px'}});
+  assert.equal(style(explicit, 'flow', '.sf-icon').borderRadius, '4px');
+  assert.equal(style(explicit, 'wind', '.swr-tooltip').borderRadius, '7px');
+});
+
+test('divider lengths share 1px thickness and one inset, including forecast rows', async t => {
+  const page = await fixture(t);
+  for (const width of [288, 600]) for (const inset of [0, 16, 24]) {
+    const result = await render(page, {width, overrides: {'signature-divider-inset': inset + 'px'}});
+    const lines = ['room', 'weather-ranges', 'weather-summary', 'wind'].flatMap(id => {
+      assert.ok(card(result, id).dividers.length, id);
+      return card(result, id).dividers;
+    });
+    for (const line of lines) {
+      assert.equal(line.height, '1px');
+      // The card border is 1px; inset starts at its inner edge.
+      assert.ok(Math.abs(line.left - inset - 1) < .1, JSON.stringify(line));
+      assert.ok(Math.abs(line.right - inset - 1) < .1, JSON.stringify(line));
+      assert.equal(line.color, lines[0].color);
+    }
+  }
+});
+
+test('theme mode switches update existing elements without running module code again', async t => {
+  const page = await fixture(t);
+  await render(page);
+  const switched = await page.evaluate(dark => {
+    for (const [key, value] of Object.entries(dark)) document.body.style.setProperty('--' + key, value);
+    return [...document.querySelectorAll('.fixture')].map(shell => ({id: shell.dataset.id,
+      color: getComputedStyle(shell.shadowRoot.querySelector('.bubble-container')).backgroundColor,
+      shadow: getComputedStyle(shell.shadowRoot.querySelector('.bubble-container')).boxShadow}));
+  }, theme.modes.dark);
+  for (const id of surfaceIds) {
+    assert.equal(switched.find(item => item.id === id).color, 'rgb(28, 28, 30)');
+    assert.match(switched.find(item => item.id === id).shadow, /0\.2/);
+  }
+});
+
+test('keyboard focus preserves themed period corners and visible 2px outlines', async t => {
+  const page = await fixture(t);
+  await render(page, {overrides: {'signature-control-border-radius': '9px'}});
+  await page.keyboard.press('Tab');
+  for (const [id, selector] of [['weather-summary', '.sw-tab'], ['wind', '.swr-tab']]) {
+    const locator = page.locator(`[data-id="${id}"] ${selector}`).first();
+    await locator.focus();
+    const focused = await locator.evaluate(el => ({visible: el.matches(':focus-visible'), radius: getComputedStyle(el).borderRadius, outline: getComputedStyle(el).outlineWidth}));
+    assert.equal(focused.visible, true); assert.equal(focused.radius, '6px'); assert.equal(focused.outline, '2px');
+  }
+});
+
+test('long Flow numbers fit at 288px while units and secondary text keep their size', async t => {
+  const page = await fixture(t);
+  const result = await render(page, {width: 288, value: 1234567.8, nameText: 'Énergie de la maison — mesure détaillée'});
+  const sizes = await page.locator('[data-id="flow"] .sf-content').evaluateAll(nodes => nodes.map(el => ({
+    content: el.getBoundingClientRect().width,
+    value: el.querySelector('.sf-value').getBoundingClientRect().width,
+    number: el.querySelector('.sf-value > span:first-child').textContent
+  })));
+  for (const size of sizes) { assert.ok(size.number.includes('234')); assert.ok(size.value <= size.content + 1, JSON.stringify(size)); }
+  assert.equal(style(result, 'flow', '.sf-slot-3 .sf-secondary').fontSize, '13px');
+  assert.equal(style(result, 'flow', '.sf-unit').fontSize, '16px');
+});
+
+test('unavailable readings and reduced motion keep a stable render', async t => {
+  const page = await fixture(t);
+  await page.emulateMedia({reducedMotion: 'reduce'});
+  const result = await render(page, {value: 'unavailable'});
+  assert.deepEqual(result.errors, []);
+  const transitions = await page.locator('[data-id="flow"] .sf-flow').evaluateAll(nodes => nodes.map(el => getComputedStyle(el).transitionDuration));
+  transitions.forEach(value => assert.equal(value, '0s'));
+  const active = await page.locator('[data-id="flow"] .sf-canvas').evaluate(el => el.getAnimations({subtree: true}).filter(animation => animation.playState === 'running').length);
+  assert.equal(active, 0);
+  assert.equal(style(result, 'compact-standard', '.bubble-state').opacity, '1');
+});

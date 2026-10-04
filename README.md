@@ -4,10 +4,10 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature — card design | 2.1.1 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
-| Signature Flow — six configurable flow slots | 3.3.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
-| Signature Weather — forecasts and optional local measurements | 1.1.1 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
-| Signature Wind Rose — wind direction frequencies | 1.0.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
+| Signature — card design | 2.2.0 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
+| Signature Flow — six configurable flow slots | 3.4.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Weather — forecasts and optional local measurements | 1.2.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
+| Signature Wind Rose — wind direction frequencies | 1.1.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.5.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Each module has its own folder: `dist` contains the complete YAML file to import, `doc` contains its documentation, and `test` contains its tests.
@@ -53,6 +53,8 @@ npm ci --ignore-scripts
 npm test
 ```
 
-Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose` or `npm run test:alert-manager` to test a single module. Tests are stored in each module's `test` folder and read the actual YAML distributions. The only npm dependency parses YAML during testing; it is not needed in Home Assistant.
+Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose` or `npm run test:alert-manager` to test a single module. Tests are stored in each module's `test` folder and read the actual YAML distributions. YAML and Playwright are development dependencies; neither is needed in Home Assistant.
 
-GitHub Actions runs the tests on Node.js 22 and 24 for every push and pull request, and can also be triggered manually. It checks alert sources, filters, caching, translations, numeric controls, metadata, YAML examples, and local documentation links. It does not replace checking the rendered cards in Home Assistant.
+For browser style checks, run `npx playwright install chromium` once, then `npm run test:styles`. These tests load the actual module distributions in a minimal Bubble-shaped DOM and check computed styles, theme switching, keyboard focus, dividers and touch targets. They do not run Home Assistant itself.
+
+GitHub Actions runs the unit tests on Node.js 22 and 24 and browser style checks on Chromium for every push and pull request, and can also be triggered manually. It checks alert sources, filters, caching, translations, numeric controls, metadata, YAML examples, and local documentation links. It does not replace checking the rendered cards in Home Assistant.

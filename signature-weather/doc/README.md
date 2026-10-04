@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.1.1** · Module ID: `signature_weather`
+**Version: 1.2.0** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -197,6 +197,13 @@ API references: [Home Assistant weather entities](https://developers.home-assist
 
 ## Signature theme
 
-This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The existing styles remain the fallback when the theme is absent. Card options and actions are unchanged.
+This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
 
 From version 1.1.1, horizontal dividers share a 16 px inset from each card edge with Signature room cards. Set `signature-divider-inset` in the theme (without `--`) or card CSS (with `--`) to change this margin. `0px` spans the card's inner width; larger values shorten the line. Forecast-row padding is accounted for on desktop and mobile, without shifting content or changing row heights. Divider colors still use `signature-divider-color`.
+
+## Release notes
+
+### 1.2.0 — 4 October 2026
+
+- Harmonizes shared surface fallbacks, system typography and role-based CSS variables with the other Signature modules.
+- Period selectors use the same font, colors, derived corners and 40 px desktop / 44 px touch height as Wind Rose, including keyboard focus.

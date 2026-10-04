@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.1.1**. [Complete file to import](../dist/signature.yaml).
+Version **2.2.0**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -298,6 +298,11 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 
 ## Release notes
 
+### 2.2.0 — 4 October 2026
+
+- Harmonizes shared surface fallbacks, system typography and role-based CSS variables with the other Signature modules.
+- Ordinary state text stays fully opaque; room numbers use medium weight. Media names and states honor shared font sizes, and secondary grid rows grow with their text.
+
 ### 2.1.1 — 4 October 2026
 
 - Aligns room-control dividers with Weather using a 16 px inset from each card edge.
@@ -319,4 +324,4 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 
 ## Signature theme
 
-This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The existing styles remain the fallback when the theme is absent. Card options and actions are unchanged.
+This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.

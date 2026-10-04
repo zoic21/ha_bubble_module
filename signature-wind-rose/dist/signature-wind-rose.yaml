@@ -1,6 +1,6 @@
 signature_wind_rose:
   name: Signature Wind Rose
-  version: 1.0.0
+  version: 1.1.0
   creator: Loïc
   supported:
     - button
@@ -20,17 +20,17 @@ signature_wind_rose:
       border-radius: var(--signature-card-border-radius,22px) !important;
       background: var(--swr-surface) !important;
       border: 1px solid var(--signature-card-border-color,color-mix(in srgb,var(--primary-text-color) 5%,transparent)) !important;
-      box-shadow: var(--signature-card-box-shadow,0 2px 10px rgb(0 0 0 / .035)) !important; overflow: hidden;
+      box-shadow: var(--signature-card-box-shadow,var(--ha-card-box-shadow,0 2px 10px rgb(0 0 0 / .035))) !important; overflow: hidden;
     }
     [data-signature-wind-rose] .bubble-container > .bubble-wrapper { display: none !important; }
-    [data-signature-wind-rose] .swr-card { color: var(--primary-text-color); font-size: 14px; line-height: 1.3; }
+    [data-signature-wind-rose] .swr-card { color: var(--primary-text-color); font-size: var(--signature-name-font-size,14px); font-weight: var(--signature-font-weight-normal,400); line-height: 1.3; }
     [data-signature-wind-rose] .swr-card * { box-sizing: border-box; }
     [data-signature-wind-rose] .swr-card [hidden] { display: none !important; }
     [data-signature-wind-rose] .swr-toolbar { padding: 16px 16px 0; }
-    [data-signature-wind-rose] .swr-tabs { display: flex; gap: 3px; background: var(--swr-track); border-radius: 14px; padding: 3px; }
+    [data-signature-wind-rose] .swr-tabs { display: flex; gap: 3px; background: var(--swr-track); border-radius: var(--signature-control-border-radius,14px); padding: 3px; }
     [data-signature-wind-rose] .swr-tab {
-      appearance: none; flex: 1; border: 0; margin: 0; padding: 0 6px; min-height: 40px;
-      border-radius: 11px; background: transparent; color: var(--secondary-text-color); font: inherit;
+      appearance: none; flex: 1; border: 0; margin: 0; padding: 0 10px; min-height: var(--signature-control-height,40px);
+      border-radius: max(0px,calc(var(--signature-control-border-radius,14px) - 3px)); background: transparent; color: var(--secondary-text-color); font: inherit;
       font-size: var(--signature-secondary-font-size,13px); cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     [data-signature-wind-rose] .swr-tab[aria-pressed="true"] {
@@ -41,29 +41,29 @@ signature_wind_rose:
     [data-signature-wind-rose] .swr-chart { position: relative; padding: 4px 16px 0; }
     [data-signature-wind-rose] .swr-svg { display: block; width: 100%; max-width: 360px; height: auto; margin: auto; }
     [data-signature-wind-rose] .swr-grid { fill: none; stroke: var(--swr-divider); stroke-width: .7; pointer-events: none; }
-    [data-signature-wind-rose] .swr-cardinal { fill: var(--secondary-text-color); font-size: 12px; text-anchor: middle; dominant-baseline: middle; }
+    [data-signature-wind-rose] .swr-cardinal { fill: var(--secondary-text-color); font-size: var(--signature-caption-font-size,12px); text-anchor: middle; dominant-baseline: middle; }
     [data-signature-wind-rose] .swr-sector { fill: var(--swr-accent); fill-opacity: .72; stroke: var(--swr-accent); stroke-width: .6; cursor: pointer; outline: none; }
     [data-signature-wind-rose] .swr-sector[aria-pressed="true"],
     [data-signature-wind-rose] .swr-sector:focus-visible { fill-opacity: 1; stroke: var(--primary-text-color); stroke-width: 1.2; }
     [data-signature-wind-rose] .swr-tooltip {
       position: absolute; inset-inline: 24px; bottom: 8px; width: fit-content; max-width: calc(100% - 48px); margin: auto;
-      padding: 8px 12px; border-radius: 12px; background: var(--swr-surface); border: 1px solid var(--swr-divider);
-      box-shadow: 0 2px 8px rgb(0 0 0 / .05); font-size: var(--signature-secondary-font-size,13px);
+      padding: 8px 12px; border-radius: var(--signature-tooltip-border-radius,var(--signature-icon-border-radius,12px)); background: var(--swr-surface); border: 1px solid var(--swr-divider);
+      box-shadow: var(--signature-tooltip-box-shadow,var(--signature-control-box-shadow,0 1px 4px rgb(0 0 0 / .06))); font-size: var(--signature-secondary-font-size,13px);
       text-align: center; pointer-events: none; font-variant-numeric: tabular-nums;
     }
     [data-signature-wind-rose] .swr-status { min-height: 240px; display: grid; place-items: center; padding: 24px 16px; color: var(--secondary-text-color); font-size: var(--signature-secondary-font-size,13px); text-align: center; }
     [data-signature-wind-rose] .swr-footer { position: relative; display: flex; justify-content: space-between; gap: 16px; padding: 14px 16px 16px; }
     [data-signature-wind-rose] .swr-footer::before { content: ''; position: absolute; top: 0; inset-inline: var(--signature-divider-inset,16px); height: 1px; background: var(--swr-divider); pointer-events: none; }
-    [data-signature-wind-rose] .swr-label { color: var(--secondary-text-color); font-size: 12px; }
+    [data-signature-wind-rose] .swr-label { color: var(--secondary-text-color); font-size: var(--signature-caption-font-size,12px); }
     [data-signature-wind-rose] .swr-value { margin-top: 4px; font-size: var(--signature-name-font-size,14px); font-weight: var(--signature-font-weight-medium,500); font-variant-numeric: tabular-nums; }
     [data-signature-wind-rose] .swr-duration { text-align: right; }
-    @media (pointer: coarse) { [data-signature-wind-rose] .swr-tab { min-height: 44px; } }
+    @media (pointer: coarse) { [data-signature-wind-rose] .swr-tab { min-height: var(--signature-control-touch-height,44px); } }
     ${(() => {
       const config = this.config || {};
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
-      const version = '1.0.0';
+      const version = '1.1.0';
       let r = this._signatureWindRose;
       if (r && (r.version !== version || r.root !== root || r.host !== host || !enabled)) { r.dispose(); r = null; }
       if (typeof onTeardown === 'function') onTeardown(() => this._signatureWindRose?.dispose());

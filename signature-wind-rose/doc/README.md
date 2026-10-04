@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.0.0** · Module ID: `signature_wind_rose`
+**Version: 1.1.0** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and selected period. Tap a sector to see its percentage and recorded duration; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -102,3 +102,10 @@ styles: |
 ## Validation
 
 Run `npm run test:signature-wind-rose` or `npm test` from the repository root. Tests exercise the actual imported YAML code, including duration weighting, asynchronous history responses, missing/calm data, localization, cache, refresh and teardown. Verify the installed card with your recorded station data in Home Assistant after importing.
+
+## Release notes
+
+### 1.1.0 — 4 October 2026
+
+- Harmonizes shared surface fallbacks, system typography and role-based CSS variables with the other Signature modules.
+- Period selectors match Weather. Tooltip corners and shadow follow the theme; caption sizes remain adjustable.

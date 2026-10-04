@@ -10,10 +10,21 @@ Signature:
   signature-font-weight-bold: 700
   signature-name-font-size: 14px
   signature-secondary-font-size: 13px
+  signature-caption-font-size: 12px
+  signature-value-font-size: 28px
+  signature-compact-value-font-size: 20px
+  signature-temperature-font-size: 30px
+  signature-value-unit-font-size: 16px
+  signature-temperature-unit-font-size: 13px
   signature-card-border-radius: 22px
   signature-divider-inset: 16px
   signature-icon-border-radius: 12px
+  signature-icon-small-border-radius: "max(0px, calc(var(--signature-icon-border-radius) - 2px))"
   signature-control-border-radius: 14px
+  signature-control-height: 40px
+  signature-control-touch-height: 44px
+  signature-tooltip-border-radius: "var(--signature-icon-border-radius)"
+  signature-tooltip-box-shadow: "var(--signature-control-box-shadow)"
   signature-card-background: "var(--card-background-color)"
   signature-alert-badge-background: "var(--signature-card-background)"
   signature-alert-badge-neutral-color: "var(--primary-text-color)"
