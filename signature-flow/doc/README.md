@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Configure the numbered blocks under `signature_flow.slots`.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **2.0.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **2.0.1**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
 
 Version 2 replaces the former named `solar`, `grid`, `battery`, `home`, `top` and `bottom` options with `slots`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) uses the new schema and preserves the existing sensors, forecast, battery percentage and power, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist.
 
@@ -97,7 +97,7 @@ A missing, blank, non-finite, `unknown` or `unavailable` primary measurement dis
 
 The module uses Home Assistant's language and number-format preference for automatic numeric values. Explicit names and Jinja text remain as configured. `signature_flow.name` sets the accessible group label; its default is `Flows` / `Flux`.
 
-Long numbers fit their slot's available width without reducing the unit size. Short values keep the normal font size. Slot 2 reserves a gap before its connection so the arrow cannot touch the unit. Keep long names and secondary text concise; below 320 px, consider displaying power in kW.
+Long numbers fit their slot's available width without reducing the unit size. Short values keep the normal font size. Slot 2 starts its connection 12 px after the displayed value and unit, so short readings have a longer connection while large readings retain a safe gap. When that starting point changes, the arrow keeps its physical position within the visible connection. Keep long names and secondary text concise; below 320 px, consider displaying power in kW.
 
 ## Actions
 
@@ -148,7 +148,7 @@ Each connection reuses a native Web Animation. Flow changes adjust playback rate
 
 ## Runtime and validation
 
-DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the visible slots' primary, secondary and flow entities through Bubble's tracked `hass` object. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; measurements are batched before applying font sizes. There is no JavaScript animation loop.
+DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the visible slots' primary, secondary and flow entities through Bubble's tracked `hass` object. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; slot 2's connection then follows its fitted text width. Other connections reuse their existing geometry during sensor updates. There is no JavaScript animation loop.
 
 Teardown cancels animations and pending text fitting, then removes the observer, reduced-motion listener, input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
 

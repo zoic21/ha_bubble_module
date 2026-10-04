@@ -62,7 +62,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'2.0.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'2.0.1');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -70,7 +70,8 @@ test('distribution metadata and the home example agree on the module ID',()=>{
   assert.deepEqual(home.signature_flow.animation,{min_speed:4,max_speed:40,reference:10000});
   assert.equal(home.signature_flow.slots[6].animation_reference,20);
   for(const key of [1,2,3,5,6]) assert.match(home.signature_flow.slots[key].tap_action.navigation_path,/^#/);
-  assert.equal(home.signature_flow.slots[3].flow_entity,home.signature_flow.slots[3].secondary_entity);
+  assert.equal(home.signature_flow.slots[3].flow_entity,home.signature_flow.slots[3].entity);
+  assert.equal(home.signature_flow.slots[3].secondary_entity,'sensor.zendure_manager_global_soc');
 });
 test('snapshot uses instantaneous values and correct net directions',t=>{
   const {r}=fixture(t);assert.equal(r.nodes[1].value.textContent,'1\u202f794 W');
@@ -250,6 +251,17 @@ test('path resizing changes the rate without resetting the position',t=>{
   edge.length=length*2;r.updateMotion(edge);
   assert.equal(edge.animation,animation);assert.equal(animation.currentTime,350);
   assert.equal(animation.playbackRate,rate/2);
+});
+test('slot 2 retains its physical arrow position when the connection grows or shrinks',t=>{
+  const {r}=fixture(t);const edge=r.edges[2],animation=edge.animation;
+  r.route(2,[[30,136],[100,136]]);animation.currentTime=350;
+  const position=edge.start+progress(animation)*edge.length;
+  for(const start of [50,20,60,30]) {
+    r.route(2,[[start,136],[100,136]]);
+    assert.equal(edge.animation,animation);
+    assert.ok(Math.abs(edge.start+progress(animation)*edge.length-position)<.00001);
+    assert.equal(animation.playbackRate,edge.speed/edge.length);
+  }
 });
 test('reduced motion cancels native animations, resumes active flows and releases listeners',t=>{
   const {ctx,r}=fixture(t);const preference=r.motionPreference;

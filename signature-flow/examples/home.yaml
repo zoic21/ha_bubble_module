@@ -43,19 +43,15 @@ signature_flow:
         action: navigate
         navigation_path: '#reseaux-details'
     3:
-      entity: sensor.zendure_manager_global_soc
+      entity: sensor.zendure_manager_power
       flow_entity: sensor.zendure_manager_power
-      secondary_entity: sensor.zendure_manager_power
+      secondary_entity: sensor.zendure_manager_global_soc
       color: '#009c90'
       icon: >-
         {{ 'mdi:battery-charging' if states('sensor.zendure_manager_power') | float(0) < 0 else 'mdi:battery' }}
-      secondary: >-
-        {% set power = states('sensor.zendure_manager_power') %}
-        {% set value = power | float(0) %}
-        {{ ('Recharge' if value < 0 else 'Décharge') ~ ' · ' ~ (value | abs | round(0) | int | string) ~ ' W'
-           if is_number(power) and value != 0 else 'Au repos' if is_number(power) else 'Indisponible' }}
+      secondary: "{{ states('sensor.zendure_manager_global_soc') | int }} %"
       name: Batterie
-      unit: '%'
+      unit: W
       tap_action:
         action: navigate
         navigation_path: '#batterie-details'
