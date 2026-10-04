@@ -1,0 +1,14 @@
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.wind_direction
+name: Wind rose
+card_layout: large
+scrolling_effect: false
+grid_options:
+  columns: 12
+  rows: auto
+modules:
+  - signature_wind_rose
+signature_wind_rose:
+  hours: 24

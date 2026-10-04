@@ -16,6 +16,8 @@ The optional [signature.yaml](signature.yaml) theme provides light and dark mode
 4. Select **Signature** in your Home Assistant profile and choose light, dark or automatic mode. A view-level or card-level theme override takes precedence for that view or card.
 5. Import the updated modules to enable their shared styling variables: Signature 2.1.0, Signature Flow 3.1.0, Signature Weather 1.1.0, and Alert Manager 3.5.0.
 
+Signature Wind Rose 1.0.0 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
+
 The theme can be used on its own. Older modules retain their hard-coded styles until their updated YAML distributions are imported. Custom cards only honor the theme variables they consume; a theme cannot replace a card's hard-coded CSS or canvas drawing styles. Some Home Assistant appearance variables are internal and can change between frontend versions.
 
 ## Global variables and module variables
@@ -32,18 +34,18 @@ The browser resolves the variables directly. Changing the theme or its mode does
 
 | Theme key | Purpose | Signature theme value |
 |---|---|---|
-| `signature-font-family` | Font stack for Signature, Flow and Weather | System fonts, Apple first |
+| `signature-font-family` | Font stack for Signature, Flow, Weather and Wind Rose | System fonts, Apple first |
 | `signature-font-weight-normal` | Ordinary text and units | `400` |
 | `signature-font-weight-medium` | Main numeric values | `500` |
 | `signature-font-weight-semibold` | Names, emphasized text and selection | `600` |
 | `signature-font-weight-bold` | Large Signature headings | `700` |
-| `signature-name-font-size` | Standard compact/square/room, Flow and Weather names | `14px` |
+| `signature-name-font-size` | Standard compact/square/room, Flow, Weather and Wind Rose names | `14px` |
 | `signature-secondary-font-size` | Secondary text where the module exposes that role | `13px` |
 | `signature-card-background` | Neutral card surfaces | `var(--card-background-color)` |
 | `signature-card-border-radius` | Main card corners | `22px` |
 | `signature-card-border-color` | Subtle main card border | Mode-specific |
 | `signature-card-box-shadow` | Main card shadow | Mode-specific |
-| `signature-divider-color` | Room and Weather dividers | Mode-specific |
+| `signature-divider-color` | Room, Weather and Wind Rose dividers | Mode-specific |
 | `signature-icon-border-radius` | Main icon corners | `12px` |
 | `signature-control-border-radius` | Signature and native Bubble button corners | `14px` |
 | `signature-control-background` | Weather segmented-control track | Mode-specific |
@@ -52,6 +54,9 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-alert-badge-neutral-color` | Alert badge when `color_badge: false` | Primary text color |
 | `signature-weather-cool-color` | Low end of Weather temperature ranges | `#8bc3d2` |
 | `signature-weather-warm-color` | High end of Weather temperature ranges | `#e9ac70` |
+| `signature-wind-rose-color` | Single color for wind direction sectors | `#4db6ac` |
+
+Signature Wind Rose also consumes `signature-divider-inset` with a `16px` fallback for its footer separator. Set it to `0px` to span the inner card width. This works independently of the divider harmonization update for the other modules.
 
 Layout dimensions, responsive value sizes, spacing, units and actions remain module-specific. Main and secondary text colors continue to use Home Assistant's `primary-text-color` and `secondary-text-color`. Explicit card accents and borders take precedence as before.
 
@@ -71,4 +76,5 @@ styles: |
 - [Signature](../signature/doc/README.md)
 - [Signature Flow](../signature-flow/doc/README.md)
 - [Signature Weather](../signature-weather/doc/README.md)
+- [Signature Wind Rose](../signature-wind-rose/doc/README.md)
 - [Alert Manager](../alert_manager/doc/README.md)
