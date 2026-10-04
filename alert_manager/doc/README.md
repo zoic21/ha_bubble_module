@@ -1,6 +1,6 @@
-# Bubble Alert Manager module 3.4.0
+# Bubble Alert Manager module 3.4.1
 
-[Module to import](../dist/alert_manager.yaml), independent of `signature`. It adds a small black alert badge at the main icon's upper-right corner. By default, the card retains its own colors. Card tint and badge color are optional; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
+[Module to import](../dist/alert_manager.yaml), independent of `signature`. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
 Requires the [Home Assistant Alert Manager integration](https://github.com/zoic21/ha_alert_manager).
 
@@ -33,7 +33,7 @@ The module can also be used on its own with native Bubble cards. With `signature
 | `ignore_pending` | Hides pending alerts | `false` |
 | `show_badge` | Shows a badge for the selected alert; `false` hides it independently of card tint | `true` |
 | `color_card` | Tints the card with the selected alert color at 16% | `false` |
-| `color_badge` | Uses the selected alert color for the badge icon and outline | `false` (black) |
+| `color_badge` | Uses the selected alert color for the badge icon and outline; `false` keeps it black | `true` |
 | `icons.active` | Active badge icon | `mdi:exclamation` |
 | `icons.pending` | Pending badge icon | `mdi:clock-outline` |
 | `colors.active` | Active alert color | Theme red |
@@ -41,7 +41,7 @@ The module can also be used on its own with native Bubble cards. With `signature
 | `entities.<entity_id>` | Overrides for a card entity, or adds an external entity | No overrides |
 | `entities.<entity_id>.exclude` | `true` excludes the entire entity; a list excludes its rules or packs by ID | `[]` |
 
-Each `entities` entry accepts `exclude`, `ignore_pending`, `packs.<pack_id>`, `colors.active/pending`, and `icons.active/pending`. Packs use the same configuration object globally and within an entity. `show_badge`, `color_card`, and `color_badge` are general card options, not entity or pack overrides. Only the YAML boolean `true` enables color; only the YAML boolean `false` hides badges.
+Each `entities` entry accepts `exclude`, `ignore_pending`, `packs.<pack_id>`, `colors.active/pending`, and `icons.active/pending`. Packs use the same configuration object globally and within an entity. `show_badge`, `color_card`, and `color_badge` are general card options, not entity or pack overrides. Only the YAML boolean `true` enables card tint. Only the YAML boolean `false` disables badge coloring or hides badges.
 
 To disable the module on a card, remove `alert_manager` from its `modules` list.
 
@@ -49,11 +49,11 @@ To disable the module on a card, remove `alert_manager` from its `modules` list.
 
 Badges are enabled by default and follow the selected alert:
 
-- **Active:** a small circular badge with `!`.
-- **Pending:** a small clock, unless that pending alert is ignored.
+- **Active:** a small circular badge with `!`, red by default.
+- **Pending:** a small clock, orange by default, unless that pending alert is ignored.
 - **No matching alert:** no badge or alert tint; the card returns to its normal appearance.
 
-The badge icon and outline are black by default, on a white surface with an outer ring matching the theme. This keeps a black symbol readable in light and dark themes. It overlays the main icon without changing the card's layout or intercepting its actions. The device icon and its own background remain unchanged.
+The badge icon and outline use the selected alert color by default, on a white surface with an outer ring matching the theme. Set `color_badge: false` to keep them black. The white surface keeps the symbol readable in light and dark themes. It overlays the main icon without changing the card's layout or intercepting its actions. The device icon and its own background remain unchanged.
 
 To hide badges for all monitored entities and packs on a card, use the general option. An explicitly enabled card tint remains active:
 
@@ -66,9 +66,9 @@ This option belongs directly under `alert_manager`, alongside `ignore_pending` a
 
 Exclusions, pack activation, source sensor settings, and pending policies apply equally to colors and badges. Acknowledged alerts remain outside this module's monitored sources, and missing or truncated source data does not create an uncertainty badge.
 
-## Optional card and badge colors
+## Card and badge colors
 
-These switches are independent and disabled by default. Defining `colors` alone does not enable coloring:
+These switches are independent: badge coloring is enabled by default, while card tint is disabled. To also tint the card, enable `color_card`:
 
 ```yaml
 alert_manager:
@@ -76,7 +76,16 @@ alert_manager:
   color_badge: true
 ```
 
-`color_card: true` tints the card background using the selected alert color at 16%, mixed with the theme's surface. `color_badge: true` applies that color to the badge symbol and outline, keeping its white surface. Enable either switch alone if only that part should be colored. Explicit `false`, omitted options, and strings such as `'true'` keep coloring disabled.
+`color_card: true` tints the card background using the selected alert color at 16%, mixed with the theme's surface. Only the YAML boolean `true` enables it. Badge coloring uses that same alert color for the symbol and outline, keeping its white surface. Omit `color_badge` or set it to `true` to retain this default. Only the YAML boolean `false` disables badge coloring; strings such as `'false'` do not disable it.
+
+To keep badges black while leaving the card's appearance unchanged:
+
+```yaml
+alert_manager:
+  color_badge: false
+```
+
+This also works with `color_card: true` if a tinted card with a black badge is preferred.
 
 The main device icon and its background remain under native Bubble/Signature control in every combination. There is no option to recolor the main icon. Each switch uses the same selected alert and the existing `colors` hierarchy below; neither adds new alert sources.
 
@@ -218,7 +227,7 @@ The priority is the same as for colors: **entity pack → entity → global pack
 
 Priority, **independently for each state**: **entity pack → entity → global pack → global → red/orange default**.
 
-These colors apply only to the card and/or badge when `color_card` and/or `color_badge` is explicitly enabled. They never change the device icon.
+These colors apply to badges by default, unless `color_badge: false` is set, and to the card only when `color_card: true` is set. They never change the device icon.
 
 ```yaml
 alert_manager:
@@ -259,8 +268,8 @@ Values accept a valid CSS color: hexadecimal, a name (`red`, `teal`…), `rgb(..
 
 | Situation | Display |
 |---|---|
-| Matching active alert | Black `!` badge by default; optional colors use `active`, red by default |
-| Matching pending alert, with no active alert | Black clock badge by default; optional colors use `pending`, orange by default |
+| Matching active alert | `!` badge using `active`, red by default; black with `color_badge: false` |
+| Matching pending alert, with no active alert | Clock badge using `pending`, orange by default; black with `color_badge: false` |
 | No matching alert | The card's own colors, with no badge or added styling |
 
 An active alert takes precedence over a pending alert, regardless of its custom color. At equal severity, the first entity encountered in the card configuration wins; for multiple alerts on that entity, the lexically smallest alert ID determines the color and badge. Reordering data received from the manager therefore does not change the winning color.
@@ -299,11 +308,18 @@ After a manual update, import the YAML again and reload the frontend. A commit i
 
 ## Validation in Home Assistant
 
-On a test entity, check active and pending custom alerts, an exclusion, and then explicitly enabling a pack. Verify black badges and unchanged card/device colors with no options. Enable `color_card` and `color_badge` separately, then together, including custom colors and both light and dark themes. Check icon overrides at every level and the fallback for an omitted state. Set `show_badge: false`: the badge should disappear while any enabled card tint remains. When all matching alerts disappear, the tint and badge disappear. Check that the device icon stays unchanged, including its actions and other commands on narrow and wide screens.
+On a test entity, check active and pending custom alerts, an exclusion, and then explicitly enabling a pack. Verify red active and orange pending badges and unchanged card/device colors with no options. Check `color_badge: false` for black badges, then restore the default by removing that option. Enable `color_card` separately, including custom colors and both light and dark themes. Check icon overrides at every level and the fallback for an omitted state. Set `show_badge: false`: the badge should disappear while any enabled card tint remains. When all matching alerts disappear, the tint and badge disappear. Check that the device icon stays unchanged, including its actions and other commands on narrow and wide screens.
 
 YAML/JavaScript syntax checks do not validate rendering or data in a real Home Assistant instance. Check that the compact sensors work and cards respond correctly in your installation.
 
 ## Release notes
+
+### 3.4.1 — 4 October 2026
+
+- Enables badge coloring by default: red for active alerts and orange for pending alerts, with the existing custom color hierarchy taking precedence.
+- Keeps `color_badge: false` as an explicit opt-out for black badge icons and outlines.
+- Card tint still requires `color_card: true`; the main device icon and its background remain unchanged. Badge icons, filtering, source sensors, and caching retain their existing behavior.
+- Verification: 108 automated repository tests passed. Browser checks with simulated HA data covered 11 configurations and 38 scenarios (418 card/scenario checks), including red/orange defaults and black opt-out in light and dark themes, custom colors, unchanged main icons and card dimensions, native actions, and cleanup. No added template subscriptions or browser errors. Real Home Assistant installation remains to be tested.
 
 ### 3.4.0 — 4 October 2026
 
