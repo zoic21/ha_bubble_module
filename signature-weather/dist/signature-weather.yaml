@@ -1,6 +1,6 @@
 signature_weather:
   name: Signature Weather
-  version: 1.1.0
+  version: 1.1.1
   creator: Loïc
   supported:
     - button
@@ -51,8 +51,14 @@ signature_weather:
     [data-signature-weather] .sw-current-metrics { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0 16px 12px; }
     [data-signature-weather] .sw-metric { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: 12px !important; color: var(--secondary-text-color) !important; font-variant-numeric: tabular-nums; }
     [data-signature-weather] .sw-metric ha-icon { --mdc-icon-size: 16px; }
-    [data-signature-weather] .sw-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px 0; }
-    [data-signature-weather] .sw-current:not([hidden]) + .sw-current-metrics + .sw-toolbar { border-top: 1px solid var(--sw-divider); }
+    [data-signature-weather] .sw-toolbar { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px 0; }
+    [data-signature-weather] .sw-current:not([hidden]) + .sw-current-metrics + .sw-toolbar { border-top: 1px solid transparent; }
+    [data-signature-weather] .sw-current:not([hidden]) + .sw-current-metrics + .sw-toolbar::before,
+    [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry + .sw-entry::before,
+    [data-signature-weather] .sw-detail::before {
+      content: ''; position: absolute; top: -1px; inset-inline: var(--signature-divider-inset,16px);
+      height: 1px; background: var(--sw-divider); pointer-events: none;
+    }
     [data-signature-weather] .sw-tabs { display: inline-flex; gap: 2px; border-radius: 14px; background: var(--sw-track); padding: 3px; }
     [data-signature-weather] .sw-tab { padding: 0 10px !important; min-height: 38px; font-size: 12px !important; border-radius: 11px; }
     [data-signature-weather] .sw-tab[aria-pressed="true"] { background: var(--sw-surface); box-shadow: var(--signature-control-box-shadow,0 1px 4px rgb(0 0 0 / .06)); }
@@ -64,10 +70,11 @@ signature_weather:
     [data-signature-weather] .sw-high { font-size: 20px; font-weight: var(--signature-font-weight-medium, 500); letter-spacing: -.3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     [data-signature-weather] .sw-low { font-size: var(--signature-secondary-font-size,13px); color: var(--secondary-text-color); white-space: nowrap; font-variant-numeric: tabular-nums; }
     [data-signature-weather] .sw-range { display: none; }
-    [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-forecast { display: block; padding: 6px 16px; overflow: visible; }
+    [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-forecast { --sw-forecast-inset: 16px; display: block; padding: 6px var(--sw-forecast-inset); overflow: visible; }
     [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry { display: grid; grid-template-columns: 58px 26px 42px minmax(20px,1fr) 48px; gap: 10px; width: 100%; min-height: 56px; padding: 0 !important; text-align: left; }
     [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry::after { display: none; }
-    [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry + .sw-entry { border-top: 1px solid var(--sw-divider); }
+    [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry + .sw-entry { border-top: 1px solid transparent; }
+    [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry + .sw-entry::before { inset-inline: calc(var(--signature-divider-inset,16px) - var(--sw-forecast-inset)); }
     [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry-label { grid-column: 1; grid-row: 1; color: var(--primary-text-color); text-align: left; }
     [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry[aria-pressed="true"] .sw-entry-label { font-weight: var(--signature-font-weight-semibold, 600); }
     [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry-icon { grid-column: 2; grid-row: 1; --mdc-icon-size: 24px; margin: 0; }
@@ -76,7 +83,7 @@ signature_weather:
     [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-range { display: block; grid-column: 4; grid-row: 1; position: relative; height: 6px; border-radius: 6px; background: var(--sw-track); }
     [data-signature-weather] .sw-range-fill { position: absolute; height: 6px; border-radius: 6px; background: linear-gradient(90deg,var(--sw-cool),var(--sw-warm)); }
     [data-signature-weather] .sw-range-point { position: absolute; width: 6px; height: 6px; border-radius: 50%; transform: translateX(-50%); background: var(--sw-warm); }
-    [data-signature-weather] .sw-detail { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; min-height: 48px; padding: 10px 16px; border-top: 1px solid var(--sw-divider); font-size: 12px; color: var(--secondary-text-color); }
+    [data-signature-weather] .sw-detail { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; min-height: 48px; padding: 10px 16px; border-top: 1px solid transparent; font-size: 12px; color: var(--secondary-text-color); }
     [data-signature-weather] .sw-detail-title { flex: 1 1 130px; overflow-wrap: anywhere; }
     [data-signature-weather] .sw-detail-metric { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     [data-signature-weather] .sw-detail-metric ha-icon { --mdc-icon-size: 14px; }
@@ -87,7 +94,7 @@ signature_weather:
       [data-signature-weather] .sw-current { grid-template-columns: 28px minmax(0,1fr) auto; gap: 8px; padding-left: 12px; padding-right: 12px; }
       [data-signature-weather] .sw-current-icon { --mdc-icon-size: 26px; }
       [data-signature-weather] .sw-current-temperature { font-size: 26px !important; }
-      [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-forecast { padding-left: 12px; padding-right: 12px; }
+      [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-forecast { --sw-forecast-inset: 12px; }
       [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-entry { grid-template-columns: 50px 24px 40px minmax(16px,1fr) 46px; gap: 7px; }
       [data-signature-weather] .sw-canvas[data-layout="ranges"] .sw-high { font-size: 15px; }
     }
@@ -99,7 +106,7 @@ signature_weather:
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
-      const version = '1.1.0';
+      const version = '1.1.1';
       let runtime = this._signatureWeather;
       if (runtime && (runtime.version !== version || runtime.root !== root || runtime.host !== host || !enabled)) {
         runtime.dispose(); runtime = null;

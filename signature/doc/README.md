@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.1.0**. [Complete file to import](../dist/signature.yaml).
+Version **2.1.1**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -297,6 +297,11 @@ The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.1.1 — 4 October 2026
+
+- Aligns room-control dividers with Weather using a 16 px inset from each card edge.
+- Adds optional `signature-divider-inset` support to adjust line width through the theme without moving controls or adding JavaScript work.
 
 ### 2.1.0 — 4 October 2026
 

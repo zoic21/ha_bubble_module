@@ -11,6 +11,7 @@ Signature:
   signature-name-font-size: 14px
   signature-secondary-font-size: 13px
   signature-card-border-radius: 22px
+  signature-divider-inset: 16px
   signature-icon-border-radius: 12px
   signature-control-border-radius: 14px
   signature-card-background: "var(--card-background-color)"
