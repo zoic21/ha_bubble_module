@@ -26,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 2.1.0
+  version: 2.1.1
   creator: Loïc
   supported:
     - button
@@ -818,7 +818,7 @@ signature:
         ha-card[data-dp-layout="room"] .room-humidity .bubble-sub-button-name-container { line-height: 16px; }
         ` : ''}
         /* The divider exists only for real controls and never intercepts a tap. */
-        ha-card[data-dp-layout="room"] .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden]))::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: ${roomDividerBottom}px; height: 1px; background: var(--dp-divider-color); pointer-events: none; }
+        ha-card[data-dp-layout="room"] .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden]))::after { content: ''; position: absolute; inset-inline: var(--signature-divider-inset, 16px); bottom: ${roomDividerBottom}px; height: 1px; background: var(--dp-divider-color); pointer-events: none; }
         ha-card[data-dp-layout="room"] :is([class*="room-control-"],.room-climate) { top: auto; right: auto; bottom: calc(${roomControlBottom}px + (${roomRows - 1} - var(--dp-room-row,0)) * ${roomControlPitch}px); left: calc(8px + var(--room-control-column,var(--dp-room-column,0)) * (100% - 16px) / ${roomColumns}); width: calc((100% - 16px) / ${roomColumns}); height: 44px; justify-content: center; background: transparent !important; box-shadow: none !important; }
         ha-card[data-dp-layout="room"] :is([class*="room-control-"],.room-climate) .bubble-sub-button-icon { width: 36px; height: 36px; padding: 8px; box-sizing: border-box; border-radius: 50%; --mdc-icon-size: 20px; }
         ha-card[data-dp-layout="room"] .room-status { top: 7px; left: 43px; width: 22px; height: 22px; border-radius: 50%; background: ${neutralSurface}; --mdc-icon-size: 16px; z-index: 2; }
