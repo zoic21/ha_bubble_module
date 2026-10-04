@@ -26,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 2.2.0
+  version: 2.2.1
   creator: Loïc
   supported:
     - button
@@ -181,8 +181,9 @@ signature:
                 --bubble-icon-border-radius: var(--signature-icon-border-radius, 12px);
               }
               ha-card .bubble-main-icon { color: ${accent} !important; }
-              ha-card .bubble-name { font-size: var(--signature-name-font-size, 14px); font-weight: var(--signature-font-weight-semibold, 600); letter-spacing: -0.2px; }
-              ha-card .bubble-state { font-size: var(--signature-secondary-font-size, 13px); font-weight: var(--signature-font-weight-normal, 400); color: var(--secondary-text-color); opacity: 1; }
+              ha-card :is(.bubble-name,.bubble-title) { font-size: var(--signature-name-font-size, 14px); font-weight: var(--signature-font-weight-semibold, 600); letter-spacing: -0.2px; color: var(--primary-text-color); }
+              ha-card :is(.bubble-state,.bubble-artist) { font-size: var(--signature-secondary-font-size, 13px); font-weight: var(--signature-font-weight-normal, 400); color: var(--secondary-text-color); opacity: 1; }
+              ha-card .bubble-media-info-container { line-height: 1.3; }
             `;
           }
           // setConfig replaces the config object. Cache only structure, never template results.
@@ -832,7 +833,7 @@ signature:
 
         ha-card[data-dp-layout="room"] .dp-unit { font-size: 11px; }
         ` : `/* One compact tile for native cover, climate and button controls. */
-        ha-card[data-dp-layout="compact"] { container-type: inline-size; ${kind === 'cover' ? `--bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: 12px;` : ''} ${kind === 'climate' || numberEnabled ? `--bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface};` : ''} }
+        ha-card[data-dp-layout="compact"] { container-type: inline-size; ${kind === 'cover' ? `--bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: var(--signature-control-border-radius, 14px);` : ''} ${kind === 'climate' || numberEnabled ? `--bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface};` : ''} }
         /* Match the centered 36px icon's 10px vertical inset, including the 1px card border. */
         ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 2px; padding: 0 4px; padding-inline-start: 9px; box-sizing: border-box; transition: none !important; }
         ha-card[data-dp-layout="compact"] .bubble-content-container { flex: 1; display: flex !important; align-items: center; min-width: 0; }

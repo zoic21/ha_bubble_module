@@ -56,6 +56,8 @@ Signature:
   bubble-secondary-background-color: "var(--secondary-background-color)"
   bubble-icon-border-radius: "var(--signature-icon-border-radius)"
   bubble-sub-button-border-radius: "var(--signature-control-border-radius)"
+  bubble-cover-buttons-border-radius: "var(--signature-control-border-radius)"
+  bubble-media-player-buttons-border-radius: "var(--signature-control-border-radius)"
   bubble-box-shadow: "var(--signature-card-box-shadow)"
   bubble-border: "1px solid var(--signature-card-border-color)"
   bubble-pop-up-background-color: "var(--signature-card-background)"

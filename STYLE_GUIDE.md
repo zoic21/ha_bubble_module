@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature 2.2.0**, **Signature Flow 3.4.0**, **Signature Weather 1.2.0** et **Signature Wind Rose 1.1.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature 2.2.1**, **Signature Flow 3.4.0**, **Signature Weather 1.2.0** et **Signature Wind Rose 1.1.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -41,8 +41,8 @@ La présence d'Apple dans la pile ne garantit pas une police Apple sur Android, 
 
 | Rôle | Variable | Valeur par défaut | Graisse |
 |---|---|---|---|
-| Nom standard, nom média, nom Flow, nom Weather | `signature-name-font-size` | 14 px | `signature-font-weight-semibold`, 600 |
-| Texte secondaire, état média, état compact standard, onglet de période | `signature-secondary-font-size` | 13 px | `signature-font-weight-normal`, 400 |
+| Nom standard, nom média, titre du morceau, nom Flow, nom Weather | `signature-name-font-size` | 14 px | `signature-font-weight-semibold`, 600 |
+| Texte secondaire, état média, artiste, état compact standard, onglet de période | `signature-secondary-font-size` | 13 px | `signature-font-weight-normal`, 400 |
 | Légende, détail météo, petite mesure, libellé Wind Rose | `signature-caption-font-size` | 12 px | Normale, sauf commande explicitement mise en évidence |
 | Valeur numérique compacte | `signature-compact-value-font-size` | 20 px | `signature-font-weight-medium`, 500 |
 | Valeur square et valeur principale Flow | `signature-value-font-size` | 28 px | Moyenne, 500 |
@@ -86,7 +86,7 @@ Les libellés cardinaux Wind Rose sont des textes SVG dans un `viewBox` de 320 u
 
 ### Interlignes et changements de taille
 
-Le secondaire Signature utilise `max(16px, secondaire * 1.2)`. La dernière ligne de grille square utilise la même formule. Flow réserve au moins 17 / 34 / 16 px à ses trois lignes, puis augmente chacune selon la taille de son texte multipliée par 1,2. Le nom compact utilise `max(16px, nom * 1.1)` et sa limite de deux lignes suit cet interligne.
+Le titre du morceau et l'artiste du lecteur média utilisent un interligne sans unité de 1,3, résolu selon leur propre taille de police. Le secondaire Signature utilise `max(16px, secondaire * 1.2)`. La dernière ligne de grille square utilise la même formule. Flow réserve au moins 17 / 34 / 16 px à ses trois lignes, puis augmente chacune selon la taille de son texte multipliée par 1,2. Le nom compact utilise `max(16px, nom * 1.1)` et sa limite de deux lignes suit cet interligne.
 
 Ne pas modifier une taille sans vérifier la hauteur de ligne, la ligne de grille, les limites de boîte et les ellipses associées. Les cartes compactes de 56 px et certains espaces room restent contraints : les variables ne promettent pas une adaptation illimitée au grossissement du texte. Pour une augmentation importante, adapter aussi le layout. Le test 18 px pour les noms / 17 px pour le secondaire vérifie les règles partagées, pas l'absence de toute troncature dans une carte compacte.
 
@@ -115,6 +115,7 @@ Le fond d'icône Signature et Flow mélange 16 % de l'accent dans la surface neu
 | Carte visible | `signature-card-border-radius` | 22 px |
 | Icône principale | `signature-icon-border-radius` | 12 px |
 | Petite icône Flow | `signature-icon-small-border-radius`, sinon `max(0px, rayon icône - 2px)` | 10 px |
+| Boutons natifs cover/media et contrôles Signature | `signature-control-border-radius` via les variables Bubble adaptées | 14 px |
 | Groupe de périodes | `signature-control-border-radius` | 14 px |
 | Bouton de période intérieur | `max(0px, rayon contrôle - 3px)` | 11 px |
 | Infobulle Wind Rose | `signature-tooltip-border-radius`, sinon rayon d'icône | 12 px |
@@ -166,7 +167,7 @@ npx playwright install chromium
 npm run test:styles
 ```
 
-Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 12 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
+Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 14 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
 
 | Dimension à contrôler | Cas requis |
 |---|---|
@@ -177,7 +178,7 @@ Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSE
 | Personnalisation | Nom 18 px, secondaire 17 px, carte 18 px, icône 8 px, contrôle 9 px, petits rayons explicites |
 | Traits | Retraits 0 / 16 / 24 px, y compris lignes Weather déjà rembourrées |
 | Interaction | Pointeur fin/grossier, focus clavier, mouvement réduit |
-| Modules | Compact standard/valeur, square fixe/auto, room avec/sans contrôles, header/title, média, cover, climate, number, Flow, trois layouts Weather, Wind Rose |
+| Modules | Compact standard/valeur, square fixe/auto, room avec/sans contrôles, header/title, média, cover, climate, number, Flow, trois layouts Weather, Wind Rose, boutons cover/media natifs sans module Signature |
 
 Comparer des **styles calculés** et des dimensions réelles, pas seulement des chaînes trouvées dans le YAML. Une capture sert à inspecter l'équilibre, la hiérarchie et les espacements ; elle ne prouve pas à elle seule une valeur exacte. Une fixture minimale ne remplace pas une exécution dans Home Assistant.
 

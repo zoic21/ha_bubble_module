@@ -14,7 +14,7 @@ The optional [signature.yaml](signature.yaml) theme provides light and dark mode
 
 3. Restart Home Assistant if you have just enabled themes. If theme loading was already configured, run `frontend.reload_themes` from Developer tools > Actions.
 4. Select **Signature** in your Home Assistant profile and choose light, dark or automatic mode. A view-level or card-level theme override takes precedence for that view or card.
-5. Import the updated modules to enable their shared styling variables: Signature 2.2.0, Signature Flow 3.4.0, Signature Weather 1.2.0, and Alert Manager 3.5.0.
+5. Import the updated modules to enable their shared styling variables: Signature 2.2.1, Signature Flow 3.4.0, Signature Weather 1.2.0, and Alert Manager 3.5.0.
 
 Signature Wind Rose 1.1.0 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
 
@@ -22,7 +22,7 @@ The theme can be used on its own. Older modules retain their hard-coded styles u
 
 ## Global variables and module variables
 
-Home Assistant variables such as `primary-text-color`, `ha-card-border-radius` and `ha-font-family-body` affect compatible native components while this theme is active. `bubble-*` variables also style compatible native Bubble components.
+Home Assistant variables such as `primary-text-color`, `ha-card-border-radius` and `ha-font-family-body` affect compatible native components while this theme is active. `bubble-*` variables also style compatible native Bubble components. Cover and media-player buttons explicitly use `signature-control-border-radius` (14 px by default), rather than falling back to the 22 px card radius.
 
 The `signature-*` prefix is a namespace, not a CSS scope. These custom properties are inherited like other theme properties, but only modules that reference them use their values. You can define them in any other theme or in a card's `styles`. Do not include the leading `--` in Home Assistant theme YAML; include it in CSS.
 

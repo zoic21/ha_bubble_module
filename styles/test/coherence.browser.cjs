@@ -209,3 +209,28 @@ test('unavailable readings and reduced motion keep a stable render', async t => 
   assert.equal(active, 0);
   assert.equal(style(result, 'compact-standard', '.bubble-state').opacity, '1');
 });
+
+test('native cover/media controls and Signature cover honor the shared control radius', async t => {
+  const page = await fixture(t);
+  for (const overrides of [{}, {'signature-control-border-radius': '9px'}]) {
+    const result = await render(page, {overrides});
+    const radius = overrides['signature-control-border-radius'] || '14px';
+    for (const [id, selector] of [['cover', '.bubble-cover-button'], ['media', '.bubble-media-button'], ['native-cover', '.bubble-cover-button'], ['native-media', '.bubble-media-button']]) {
+      assert.equal(style(result, id, selector).borderRadius, radius, id);
+    }
+  }
+  const plain = await render(page, {plain: true});
+  assert.equal(style(plain, 'cover', '.bubble-cover-button').borderRadius, '14px');
+  assert.equal(style(plain, 'media', '.bubble-media-button').borderRadius, '14px');
+});
+
+test('real media title/artist follow the name/secondary roles and theme weights', async t => {
+  const page = await fixture(t);
+  for (const scenario of [{}, {plain: true}, {overrides: {'signature-name-font-size': '18px', 'signature-secondary-font-size': '17px', 'signature-font-weight-normal': 450, 'signature-font-weight-semibold': 550}}]) {
+    const result = await render(page, scenario);
+    same(style(result, 'media', '.bubble-title'), style(result, 'media', '.bubble-name'), ['fontSize', 'fontWeight', 'letterSpacing']);
+    same(style(result, 'media', '.bubble-artist'), style(result, 'media', '.bubble-state'), ['fontSize', 'fontWeight', 'color', 'opacity']);
+    const lineHeight = await page.locator('[data-id="media"] .bubble-title').evaluate(el => getComputedStyle(el).lineHeight);
+    assert.ok(parseFloat(lineHeight) >= parseFloat(style(result, 'media', '.bubble-title').fontSize));
+  }
+});
