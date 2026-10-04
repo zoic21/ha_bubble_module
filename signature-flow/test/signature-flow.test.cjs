@@ -77,13 +77,13 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.2.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.3.0');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
   assert.equal(home.signature_flow.slots[2].secondary,'');
   assert.deepEqual(home.signature_flow.animation,{speed:24,max_arrows:5,reference:10000});
-  assert.equal(home.signature_flow.slots[6].animation_reference,20);
+  assert.equal(home.signature_flow.slots[6].animation.reference,20);
   for(const key of [1,2,3,5,6]) assert.match(home.signature_flow.slots[key].tap_action.navigation_path,/^#/);
   assert.equal(home.signature_flow.slots[3].primary,'sensor.zendure_manager_power');
   assert.equal(home.signature_flow.slots[3].flow_entity,undefined);
@@ -287,9 +287,45 @@ test('equal power has equal counts across W/kW/MW and display scaling',t=>{
   assert.ok(Math.abs(duration(b)-2*duration(a))<.02);
 });
 test('water uses its own reference after unit conversion',t=>{
-  const {r}=fixture(t,{6:{...options[6],animation_reference:20}}, {'sensor.water':state(.02,'m³/min')});
+  const {r}=fixture(t,{6:{...options[6],animation:{reference:20}}}, {'sensor.water':state(.02,'m³/min')});
   assert.equal(r.nodes[6].value.textContent,'20,0 L/min');assert.equal(r.edges[6].speed,24);
   assert.equal(r.edges[6].demand,5);
+});
+test('each slot inherits global animation settings and overrides individual settings independently',t=>{
+  const {ctx,hass,r}=fixture(t,{animation:{speed:30,max_arrows:7,reference:20000},
+    1:{...options[1],animation:{reference:10000}},
+    3:{...options[3],animation:{speed:18,max_arrows:3,reference:2400}},
+    6:{...options[6],animation:{reference:20}}},
+    {'sensor.solar':state(7500),'sensor.battery':state(1200),'sensor.water':state(.01,'m³/min')});
+  assert.equal(r.edges[1].speed,30);assert.equal(r.edges[1].demand,6);
+  assert.equal(r.edges[3].speed,18);assert.equal(r.edges[3].demand,2);
+  assert.equal(r.edges[6].speed,30);assert.equal(r.edges[6].demand,4);
+  assert.equal(r.edges[5].speed,30);assert.equal(r.edges[5].demand,1);
+  const first=r.edges[1].particles[0],animation=first.animation;
+  ctx.config.signature_flow.slots[1].animation.speed=12;run(ctx,hass);
+  assert.equal(r.edges[1].speed,12);assert.equal(r.edges[1].demand,6);
+  assert.equal(first.animation,animation);assert.equal(animation.playbackRate,12/r.edges[1].length);
+  assert.equal(r.edges[3].speed,18);assert.equal(r.edges[6].speed,30);
+  delete ctx.config.signature_flow.slots[1].animation;run(ctx,hass);
+  assert.equal(r.edges[1].speed,30);assert.equal(r.edges[1].demand,3);
+  assert.equal(r.edges[1].particles[0],first);
+  ctx.config.signature_flow.animation.speed=36;run(ctx,hass);
+  assert.equal(r.edges[1].speed,36);assert.equal(r.edges[3].speed,18);
+  assert.equal(r.edges[5].speed,36);assert.equal(r.edges[6].speed,36);
+});
+test('slot references normalize W/kW/MW consistently and replace the old reference option',t=>{
+  const {ctx,hass,r}=fixture(t,{1:{...options[1],animation:{reference:5000},animation_reference:1}});
+  for(const [value,unit] of [[2500,'W'],[2.5,'kW'],[.0025,'MW']]) {
+    run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(value,unit)}});
+    assert.equal(r.edges[1].demand,3);assert.equal(r.edges[1].speed,24);
+  }
+  delete ctx.config.signature_flow.slots[1].animation;run(ctx,hass);
+  assert.equal(r.edges[1].demand,2);
+  ctx.config.signature_flow.slots[1].animation={reference:5000};
+  ctx.config.signature_flow.slots[1].primary_scale=.001;
+  ctx.config.signature_flow.slots[1].primary_unit='kW';
+  run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(2500)}});
+  assert.equal(r.edges[1].demand,3);
 });
 test('count hysteresis stabilizes readings near a threshold without a timer',t=>{
   const {ctx,hass,r}=fixture(t);r.route(2,[[0,0],[200,0]]);

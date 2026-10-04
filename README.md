@@ -5,7 +5,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
 | Signature — card design | 2.1.0 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
-| Signature Flow — six configurable flow slots | 3.2.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Flow — six configurable flow slots | 3.3.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.1.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.5.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 

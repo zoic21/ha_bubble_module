@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 3.2.0
+  version: 3.3.0
   creator: Loïc
   supported:
     - button
@@ -9,7 +9,7 @@ signature_flow:
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '3.2.0';
+      const version = '3.3.0';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -298,9 +298,9 @@ signature_flow:
         return {...parsed, state, value, unit:suffix};
       };
       const animation = options.animation || {};
-      const speed = Math.max(1,numeric(animation.speed) ?? 24);
-      const maxArrows = Math.max(1,Math.min(12,Math.floor(numeric(animation.max_arrows) ?? 5)));
-      const referenceFlow = Math.max(1,numeric(animation.reference) ?? 10000);
+      const defaultSpeed = Math.max(1,numeric(animation.speed) ?? 24);
+      const defaultMaxArrows = Math.max(1,Math.min(12,Math.floor(numeric(animation.max_arrows) ?? 5)));
+      const defaultReference = Math.max(1,numeric(animation.reference) ?? 10000);
       const bind = (el, id, cfg, fallback) => {
         const tap = cfg.tap_action || fallback;
         const hold = cfg.hold_action || (id ? {action:'more-info'} : {action:'none'});
@@ -351,9 +351,12 @@ signature_flow:
         attr(edge.group, 'data-direction', direction);
         const flowUnit = String(cfg.flow_unit ?? (cfg.flow_entity ? flow?.attributes?.unit_of_measurement :
           cfg.primary_unit ?? primary.state?.attributes?.unit_of_measurement) ?? '').trim();
-        const reference = numeric(cfg.animation_reference);
+        const slotAnimation = cfg.animation || {};
+        const speed = Math.max(1,numeric(slotAnimation.speed) ?? defaultSpeed);
+        const maxArrows = Math.max(1,Math.min(12,Math.floor(numeric(slotAnimation.max_arrows) ?? defaultMaxArrows)));
+        const reference = Math.max(1,numeric(slotAnimation.reference) ?? defaultReference);
         const unitScale = flowUnit === 'kW' ? 1000 : flowUnit === 'MW' ? 1000000 : 1;
-        const fraction = Math.min(1,Math.abs(signed ?? 0)/(reference > 0 ? reference : referenceFlow/unitScale));
+        const fraction = Math.min(1,Math.abs(signed ?? 0)*unitScale/reference);
         const level = 1+(maxArrows-1)*fraction;
         // A 0.1-arrow margin around each rounding boundary prevents flicker.
         if (edge.demand === undefined || Math.abs(level-edge.demand) > .6) edge.demand = Math.round(level);

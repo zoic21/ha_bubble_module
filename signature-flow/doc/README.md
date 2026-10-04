@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Configure the numbered blocks under `signature_flow.slots`.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.2.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.3.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -85,7 +85,7 @@ signature_flow:
 | `invert_flow` | Reverse the signed flow convention. Default `false`; affects the arrow, not displayed values. |
 | `animate` | Default `true`. Set `false` to keep the thin connection without an arrow. |
 | `deadband` | Absolute threshold below which animation stops, after flow scaling. Default `0`. `signature_flow.deadband` sets a common default. |
-| `animation_reference` | Per-slot measurement at which the requested arrow count reaches its maximum, in scaled flow units. |
+| `animation` | Optional per-slot `speed`, `max_arrows` and `reference`. Each omitted setting inherits `signature_flow.animation`, then the module default. |
 
 For direct entities, a missing, blank, non-finite, `unknown` or `unavailable` primary measurement displays `—` without a unit. An unavailable secondary measurement displays `Unavailable` / `Indisponible`. Other nonnumeric entity states are displayed as text. A valid explicit flow can animate even when either display measurement is unavailable. A missing or nonnumeric flow stops the arrow while retaining available display values.
 
@@ -133,7 +133,8 @@ signature_flow:
       primary_scale: 1000
       primary_unit: L/min
       primary_precision: 1
-      animation_reference: 20
+      animation:
+        reference: 20
       tap_action:
         action: navigate
         navigation_path: '#water-details'
@@ -168,13 +169,40 @@ signature_flow:
     reference: 10000
 ```
 
-`speed` is in pixels per second (minimum 1). `max_arrows` is an integer from 1 to 12. `reference` is the measurement at which the maximum count is requested, with a default of **10,000**. For W/kW/MW flow units, the global reference is in watts and values are normalized. Other units use the reference directly; a per-slot `animation_reference` overrides it in scaled flow units. The home configuration reaches its water maximum at **20 L/min**. Previous `min_speed` and `max_speed` options are ignored; replace them with `speed` when editing an existing card. Other card options remain compatible.
+`speed` is in pixels per second (minimum 1). `max_arrows` is an integer from 1 to 12. `reference` is the measurement at which the maximum count is requested, with a default of **10,000**. For W/kW/MW flow units, `reference` is always in watts, globally and per slot, and values are normalized. Other units use the reference directly after flow scaling. The home configuration reaches its water maximum at **20 L/min**. Previous `min_speed` and `max_speed` options are ignored; replace them with `speed` when editing an existing card. Replace the previous slot-level `animation_reference` with `animation.reference`; the former option has been removed. If a power slot previously used `animation_reference` in kW or MW, convert its reference to watts. Water references stay in the configured flow unit, for example 20 L/min.
+
+Any slot can override the same settings. Overrides are per setting, so a slot with only `reference` keeps the global speed and maximum count. There are no water-specific animation options:
+
+```yaml
+signature_flow:
+  animation:
+    speed: 24
+    max_arrows: 5
+    reference: 10000
+  slots:
+    1:
+      primary: sensor.production_power
+      animation:
+        reference: 7500
+    3:
+      primary: sensor.storage_power
+      animation:
+        speed: 18
+        max_arrows: 3
+        reference: 2400
+    6:
+      primary: sensor.water_flow
+      primary_scale: 1000
+      primary_unit: L/min
+      animation:
+        reference: 20
+```
 
 The requested count is the nearest integer to `1 + (max_arrows - 1) × min(abs(flow) / reference, 1)`. A margin of 0.1 arrow beyond each rounding boundary stabilizes the count: with the default settings, going from one to two arrows requires more than 1,500 W, and returning to one requires less than 1,000 W. Initial readings use ordinary rounding. Above the reference, the count stays capped.
 
 Arrows are regularly spaced along each path. Short connections cap the visible count to keep at least **14 px** between arrows, with a minimum of one arrow for an active flow. Resizing adjusts this cap automatically. The requested count still reflects the measurement; the visible count also depends on the available path length.
 
-Each arrow reuses a native Web Animation and its SVG element. Count changes and path resizing retain the leading arrow's position on the shared visible path and redistribute the other arrows around it. Extra arrows are hidden and paused, then reused when needed. Measurement changes that retain the count and path length do not change playback rate or reset animation time. Traversal time depends on path length so physical speed stays identical across connections. When flow changes sign, each active arrow turns over 180 ms and travels back from its current point. Zero or unavailable flows pause the arrows; they resume when flow returns. Reduced-motion preferences cancel the animations and show regularly spaced stationary arrows. These are signed net measurements; the module does not calculate allocation between sources and destinations.
+Each arrow reuses a native Web Animation and its SVG element. Count changes and path resizing retain the leading arrow's position on the shared visible path and redistribute the other arrows around it. Extra arrows are hidden and paused, then reused when needed. Measurement changes that retain the count and path length do not change playback rate or reset animation time. Traversal time depends on path length so each connection keeps its configured physical speed. When flow changes sign, each active arrow turns over 180 ms and travels back from its current point. Zero or unavailable flows pause the arrows; they resume when flow returns. Reduced-motion preferences cancel the animations and show regularly spaced stationary arrows. These are signed net measurements; the module does not calculate allocation between sources and destinations.
 
 ## Runtime and validation
 
