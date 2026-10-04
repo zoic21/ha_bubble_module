@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Configure the numbered blocks under `signature_flow.slots`.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.1.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.3.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -79,13 +79,13 @@ signature_flow:
 | `primary_precision`, `secondary_precision` | Fixed decimal places, 0–6, for direct numeric entity values. Both default to the entity's `display_precision`, then `0`. Templates supply their own formatting. |
 | `name` | Label; accepts Jinja. Defaults to the primary entity's friendly name, then `Slot N` / `Emplacement N`. |
 | `icon`, `color` | MDI icon and icon/connection color; accept Jinja. Icon defaults to the primary entity's `icon` attribute, then `mdi:flash`; color defaults to the theme secondary text color. Invalid colors use that neutral default. |
-| `flow_entity` | Entity controlling arrow direction and speed. Defaults to `primary` only when it is a direct entity ID. Templates and fixed text require an explicit flow entity to animate. |
+| `flow_entity` | Entity controlling arrow direction and count. Defaults to `primary` only when it is a direct entity ID. Templates and fixed text require an explicit flow entity to animate. |
 | `flow_scale` | Multiply the flow measurement. Defaults to `1` with an explicit `flow_entity`, otherwise to `primary_scale`. |
 | `flow_unit` | Unit used for W/kW/MW normalization. Defaults to the explicit flow entity unit, or `primary_unit` / primary entity unit when using the default flow. Describes units; does not convert values by itself. |
 | `invert_flow` | Reverse the signed flow convention. Default `false`; affects the arrow, not displayed values. |
 | `animate` | Default `true`. Set `false` to keep the thin connection without an arrow. |
 | `deadband` | Absolute threshold below which animation stops, after flow scaling. Default `0`. `signature_flow.deadband` sets a common default. |
-| `animation_reference` | Per-slot measurement at which speed reaches its maximum, in scaled flow units. |
+| `animation` | Optional per-slot `speed`, `max_arrows` and `reference`. Each omitted setting inherits `signature_flow.animation`, then the module default. |
 
 For direct entities, a missing, blank, non-finite, `unknown` or `unavailable` primary measurement displays `—` without a unit. An unavailable secondary measurement displays `Unavailable` / `Indisponible`. Other nonnumeric entity states are displayed as text. A valid explicit flow can animate even when either display measurement is unavailable. A missing or nonnumeric flow stops the arrow while retaining available display values.
 
@@ -133,7 +133,8 @@ signature_flow:
       primary_scale: 1000
       primary_unit: L/min
       primary_precision: 1
-      animation_reference: 20
+      animation:
+        reference: 20
       tap_action:
         action: navigate
         navigation_path: '#water-details'
@@ -156,31 +157,62 @@ signature_flow:
 
 Add the other slots as needed; slot 6's connection appears when slot 5 is configured. Add slot 4 for a block above slot 5, using exactly the same options.
 
-## Arrow speed
+## Arrow speed and count
 
-Speed increases linearly with the absolute scaled flow. Defaults are **4–40 px/s**, reaching the maximum at a reference of **10,000**. For W/kW/MW flow units, the global reference is in watts and values are normalized. Other units use the reference directly; a per-slot `animation_reference` is appropriate for water, current or other measurements. The home configuration reaches its water maximum at **20 L/min**.
+Arrows move at a fixed physical speed: **24 px/s** by default on every connection, regardless of its measurement or length. The absolute scaled flow instead controls the requested number of arrows, from **1 to 5** by default. Zero, deadband, unavailable measurements and `animate: false` hide and pause the arrows.
 
 ```yaml
 signature_flow:
   animation:
-    min_speed: 4
-    max_speed: 40
+    speed: 24
+    max_arrows: 5
     reference: 10000
 ```
 
-Above the reference, speed stays capped. Equal flow has equal physical speed on different connections; traversal time depends on path length. An explicit dashboard setting overrides a module default.
+`speed` is in pixels per second (minimum 1). `max_arrows` is an integer from 1 to 12. `reference` is the measurement at which the maximum count is requested, with a default of **10,000**. For W/kW/MW flow units, `reference` is always in watts, globally and per slot, and values are normalized. Other units use the reference directly after flow scaling. The home configuration reaches its water maximum at **20 L/min**. Previous `min_speed` and `max_speed` options are ignored; replace them with `speed` when editing an existing card. Replace the previous slot-level `animation_reference` with `animation.reference`; the former option has been removed. If a power slot previously used `animation_reference` in kW or MW, convert its reference to watts. Water references stay in the configured flow unit, for example 20 L/min.
 
-Each connection reuses a native Web Animation. Flow changes adjust playback rate without resetting position. When flow changes sign, the arrow turns over 180 ms and travels back from its current point. Zero or unavailable flows hide and pause the arrow; it resumes there when flow returns, including in the opposite direction. Reduced-motion preferences show a stationary arrow. These are signed net measurements; the module does not calculate allocation between sources and destinations.
+Any slot can override the same settings. Overrides are per setting, so a slot with only `reference` keeps the global speed and maximum count. There are no water-specific animation options:
+
+```yaml
+signature_flow:
+  animation:
+    speed: 24
+    max_arrows: 5
+    reference: 10000
+  slots:
+    1:
+      primary: sensor.production_power
+      animation:
+        reference: 7500
+    3:
+      primary: sensor.storage_power
+      animation:
+        speed: 18
+        max_arrows: 3
+        reference: 2400
+    6:
+      primary: sensor.water_flow
+      primary_scale: 1000
+      primary_unit: L/min
+      animation:
+        reference: 20
+```
+
+The requested count is the nearest integer to `1 + (max_arrows - 1) × min(abs(flow) / reference, 1)`. A margin of 0.1 arrow beyond each rounding boundary stabilizes the count: with the default settings, going from one to two arrows requires more than 1,500 W, and returning to one requires less than 1,000 W. Initial readings use ordinary rounding. Above the reference, the count stays capped.
+
+Arrows are regularly spaced along each path. Short connections cap the visible count to keep at least **14 px** between arrows, with a minimum of one arrow for an active flow. Resizing adjusts this cap automatically. The requested count still reflects the measurement; the visible count also depends on the available path length.
+
+Each arrow reuses a native Web Animation and its SVG element. Count changes and path resizing retain the leading arrow's position on the shared visible path and redistribute the other arrows around it. Extra arrows are hidden and paused, then reused when needed. Measurement changes that retain the count and path length do not change playback rate or reset animation time. Traversal time depends on path length so each connection keeps its configured physical speed. When flow changes sign, each active arrow turns over 180 ms and travels back from its current point. Zero or unavailable flows pause the arrows; they resume when flow returns. Reduced-motion preferences cancel the animations and show regularly spaced stationary arrows. These are signed net measurements; the module does not calculate allocation between sources and destinations.
 
 ## Runtime and validation
 
-DOM nodes, number formatters, paths and animations are reused on sensor updates. When a target entity or configured action changes, only that action element is replaced, preserving its child content and ongoing flow animations; this refreshes Bubble's cached pointer handler. Every evaluation reads the visible slots' direct or inferred display entities and flow entities through Bubble's tracked `hass` object. Source detection is cached in a bounded map; rendered results and entity states are refreshed on each evaluation. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; slot 2's connection and the mobile connections from slots 1 and 3 then follow their fitted text widths. Measurements are batched before path writes. The other connections reuse their existing geometry during sensor updates. There is no JavaScript animation loop.
+DOM nodes, number formatters, paths and animations are reused on sensor updates. Each connection retains a bounded arrow pool (at most 12 SVG arrows); only visible arrows run animations. When a target entity or configured action changes, only that action element is replaced, preserving its child content and ongoing flow animations; this refreshes Bubble's cached pointer handler. Every evaluation reads the visible slots' direct or inferred display entities and flow entities through Bubble's tracked `hass` object. Source detection is cached in a bounded map; rendered results and entity states are refreshed on each evaluation. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; slot 2's connection and the mobile connections from slots 1 and 3 then follow their fitted text widths. Measurements are batched before path writes. The other connections reuse their existing geometry during sensor updates. There is no JavaScript animation loop.
 
 Teardown cancels animations and pending text fitting, then removes the observer, reduced-motion listener, input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
 
 This module replaces native button content. Alert Manager's native main-icon badge is not exposed on custom slots; no per-slot alert integration is included.
 
-Run `npm run test:signature-flow` or `npm test` from the repository root. Tests read the actual distribution and check generic slots, symmetric entity/template/text values, inferred targets, independent flow entities, formatting, visibility, explicit actions, tracked reads, reversals, pause/resume, layout and teardown. Browser checks use the real Bubble bundle with simulated Home Assistant data to verify responsive layouts, text clearance, actions, restored focus, keyboard navigation, native motion and cleanup. A live Home Assistant installation remains the final check for its popup definitions, sensor conventions and templates.
+Run `npm run test:signature-flow` or `npm test` from the repository root. Tests read the actual distribution and check generic slots, symmetric entity/template/text values, inferred targets, independent flow entities, formatting, visibility, explicit actions, tracked reads, fixed speed, power-dependent counts, hysteresis, short-path caps, arrow reuse, reversals, pause/resume, layout and teardown. Browser checks use the real Bubble bundle with simulated Home Assistant data to verify responsive layouts, text clearance, actions, restored focus, keyboard navigation, native motion and cleanup. A live Home Assistant installation remains the final check for its popup definitions, sensor conventions and templates.
 
 ## Signature theme
 

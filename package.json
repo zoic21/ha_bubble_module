@@ -6,7 +6,8 @@
     "test:signature": "node --test signature/test/*.test.cjs",
     "test:alert-manager": "node --test alert_manager/test/*.test.cjs",
     "test:signature-flow": "node --test signature-flow/test/*.test.cjs",
-    "test:signature-weather": "node --test signature-weather/test/*.test.cjs"
+    "test:signature-weather": "node --test signature-weather/test/*.test.cjs",
+    "test:signature-wind-rose": "node --test signature-wind-rose/test/*.test.cjs"
   },
   "engines": {
     "node": ">=22"

@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 3.1.0
+  version: 3.3.0
   creator: Loïc
   supported:
     - button
@@ -9,7 +9,7 @@ signature_flow:
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '3.1.0';
+      const version = '3.3.0';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -43,7 +43,7 @@ signature_flow:
           current.observer?.disconnect();
           if (current.fitFrame !== undefined) cancelAnimationFrame(current.fitFrame);
           current.motionPreference?.removeEventListener('change', current.motionChanged);
-          Object.values(current.edges).forEach(edge => edge.animation?.cancel());
+          Object.values(current.edges).forEach(edge => edge.particles.forEach(particle => particle.animation?.cancel()));
           canvas.removeEventListener('keydown', current.keyboard);
           document.removeEventListener('keydown', current.modalityKey, true);
           document.removeEventListener('pointerdown', current.modalityPointer, true);
@@ -73,31 +73,66 @@ signature_flow:
         host.appendChild(canvas);
         attr(root, 'data-signature-flow', '');
         current.motionPreference = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
+        const progress = particle => {
+          const phase = (particle.animation?.currentTime ?? 0)%1000/1000;
+          return particle.motionDirection < 0 ? 1-phase : phase;
+        };
+        const seek = (particle, position) => {
+          particle.animation.currentTime = Math.min((particle.motionDirection < 0 ? 1-position : position)*1000,999.9999);
+        };
         current.updateMotion = edge => {
-          if (current.motionPreference?.matches) {
-            edge.animation?.cancel(); edge.animation = null; return;
-          }
           if (!edge.direction || edge.hidden || !edge.length || !edge.speed) {
-            if (edge.animation && edge.animation.playState !== 'paused') edge.animation.pause();
+            edge.particles.forEach(particle => {
+              attr(particle.flow, 'display', 'none');
+              if (current.motionPreference?.matches) {particle.animation?.cancel(); particle.animation = null;}
+              else if (particle.animation && particle.animation.playState !== 'paused') particle.animation.pause();
+            });
             return;
           }
-          const direction = edge.direction < 0 ? 'reverse' : 'normal';
-          if (!edge.animation) {
-            edge.animation = edge.flow.animate([{offsetDistance:'0%'},{offsetDistance:'100%'}],
-              {duration:1000,iterations:Infinity,easing:'linear',direction});
-            edge.motionDirection = edge.direction;
-            edge.rate = null;
-          } else if (edge.motionDirection !== edge.direction) {
-            // Mirror the animation's time as its direction changes, keeping the
-            // arrow at the same point. Stay inside the cycle at exact boundaries.
-            const phase = (edge.animation.currentTime ?? 0)%1000;
-            edge.animation.effect.updateTiming({direction});
-            edge.animation.currentTime = Math.min(1000-phase,999.9999);
-            edge.motionDirection = edge.direction;
+          // Keep a readable gap even on short mobile connections. Allocate only
+          // as needed, retaining the pool when the flow or available space falls.
+          const count = Math.min(edge.demand,Math.max(1,Math.floor(edge.length/14)));
+          const changed = edge.count !== count || edge.spacedLength !== edge.length;
+          const anchor = edge.particles[0]?.animation ? progress(edge.particles[0]) : 0;
+          while (edge.particles.length < count) {
+            const flow = create('g', 'sf-flow', true), arrow = create('path', 'sf-arrow', true);
+            attr(arrow, 'd', 'M-3 -3 L0 0 L-3 3'); flow.appendChild(arrow);
+            flow.style.setProperty('offset-path', edge.motion);
+            edge.group.appendChild(flow); edge.particles.push({flow});
           }
+          const direction = edge.direction < 0 ? 'reverse' : 'normal';
           const rate = edge.speed/edge.length;
-          if (edge.rate !== rate) {edge.animation.updatePlaybackRate(rate); edge.rate = rate;}
-          if (edge.animation.playState === 'paused') edge.animation.play();
+          edge.particles.forEach((particle,i) => {
+            attr(particle.flow, 'display', i < count ? 'inline' : 'none');
+            if (current.motionPreference?.matches) {
+              particle.animation?.cancel(); particle.animation = null;
+              const distance = (i+.5)/count*100+'%';
+              if (particle.flow.style.getPropertyValue('offset-distance') !== distance)
+                particle.flow.style.setProperty('offset-distance', distance);
+              return;
+            }
+            if (i >= count) {
+              if (particle.animation && particle.animation.playState !== 'paused') particle.animation.pause();
+              return;
+            }
+            if (particle.flow.style.getPropertyValue('offset-distance') !== '0%')
+              particle.flow.style.setProperty('offset-distance', '0%');
+            const position = changed || !particle.animation ? (anchor+i/count)%1 : progress(particle);
+            if (!particle.animation) {
+              particle.animation = particle.flow.animate([{offsetDistance:'0%'},{offsetDistance:'100%'}],
+                {duration:1000,iterations:Infinity,easing:'linear',direction});
+              particle.motionDirection = edge.direction; particle.rate = null;
+              seek(particle, position);
+            } else if (particle.motionDirection !== edge.direction || changed) {
+              // Reverse in place; count changes retain the first arrow and
+              // redistribute the others evenly around it without restarting.
+              if (particle.motionDirection !== edge.direction) particle.animation.effect.updateTiming({direction});
+              particle.motionDirection = edge.direction; seek(particle, position);
+            }
+            if (particle.rate !== rate) {particle.animation.updatePlaybackRate(rate); particle.rate = rate;}
+            if (particle.animation.playState === 'paused') particle.animation.play();
+          });
+          edge.count = count; edge.spacedLength = edge.length;
         };
         current.motionChanged = () => Object.values(current.edges).forEach(current.updateMotion);
         current.motionPreference?.addEventListener('change', current.motionChanged);
@@ -156,23 +191,18 @@ signature_flow:
             if (edge.line.getAttribute('d') === d) return;
             // A moved origin retains the same path to the junction. Anchor the
             // arrow's distance from that end, including after the horizontal bend.
-            let remaining;
-            if (edge.animation && edge.length && edge.points?.length === points.length &&
-              edge.points.slice(1).every((p,i) => p[0] === points[i+1][0] && p[1] === points[i+1][1])) {
-              const phase = (edge.animation.currentTime ?? 0)%1000/1000;
-              remaining = (edge.motionDirection < 0 ? phase : 1-phase)*edge.length;
-            }
+            const anchored = edge.length && edge.points?.length === points.length &&
+              edge.points.slice(1).every((p,i) => p[0] === points[i+1][0] && p[1] === points[i+1][1]);
+            const first = edge.particles[0];
+            const remaining = anchored && first?.animation ? (1-progress(first))*edge.length : null;
             attr(edge.line, 'd', d);
             const motion = 'path("'+d+'")';
-            if (edge.flow.style.getPropertyValue('offset-path') !== motion)
-              edge.flow.style.setProperty('offset-path', motion);
+            edge.motion = motion;
+            edge.particles.forEach(particle => particle.flow.style.setProperty('offset-path', motion));
             edge.length = points.slice(1).reduce((length,p,i) =>
               length+Math.hypot(p[0]-points[i][0],p[1]-points[i][1]),0);
             edge.points = points; edge.start = points[0][0];
-            if (remaining !== undefined && edge.length) {
-              const progress = Math.max(0,Math.min(1,1-remaining/edge.length));
-              edge.animation.currentTime = Math.min((edge.motionDirection < 0 ? 1-progress : progress)*1000,999.9999);
-            }
+            if (remaining !== null && edge.length) seek(first,Math.max(0,Math.min(1,1-remaining/edge.length)));
             current.updateMotion(edge);
           };
           const narrow = canvas.classList.contains('sf-narrow');
@@ -200,11 +230,9 @@ signature_flow:
           const secondary = create('span', 'sf-secondary');
           content.append(label, value, secondary); el.append(iconBox, content); canvas.appendChild(el);
           current.nodes[key] = {el, icon, label, value, number, unit, secondary};
-          const line = create('path', 'sf-line', true), flow = create('g', 'sf-flow', true);
-          const arrow = create('path', 'sf-arrow', true);
-          attr(arrow, 'd', 'M-3 -3 L0 0 L-3 3'); flow.appendChild(arrow);
-          const group = create('g', 'sf-edge', true); group.append(line, flow); wires.appendChild(group);
-          current.edges[key] = {group, line, flow};
+          const line = create('path', 'sf-line', true), group = create('g', 'sf-edge', true);
+          group.appendChild(line); wires.appendChild(group);
+          current.edges[key] = {group, line, particles: []};
         }
         current.junction = create('circle', 'sf-junction', true); attr(current.junction, 'r', 3); wires.appendChild(current.junction);
         if (typeof ResizeObserver === 'function') {
@@ -270,9 +298,9 @@ signature_flow:
         return {...parsed, state, value, unit:suffix};
       };
       const animation = options.animation || {};
-      const minSpeed = Math.max(1,numeric(animation.min_speed) ?? 4);
-      const maxSpeed = Math.max(minSpeed,numeric(animation.max_speed) ?? 40);
-      const referenceFlow = Math.max(1,numeric(animation.reference) ?? 10000);
+      const defaultSpeed = Math.max(1,numeric(animation.speed) ?? 24);
+      const defaultMaxArrows = Math.max(1,Math.min(12,Math.floor(numeric(animation.max_arrows) ?? 5)));
+      const defaultReference = Math.max(1,numeric(animation.reference) ?? 10000);
       const bind = (el, id, cfg, fallback) => {
         const tap = cfg.tap_action || fallback;
         const hold = cfg.hold_action || (id ? {action:'more-info'} : {action:'none'});
@@ -323,10 +351,17 @@ signature_flow:
         attr(edge.group, 'data-direction', direction);
         const flowUnit = String(cfg.flow_unit ?? (cfg.flow_entity ? flow?.attributes?.unit_of_measurement :
           cfg.primary_unit ?? primary.state?.attributes?.unit_of_measurement) ?? '').trim();
-        const reference = numeric(cfg.animation_reference);
+        const slotAnimation = cfg.animation || {};
+        const speed = Math.max(1,numeric(slotAnimation.speed) ?? defaultSpeed);
+        const maxArrows = Math.max(1,Math.min(12,Math.floor(numeric(slotAnimation.max_arrows) ?? defaultMaxArrows)));
+        const reference = Math.max(1,numeric(slotAnimation.reference) ?? defaultReference);
         const unitScale = flowUnit === 'kW' ? 1000 : flowUnit === 'MW' ? 1000000 : 1;
-        const fraction = Math.min(1,Math.abs(signed ?? 0)/(reference > 0 ? reference : referenceFlow/unitScale));
-        edge.speed = minSpeed+(maxSpeed-minSpeed)*fraction;
+        const fraction = Math.min(1,Math.abs(signed ?? 0)*unitScale/reference);
+        const level = 1+(maxArrows-1)*fraction;
+        // A 0.1-arrow margin around each rounding boundary prevents flicker.
+        if (edge.demand === undefined || Math.abs(level-edge.demand) > .6) edge.demand = Math.round(level);
+        edge.demand = Math.min(maxArrows,Math.max(1,edge.demand));
+        edge.speed = speed;
         runtime.updateMotion(edge);
         const secondary = detail.value+(detail.unit ? ' '+detail.unit : '');
         text(node.secondary,secondary); node.secondary.title = secondary;
@@ -354,5 +389,5 @@ signature_flow:
         '.sf-node{position:absolute;display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:2px 0;border-radius:16px;background:var(--sf-surface);text-align:left;line-height:1.2;cursor:pointer}.sf-node[hidden]{display:none}.sf-content{display:grid;grid-template-rows:17px 34px 16px;gap:2px;min-width:0;align-items:start}.sf-label{font-size:var(--signature-name-font-size,14px);font-weight:var(--signature-font-weight-semibold, 600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--signature-icon-border-radius,12px);color:var(--sf-color);background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))}.sf-icon ha-icon{--mdc-icon-size:22px}.sf-value{font-size:28px;font-weight:var(--signature-font-weight-medium, 500);letter-spacing:-.7px;white-space:nowrap;line-height:34px;font-variant-numeric:tabular-nums;border-radius:6px}.sf-unit{font-size:16px;font-weight:var(--signature-font-weight-normal, 400);letter-spacing:0;color:var(--secondary-text-color)}.sf-secondary{font-size:var(--signature-secondary-font-size,13px);white-space:nowrap;color:var(--secondary-text-color);pointer-events:none}.sf-secondary.sf-detail{pointer-events:auto;cursor:pointer;border-radius:4px}.sf-node:focus,.sf-value:focus,.sf-detail:focus{outline:none}.sf-canvas[data-sf-keyboard] .sf-node:focus-visible,.sf-canvas[data-sf-keyboard] .sf-value:focus-visible,.sf-canvas[data-sf-keyboard] .sf-detail:focus-visible{outline:2px solid var(--sf-color);outline-offset:3px}\n'+
         '.sf-slot-1{width:180px;top:0;left:calc(50% - 90px)}.sf-slot-2{background:transparent;width:min(170px,calc(50% - 20px));top:calc(50% - 42px);left:0}.sf-slot-5{width:140px;top:calc(50% - 42px);right:0}.sf-slot-3{width:180px;bottom:0;left:calc(50% - 90px)}.sf-slot-4,.sf-slot-6{width:140px;right:0}.sf-slot-4{top:0}.sf-slot-6{bottom:0}.sf-slot-4 .sf-value,.sf-slot-6 .sf-value{font-size:24px}.sf-slot-4 .sf-unit,.sf-slot-6 .sf-unit{font-size:13px}.sf-narrow .sf-slot-1,.sf-narrow .sf-slot-3{background:transparent;left:0;width:min(170px,calc(50% - 20px))}.sf-has-4 .sf-slot-1{left:0}\n'+
         '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-slot-5{width:112px}.sf-small .sf-slot-3,.sf-small .sf-slot-1{width:min(140px,calc(50% - 20px))}.sf-small .sf-slot-3 .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-slot-4,.sf-small .sf-slot-6{width:112px}.sf-small .sf-slot-4 .sf-value,.sf-small .sf-slot-6 .sf-value{font-size:20px}.sf-small .sf-slot-4 .sf-unit,.sf-small .sf-slot-6 .sf-unit{font-size:12px}\n'+
-        '@media(prefers-reduced-motion:reduce){.sf-flow{offset-distance:50%;transition:none}}';
+        '@media(prefers-reduced-motion:reduce){.sf-flow{transition:none}}';
     })()}

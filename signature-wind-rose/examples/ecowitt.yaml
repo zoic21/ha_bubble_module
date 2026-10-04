@@ -1,0 +1,15 @@
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.gw2000a_wifibf57_jardin_direction_du_vent
+name: Rose des vents
+card_layout: large
+scrolling_effect: false
+grid_options:
+  columns: 12
+  rows: auto
+modules:
+  - signature_wind_rose
+signature_wind_rose:
+  speed_entity: sensor.gw2000a_wifibf57_jardin_vitesse_vent
+  hours: 24

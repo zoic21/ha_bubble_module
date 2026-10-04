@@ -1,0 +1,297 @@
+signature_wind_rose:
+  name: Signature Wind Rose
+  version: 1.0.0
+  creator: Loïc
+  supported:
+    - button
+  description: A minimal, time-weighted wind rose with 1 hour, 1 day and 1 week periods. Requires Bubble Card 3.3 or later and recorded wind direction states.
+  code: |-
+    [data-signature-wind-rose] {
+      --swr-surface: var(--signature-card-background,var(--ha-card-background,var(--card-background-color,#fff)));
+      --swr-accent: var(--signature-wind-rose-color,#4db6ac);
+      --swr-divider: var(--signature-divider-color,color-mix(in srgb,var(--primary-text-color) 8%,transparent));
+      --swr-track: var(--signature-control-background,color-mix(in srgb,var(--primary-text-color) 5%,var(--swr-surface)));
+      border: 0 !important; box-shadow: none !important;
+      font-family: var(--signature-font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);
+    }
+    [data-signature-wind-rose] .card-content { padding: 0 !important; height: auto !important; }
+    [data-signature-wind-rose] .bubble-container {
+      display: block !important; height: auto !important; min-height: 0 !important; padding: 0 !important;
+      border-radius: var(--signature-card-border-radius,22px) !important;
+      background: var(--swr-surface) !important;
+      border: 1px solid var(--signature-card-border-color,color-mix(in srgb,var(--primary-text-color) 5%,transparent)) !important;
+      box-shadow: var(--signature-card-box-shadow,0 2px 10px rgb(0 0 0 / .035)) !important; overflow: hidden;
+    }
+    [data-signature-wind-rose] .bubble-container > .bubble-wrapper { display: none !important; }
+    [data-signature-wind-rose] .swr-card { color: var(--primary-text-color); font-size: 14px; line-height: 1.3; }
+    [data-signature-wind-rose] .swr-card * { box-sizing: border-box; }
+    [data-signature-wind-rose] .swr-card [hidden] { display: none !important; }
+    [data-signature-wind-rose] .swr-toolbar { padding: 16px 16px 0; }
+    [data-signature-wind-rose] .swr-tabs { display: flex; gap: 3px; background: var(--swr-track); border-radius: 14px; padding: 3px; }
+    [data-signature-wind-rose] .swr-tab {
+      appearance: none; flex: 1; border: 0; margin: 0; padding: 0 6px; min-height: 40px;
+      border-radius: 11px; background: transparent; color: var(--secondary-text-color); font: inherit;
+      font-size: var(--signature-secondary-font-size,13px); cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    [data-signature-wind-rose] .swr-tab[aria-pressed="true"] {
+      background: var(--swr-surface); color: var(--primary-text-color);
+      box-shadow: var(--signature-control-box-shadow,0 1px 4px rgb(0 0 0 / .06));
+    }
+    [data-signature-wind-rose] .swr-tab:focus-visible { outline: 2px solid var(--swr-accent); outline-offset: -2px; }
+    [data-signature-wind-rose] .swr-chart { position: relative; padding: 4px 16px 0; }
+    [data-signature-wind-rose] .swr-svg { display: block; width: 100%; max-width: 360px; height: auto; margin: auto; }
+    [data-signature-wind-rose] .swr-grid { fill: none; stroke: var(--swr-divider); stroke-width: .7; pointer-events: none; }
+    [data-signature-wind-rose] .swr-cardinal { fill: var(--secondary-text-color); font-size: 12px; text-anchor: middle; dominant-baseline: middle; }
+    [data-signature-wind-rose] .swr-sector { fill: var(--swr-accent); fill-opacity: .72; stroke: var(--swr-accent); stroke-width: .6; cursor: pointer; outline: none; }
+    [data-signature-wind-rose] .swr-sector[aria-pressed="true"],
+    [data-signature-wind-rose] .swr-sector:focus-visible { fill-opacity: 1; stroke: var(--primary-text-color); stroke-width: 1.2; }
+    [data-signature-wind-rose] .swr-tooltip {
+      position: absolute; inset-inline: 24px; bottom: 8px; width: fit-content; max-width: calc(100% - 48px); margin: auto;
+      padding: 8px 12px; border-radius: 12px; background: var(--swr-surface); border: 1px solid var(--swr-divider);
+      box-shadow: 0 2px 8px rgb(0 0 0 / .05); font-size: var(--signature-secondary-font-size,13px);
+      text-align: center; pointer-events: none; font-variant-numeric: tabular-nums;
+    }
+    [data-signature-wind-rose] .swr-status { min-height: 240px; display: grid; place-items: center; padding: 24px 16px; color: var(--secondary-text-color); font-size: var(--signature-secondary-font-size,13px); text-align: center; }
+    [data-signature-wind-rose] .swr-footer { position: relative; display: flex; justify-content: space-between; gap: 16px; padding: 14px 16px 16px; }
+    [data-signature-wind-rose] .swr-footer::before { content: ''; position: absolute; top: 0; inset-inline: var(--signature-divider-inset,16px); height: 1px; background: var(--swr-divider); pointer-events: none; }
+    [data-signature-wind-rose] .swr-label { color: var(--secondary-text-color); font-size: 12px; }
+    [data-signature-wind-rose] .swr-value { margin-top: 4px; font-size: var(--signature-name-font-size,14px); font-weight: var(--signature-font-weight-medium,500); font-variant-numeric: tabular-nums; }
+    [data-signature-wind-rose] .swr-duration { text-align: right; }
+    @media (pointer: coarse) { [data-signature-wind-rose] .swr-tab { min-height: 44px; } }
+    ${(() => {
+      const config = this.config || {};
+      const root = this.card;
+      const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
+      const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
+      const version = '1.0.0';
+      let r = this._signatureWindRose;
+      if (r && (r.version !== version || r.root !== root || r.host !== host || !enabled)) { r.dispose(); r = null; }
+      if (typeof onTeardown === 'function') onTeardown(() => this._signatureWindRose?.dispose());
+      if (!enabled) return '';
+      const numeric = value => value != null && typeof value !== 'boolean' && String(value).trim() !== '' && Number.isFinite(Number(value)) ? Number(value) : null;
+      const attr = (el,key,value) => { value = String(value); if (el.getAttribute(key) !== value) el.setAttribute(key,value); };
+      const text = (el,value) => { value = String(value); if (el.textContent !== value) el.textContent = value; };
+      const create = (tag,cls,svg = false) => {
+        const el = svg ? document.createElementNS('http://www.w3.org/2000/svg',tag) : document.createElement(tag);
+        if (cls) attr(el,'class',cls);
+        return el;
+      };
+      if (!r) {
+        const canvas = create('div','swr-card'), toolbar = create('div','swr-toolbar'), tabs = create('div','swr-tabs');
+        attr(tabs,'role','group'); toolbar.append(tabs);
+        const chart = create('div','swr-chart'), svg = create('svg','swr-svg',true);
+        attr(svg,'viewBox','0 0 320 320'); attr(svg,'role','group');
+        for (const radius of [39,79,118]) {
+          const circle = create('circle','swr-grid',true); attr(circle,'cx',160); attr(circle,'cy',160); attr(circle,'r',radius); svg.append(circle);
+        }
+        const axes = create('path','swr-grid',true); attr(axes,'d','M 160 42 V 278 M 42 160 H 278'); svg.append(axes);
+        const sectors = Array.from({length:16},() => {
+          const el = create('path','swr-sector',true); attr(el,'role','button'); svg.append(el); return el;
+        });
+        const cardinals = [[160,22],[298,160],[160,298],[22,160]].map(([x,y]) => {
+          const el = create('text','swr-cardinal',true); attr(el,'x',x); attr(el,'y',y); svg.append(el); return el;
+        });
+        const tooltip = create('div','swr-tooltip'); attr(tooltip,'role','status'); tooltip.hidden = true;
+        chart.append(svg,tooltip);
+        const status = create('div','swr-status'); attr(status,'role','status');
+        const footer = create('div','swr-footer'), dominant = create('div'), duration = create('div','swr-duration');
+        const dominantLabel = create('div','swr-label'), dominantValue = create('div','swr-value'); dominant.append(dominantLabel,dominantValue);
+        const durationLabel = create('div','swr-label'), durationValue = create('div','swr-value'); duration.append(durationLabel,durationValue);
+        footer.append(dominant,duration); canvas.append(toolbar,chart,status,footer); host.append(canvas); attr(root,'data-signature-wind-rose','');
+        r = this._signatureWindRose = {version,root,host,canvas,tabs,chart,svg,sectors,cardinals,tooltip,status,footer,
+          dominantLabel,dominantValue,durationLabel,durationValue,cache:new Map(),tabNodes:[],selected:null,generation:0};
+        const runtime = r;
+        r.clearTimer = () => { clearTimeout(r.timer); r.timer = null; };
+        r.active = () => !r.disposed && host.isConnected && !document.hidden;
+        r.schedule = () => {
+          r.clearTimer();
+          if (r.active() && r.directionEntity && typeof r.hass.callWS === 'function') {
+            const entry = r.cache.get(r.period);
+            const due = r.retryAt || ((entry?.loadedAt || Date.now()) + r.refresh*1000);
+            const delay = r.inFlight ? r.refresh * 1000 : Math.max(1000,due - Date.now());
+            r.timer = setTimeout(() => { if (r.active()) r.load(); },delay);
+          }
+        };
+        r.dispose = () => {
+          r.disposed = true; r.generation++; r.clearTimer(); r.cache.clear();
+          document.removeEventListener('visibilitychange',r.visibility); canvas.remove(); root.removeAttribute('data-signature-wind-rose');
+          if (this._signatureWindRose === runtime) delete this._signatureWindRose;
+        };
+        r.visibility = () => { if (document.hidden) r.clearTimer(); else if (r.active()) r.load(); };
+        document.addEventListener('visibilitychange',r.visibility);
+        canvas.addEventListener('click',event => { event.stopPropagation(); });
+        chart.addEventListener('click',event => {
+          if (!sectors.includes(event.target)) { r.selected = null; r.render(); }
+        });
+        sectors.forEach((el,index) => {
+          const select = () => { r.selected = r.selected === index ? null : index; r.render(); };
+          el.addEventListener('click',event => { event.stopPropagation(); select(); });
+          el.addEventListener('keydown',event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); select(); }
+            else if (event.key === 'Escape') { r.selected = null; r.render(); }
+          });
+        });
+        r.direction = value => {
+          let bearing = numeric(value);
+          if (bearing === null && typeof value === 'string') {
+            const index = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'].indexOf(value.trim().toUpperCase().replaceAll('O','W'));
+            if (index >= 0) bearing = index * 22.5;
+          }
+          return bearing === null ? null : ((bearing + r.offset) % 360 + 360) % 360;
+        };
+        r.points = (records,parse) => {
+          if (!Array.isArray(records)) return [];
+          const points = [];
+          let ordered = true;
+          for (const state of records) {
+            const seconds = numeric(state.lu ?? state.lc);
+            const time = seconds === null ? Date.parse(state.last_updated || state.last_changed) : seconds * 1000;
+            if (!Number.isFinite(time)) continue;
+            if (points.length && points[points.length-1].time > time) ordered = false;
+            points.push({time,value:parse(state.s ?? state.state)});
+          }
+          return ordered ? points : points.sort((a,b) => a.time-b.time);
+        };
+        r.aggregate = (history,start,end) => {
+          const directions = r.points(history?.[r.directionEntity],r.direction);
+          const speeds = r.speedEntity ? r.points(history?.[r.speedEntity],numeric) : [];
+          const bins = Array(16).fill(0);
+          let i = 0, j = 0, time = start, direction = null, speed = null, calm = 0, wind = 0;
+          while (time < end) {
+            while (i < directions.length && directions[i].time <= time) direction = directions[i++].value;
+            while (j < speeds.length && speeds[j].time <= time) speed = speeds[j++].value;
+            const next = Math.min(end,directions[i]?.time ?? end,speeds[j]?.time ?? end);
+            const duration = next-time;
+            if (!r.speedEntity || (speed !== null && speed >= 0)) {
+              if (r.speedEntity && speed <= r.calmThreshold) calm += duration;
+              else if (direction !== null) { bins[Math.round(direction/22.5)%16] += duration; wind += duration; }
+            }
+            time = next;
+          }
+          const dominant = wind ? bins.indexOf(Math.max(...bins)) : null;
+          return {bins,wind,calm,covered:wind+calm,dominant,start,end};
+        };
+        r.load = async () => {
+          r.clearTimer();
+          if (!r.active()) return;
+          if (!r.directionEntity || typeof r.hass.callWS !== 'function') { r.phase = 'configuration'; r.render(); return; }
+          const period = r.period, cached = r.cache.get(period);
+          if (cached && Date.now()-cached.loadedAt < r.refresh*1000) { r.phase = 'ready'; r.render(); r.schedule(); return; }
+          if (r.retryAt > Date.now()) { r.render(); r.schedule(); return; }
+          if (r.inFlight) { r.schedule(); return; }
+          const generation = ++r.generation;
+          const end = Date.now(), start = end-period*3600000;
+          r.inFlight = true; r.phase = cached ? 'ready' : 'loading'; r.render();
+          try {
+            const history = await r.hass.callWS({type:'history/history_during_period',start_time:new Date(start).toISOString(),
+              end_time:new Date(end).toISOString(),entity_ids:[...new Set([r.directionEntity,r.speedEntity].filter(Boolean))],
+              include_start_time_state:true,minimal_response:true,no_attributes:true,significant_changes_only:false});
+            if (r.disposed || generation !== r.generation) return;
+            r.cache.set(period,{data:r.aggregate(history,start,end),loadedAt:Date.now()}); r.retryAt = 0; r.phase = 'ready';
+          } catch (_) {
+            if (r.disposed || generation !== r.generation) return;
+            r.phase = 'error'; r.retryAt = Date.now()+r.refresh*1000;
+          } finally {
+            if (!r.disposed && generation === r.generation) { r.inFlight = false; r.render(); r.schedule(); }
+          }
+        };
+        r.format = value => r.number.format(value);
+        r.duration = milliseconds => {
+          const minutes = Math.round(milliseconds/60000);
+          return minutes < 60 ? r.format(minutes)+' min' : r.format(Math.floor(minutes/60))+' h'+(minutes%60 ? ' '+r.format(minutes%60)+' min' : '');
+        };
+        r.sectorPath = (index,radius) => {
+          const point = (radius,degrees) => { const angle = (degrees-90)*Math.PI/180; return [160+radius*Math.cos(angle),160+radius*Math.sin(angle)].map(v => v.toFixed(2)).join(' '); };
+          const a = index*22.5-9.5, b = index*22.5+9.5;
+          return 'M '+point(6,a)+' L '+point(radius,a)+' A '+radius.toFixed(2)+' '+radius.toFixed(2)+' 0 0 1 '+point(radius,b)+' L '+point(6,b)+' A 6 6 0 0 0 '+point(6,a)+' Z';
+        };
+        r.render = () => {
+          if (r.disposed) return;
+          const renderKey = [r.phase,r.period,r.cache.get(r.period)?.loadedAt,r.selected,r.formatKey,r.inFlight].join('|');
+          if (r.renderKey === renderKey) return;
+          r.renderKey = renderKey;
+          text(dominantLabel,r.labels.dominant); text(durationLabel,r.labels.period); text(durationValue,r.period === 168 ? '7 '+r.labels.days : r.format(r.period)+' h');
+          attr(tabs,'aria-label',r.labels.period); attr(svg,'aria-label',r.labels.rose);
+          [1,24,168].forEach((hours,index) => {
+            let node = r.tabNodes[index];
+            if (!node) {
+              node = create('button','swr-tab'); node.type = 'button'; tabs.append(node); r.tabNodes[index] = node;
+              node.addEventListener('click',event => {
+                event.stopPropagation(); if (r.period === hours) return;
+                r.period = hours; r.selected = null; r.generation++; r.inFlight = false; r.retryAt = 0; r.load();
+              });
+            }
+            text(node,r.labels.tabs[index]); attr(node,'aria-pressed',r.period === hours);
+          });
+          cardinals.forEach((el,index) => text(el,r.labels.cardinals[index]));
+          const entry = r.cache.get(r.period), data = entry?.data;
+          const ready = r.phase === 'ready' && data?.wind > 0;
+          chart.hidden = !ready; status.hidden = ready; tooltip.hidden = true;
+          attr(canvas,'aria-busy',Boolean(r.inFlight));
+          text(status,r.phase === 'ready' ? (data?.calm > 0 ? r.labels.calm : r.labels.empty) : r.labels[r.phase] || r.labels.loading);
+          text(dominantValue,ready ? r.labels.directions[data.dominant] : r.phase === 'ready' && data?.calm > 0 ? r.labels.calmShort : '—');
+          attr(footer,'title',data && r.phase === 'ready' ? r.labels.coverage+' '+r.duration(data.covered)+' / '+r.duration(data.end-data.start)+' · '+r.labels.calmShort+' '+r.duration(data.calm) : '');
+          attr(footer,'aria-description',footer.getAttribute('title'));
+          if (!ready) return;
+          const maximum = Math.max(...data.bins);
+          sectors.forEach((el,index) => {
+            const duration = data.bins[index], percent = duration/data.wind*100;
+            const description = r.labels.directions[index]+' · '+r.format(percent)+' % · '+r.duration(duration);
+            attr(el,'d',duration ? r.sectorPath(index,Math.sqrt(36+(118*118-36)*duration/maximum)) : '');
+            attr(el,'tabindex',duration ? 0 : -1); attr(el,'aria-hidden',!duration);
+            attr(el,'aria-label',description); attr(el,'aria-pressed',r.selected === index);
+            if (r.selected === index && duration) { text(tooltip,description); tooltip.hidden = false; }
+          });
+        };
+      }
+      r.hass = hass;
+      const options = config.signature_wind_rose || {};
+      const directionEntity = options.direction_entity || config.entity;
+      const speedEntity = options.speed_entity || null;
+      const offset = numeric(options.direction_offset) ?? 0;
+      const calmThreshold = Math.max(0,numeric(options.calm_threshold) ?? 0);
+      const refresh = Math.max(60,numeric(options.refresh_interval) ?? 300);
+      const defaultPeriod = [1,24,168].includes(Number(options.hours)) ? Number(options.hours) : 24;
+      const key = [directionEntity,speedEntity,offset,calmThreshold].join('|');
+      if (r.dataKey !== key || r.connection !== hass.connection) {
+        r.generation++; r.inFlight = false; r.retryAt = 0; r.cache.clear(); r.selected = null; r.renderKey = null;
+        r.dataKey = key; r.connection = hass.connection; r.loadKey = null;
+      }
+      r.directionEntity = directionEntity; r.speedEntity = speedEntity; r.offset = offset; r.calmThreshold = calmThreshold; r.refresh = refresh;
+      if (!r.period || r.defaultPeriod !== defaultPeriod) { r.period = defaultPeriod; r.selected = null; r.generation++; r.inFlight = false; r.retryAt = 0; }
+      r.defaultPeriod = defaultPeriod;
+      const language = hass.locale?.language || hass.language || 'en';
+      const french = language.toLowerCase().startsWith('fr');
+      const numberFormat = hass.locale?.number_format;
+      const formatKey = language+'|'+numberFormat;
+      if (r.formatKey !== formatKey) {
+        const locales = {comma_decimal:'en-US',decimal_comma:'de',space_comma:'fr',quote_decimal:'de-CH',none:'en-US'};
+        r.number = new Intl.NumberFormat(numberFormat === 'system' ? undefined : locales[numberFormat] || language,{maximumFractionDigits:1,useGrouping:numberFormat !== 'none'});
+        r.formatKey = formatKey;
+      }
+      if (!r.labels || r.french !== french) {
+        r.french = french;
+        r.labels = french ? {
+        dominant:'Dominant',period:'Période',days:'jours',tabs:['1 h','1 jour','1 semaine'],cardinals:['N','E','S','O'],
+        directions:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'],
+        rose:'Rose des vents : provenance du vent, fréquences par durée hors calme',coverage:'Données exploitables :',
+        loading:'Chargement de l’historique…',empty:'Aucun historique exploitable',calm:'Vent calme sur la période enregistrée',calmShort:'Calme',
+        error:'Historique indisponible',configuration:'Configurez une entité de direction du vent'
+      } : {
+        dominant:'Dominant',period:'Period',days:'days',tabs:['1 h','1 day','1 week'],cardinals:['N','E','S','W'],
+        directions:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
+        rose:'Wind rose: wind origin, time-weighted frequencies excluding calm',coverage:'Usable history:',
+        loading:'Loading history…',empty:'No usable history',calm:'Calm wind during the recorded period',calmShort:'Calm',
+        error:'History unavailable',configuration:'Configure a wind direction entity'
+      };
+      }
+      if (r.color !== options.color) {
+        r.color = options.color;
+        if (options.color) r.canvas.style.setProperty('--swr-accent',options.color); else r.canvas.style.removeProperty('--swr-accent');
+      }
+      const loadKey = key+'|'+defaultPeriod+'|'+refresh;
+      if (!r.active()) r.clearTimer();
+      else if (r.loadKey !== loadKey || (!r.timer && !r.inFlight)) { r.loadKey = loadKey; r.load(); }
+      else r.render();
+      return '';
+    })()}

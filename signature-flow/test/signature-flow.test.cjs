@@ -77,13 +77,13 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.1.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.3.0');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
   assert.equal(home.signature_flow.slots[2].secondary,'');
-  assert.deepEqual(home.signature_flow.animation,{min_speed:4,max_speed:40,reference:10000});
-  assert.equal(home.signature_flow.slots[6].animation_reference,20);
+  assert.deepEqual(home.signature_flow.animation,{speed:24,max_arrows:5,reference:10000});
+  assert.equal(home.signature_flow.slots[6].animation.reference,20);
   for(const key of [1,2,3,5,6]) assert.match(home.signature_flow.slots[key].tap_action.navigation_path,/^#/);
   assert.equal(home.signature_flow.slots[3].primary,'sensor.zendure_manager_power');
   assert.equal(home.signature_flow.slots[3].flow_entity,undefined);
@@ -176,7 +176,7 @@ test('template display values do not implicitly control flow, but a separate flo
   assert.equal(r.nodes[1].value.textContent,'1.794 kW');assert.equal(r.edges[1].direction,0);
   assert.equal(r.nodes[1].secondary.dataset.entity,'');assert.equal(r.nodes[1].secondary.classList.contains('sf-detail'),false);
   ctx.config.signature_flow.slots[1].flow_entity='sensor.solar';run(ctx,hass,()=> '1.794');
-  assert.equal(r.edges[1].direction,1);assert.ok(Math.abs(r.edges[1].speed-(4+36*.1794))<.0001);
+  assert.equal(r.edges[1].direction,1);assert.equal(r.edges[1].speed,24);
 });
 test('plain text and templates without literal entities have no inferred actions',t=>{
   const {ctx,hass,r}=fixture(t,{4:{primary:'See sensor.solar',secondary:'{{ states(variable) }}'}});
@@ -219,7 +219,7 @@ test('all slots are optional and hiding them removes their connections and the j
 });
 test('right-side connections pause when slot 5 is absent and resume when it returns',t=>{
   const {ctx,hass,r}=fixture(t,{4:{primary:'sensor.solar'}}, {'sensor.water':state(.01,'m³/min')});
-  const animations=[r.edges[4].animation,r.edges[6].animation];
+  const animations=[r.edges[4].particles[0]?.animation,r.edges[6].particles[0]?.animation];
   delete ctx.config.signature_flow.slots[5];run(ctx,hass);
   for(const [index,id] of [4,6].entries()) {
     assert.equal(r.nodes[id].el.hidden,false);assert.equal(r.edges[id].group.getAttribute('display'),'none');
@@ -228,13 +228,13 @@ test('right-side connections pause when slot 5 is absent and resume when it retu
   ctx.config.signature_flow.slots[5]=options[5];run(ctx,hass);
   for(const [index,id] of [4,6].entries()) {
     assert.equal(r.edges[id].group.getAttribute('display'),'inline');
-    assert.equal(r.edges[id].animation,animations[index]);assert.equal(animations[index].playState,'running');
+    assert.equal(r.edges[id].particles[0]?.animation,animations[index]);assert.equal(animations[index].playState,'running');
   }
 });
 test('animation can be disabled without hiding its block or thin connection',t=>{
   const {r}=fixture(t,{2:{...options[2],animate:false}});
   assert.equal(r.nodes[2].el.hidden,false);assert.equal(r.edges[2].group.getAttribute('display'),'inline');
-  assert.equal(r.edges[2].direction,0);assert.equal(r.edges[2].animation,undefined);
+  assert.equal(r.edges[2].direction,0);assert.equal(r.edges[2].particles[0]?.animation,undefined);
 });
 test('grid import, battery discharge and inversion update existing elements',t=>{
   const {ctx,hass,r}=fixture(t);
@@ -261,88 +261,193 @@ test('zero, deadband, scaling and power scaling affect their own measurements',t
   assert.equal(r.edges[6].group.getAttribute('data-direction'),'0');
   assert.equal(r.nodes[3].secondary.textContent,'-1,38 kW');
 });
-test('arrow speed grows across the power range, caps at its reference and ignores direction sign',t=>{
-  const {ctx,hass,r}=fixture(t);const speeds=[];
-  for(const value of [16,855,2403,10000,20000]) {
-    run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(value)}});speeds.push(r.edges[2].speed);
+test('power changes the arrow count while physical speed stays fixed',t=>{
+  const {ctx,hass,r}=fixture(t);r.route(2,[[0,0],[200,0]]);
+  for(const [value,count] of [[16,1],[2500,2],[5000,3],[7500,4],[10000,5],[20000,5],[-5000,3]]) {
+    run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(value)}});
+    assert.equal(r.edges[2].count,count);assert.equal(r.edges[2].speed,24);
+    assert.equal(r.edges[2].direction,Math.sign(value));
+    assert.equal(r.edges[2].particles.filter(p=>p.flow.getAttribute('display')==='inline').length,count);
   }
-  assert.ok(speeds[0]<4.1);assert.ok(speeds[1]>speeds[0]);assert.ok(speeds[2]>speeds[1]);
-  assert.ok(speeds[3]>speeds[2]);assert.equal(speeds[3],40);assert.equal(speeds[4],40);
-  run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(-2403)}});assert.equal(r.edges[2].speed,speeds[2]);
-  ctx.config.signature_flow.animation={min_speed:2,max_speed:10,reference:20000};
-  run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(20000)}});assert.equal(r.edges[2].speed,10);
+  ctx.config.signature_flow.animation={speed:18,max_arrows:3,reference:20000};
+  run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(20000)}});
+  assert.equal(r.edges[2].speed,18);assert.equal(r.edges[2].count,3);
 });
-test('equal power has equal physical speed across W/kW, display scaling and different path lengths',t=>{
-  const {ctx,hass,r}=fixture(t);const initial=r.edges[1].speed;
-  run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(1.794,'kW')}});assert.equal(r.edges[1].speed,initial);
+test('equal power has equal counts across W/kW/MW and display scaling',t=>{
+  const {ctx,hass,r}=fixture(t);const initial=r.edges[1].demand;
+  for(const [value,unit] of [[1794,'W'],[1.794,'kW'],[.001794,'MW']]) {
+    run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(value,unit)}});
+    assert.equal(r.edges[1].demand,initial);assert.equal(r.edges[1].speed,24);
+  }
   ctx.config.signature_flow.slots[1]={...options[1],primary_scale:0.001,primary_unit:'kW'};run(ctx,hass);
-  assert.equal(r.edges[1].speed,initial);
-  const a=r.edges[1],b=r.edges[5];a.length=60;b.length=120;b.speed=a.speed;
+  assert.equal(r.edges[1].demand,initial);
+  const a=r.edges[1],b=r.edges[5];a.length=60;b.length=120;
   r.updateMotion(a);r.updateMotion(b);
-  const duration=e=>e.animation.effect.getTiming().duration/(1000*e.animation.playbackRate);
+  const duration=e=>e.particles[0].animation.effect.getTiming().duration/(1000*e.particles[0].animation.playbackRate);
   assert.ok(Math.abs(duration(b)-2*duration(a))<.02);
 });
 test('water uses its own reference after unit conversion',t=>{
-  const {r}=fixture(t,{6:{...options[6],animation_reference:20}}, {'sensor.water':state(.02,'m³/min')});
-  assert.equal(r.nodes[6].value.textContent,'20,0 L/min');assert.equal(r.edges[6].speed,40);
+  const {r}=fixture(t,{6:{...options[6],animation:{reference:20}}}, {'sensor.water':state(.02,'m³/min')});
+  assert.equal(r.nodes[6].value.textContent,'20,0 L/min');assert.equal(r.edges[6].speed,24);
+  assert.equal(r.edges[6].demand,5);
+});
+test('each slot inherits global animation settings and overrides individual settings independently',t=>{
+  const {ctx,hass,r}=fixture(t,{animation:{speed:30,max_arrows:7,reference:20000},
+    1:{...options[1],animation:{reference:10000}},
+    3:{...options[3],animation:{speed:18,max_arrows:3,reference:2400}},
+    6:{...options[6],animation:{reference:20}}},
+    {'sensor.solar':state(7500),'sensor.battery':state(1200),'sensor.water':state(.01,'m³/min')});
+  assert.equal(r.edges[1].speed,30);assert.equal(r.edges[1].demand,6);
+  assert.equal(r.edges[3].speed,18);assert.equal(r.edges[3].demand,2);
+  assert.equal(r.edges[6].speed,30);assert.equal(r.edges[6].demand,4);
+  assert.equal(r.edges[5].speed,30);assert.equal(r.edges[5].demand,1);
+  const first=r.edges[1].particles[0],animation=first.animation;
+  ctx.config.signature_flow.slots[1].animation.speed=12;run(ctx,hass);
+  assert.equal(r.edges[1].speed,12);assert.equal(r.edges[1].demand,6);
+  assert.equal(first.animation,animation);assert.equal(animation.playbackRate,12/r.edges[1].length);
+  assert.equal(r.edges[3].speed,18);assert.equal(r.edges[6].speed,30);
+  delete ctx.config.signature_flow.slots[1].animation;run(ctx,hass);
+  assert.equal(r.edges[1].speed,30);assert.equal(r.edges[1].demand,3);
+  assert.equal(r.edges[1].particles[0],first);
+  ctx.config.signature_flow.animation.speed=36;run(ctx,hass);
+  assert.equal(r.edges[1].speed,36);assert.equal(r.edges[3].speed,18);
+  assert.equal(r.edges[5].speed,36);assert.equal(r.edges[6].speed,36);
+});
+test('slot references normalize W/kW/MW consistently and replace the old reference option',t=>{
+  const {ctx,hass,r}=fixture(t,{1:{...options[1],animation:{reference:5000},animation_reference:1}});
+  for(const [value,unit] of [[2500,'W'],[2.5,'kW'],[.0025,'MW']]) {
+    run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(value,unit)}});
+    assert.equal(r.edges[1].demand,3);assert.equal(r.edges[1].speed,24);
+  }
+  delete ctx.config.signature_flow.slots[1].animation;run(ctx,hass);
+  assert.equal(r.edges[1].demand,2);
+  ctx.config.signature_flow.slots[1].animation={reference:5000};
+  ctx.config.signature_flow.slots[1].primary_scale=.001;
+  ctx.config.signature_flow.slots[1].primary_unit='kW';
+  run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(2500)}});
+  assert.equal(r.edges[1].demand,3);
+});
+test('count hysteresis stabilizes readings near a threshold without a timer',t=>{
+  const {ctx,hass,r}=fixture(t);r.route(2,[[0,0],[200,0]]);
+  const set=value=>run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(value)}});
+  set(1000);assert.equal(r.edges[2].count,1);
+  for(const value of [1240,1260,1400,1490]) {set(value);assert.equal(r.edges[2].count,1);}
+  set(1510);assert.equal(r.edges[2].count,2);
+  for(const value of [1490,1260,1240,1010]) {set(value);assert.equal(r.edges[2].count,2);}
+  set(990);assert.equal(r.edges[2].count,1);
+});
+test('short paths cap the count and reuse their arrow pool after resizing',t=>{
+  const {r}=fixture(t,{}, {'sensor.solar':state(10000)});const edge=r.edges[1];
+  r.route(1,[[0,0],[140,0]]);assert.equal(edge.count,5);
+  const particles=[...edge.particles];
+  for(const [length,count] of [[55,3],[20,1],[10,1],[140,5]]) {
+    r.route(1,[[0,0],[length,0]]);assert.equal(edge.count,count);
+    assert.deepEqual(edge.particles,particles);
+    for(const [i,particle] of edge.particles.entries()) {
+      assert.equal(particle.flow.getAttribute('display'),i<count?'inline':'none');
+      assert.equal(particle.animation.playState,i<count?'running':'paused');
+    }
+  }
+});
+test('resizing redistributes every arrow evenly while retaining the first physical position',t=>{
+  const {r}=fixture(t,{}, {'sensor.solar':state(5000)});const edge=r.edges[1];
+  r.route(1,[[20,0],[200,0]]);
+  edge.particles[0].animation.currentTime=400;
+  const position=edge.start+progress(edge.particles[0].animation)*edge.length;
+  for(const start of [30,5,40,20]) {
+    r.route(1,[[start,0],[200,0]]);
+    assert.ok(Math.abs(edge.start+progress(edge.particles[0].animation)*edge.length-position)<.00001);
+    const phases=edge.particles.slice(0,edge.count).map(p=>progress(p.animation)).sort((a,b)=>a-b);
+    for(let i=0;i<phases.length;i++) {
+      const gap=(phases[(i+1)%phases.length]-phases[i]+1)%1;
+      assert.ok(Math.abs(gap-1/edge.count)<.000001);
+    }
+  }
+});
+test('all active arrows reverse in place and surplus arrows pause until reused',t=>{
+  const {r}=fixture(t,{}, {'sensor.solar':state(10000)});const edge=r.edges[1];
+  r.route(1,[[0,0],[200,0]]);const particles=[...edge.particles];
+  for(const [i,particle] of particles.entries()) particle.animation.currentTime=120+i*200;
+  const positions=particles.map(p=>progress(p.animation));
+  edge.direction=-1;r.updateMotion(edge);
+  for(const [i,particle] of particles.entries()) {
+    assert.ok(Math.abs(progress(particle.animation)-positions[i])<.000001);
+    assert.equal(particle.animation.effect.getTiming().direction,'reverse');
+  }
+  edge.demand=2;r.updateMotion(edge);
+  assert.ok(particles.slice(2).every(p=>p.animation.playState==='paused'));
+  edge.direction=1;edge.demand=5;r.updateMotion(edge);
+  assert.deepEqual(edge.particles,particles);
+  assert.ok(particles.every(p=>p.animation.playState==='running'&&p.animation.effect.getTiming().direction==='normal'));
+});
+test('speed and arrow count options stay finite and the pool is bounded',t=>{
+  const {ctx,hass,r}=fixture(t,{}, {'sensor.solar':state(10000)});
+  for(const [settings,speed,count] of [[{speed:0,max_arrows:0},1,1],
+    [{speed:'invalid',max_arrows:'invalid'},24,5],[{speed:30,max_arrows:1000},30,12]]) {
+    ctx.config.signature_flow.animation=settings;run(ctx,hass);r.route(1,[[0,0],[400,0]]);
+    assert.equal(r.edges[1].speed,speed);assert.equal(r.edges[1].count,count);
+    assert.ok(r.edges[1].particles.length<=12);
+  }
+  ctx.config.signature_flow.animation={min_speed:2,max_speed:99};run(ctx,hass);
+  assert.equal(r.edges[1].speed,24);
 });
 const progress=animation=>{
   const fraction=(animation.currentTime%1000)/1000;
   return animation.effect.getTiming().direction==='reverse'?1-fraction:fraction;
 };
 test('flow reversals reuse the animation and preserve position throughout and between cycles',t=>{
-  const {ctx,hass,r}=fixture(t);const edge=r.edges[2],animation=edge.animation;
+  const {ctx,hass,r}=fixture(t);const edge=r.edges[2],animation=edge.particles[0]?.animation;
   for(const time of [0,350,999.99,1250,2890]) {
     animation.currentTime=time;const position=progress(animation);
     run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(edge.direction<0?11:-11)}});
-    assert.equal(edge.animation,animation);assert.ok(Math.abs(progress(animation)-position)<.000001);
+    assert.equal(edge.particles[0]?.animation,animation);assert.ok(Math.abs(progress(animation)-position)<.000001);
     assert.equal(animation.effect.getTiming().direction,edge.direction<0?'reverse':'normal');
     assert.equal(animation.playState,'running');assert.ok(animation.playbackRate>0);
   }
 });
-test('power changes adjust playback rate without resetting the existing animation time',t=>{
-  const {ctx,hass,r}=fixture(t);const edge=r.edges[2],animation=edge.animation;
+test('power changes retain fixed playback rate and the leading arrow position',t=>{
+  const {ctx,hass,r}=fixture(t);const edge=r.edges[2],animation=edge.particles[0]?.animation;
   animation.currentTime=643;const position=progress(animation),rate=animation.playbackRate;
   run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(-5000)}});
-  assert.equal(edge.animation,animation);assert.equal(animation.currentTime,643);
-  assert.equal(progress(animation),position);assert.ok(animation.playbackRate>rate);
+  assert.equal(edge.particles[0]?.animation,animation);assert.equal(animation.currentTime,643);
+  assert.equal(progress(animation),position);assert.equal(animation.playbackRate,rate);
   assert.equal(animation.playbackRate,edge.speed/edge.length);
 });
 test('zero and unavailable flows pause and resume at the same position in either direction',t=>{
-  const {ctx,hass,r}=fixture(t);const edge=r.edges[2],animation=edge.animation;
+  const {ctx,hass,r}=fixture(t);const edge=r.edges[2],animation=edge.particles[0]?.animation;
   animation.currentTime=350;const position=progress(animation);
   for(const [stopped,resumed] of [[0,-900],['unavailable',900],[0,-900]]) {
     run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(stopped)}});
-    assert.equal(edge.animation,animation);assert.equal(animation.playState,'paused');
+    assert.equal(edge.particles[0]?.animation,animation);assert.equal(animation.playState,'paused');
     assert.equal(progress(animation),position);
     run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(resumed)}});
-    assert.equal(edge.animation,animation);assert.equal(animation.playState,'running');
+    assert.equal(edge.particles[0]?.animation,animation);assert.equal(animation.playState,'running');
     assert.equal(progress(animation),position);
   }
 });
 test('hidden optional sources pause their existing animation until shown again',t=>{
   const {ctx,hass,r}=fixture(t,{}, {'sensor.water':state(.01,'m³/min')});
-  const edge=r.edges[6],animation=edge.animation;animation.currentTime=400;
+  const edge=r.edges[6],animation=edge.particles[0]?.animation;animation.currentTime=400;
   ctx.config.signature_flow.slots[6].enabled=false;run(ctx,hass);
   assert.equal(animation.playState,'paused');assert.equal(animation.currentTime,400);
   ctx.config.signature_flow.slots[6].enabled=true;run(ctx,hass);
-  assert.equal(edge.animation,animation);assert.equal(animation.playState,'running');
+  assert.equal(edge.particles[0]?.animation,animation);assert.equal(animation.playState,'running');
   assert.equal(animation.currentTime,400);
 });
 test('path resizing changes the rate without resetting the position',t=>{
-  const {r}=fixture(t);const edge=r.edges[2],animation=edge.animation;
+  const {r}=fixture(t);const edge=r.edges[2],animation=edge.particles[0]?.animation;
   animation.currentTime=350;const length=edge.length,rate=animation.playbackRate;
   edge.length=length*2;r.updateMotion(edge);
-  assert.equal(edge.animation,animation);assert.equal(animation.currentTime,350);
+  assert.equal(edge.particles[0]?.animation,animation);assert.equal(animation.currentTime,350);
   assert.equal(animation.playbackRate,rate/2);
 });
 test('slot 2 retains its physical arrow position when the connection grows or shrinks',t=>{
-  const {r}=fixture(t);const edge=r.edges[2],animation=edge.animation;
+  const {r}=fixture(t);const edge=r.edges[2],animation=edge.particles[0]?.animation;
   r.route(2,[[30,136],[100,136]]);animation.currentTime=350;
   const position=edge.start+progress(animation)*edge.length;
   for(const start of [50,20,60,30]) {
     r.route(2,[[start,136],[100,136]]);
-    assert.equal(edge.animation,animation);
+    assert.equal(edge.particles[0]?.animation,animation);
     assert.ok(Math.abs(edge.start+progress(animation)*edge.length-position)<.00001);
     assert.equal(animation.playbackRate,edge.speed/edge.length);
   }
@@ -350,7 +455,7 @@ test('slot 2 retains its physical arrow position when the connection grows or sh
 test('mobile sources retain arrow position on either side of their bend when the origin moves',t=>{
   const {r}=fixture(t);
   for(const id of [1,3]) for(const direction of [-1,1]) {
-    const edge=r.edges[id],animation=edge.animation;
+    const edge=r.edges[id],animation=edge.particles[0]?.animation;
     edge.direction=direction;r.updateMotion(edge);
     r.route(id,[[20,30],[100,30],[100,136]]);
     for(const fraction of [.2,.5,.99]) {
@@ -358,7 +463,7 @@ test('mobile sources retain arrow position on either side of their bend when the
       const remaining=(1-progress(animation))*edge.length;
       for(const start of [30,5,40,20]) {
         r.route(id,[[start,30],[100,30],[100,136]]);
-        assert.equal(edge.animation,animation);
+        assert.equal(edge.particles[0]?.animation,animation);
         assert.ok(Math.abs((1-progress(animation))*edge.length-remaining)<.00001);
         assert.equal(animation.playbackRate,edge.speed/edge.length);
       }
@@ -367,14 +472,24 @@ test('mobile sources retain arrow position on either side of their bend when the
 });
 test('reduced motion cancels native animations, resumes active flows and releases listeners',t=>{
   const {ctx,r}=fixture(t);const preference=r.motionPreference;
-  const originals=Object.values(r.edges).map(edge=>edge.animation).filter(Boolean);
+  const originals=Object.values(r.edges).flatMap(edge=>edge.particles.map(p=>p.animation)).filter(Boolean);
   assert.ok(preference.listeners.has(r.motionChanged));
   preference.matches=true;r.motionChanged();
   for(const animation of originals) assert.equal(animation.playState,'idle');
-  for(const edge of Object.values(r.edges)) assert.equal(edge.animation,null);
+  for(const edge of Object.values(r.edges)) for(const particle of edge.particles) assert.equal(particle.animation,null);
+  for(const edge of Object.values(r.edges).filter(e=>e.direction&&!e.hidden)) {
+    const positions=edge.particles.slice(0,edge.count).map(p=>p.flow.style.getPropertyValue('offset-distance'));
+    assert.equal(new Set(positions).size,edge.count);
+  }
   preference.matches=false;r.motionChanged();
-  assert.ok(r.edges[2].animation);assert.equal(r.edges[6].animation,null);
-  const restarted=r.edges[2].animation;ctx.teardown();
+  assert.ok(r.edges[2].particles[0]?.animation);assert.equal(r.edges[6].particles.length,0);
+  for(const edge of Object.values(r.edges).filter(e=>e.direction&&!e.hidden)) {
+    const positions=edge.particles.slice(0,edge.count).map(p=>progress(p.animation)).sort((a,b)=>a-b);
+    if(edge.count>1) for(let i=0;i<positions.length;i++) {
+      assert.ok(Math.abs((positions[(i+1)%positions.length]-positions[i]+1)%1-1/edge.count)<.000001);
+    }
+  }
+  const restarted=r.edges[2].particles[0]?.animation;ctx.teardown();
   assert.equal(restarted.playState,'idle');assert.equal(preference.listeners.size,0);
 });
 test('locale and number preferences are independent and refresh without rebuilding',t=>{
@@ -462,7 +577,7 @@ test('connections share the center axis on desktop and join aligned mobile colum
     assert.equal(r.edges[1].line.getAttribute('d'),narrow?'M170 38 L180 38 L180 136':'M234 76 L234 136');
     assert.equal(r.edges[3].line.getAttribute('d'),narrow?'M170 242 L180 242 L180 136':'M234 204 L234 136');
     assert.equal(r.edges[6].line.getAttribute('d'),'M'+(width-70)+' 204 L'+(width-70)+' 174');
-    assert.equal(r.edges[1].flow.style.getPropertyValue('offset-path'),'path("'+r.edges[1].line.getAttribute('d')+'")');
+    assert.equal(r.edges[1].particles[0].flow.style.getPropertyValue('offset-path'),'path("'+r.edges[1].line.getAttribute('d')+'")');
   }
 });
 test('mobile left connections start after their displayed unit or number and update only changed sources',t=>{
