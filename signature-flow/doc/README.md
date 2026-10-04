@@ -8,7 +8,7 @@ Signature Flow displays instantaneous solar, grid, home and battery power in one
 2. Add `signature_flow` to the `modules` list of a Bubble `button` card with `button_type: state`.
 3. Configure its nodes under `signature_flow`. The module is self-contained: use it without the `signature` design module on this card.
 
-The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.1**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.2**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
 
 [Home configuration](../examples/home.yaml) contains the existing sensors, the remaining solar forecast, battery charge and power, water conversion, and the five existing popup hashes. It replaces the five Energy/Water cards, excludes the car charging card, and leaves the section title outside the module. It does not create popup cards: the corresponding popups must already exist in the view. Importing the module does not modify the dashboard.
 
@@ -55,10 +55,25 @@ The default card height is **310 px**, matching the agreed mockup, across mobile
 | `tap_action`, `hold_action`, `double_tap_action` | Native Bubble/Home Assistant actions for the block. Tap and hold default to more-info; double tap defaults to none. |
 | `invert_flow` | Reverse the signed sensor convention. Default `false`. |
 | `deadband` | Absolute numeric threshold below which animation stops; applied after scaling. Default `0`. A global `signature_flow.deadband` supplies the default for all nodes. |
+| `animation_reference` | Optional reference for reaching the maximum arrow speed, in this node's scaled flow units. Useful for water or other non-power sources. |
 
 Battery also supports `power_entity`, `power_scale` (default 1), `power_unit` (entity unit by default), and `power_precision` (default 0). They affect its flow and automatic secondary text independently of the SoC display. `secondary` overrides the automatic charge/discharge text. Grid has no automatic import/export subtitle; its signed value and animated arrow show the direction. Optional sources use the same node options as the main nodes; their primary numeric entity controls their own connection to Home.
 
 The module respects Home Assistant's language and number-format preference. Default labels and flow descriptions are French for a French interface and English otherwise. Override names and secondary text for other languages. `signature_flow.name` overrides the accessible group label.
+
+## Arrow speed
+
+Arrow speed increases linearly with the absolute flow measurement. Equal power moves at the same speed on different connections; the time to traverse a connection depends on its length. The default range is **4–20 pixels per second**, reaching the maximum at **10,000 W**. Small grid imports/exports remain slow, while larger solar, home or battery power gradually speeds up. Zero or unavailable flows have no arrow.
+
+```yaml
+signature_flow:
+  animation:
+    min_speed: 4
+    max_speed: 20
+    reference_power: 10000
+```
+
+`min_speed` and `max_speed` are pixels per second; `reference_power` is watts. The module normalizes W/kW/MW power units, including configured display scaling. Above the reference, speed remains capped. A node's `animation_reference` overrides the reference in its scaled flow units: the home example uses `20` for water measured in L/min. Sensor updates change only the animation duration, without measuring geometry again or adding a JavaScript animation loop.
 
 ## Direction and interactions
 
@@ -72,7 +87,7 @@ The module respects Home Assistant's language and number-format preference. Defa
 
 Battery's default convention matches the existing Zendure sensor. Set `invert_flow: true` for a sensor using the opposite convention. A moving chevron follows each active connection in its flow direction. Zero and unavailable measurements keep the thin connection visible, with no arrow. Reduced-motion preferences display a stationary arrow instead. These are instantaneous **net flows** at one common junction; the module does not calculate the portion of solar sent to each destination. Connections between electrical sensors must be configured in compatible power units.
 
-Tap a block's icon or name to run its configured action, such as opening a Bubble popup with `action: navigate` and `navigation_path: '#water-details'`. Tap its main value to open entity more-info. The battery power line opens the power entity; a secondary line with `secondary_entity` opens that entity. Keyboard Enter/Space activates a focused block or value. Pointer taps, holds and double taps use Bubble's delegated action handler.
+Tap a block's icon or name to run its configured action, such as opening a Bubble popup with `action: navigate` and `navigation_path: '#water-details'`. Tap its main value to open entity more-info. The battery power line opens the power entity; a secondary line with `secondary_entity` opens that entity. Keyboard Enter/Space activates a focused block or value. Pointer taps, holds and double taps use Bubble's delegated action handler. Focus outlines appear for keyboard navigation; a restored focus after pointer/touch more-info does not leave a frame around the value.
 
 The optional top source can be added with:
 
@@ -92,7 +107,7 @@ signature_flow:
 
 ## Runtime and validation
 
-DOM nodes, number formatters and paths are reused. Every evaluation reads the configured entities through Bubble's tracked `hass` object; Jinja uses Bubble's `renderTemplate` helper. There is no polling, service call, extra WebSocket subscription or global CSS injection. A single `ResizeObserver` per card adjusts paths on size changes. Teardown removes it, the keyboard handler and the custom DOM. Text and template results are inserted as text, never as HTML.
+DOM nodes, number formatters and paths are reused. Every evaluation reads the configured entities through Bubble's tracked `hass` object; Jinja uses Bubble's `renderTemplate` helper. There is no polling, service call, extra WebSocket subscription or global CSS injection. A single `ResizeObserver` per card adjusts paths on size changes. Teardown removes it, the keyboard/input-mode handlers and the custom DOM. Text and template results are inserted as text, never as HTML.
 
 This module replaces the native button content. Alert Manager's native main-icon badge is therefore not exposed on the custom flow nodes; no per-node alert integration is included in this first version.
 

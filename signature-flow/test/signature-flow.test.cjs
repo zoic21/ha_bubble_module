@@ -30,7 +30,9 @@ class Element {
   closest(selector) {return this.classList.contains(selector.slice(1)) ? this : this.parentElement?.closest(selector);}
   getBoundingClientRect() {return {left:0,right:468,top:0,bottom:280,width:468,height:280};}
 }
-global.document={createElement:()=>new Element(),createElementNS:()=>new Element()};
+const documentListeners=new Set();
+global.document={createElement:()=>new Element(),createElementNS:()=>new Element(),
+  addEventListener:(_,fn)=>documentListeners.add(fn),removeEventListener:(_,fn)=>documentListeners.delete(fn)};
 global.CSS={supports:(_,s)=>s!=='invalid'};
 global.ResizeObserver=class {constructor(fn){this.fn=fn;}observe(){}disconnect(){this.disconnected=true;}};
 const state=(value,unit='W')=>({state:String(value),attributes:{unit_of_measurement:unit}});
@@ -46,11 +48,13 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'1.0.1');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'1.0.2');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.bottom.scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
   assert.equal(home.signature_flow.grid.secondary,'');
+  assert.deepEqual(home.signature_flow.animation,{min_speed:4,max_speed:20,reference_power:10000});
+  assert.equal(home.signature_flow.bottom.animation_reference,20);
   for(const key of ['solar','grid','home','battery','bottom']) assert.match(home.signature_flow[key].tap_action.navigation_path,/^#/);
 });
 test('snapshot uses instantaneous values and correct net directions',t=>{
@@ -87,6 +91,31 @@ test('zero, deadband, scaling and power scaling affect their own measurements',t
   assert.equal(r.edges.bottom.group.getAttribute('data-direction'),'0');
   assert.equal(r.nodes.battery.secondary.textContent,'Recharge · 1,38 kW');
 });
+test('arrow speed grows across the power range, caps at its reference and ignores direction sign',t=>{
+  const {ctx,hass,r}=fixture(t);const speeds=[];
+  for(const value of [16,855,2403,10000,20000]) {
+    run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(value)}});speeds.push(r.edges.grid.speed);
+  }
+  assert.ok(speeds[0]<4.1);assert.ok(speeds[1]>speeds[0]);assert.ok(speeds[2]>speeds[1]);
+  assert.ok(speeds[3]>speeds[2]);assert.equal(speeds[3],20);assert.equal(speeds[4],20);
+  run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(-2403)}});assert.equal(r.edges.grid.speed,speeds[2]);
+  ctx.config.signature_flow.animation={min_speed:2,max_speed:10,reference_power:20000};
+  run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(20000)}});assert.equal(r.edges.grid.speed,10);
+});
+test('equal power has equal physical speed across W/kW, display scaling and different path lengths',t=>{
+  const {ctx,hass,r}=fixture(t);const initial=r.edges.solar.speed;
+  run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(1.794,'kW')}});assert.equal(r.edges.solar.speed,initial);
+  ctx.config.signature_flow.solar={...options.solar,scale:0.001,unit:'kW'};run(ctx,hass);
+  assert.equal(r.edges.solar.speed,initial);
+  const a=r.edges.solar,b=r.edges.home;a.length=60;b.length=120;b.speed=a.speed;
+  r.setDuration(a);r.setDuration(b);
+  const duration=e=>parseFloat(e.flow.style.getPropertyValue('--sf-duration'));
+  assert.ok(Math.abs(duration(b)-2*duration(a))<.02);
+});
+test('water uses its own reference after unit conversion',t=>{
+  const {r}=fixture(t,{bottom:{...options.bottom,animation_reference:20}}, {'sensor.water':state(.02,'m³/min')});
+  assert.equal(r.nodes.bottom.value.textContent,'20,0 L/min');assert.equal(r.edges.bottom.speed,20);
+});
 test('locale and number preferences are independent and refresh without rebuilding',t=>{
   const {ctx,hass,r}=fixture(t);run(ctx,{...hass,locale:{language:'en',number_format:'none'}});
   assert.equal(r.nodes.solar.label.textContent,'Solar');assert.equal(r.nodes.solar.value.textContent,'1794 W');
@@ -111,6 +140,14 @@ test('keyboard dispatches the native hass-action contract once and ignores held 
   assert.equal(prevented,1);assert.equal(r.nodes.home.el.events.length,1);
   assert.equal(r.nodes.home.el.events[0].type,'hass-action');
   assert.equal(r.nodes.home.el.events[0].detail.config.tap_action.navigation_path,'#home');
+});
+test('focus feedback follows keyboard/pointer input and input-mode listeners are removed on teardown',t=>{
+  const {ctx,r}=fixture(t);
+  r.modalityKey({key:'Tab'});assert.equal(r.canvas.getAttribute('data-sf-keyboard'),'');
+  r.modalityPointer();assert.equal(r.canvas.getAttribute('data-sf-keyboard'),null);
+  r.modalityKey({key:'Escape'});assert.equal(r.canvas.getAttribute('data-sf-keyboard'),null);
+  assert.ok(documentListeners.has(r.modalityKey));assert.ok(documentListeners.has(r.modalityPointer));
+  ctx.teardown();assert.ok(!documentListeners.has(r.modalityKey));assert.ok(!documentListeners.has(r.modalityPointer));
 });
 test('templates use the supplied helper and output remains inert text',t=>{
   const {ctx,hass,r}=fixture(t,{solar:{...options.solar,state:'{{ main }}',secondary:'{{ forecast }}',
