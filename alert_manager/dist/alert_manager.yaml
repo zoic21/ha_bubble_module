@@ -1,31 +1,35 @@
 # Sans options : toutes les entités de la carte, règles personnalisées uniquement.
 # alert_manager : sensors, packs (objets indexés par ID), ignore_pending,
-# colors et entities (exceptions et ajouts indexés par entity_id).
-# show_badge: false masque la pastille pour toute la carte, sans désactiver les couleurs.
+# colors, icons et entities (exceptions et ajouts indexés par entity_id).
+# Pastille noire par défaut ; color_card et color_badge activent les couleurs séparément.
+# L’icône principale et son fond ne sont jamais recolorés par ce module.
+# show_badge: false masque la pastille pour toute la carte.
 # entities.<entity_id>.exclude : true pour toute l’entité, liste d’ID pour des règles ou packs.
 # Couleurs : active (rouge), pending (orange), priorité pack de l’entité > entité > pack > général.
 # Aucune disponibilité, souscription ou temporisation ; index partagé par connexion HA.
 alert_manager:
   name: Alert Manager
-  version: 3.3.0
+  version: 3.4.0
   creator: Loïc
   supported:
     - button
     - cover
     - climate
     - media-player
-  description: 'Surveille toutes les entités de la carte et les règles personnalisées par défaut. alert_manager permet de configurer les capteurs sources, d’activer des packs par ID, d’exclure des entités ou des règles et packs par entité, de masquer les alertes à venir et de personnaliser les couleurs par entité, pack ou globalement. Chaque pack déclaré dans packs est activé et peut définir ignore_pending et colors.active/pending. Colore l’icône principale et son fond pastel, avec une pastille ! pour une alerte active ou une horloge en attente. show_badge: false masque les pastilles pour toute la carte en conservant les couleurs.'
+  description: 'Affiche une pastille noire pour les alertes des entités de la carte, sans changer la couleur de la carte par défaut. color_card et color_badge activent séparément les couleurs d’alerte. L’icône principale et son fond restent inchangés. icons.active/pending et colors.active/pending suivent la priorité pack de l’entité, entité, pack, général. Capteurs sources, packs, exclusions et ignore_pending restent configurables. show_badge: false masque les pastilles pour toute la carte.'
   code: |2-
         ${(() => {
           const c = this.config;
+          const clearBadge = () => { this._amBadge?.remove(); delete this._amBadge; };
           if (!this.card || c.button_type === 'slider'
               || !['button','cover','climate','media-player'].includes(c.card_type || 'button')) {
             delete this._amConfig;
+            clearBadge();
             return '';
           }
           const options = c.alert_manager || {};
           let watched = this._amConfig;
-          if (!watched || watched.config !== c || watched.options !== c.alert_manager) {
+          if (!watched || !watched.icons || watched.config !== c || watched.options !== c.alert_manager) {
             const ids = new Set();
             const entityId = /^[a-z0-9_]+\.[a-z0-9_]+$/;
             const add = id => { if (typeof id === 'string' && entityId.test(id)) ids.add(id); };
@@ -52,18 +56,25 @@ alert_manager:
             const color = (value,fallback) => typeof value === 'string' && CSS.supports('color',value) ? value : fallback;
             const readColors = (values,fallback = {}) => Object.fromEntries(
               ['active','pending'].map(state => [state,color(values?.[state],fallback[state] ?? null)]));
+            const readIcons = (values,fallback = {}) => Object.fromEntries(
+              ['active','pending'].map(state => [state,
+                typeof values?.[state] === 'string' && /^[a-z][a-z0-9_-]*:[a-z0-9_-]+$/i.test(values[state])
+                  ? values[state] : fallback[state] ?? null]));
             const packSettings = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-            const readPacks = (packs,fallback) => new Map(Object.entries(packSettings(packs))
-              .map(([id,spec]) => [id,{colors:readColors(spec?.colors,fallback),ignorePending:spec?.ignore_pending}]));
+            const readPacks = (packs,colorFallback,iconFallback) => new Map(Object.entries(packSettings(packs))
+              .map(([id,spec]) => [id,{colors:readColors(spec?.colors,colorFallback),
+                icons:readIcons(spec?.icons,iconFallback),ignorePending:spec?.ignore_pending}]));
             const defaults = {active:'var(--red-color, #f44336)',pending:'var(--orange-color, #ff9800)'};
             const colors = readColors(options.colors,defaults);
-            const packs = readPacks(options.packs,colors);
+            const icons = readIcons(options.icons,{active:'mdi:exclamation',pending:'mdi:clock-outline'});
+            const packs = readPacks(options.packs,colors,icons);
             const entities = [];
             for (const id of ids) {
               const entry = exceptions[id] || {};
               if (entry.exclude === true) continue;
               const localPacks = readPacks(entry.packs);
               const entityColors = readColors(entry.colors);
+              const entityIcons = readIcons(entry.icons);
               const enabledPacks = new Map();
               for (const pack of new Set([...packs.keys(),...localPacks.keys()])) {
                 const general = packs.get(pack), local = localPacks.get(pack);
@@ -71,6 +82,8 @@ alert_manager:
                   ignorePending:local?.ignorePending ?? entry.ignore_pending ?? general?.ignorePending ?? options.ignore_pending ?? false,
                   colors:Object.fromEntries(['active','pending'].map(state =>
                     [state,local?.colors[state] ?? entityColors[state] ?? general?.colors[state] ?? colors[state]])),
+                  icons:Object.fromEntries(['active','pending'].map(state =>
+                    [state,local?.icons[state] ?? entityIcons[state] ?? general?.icons[state] ?? icons[state]])),
                 });
               }
               entities.push({id,
@@ -78,14 +91,15 @@ alert_manager:
                 packs:enabledPacks,
                 excluded:new Set(list(entry.exclude)),
                 colors:entityColors,
+                icons:entityIcons,
               });
             }
             const sensorIds = ['active','pending'].map(state =>
               options.sensors?.[state] || 'sensor.alert_manager_main_'+state);
-            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,sensorIds,sensorKey:sensorIds.join('\u0001')};
+            watched = this._amConfig = {config:c,options:c.alert_manager,entities,colors,icons,sensorIds,sensorKey:sensorIds.join('\u0001')};
           }
-          if (typeof onTeardown === 'function') onTeardown(() => { delete this._amConfig; });
-          if (!watched.entities.length) return '';
+          if (typeof onTeardown === 'function') onTeardown(() => { clearBadge(); delete this._amConfig; });
+          if (!watched.entities.length) { clearBadge(); return ''; }
           // Keep both reads outside the cache so Bubble observes active and pending alerts.
           const sources = watched.sensorIds.map(id => hass.states[id]);
           const key = Symbol.for('bubble.alertManager.v5');
@@ -138,55 +152,67 @@ alert_manager:
             if (match && (!selected || match.severity > selected.severity)) { selected = match; policy = entry; }
           }
           // Native Bubble remains responsible for availability and restores its own colors.
-          if (!selected) return '';
+          if (!selected) { clearBadge(); return ''; }
           const state = selected.severity === 2 ? 'active' : 'pending';
           const accent = policy.packs.get(selected.pack)?.colors[state] ?? policy.colors[state] ?? watched.colors[state];
+          const icon = policy.packs.get(selected.pack)?.icons[state] ?? policy.icons[state] ?? watched.icons[state];
           const surface = 'var(--ha-card-background, var(--card-background-color, #fff))';
-          // CSS overlays disappear with the alert or module, without DOM cleanup or extra HA reads.
-          const badge = options.show_badge === false ? '' : `
+          let styles = '';
+          if (options.color_card === true) styles += `
+            ha-card .bubble-container, ha-card .bubble-background {
+              background-color: color-mix(in srgb, ${accent} 16%, ${surface}) !important;
+            }
+          `;
+          const container = options.show_badge === false ? null : this.card.querySelector('.bubble-main-icon-container');
+          if (!container) { clearBadge(); return styles; }
+          let badge = this._amBadge;
+          if (!badge || badge.parentElement !== container) {
+            clearBadge();
+            badge = this._amBadge = document.createElement('span');
+            badge.className = 'am-alert-badge';
+            // Keep any leftover node hidden when Bubble removes this module's CSS.
+            badge.style.display = 'none';
+            badge.style.pointerEvents = 'none';
+            badge.setAttribute('role','img');
+            const glyph = document.createElement('ha-icon');
+            glyph.setAttribute('aria-hidden','true');
+            badge.appendChild(glyph);
+            container.appendChild(badge);
+          }
+          if (badge.firstElementChild.getAttribute('icon') !== icon) badge.firstElementChild.setAttribute('icon',icon);
+          badge.setAttribute('data-am-state',state);
+          const french = (hass.locale?.language || hass.language || '').startsWith('fr');
+          const label = state === 'active' ? (french ? 'Alerte active' : 'Active alert') : (french ? 'Alerte en attente' : 'Pending alert');
+          badge.setAttribute('aria-label',label);
+          badge.setAttribute('title',label);
+          const badgeAccent = options.color_badge === true ? accent : '#000';
+          return styles + `
             ha-card .bubble-main-icon-container { overflow: visible !important; }
-            ha-card .bubble-main-icon-container::after {
-              content: '${state === 'active' ? '!' : ''}';
+            ha-card .bubble-main-icon-container > .am-alert-badge {
               position: absolute;
               top: -3px;
               right: -3px;
               width: 16px;
               height: 16px;
               box-sizing: border-box;
-              display: flex;
+              display: flex !important;
               align-items: center;
               justify-content: center;
-              border: 1.5px solid ${accent};
+              border: 1.5px solid ${badgeAccent};
               border-radius: 50%;
-              background: ${surface};
+              background: #fff;
               box-shadow: 0 0 0 2px ${surface};
-              color: ${accent};
-              font: 700 12px/1 var(--primary-font-family, system-ui);
+              color: ${badgeAccent};
               pointer-events: none;
               z-index: 2;
             }
-            ${state === 'pending' ? `
-              ha-card .bubble-main-icon-container::before {
-                content: '';
-                position: absolute;
-                top: -1px;
-                right: -1px;
-                width: 12px;
-                height: 12px;
-                background: ${accent};
-                --am-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5v7l5 3' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-                -webkit-mask: var(--am-clock) center / contain no-repeat;
-                mask: var(--am-clock) center / contain no-repeat;
-                pointer-events: none;
-                z-index: 3;
-              }
-            ` : ''}
-          `;
-          return `
-            ha-card .bubble-main-icon-container .bubble-main-icon { color: ${accent} !important; }
-            ha-card .bubble-main-icon-container {
-              --bubble-icon-background-color: color-mix(in srgb, ${accent} 16%, ${surface}) !important;
+            ha-card .bubble-main-icon-container > .am-alert-badge > ha-icon {
+              --mdc-icon-size: 12px;
+              width: 12px;
+              height: 12px;
+              display: flex;
+              color: inherit;
+              pointer-events: none;
             }
-            ${badge}
           `;
         })()}
