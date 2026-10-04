@@ -7,6 +7,16 @@ const base = path.resolve(__dirname, '..');
 const definition = YAML.parse(fs.readFileSync(path.join(base,'dist/signature-flow.yaml'),'utf8')).signature_flow;
 const render = new Function('hass','onTeardown','renderTemplate','return `'+definition.code+'`;');
 
+class Animation {
+  constructor(timing) {
+    this.currentTime=0;this.playbackRate=1;this.playState='running';
+    this.effect={getTiming:()=>({...timing}),updateTiming:value=>Object.assign(timing,value)};
+  }
+  updatePlaybackRate(rate) {this.playbackRate=rate;}
+  pause() {this.playState='paused';}
+  play() {this.playState='running';}
+  cancel() {this.playState='idle';this.currentTime=null;}
+}
 class Element {
   constructor() {
     this.children=[]; this.attrs=new Map(); this.dataset={}; this.listeners=new Map(); this.hidden=false; this.events=[];
@@ -27,6 +37,7 @@ class Element {
   addEventListener(k,fn) {this.listeners.set(k,fn);}
   removeEventListener(k) {this.listeners.delete(k);}
   dispatchEvent(e) {this.events.push(e);}
+  animate(_,timing) {return new Animation(timing);}
   closest(selector) {return this.classList.contains(selector.slice(1)) ? this : this.parentElement?.closest(selector);}
   getBoundingClientRect() {return {left:0,right:468,top:0,bottom:280,width:468,height:280};}
 }
@@ -35,6 +46,8 @@ global.document={createElement:()=>new Element(),createElementNS:()=>new Element
   addEventListener:(_,fn)=>documentListeners.add(fn),removeEventListener:(_,fn)=>documentListeners.delete(fn)};
 global.CSS={supports:(_,s)=>s!=='invalid'};
 global.ResizeObserver=class {constructor(fn){this.fn=fn;}observe(){}disconnect(){this.disconnected=true;}};
+global.matchMedia=()=>({matches:false,listeners:new Set(),
+  addEventListener(_,fn){this.listeners.add(fn);},removeEventListener(_,fn){this.listeners.delete(fn);}});
 const state=(value,unit='W')=>({state:String(value),attributes:{unit_of_measurement:unit}});
 const options={solar:{entity:'sensor.solar'},grid:{entity:'sensor.grid'},home:{entity:'sensor.home'},
   battery:{entity:'sensor.soc',power_entity:'sensor.battery'},bottom:{entity:'sensor.water',scale:1000,unit:'L/min',precision:1}};
@@ -48,12 +61,12 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'1.0.2');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'1.0.3');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.bottom.scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
   assert.equal(home.signature_flow.grid.secondary,'');
-  assert.deepEqual(home.signature_flow.animation,{min_speed:4,max_speed:20,reference_power:10000});
+  assert.deepEqual(home.signature_flow.animation,{min_speed:4,max_speed:40,reference_power:10000});
   assert.equal(home.signature_flow.bottom.animation_reference,20);
   for(const key of ['solar','grid','home','battery','bottom']) assert.match(home.signature_flow[key].tap_action.navigation_path,/^#/);
 });
@@ -97,7 +110,7 @@ test('arrow speed grows across the power range, caps at its reference and ignore
     run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(value)}});speeds.push(r.edges.grid.speed);
   }
   assert.ok(speeds[0]<4.1);assert.ok(speeds[1]>speeds[0]);assert.ok(speeds[2]>speeds[1]);
-  assert.ok(speeds[3]>speeds[2]);assert.equal(speeds[3],20);assert.equal(speeds[4],20);
+  assert.ok(speeds[3]>speeds[2]);assert.equal(speeds[3],40);assert.equal(speeds[4],40);
   run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(-2403)}});assert.equal(r.edges.grid.speed,speeds[2]);
   ctx.config.signature_flow.animation={min_speed:2,max_speed:10,reference_power:20000};
   run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(20000)}});assert.equal(r.edges.grid.speed,10);
@@ -108,13 +121,75 @@ test('equal power has equal physical speed across W/kW, display scaling and diff
   ctx.config.signature_flow.solar={...options.solar,scale:0.001,unit:'kW'};run(ctx,hass);
   assert.equal(r.edges.solar.speed,initial);
   const a=r.edges.solar,b=r.edges.home;a.length=60;b.length=120;b.speed=a.speed;
-  r.setDuration(a);r.setDuration(b);
-  const duration=e=>parseFloat(e.flow.style.getPropertyValue('--sf-duration'));
+  r.updateMotion(a);r.updateMotion(b);
+  const duration=e=>e.animation.effect.getTiming().duration/(1000*e.animation.playbackRate);
   assert.ok(Math.abs(duration(b)-2*duration(a))<.02);
 });
 test('water uses its own reference after unit conversion',t=>{
   const {r}=fixture(t,{bottom:{...options.bottom,animation_reference:20}}, {'sensor.water':state(.02,'m³/min')});
-  assert.equal(r.nodes.bottom.value.textContent,'20,0 L/min');assert.equal(r.edges.bottom.speed,20);
+  assert.equal(r.nodes.bottom.value.textContent,'20,0 L/min');assert.equal(r.edges.bottom.speed,40);
+});
+const progress=animation=>{
+  const fraction=(animation.currentTime%1000)/1000;
+  return animation.effect.getTiming().direction==='reverse'?1-fraction:fraction;
+};
+test('flow reversals reuse the animation and preserve position throughout and between cycles',t=>{
+  const {ctx,hass,r}=fixture(t);const edge=r.edges.grid,animation=edge.animation;
+  for(const time of [0,350,999.99,1250,2890]) {
+    animation.currentTime=time;const position=progress(animation);
+    run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(edge.direction<0?11:-11)}});
+    assert.equal(edge.animation,animation);assert.ok(Math.abs(progress(animation)-position)<.000001);
+    assert.equal(animation.effect.getTiming().direction,edge.direction<0?'reverse':'normal');
+    assert.equal(animation.playState,'running');assert.ok(animation.playbackRate>0);
+  }
+});
+test('power changes adjust playback rate without resetting the existing animation time',t=>{
+  const {ctx,hass,r}=fixture(t);const edge=r.edges.grid,animation=edge.animation;
+  animation.currentTime=643;const position=progress(animation),rate=animation.playbackRate;
+  run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(-5000)}});
+  assert.equal(edge.animation,animation);assert.equal(animation.currentTime,643);
+  assert.equal(progress(animation),position);assert.ok(animation.playbackRate>rate);
+  assert.equal(animation.playbackRate,edge.speed/edge.length);
+});
+test('zero and unavailable flows pause and resume at the same position in either direction',t=>{
+  const {ctx,hass,r}=fixture(t);const edge=r.edges.grid,animation=edge.animation;
+  animation.currentTime=350;const position=progress(animation);
+  for(const [stopped,resumed] of [[0,-900],['unavailable',900],[0,-900]]) {
+    run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(stopped)}});
+    assert.equal(edge.animation,animation);assert.equal(animation.playState,'paused');
+    assert.equal(progress(animation),position);
+    run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(resumed)}});
+    assert.equal(edge.animation,animation);assert.equal(animation.playState,'running');
+    assert.equal(progress(animation),position);
+  }
+});
+test('hidden optional sources pause their existing animation until shown again',t=>{
+  const {ctx,hass,r}=fixture(t,{}, {'sensor.water':state(.01,'m³/min')});
+  const edge=r.edges.bottom,animation=edge.animation;animation.currentTime=400;
+  ctx.config.signature_flow.bottom.enabled=false;run(ctx,hass);
+  assert.equal(animation.playState,'paused');assert.equal(animation.currentTime,400);
+  ctx.config.signature_flow.bottom.enabled=true;run(ctx,hass);
+  assert.equal(edge.animation,animation);assert.equal(animation.playState,'running');
+  assert.equal(animation.currentTime,400);
+});
+test('path resizing changes the rate without resetting the position',t=>{
+  const {r}=fixture(t);const edge=r.edges.grid,animation=edge.animation;
+  animation.currentTime=350;const length=edge.length,rate=animation.playbackRate;
+  edge.length=length*2;r.updateMotion(edge);
+  assert.equal(edge.animation,animation);assert.equal(animation.currentTime,350);
+  assert.equal(animation.playbackRate,rate/2);
+});
+test('reduced motion cancels native animations, resumes active flows and releases listeners',t=>{
+  const {ctx,r}=fixture(t);const preference=r.motionPreference;
+  const originals=Object.values(r.edges).map(edge=>edge.animation).filter(Boolean);
+  assert.ok(preference.listeners.has(r.motionChanged));
+  preference.matches=true;r.motionChanged();
+  for(const animation of originals) assert.equal(animation.playState,'idle');
+  for(const edge of Object.values(r.edges)) assert.equal(edge.animation,null);
+  preference.matches=false;r.motionChanged();
+  assert.ok(r.edges.grid.animation);assert.equal(r.edges.bottom.animation,null);
+  const restarted=r.edges.grid.animation;ctx.teardown();
+  assert.equal(restarted.playState,'idle');assert.equal(preference.listeners.size,0);
 });
 test('locale and number preferences are independent and refresh without rebuilding',t=>{
   const {ctx,hass,r}=fixture(t);run(ctx,{...hass,locale:{language:'en',number_format:'none'}});

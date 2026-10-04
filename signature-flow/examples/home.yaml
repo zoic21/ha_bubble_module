@@ -15,7 +15,7 @@ signature_flow:
   height: 310
   animation:
     min_speed: 4
-    max_speed: 20
+    max_speed: 40
     reference_power: 10000
   solar:
     entity: sensor.puissance_solaire_total

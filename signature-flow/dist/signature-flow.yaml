@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 1.0.2
+  version: 1.0.3
   creator: Loïc
   supported:
     - button
@@ -9,7 +9,7 @@ signature_flow:
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '1.0.2';
+      const version = '1.0.3';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -38,6 +38,8 @@ signature_flow:
         const current = runtime;
         current.dispose = () => {
           current.observer?.disconnect();
+          current.motionPreference?.removeEventListener('change', current.motionChanged);
+          Object.values(current.edges).forEach(edge => edge.animation?.cancel());
           canvas.removeEventListener('keydown', current.keyboard);
           document.removeEventListener('keydown', current.modalityKey, true);
           document.removeEventListener('pointerdown', current.modalityPointer, true);
@@ -66,12 +68,35 @@ signature_flow:
         canvas.addEventListener('keydown', current.keyboard);
         host.appendChild(canvas);
         attr(root, 'data-signature-flow', '');
-        current.setDuration = edge => {
-          if (!edge.length || !edge.speed) return;
-          const duration = (edge.length/edge.speed).toFixed(2)+'s';
-          if (edge.flow.style.getPropertyValue('--sf-duration') !== duration)
-            edge.flow.style.setProperty('--sf-duration', duration);
+        current.motionPreference = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
+        current.updateMotion = edge => {
+          if (current.motionPreference?.matches) {
+            edge.animation?.cancel(); edge.animation = null; return;
+          }
+          if (!edge.direction || edge.hidden || !edge.length || !edge.speed) {
+            if (edge.animation && edge.animation.playState !== 'paused') edge.animation.pause();
+            return;
+          }
+          const direction = edge.direction < 0 ? 'reverse' : 'normal';
+          if (!edge.animation) {
+            edge.animation = edge.flow.animate([{offsetDistance:'0%'},{offsetDistance:'100%'}],
+              {duration:1000,iterations:Infinity,easing:'linear',direction});
+            edge.motionDirection = edge.direction;
+            edge.rate = null;
+          } else if (edge.motionDirection !== edge.direction) {
+            // Mirror the animation's time as its direction changes, keeping the
+            // arrow at the same point. Stay inside the cycle at exact boundaries.
+            const phase = (edge.animation.currentTime ?? 0)%1000;
+            edge.animation.effect.updateTiming({direction});
+            edge.animation.currentTime = Math.min(1000-phase,999.9999);
+            edge.motionDirection = edge.direction;
+          }
+          const rate = edge.speed/edge.length;
+          if (edge.rate !== rate) {edge.animation.updatePlaybackRate(rate); edge.rate = rate;}
+          if (edge.animation.playState === 'paused') edge.animation.play();
         };
+        current.motionChanged = () => Object.values(current.edges).forEach(current.updateMotion);
+        current.motionPreference?.addEventListener('change', current.motionChanged);
         // Only card size changes require geometry reads. Sensor updates reuse the paths.
         current.draw = () => {
           const box = canvas.getBoundingClientRect();
@@ -95,7 +120,7 @@ signature_flow:
               edge.flow.style.setProperty('offset-path', motion);
             edge.length = points.slice(1).reduce((length,p,i) =>
               length+Math.hypot(p[0]-points[i][0],p[1]-points[i][1]),0);
-            current.setDuration(edge);
+            current.updateMotion(edge);
           };
           route('solar', canvas.classList.contains('sf-has-top') || canvas.classList.contains('sf-narrow') ?
             [[solar.right,solar.cy],[x,solar.cy],[x,y]] : [[x,solar.bottom],[x,y]]);
@@ -163,7 +188,7 @@ signature_flow:
       const icons = {solar:'mdi:white-balance-sunny',grid:'mdi:transmission-tower',home:'mdi:home-outline',battery:'mdi:battery',top:'mdi:flash',bottom:'mdi:water-outline'};
       const animation = options.animation || {};
       const minSpeed = Math.max(1,numeric(animation.min_speed) ?? 4);
-      const maxSpeed = Math.max(minSpeed,numeric(animation.max_speed) ?? 20);
+      const maxSpeed = Math.max(minSpeed,numeric(animation.max_speed) ?? 40);
       const referencePower = Math.max(1,numeric(animation.reference_power) ?? 10000);
       const bind = (el, id, cfg, fallback) => {
         const tap = cfg.tap_action || fallback;
@@ -186,7 +211,8 @@ signature_flow:
         if (node.el.hidden !== hidden) {node.el.hidden = hidden; geometryChanged = true;}
         edge.group.hidden = hidden;
         attr(edge.group, 'display', hidden ? 'none' : 'inline');
-        if (hidden) continue;
+        edge.hidden = hidden;
+        if (hidden) {runtime.updateMotion(edge);continue;}
         const state = read(cfg.entity), power = key === 'battery' ? read(cfg.power_entity) : state;
         // Read secondary entities even when a supplied template handles the text.
         const secondaryState = read(cfg.secondary_entity);
@@ -210,6 +236,7 @@ signature_flow:
         const signed = rawPower === null ? null : numeric(rawPower * flowScale * (cfg.invert_flow === true ? -1 : 1));
         const threshold = Math.max(0,numeric(cfg.deadband ?? options.deadband) ?? 0);
         const direction = signed === null || Math.abs(signed) <= threshold ? 0 : Math.sign(signed);
+        edge.direction = direction;
         attr(edge.group, 'data-direction', direction);
         const flowUnit = String(key === 'battery' ? cfg.power_unit ?? power?.attributes?.unit_of_measurement ?? 'W' :
           cfg.unit ?? state?.attributes?.unit_of_measurement ?? '').trim();
@@ -217,7 +244,7 @@ signature_flow:
         const unitScale = flowUnit === 'kW' ? 1000 : flowUnit === 'MW' ? 1000000 : 1;
         const fraction = Math.min(1,Math.abs(signed ?? 0)/(reference > 0 ? reference : referencePower/unitScale));
         edge.speed = minSpeed+(maxSpeed-minSpeed)*fraction;
-        runtime.setDuration(edge);
+        runtime.updateMotion(edge);
         let secondary = '';
         if (cfg.secondary !== undefined) secondary = render(cfg.secondary,cfg.secondary_entity || cfg.entity);
         else if (key === 'battery') secondary = signed === null ? labels.unavailable : direction === 0 ? labels.idle :
@@ -245,9 +272,9 @@ signature_flow:
       return '[data-signature-flow] .bubble-container{height:'+height+'px!important;padding:14px;box-sizing:border-box;border-radius:22px!important;background:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))!important;border:1px solid color-mix(in srgb,var(--primary-text-color) 6%,transparent)!important;box-shadow:var(--ha-card-box-shadow,none)}\n'+
         '[data-signature-flow] .bubble-container>.bubble-wrapper{display:none!important}\n'+
         '.sf-canvas{position:relative;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--primary-text-color);--sf-surface:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))}\n'+
-        '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-arrow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{offset-distance:0%;offset-rotate:auto;offset-anchor:0px 0px;animation:sf-forward var(--sf-duration,12s) linear infinite}.sf-edge[data-direction="-1"] .sf-flow{animation-direction:reverse;offset-rotate:auto 180deg}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
+        '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-arrow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{offset-distance:0%;offset-rotate:auto 0deg;offset-anchor:0px 0px;transition:offset-rotate .18s ease}.sf-edge[data-direction="-1"] .sf-flow{offset-rotate:auto 180deg}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
         '.sf-node{position:absolute;display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:2px 0;border-radius:16px;background:var(--sf-surface);text-align:left;line-height:1.2;cursor:pointer}.sf-node[hidden]{display:none}.sf-content{display:grid;grid-template-rows:17px 34px 16px;gap:2px;min-width:0;align-items:start}.sf-label{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;color:var(--sf-color);background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))}.sf-icon ha-icon{--mdc-icon-size:22px}.sf-value{font-size:28px;font-weight:500;letter-spacing:-.7px;white-space:nowrap;line-height:34px;font-variant-numeric:tabular-nums;border-radius:6px}.sf-unit{font-size:16px;font-weight:400;letter-spacing:0;color:var(--secondary-text-color)}.sf-secondary{font-size:13px;white-space:nowrap;color:var(--secondary-text-color);pointer-events:none}.sf-secondary.sf-detail{pointer-events:auto;cursor:pointer;border-radius:4px}.sf-node:focus,.sf-value:focus,.sf-detail:focus{outline:none}.sf-canvas[data-sf-keyboard] .sf-node:focus-visible,.sf-canvas[data-sf-keyboard] .sf-value:focus-visible,.sf-canvas[data-sf-keyboard] .sf-detail:focus-visible{outline:2px solid var(--sf-color);outline-offset:3px}\n'+
         '.sf-solar{width:180px;top:0;left:calc(50% - 90px)}.sf-grid{width:128px;top:calc(50% - 42px);left:0}.sf-home{width:140px;top:calc(50% - 42px);right:0}.sf-battery{width:180px;bottom:0;left:calc(50% - 90px)}.sf-top,.sf-bottom{width:140px;right:0}.sf-top{top:0}.sf-bottom{bottom:0}.sf-top .sf-value,.sf-bottom .sf-value{font-size:24px}.sf-top .sf-unit,.sf-bottom .sf-unit{font-size:13px}.sf-narrow .sf-solar,.sf-narrow .sf-battery{left:0;width:170px}.sf-has-top .sf-solar{left:0}\n'+
         '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-grid,.sf-small .sf-home{width:112px}.sf-small .sf-battery,.sf-small .sf-solar{width:140px}.sf-small .sf-battery .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-top,.sf-small .sf-bottom{width:112px}.sf-small .sf-top .sf-value,.sf-small .sf-bottom .sf-value{font-size:20px}.sf-small .sf-top .sf-unit,.sf-small .sf-bottom .sf-unit{font-size:12px}\n'+
-        '@keyframes sf-forward{to{offset-distance:100%}}@media(prefers-reduced-motion:reduce){.sf-flow{animation:none;offset-distance:50%}}';
+        '@media(prefers-reduced-motion:reduce){.sf-flow{offset-distance:50%;transition:none}}';
     })()}

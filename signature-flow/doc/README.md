@@ -8,7 +8,7 @@ Signature Flow displays instantaneous solar, grid, home and battery power in one
 2. Add `signature_flow` to the `modules` list of a Bubble `button` card with `button_type: state`.
 3. Configure its nodes under `signature_flow`. The module is self-contained: use it without the `signature` design module on this card.
 
-The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.2**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.3**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
 
 [Home configuration](../examples/home.yaml) contains the existing sensors, the remaining solar forecast, battery charge and power, water conversion, and the five existing popup hashes. It replaces the five Energy/Water cards, excludes the car charging card, and leaves the section title outside the module. It does not create popup cards: the corresponding popups must already exist in the view. Importing the module does not modify the dashboard.
 
@@ -63,17 +63,19 @@ The module respects Home Assistant's language and number-format preference. Defa
 
 ## Arrow speed
 
-Arrow speed increases linearly with the absolute flow measurement. Equal power moves at the same speed on different connections; the time to traverse a connection depends on its length. The default range is **4–20 pixels per second**, reaching the maximum at **10,000 W**. Small grid imports/exports remain slow, while larger solar, home or battery power gradually speeds up. Zero or unavailable flows have no arrow.
+Arrow speed increases linearly with the absolute flow measurement. Equal power moves at the same speed on different connections; the time to traverse a connection depends on its length. The default range is **4–40 pixels per second**, reaching the maximum at **10,000 W**. Small grid imports/exports remain slow, while larger solar, home or battery power gradually speeds up. Zero or unavailable flows have no arrow.
 
 ```yaml
 signature_flow:
   animation:
     min_speed: 4
-    max_speed: 20
+    max_speed: 40
     reference_power: 10000
 ```
 
-`min_speed` and `max_speed` are pixels per second; `reference_power` is watts. The module normalizes W/kW/MW power units, including configured display scaling. Above the reference, speed remains capped. A node's `animation_reference` overrides the reference in its scaled flow units: the home example uses `20` for water measured in L/min. Sensor updates change only the animation duration, without measuring geometry again or adding a JavaScript animation loop.
+`min_speed` and `max_speed` are pixels per second; `reference_power` is watts. The module normalizes W/kW/MW power units, including configured display scaling. Above the reference, speed remains capped. A node's `animation_reference` overrides the reference in its scaled flow units: the home example uses `20` for water measured in L/min. An explicit `max_speed` in an existing dashboard overrides the module default; update it to `40` to use the new maximum.
+
+Each connection reuses a native Web Animation. Changes in power adjust its playback rate without resetting its position. When the flow changes sign, the arrow turns over 180 ms and travels back from its current position. A temporary zero or unavailable measurement hides and pauses the arrow; it resumes at that position when the flow returns, including in the opposite direction. Sensor updates do not measure geometry again or add a JavaScript animation loop.
 
 ## Direction and interactions
 
@@ -107,8 +109,8 @@ signature_flow:
 
 ## Runtime and validation
 
-DOM nodes, number formatters and paths are reused. Every evaluation reads the configured entities through Bubble's tracked `hass` object; Jinja uses Bubble's `renderTemplate` helper. There is no polling, service call, extra WebSocket subscription or global CSS injection. A single `ResizeObserver` per card adjusts paths on size changes. Teardown removes it, the keyboard/input-mode handlers and the custom DOM. Text and template results are inserted as text, never as HTML.
+DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the configured entities through Bubble's tracked `hass` object; Jinja uses Bubble's `renderTemplate` helper. There is no polling, service call, extra WebSocket subscription or global CSS injection. A single `ResizeObserver` per card adjusts paths on size changes. Teardown cancels the animations and removes the observer, reduced-motion listener, keyboard/input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
 
 This module replaces the native button content. Alert Manager's native main-icon badge is therefore not exposed on the custom flow nodes; no per-node alert integration is included in this first version.
 
-Run `npm run test:signature-flow` or `npm test` from the repository root. Tests use the actual distribution to check directions, connection alignment, unavailable states, scaling, localization, dependency reads, native action bindings, configuration changes and teardown. Browser checks additionally verify mobile/desktop layouts and responsive boundaries from 320 to 498 px, both optional sources, icon sizes, baselines, moving arrow positions/directions, hover backgrounds, actions and reduced motion. A live Home Assistant installation remains the final check for its own popup definitions, sensor sign conventions and template results.
+Run `npm run test:signature-flow` or `npm test` from the repository root. Tests use the actual distribution to check directions, position preservation on reversals and rate changes, pause/resume, connection alignment, unavailable states, scaling, localization, dependency reads, native action bindings, configuration changes and teardown. Browser checks additionally verify mobile/desktop layouts and responsive boundaries from 320 to 498 px, both optional sources, icon sizes, baselines, moving arrow positions/directions, hover backgrounds, actions and reduced motion. A live Home Assistant installation remains the final check for its own popup definitions, sensor sign conventions and template results.
