@@ -316,6 +316,12 @@ YAML/JavaScript syntax checks do not validate rendering or data in a real Home A
 
 ### 3.5.0 — 4 October 2026
 
+- Adds optional CSS variables for the card surface, badge fill and neutral badge color, retaining existing values as fallbacks.
+- Allows the Signature theme to adapt neutral badges to light and dark modes; alert discovery, filtering, priorities, icons and actions remain unchanged.
+- Verification: 188 automated repository tests passed. Rendering on a live Home Assistant dashboard remains to be checked.
+
+### 3.4.2 — 4 October 2026
+
 - Discovers direct entity IDs in `primary` and `secondary`, so Signature 2 secondary values and Signature Flow measurements remain monitored without auxiliary entity fields.
 - Discovery remains cached per card configuration; alert source reads and filtering are unchanged.
 

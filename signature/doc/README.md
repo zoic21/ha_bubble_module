@@ -300,6 +300,12 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 
 ### 2.1.0 — 4 October 2026
 
+- Adds optional `signature-*` CSS variables for typography, card surfaces, corners, shadows and dividers, with existing values as fallbacks.
+- Supports the Signature light/dark theme without new JavaScript style reads or subscriptions. Layout geometry, actions and the cached CSS lifecycle remain unchanged.
+- Verification: 188 automated repository tests passed, including theme reference and contrast checks. Rendering on a live Home Assistant dashboard remains to be checked.
+
+### 2.0.0 — 4 October 2026
+
 - Keeps the main entity and its details action native to Bubble; `state` remains an optional display override.
 - Accepts a direct entity, template or text in `secondary`, with automatic details targeting. Removes the redundant `secondary_entity` option.
 - Caches secondary source detection until its configuration changes, while continuing to refresh rendered values and entity dependencies. Numeric values reuse locale/precision formatters; no polling or additional subscriptions are introduced.
