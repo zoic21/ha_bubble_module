@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.0.0** · Module ID: `signature_weather`
+**Version: 1.0.1** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -80,7 +80,7 @@ Current conditions are displayed by default in `summary`, and in any layout with
 
 Without `current_metrics`, the module displays the configured local measurements, excluding temperature and condition, which have their own header fields. If none are configured, it displays provider humidity and wind speed when available. Use `current_metrics` to choose an exact subset or order.
 
-`summary` offers buttons only for forecast types supported by the provider. Changing period preserves any previously received forecast for that type while its subscription is starting. An explicitly configured unsupported `forecast_type` produces an explanatory message; the module does not silently replace it with another type.
+`summary` offers buttons only for forecast types supported by the provider. The period toolbar appears only when at least two types are available; forecasts have no separate period or temperature-unit heading. Changing period preserves any previously received forecast for that type while its subscription is starting. An explicitly configured unsupported `forecast_type` produces an explanatory message; the module does not silently replace it with another type.
 
 ## Local measurements
 

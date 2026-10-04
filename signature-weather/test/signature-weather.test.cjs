@@ -73,7 +73,7 @@ const daily=[
 const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
 
 test('distribution compiles and all examples use the same standalone module',()=>{
-  assert.equal(definition.name,'Signature Weather');assert.equal(definition.version,'1.0.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Weather');assert.equal(definition.version,'1.0.1');assert.deepEqual(definition.supported,['button']);
   const layouts=[];
   for(const file of fs.readdirSync(path.join(base,'examples'))) {
     const card=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
@@ -86,6 +86,7 @@ test('all three layouts render the real forecasts and keep provider measurements
   for(const layout of ['ribbon','ranges','summary']) {
     const {r,emit}=fixture(t,{layout});emit(daily);
     assert.equal(r.canvas.getAttribute('data-layout'),layout);assert.equal(r.records.length,6);
+    assert.equal(r.toolbar.hidden,layout!=='summary');
     assert.equal(r.current.hidden,layout!=='summary');assert.equal(r.entries[0].high.textContent,'23°');assert.equal(r.entries[0].low.textContent,'17°');
     assert.equal(r.entries[3].icon.getAttribute('icon'),'mdi:weather-rainy');
     r.entries[3].el.click();assert.match(r.detailTitle.textContent,/mercredi.*Pluie/);
@@ -102,7 +103,7 @@ test('only one active subscription is started across unrelated style passes',t=>
 });
 test('summary switches supported periods and rejects late events from the old period',async t=>{
   const {r,hass,emit}=fixture(t,{layout:'summary'});emit(daily);await flush();
-  const first=hass.connection.calls[0];assert.equal(r.tabs.hidden,false);assert.equal(r.tabNodes.daily.hidden,false);
+  const first=hass.connection.calls[0];assert.equal(r.tabs.hidden,false);assert.equal(r.toolbar.hidden,false);assert.equal(r.tabNodes.daily.hidden,false);
   r.tabNodes.hourly.click();assert.equal(first.unsubscribed,1);assert.equal(hass.connection.calls.length,2);
   const hours=[{datetime:'2026-10-04T13:00:00Z',temperature:21,condition:'sunny'}];
   hass.connection.calls[1].callback({forecast:hours});assert.equal(r.entries[0].high.textContent,'21°');assert.equal(r.entries[0].low.hidden,true);
@@ -112,7 +113,7 @@ test('summary switches supported periods and rejects late events from the old pe
 test('auto mode follows provider capabilities and hides a single period control',t=>{
   const {r,hass,run}=fixture(t,{layout:'summary'});
   hass.states['weather.home']={...hass.states['weather.home'],attributes:{...hass.states['weather.home'].attributes,supported_features:2}};run();
-  assert.equal(r.period,'hourly');assert.equal(r.tabs.hidden,true);assert.equal(r.tabNodes.daily.hidden,true);
+  assert.equal(r.period,'hourly');assert.equal(r.tabs.hidden,true);assert.equal(r.toolbar.hidden,true);assert.equal(r.tabNodes.daily.hidden,true);
   hass.states['weather.home']={...hass.states['weather.home'],attributes:{...hass.states['weather.home'].attributes,supported_features:4}};run();
   assert.equal(r.period,'twice_daily');assert.equal(r.tabNodes.hourly.hidden,true);
 });
@@ -238,7 +239,7 @@ test('metric subsets and order, current visibility and details can change in-pla
 test('number and language changes refresh values and formatters without recreating the card',t=>{
   const {r,hass,run,emit}=fixture(t,{layout:'summary',precision:1});emit(daily);const node=r.entries[0];
   assert.equal(node.high.textContent,'23,4°');hass.locale={language:'en',number_format:'comma_decimal',time_format:'24'};run();
-  assert.equal(r.entries[0],node);assert.equal(node.high.textContent,'23.4°');assert.equal(r.condition.textContent,'Cloudy');assert.equal(r.periodLabel.textContent,'Days · °C');
+  assert.equal(r.entries[0],node);assert.equal(node.high.textContent,'23.4°');assert.equal(r.condition.textContent,'Cloudy');assert.equal(r.tabNodes.daily.textContent,'Days');
 });
 test('custom conditions are inserted as text, and missing provider metrics are omitted',t=>{
   const value='<img src=x onerror=alert(1)>';

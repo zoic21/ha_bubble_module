@@ -1,6 +1,6 @@
 signature_weather:
   name: Signature Weather
-  version: 1.0.0
+  version: 1.0.1
   creator: Loïc
   supported:
     - button
@@ -51,9 +51,8 @@ signature_weather:
     [data-signature-weather] .sw-current-metrics { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0 16px 12px; }
     [data-signature-weather] .sw-metric { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: 12px !important; color: var(--secondary-text-color) !important; font-variant-numeric: tabular-nums; }
     [data-signature-weather] .sw-metric ha-icon { --mdc-icon-size: 16px; }
-    [data-signature-weather] .sw-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px 0; }
+    [data-signature-weather] .sw-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px 0; }
     [data-signature-weather] .sw-current:not([hidden]) + .sw-current-metrics + .sw-toolbar { border-top: 1px solid var(--sw-divider); }
-    [data-signature-weather] .sw-period-label { font-size: 12px; color: var(--secondary-text-color); }
     [data-signature-weather] .sw-tabs { display: inline-flex; gap: 2px; border-radius: 14px; background: var(--sw-track); padding: 3px; }
     [data-signature-weather] .sw-tab { padding: 0 10px !important; min-height: 38px; font-size: 12px !important; border-radius: 11px; }
     [data-signature-weather] .sw-tab[aria-pressed="true"] { background: var(--sw-surface); box-shadow: 0 1px 4px rgb(0 0 0 / .06); }
@@ -100,7 +99,7 @@ signature_weather:
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
-      const version = '1.0.0';
+      const version = '1.0.1';
       let runtime = this._signatureWeather;
       if (runtime && (runtime.version !== version || runtime.root !== root || runtime.host !== host || !enabled)) {
         runtime.dispose(); runtime = null;
@@ -127,9 +126,8 @@ signature_weather:
         current.append(currentIcon,heading,temperature);
         const metrics = create('div', 'sw-current-metrics');
         const toolbar = create('div', 'sw-toolbar');
-        const periodLabel = create('span','sw-period-label');
         const tabs = create('div','sw-tabs'); attr(tabs,'role','group');
-        toolbar.append(periodLabel,tabs);
+        toolbar.appendChild(tabs);
         const forecast = create('div','sw-forecast');
         const status = create('div','sw-status'); attr(status,'role','status');
         const detail = create('div','sw-detail'); attr(detail,'aria-live','polite');
@@ -137,7 +135,7 @@ signature_weather:
         canvas.append(current,metrics,toolbar,forecast,status,detail); host.appendChild(canvas);
         attr(root,'data-signature-weather','');
         runtime = this._signatureWeather = {version,root,host,canvas,current,currentIcon,name,condition,
-          temperature,temperatureValue,temperatureUnit,metrics,toolbar,periodLabel,tabs,forecast,status,
+          temperature,temperatureValue,temperatureUnit,metrics,toolbar,tabs,forecast,status,
           detail,detailTitle,entries:[],metricNodes:{},detailNodes:{},tabNodes:{},forecasts:{},selected:0,formatters:new Map()};
         const r = runtime;
         r.moreInfo = (event,id) => {
@@ -281,9 +279,9 @@ signature_weather:
             button.hidden = r.layout !== 'summary';
           }
           r.tabs.hidden = r.layout !== 'summary' || r.types.length < 2;
+          r.toolbar.hidden = r.tabs.hidden;
           attr(r.tabs,'aria-label',r.labels.forecast);
           const temperatureUnit = r.weather?.attributes?.temperature_unit || r.hass.config?.unit_system?.temperature || '';
-          text(r.periodLabel,(r.labels[r.period] || r.labels.forecast)+(temperatureUnit ? ' · '+temperatureUnit : ''));
           const today = r.date(now,'key');
           const records = (['loading','ready'].includes(r.phase) ? r.forecasts[r.period] || [] : []).map(item => ({...item,date:new Date(item.datetime)}))
             .filter(item => Number.isFinite(item.date.getTime()) && (r.period === 'hourly' ? item.date.getTime() >= Math.floor(now.getTime()/3600000)*3600000 : r.date(item.date,'key') >= today))
