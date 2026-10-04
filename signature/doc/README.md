@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.2.1**. [Complete file to import](../dist/signature.yaml).
+Version **2.2.2**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -297,6 +297,10 @@ The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.2.2 — 4 October 2026
+
+- Compact main values use tabular figures, matching the other primary numeric displays.
 
 ### 2.2.1 — 4 October 2026
 

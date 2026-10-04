@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.2.0** · Module ID: `signature_weather`
+**Version: 1.2.1** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -169,7 +169,7 @@ Condition strings use the standard Home Assistant weather icons and translations
 - Temperatures remain neutral. Icon colors use Home Assistant weather color variables when supplied by the theme.
 - Card surfaces and text follow the active Home Assistant theme, including dark mode.
 
-The current temperature uses the same 30 px maximum as Signature's room temperature, the header uses 14 px, secondary text uses 13 px, and daily range rows use 56 px height. The ribbon's forecast values use 20 px to keep six entries readable on mobile.
+The current temperature uses the same 30 px maximum as Signature's room temperature, the header uses 14 px, secondary text uses 13 px, and daily range rows use 56 px height. Forecast highs use 20 px in ribbon/summary and 16 px in ranges; at container widths up to 360 px these become 18 px and 15 px respectively. Numeric readings use tabular figures.
 
 ## Data lifecycle
 
@@ -202,6 +202,10 @@ This module supports the optional [Signature light/dark theme](../../themes/READ
 From version 1.1.1, horizontal dividers share a 16 px inset from each card edge with Signature room cards. Set `signature-divider-inset` in the theme (without `--`) or card CSS (with `--`) to change this margin. `0px` spans the card's inner width; larger values shorten the line. Forecast-row padding is accounted for on desktop and mobile, without shifting content or changing row heights. Divider colors still use `signature-divider-color`.
 
 ## Release notes
+
+### 1.2.1 — 4 October 2026
+
+- Current temperature and measurement buttons retain tabular figures through the canvas font reset, matching forecasts and the other numeric modules.
 
 ### 1.2.0 — 4 October 2026
 

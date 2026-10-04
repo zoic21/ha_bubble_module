@@ -1,6 +1,6 @@
 signature_weather:
   name: Signature Weather
-  version: 1.2.0
+  version: 1.2.1
   creator: Loïc
   supported:
     - button
@@ -46,10 +46,12 @@ signature_weather:
     [data-signature-weather] .sw-current-icon { --mdc-icon-size: 32px; }
     [data-signature-weather] .sw-name { font-size: var(--signature-name-font-size,14px); font-weight: var(--signature-font-weight-semibold, 600); letter-spacing: -.2px; overflow-wrap: anywhere; }
     [data-signature-weather] .sw-condition { font-size: var(--signature-secondary-font-size,13px); color: var(--secondary-text-color); margin-top: 3px; overflow-wrap: anywhere; }
-    [data-signature-weather] .sw-current-temperature { display: inline-flex; align-items: baseline; gap: 3px; font-size: var(--signature-temperature-font-size,30px) !important; font-weight: var(--signature-font-weight-medium, 500) !important; letter-spacing: -.7px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    [data-signature-weather] .sw-current-temperature { display: inline-flex; align-items: baseline; gap: 3px; font-size: var(--signature-temperature-font-size,30px) !important; font-weight: var(--signature-font-weight-medium, 500) !important; letter-spacing: -.7px; white-space: nowrap; }
     [data-signature-weather] .sw-current-unit { color: var(--secondary-text-color); font-size: var(--signature-temperature-unit-font-size,13px); font-weight: var(--signature-font-weight-normal, 400); letter-spacing: 0; }
     [data-signature-weather] .sw-current-metrics { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0 16px 12px; }
-    [data-signature-weather] .sw-metric { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: var(--signature-caption-font-size,12px) !important; color: var(--secondary-text-color) !important; font-variant-numeric: tabular-nums; }
+    [data-signature-weather] .sw-metric { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: var(--signature-caption-font-size,12px) !important; color: var(--secondary-text-color) !important; }
+    /* Keep numeric figures after the canvas button font reset. */
+    [data-signature-weather] .sw-canvas :is(.sw-current-temperature,.sw-metric) { font-variant-numeric: tabular-nums; }
     [data-signature-weather] .sw-metric ha-icon { --mdc-icon-size: 16px; }
     [data-signature-weather] .sw-toolbar { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px 0; }
     [data-signature-weather] .sw-current:not([hidden]) + .sw-current-metrics + .sw-toolbar { border-top: 1px solid transparent; }
@@ -106,7 +108,7 @@ signature_weather:
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
-      const version = '1.2.0';
+      const version = '1.2.1';
       let runtime = this._signatureWeather;
       if (runtime && (runtime.version !== version || runtime.root !== root || runtime.host !== host || !enabled)) {
         runtime.dispose(); runtime = null;

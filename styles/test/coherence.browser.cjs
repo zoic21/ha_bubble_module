@@ -100,6 +100,21 @@ test('names, numeric values, temperature units and captions retain distinct role
   assert.equal(style(result, 'weather-summary', '.sw-entry-label').fontSize, '12px');
 });
 
+test('numeric readings keep tabular figures through button resets and responsive layouts', async t => {
+  const page = await fixture(t);
+  for (const scenario of [{width: 288}, {width: 600, mode: 'dark'}, {width: 600, plain: true}]) {
+    const result = await render(page, scenario);
+    for (const [id, selector] of [
+      ['compact', '.bubble-state'], ['square', '.bubble-state'], ['room', '.room-temperature'],
+      ['flow', '.sf-value'], ['wind', '.swr-value'],
+      ...['weather-ranges', 'weather-ribbon', 'weather-summary'].flatMap(id =>
+        ['.sw-current-temperature', '.sw-metric', '.sw-high', '.sw-low'].map(selector => [id, selector]))
+    ]) assert.equal(style(result, id, selector).fontVariantNumeric, 'tabular-nums', `${id} ${selector}`);
+    assert.equal(style(result, 'weather-ranges', '.sw-high').fontSize, scenario.width <= 360 ? '15px' : '16px');
+    assert.equal(style(result, 'weather-ribbon', '.sw-high').fontSize, scenario.width <= 360 ? '18px' : '20px');
+  }
+});
+
 test('period controls agree in active/inactive colors, font, padding and corners', async t => {
   const page = await fixture(t);
   for (const mode of ['light', 'dark']) {

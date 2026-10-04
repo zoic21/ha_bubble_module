@@ -26,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 2.2.1
+  version: 2.2.2
   creator: Loïc
   supported:
     - button
@@ -891,6 +891,7 @@ signature:
           min-width: 0;
           font-size: var(--signature-compact-value-font-size, 20px);
           font-weight: var(--signature-font-weight-medium, 500);
+          font-variant-numeric: tabular-nums;
           color: var(--primary-text-color);
           padding-inline-end: 6px;
           box-sizing: border-box;

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature 2.2.1**, **Signature Flow 3.4.0**, **Signature Weather 1.2.0** et **Signature Wind Rose 1.1.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature 2.2.2**, **Signature Flow 3.4.0**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -52,7 +52,7 @@ La présence d'Apple dans la pile ne garantit pas une police Apple sur Android, 
 | Unité de valeur compacte | `signature-secondary-font-size` | 13 px | Normale, 400 |
 | Grand titre de page Signature | Taille propre au header | 38 px / 32 px | `signature-font-weight-bold`, 700 |
 
-Les unités utilisent la couleur secondaire, une graisse normale et un espacement de lettres nul. Les noms standards partagent `letter-spacing: -.2px`. Les grandes valeurs square, Flow et les températures principales partagent `-.7px`; les petits textes et les titres possèdent leurs réglages de lisibilité propres. Utiliser `font-variant-numeric: tabular-nums` pour les mesures qui changent.
+Les unités séparées des valeurs principales utilisent la couleur secondaire, une graisse normale et un espacement de lettres nul. Dans les prévisions Weather, le symbole degré fait partie du texte de la température et conserve sa taille et sa graisse. Les noms standards partagent `letter-spacing: -.2px`. Les grandes valeurs square, Flow et les températures principales partagent `-.7px`; les petits textes et les titres possèdent leurs réglages de lisibilité propres. Utiliser `font-variant-numeric: tabular-nums` pour les valeurs principales compact/square, les mesures room/Flow, les températures et mesures Weather et les valeurs Wind Rose. Vérifier cette propriété calculée : une remise à zéro `font: inherit` sur un bouton peut l'annuler malgré une déclaration dans le CSS.
 
 Les onglets de période restent en graisse normale dans les deux états. La sélection est indiquée par la surface, l'ombre et la couleur primaire. Ne pas ajouter du gras uniquement dans l'un des deux modules.
 
@@ -72,7 +72,7 @@ Dans le thème livré, le texte secondaire sur la surface de carte a un contrast
 | Flow, canvas plus large | Slots 4/6 = `max(16px, valeur - 4px)` ; leurs unités utilisent le secondaire de 13 px |
 | Flow, canvas inférieur à 460 px | Connexions et positionnement passent au layout étroit ; ce seuil porte sur le canvas, pas sur la fenêtre |
 | Weather, conteneur au plus égal à 360 px | Température actuelle = `max(20px, température - 4px)` ; prévision haute = 18 px, ou 15 px dans `ranges` |
-| Weather, conteneur plus large | Prévision haute = 20 px ; prévision basse = secondaire de 13 px |
+| Weather, conteneur plus large | Prévision haute = 20 px dans `ribbon`/`summary`, 16 px dans `ranges` ; prévision basse = secondaire de 13 px |
 | Room, température principale | `clamp(20px, 14cqw, température)` ; valeur maximale 30 px par défaut |
 | Room, mesures dans l'en-tête | Température de 20 px dans un espace de 82 px ; texte de température non numérique = 15 px |
 | Compact, valeur textuelle à droite | 16 px, graisse normale ; conserver la place pour accents et descendantes |
@@ -167,7 +167,7 @@ npx playwright install chromium
 npm run test:styles
 ```
 
-Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 14 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
+Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 15 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
 
 | Dimension à contrôler | Cas requis |
 |---|---|

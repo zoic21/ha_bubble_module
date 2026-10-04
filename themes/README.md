@@ -14,7 +14,7 @@ The optional [signature.yaml](signature.yaml) theme provides light and dark mode
 
 3. Restart Home Assistant if you have just enabled themes. If theme loading was already configured, run `frontend.reload_themes` from Developer tools > Actions.
 4. Select **Signature** in your Home Assistant profile and choose light, dark or automatic mode. A view-level or card-level theme override takes precedence for that view or card.
-5. Import the updated modules to enable their shared styling variables: Signature 2.2.1, Signature Flow 3.4.0, Signature Weather 1.2.0, and Alert Manager 3.5.0.
+5. Import the updated modules to enable their shared styling variables: Signature 2.2.2, Signature Flow 3.4.0, Signature Weather 1.2.1, Signature Wind Rose 1.1.0, and Alert Manager 3.5.0.
 
 Signature Wind Rose 1.1.0 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
 
@@ -60,7 +60,7 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-control-touch-height` | Period buttons with a coarse pointer | `44px` |
 | `signature-tooltip-border-radius` | Wind Rose tooltip corners | Shared icon radius |
 | `signature-tooltip-box-shadow` | Wind Rose tooltip shadow | Shared control shadow |
-| `signature-control-background` | Weather segmented-control track | Mode-specific |
+| `signature-control-background` | Weather and Wind Rose period-control tracks | Mode-specific |
 | `signature-control-box-shadow` | Weather and Wind Rose selected-tab shadow | Mode-specific |
 | `signature-alert-badge-background` | Alert Manager badge fill | Card surface |
 | `signature-alert-badge-neutral-color` | Alert badge when `color_badge: false` | Primary text color |
@@ -71,6 +71,8 @@ The browser resolves the variables directly. Changing the theme or its mode does
 Horizontal dividers in Signature room cards, Weather and Wind Rose share a 1 px line with a 16 px inset from each card edge, even without the theme. `signature-divider-inset` changes only the line, not the surrounding text or controls. Weather forecast-row padding is accounted for on desktop and mobile, so the inset is not applied twice. Use a non-negative CSS length such as `24px` for a shorter line, or `0px` to span the card's inner width. Flow and Alert Manager have no horizontal dividers.
 
 Period groups have 3 px padding and gaps; their inner button radius is the shared control radius minus 3 px, at least zero. Weather keeps an inline group and Wind Rose a full-width group. Ordinary secondary text uses its color at full opacity; inactive/disabled icons retain their native state opacity. Other layout dimensions, responsive value sizes, spacing and actions remain module-specific. Font overrides must be checked at narrow widths; fixed compact heights are not an unlimited text-zoom layout. Main and secondary text colors continue to use Home Assistant's `primary-text-color` and `secondary-text-color`. Explicit card accents and borders take precedence as before.
+
+Primary numeric displays use tabular figures. This is applied in the modules, including Weather's temperature and measurement buttons, so their font reset does not cancel it; the theme needs no additional typography variable.
 
 For lighter names across the compatible modules, change `signature-font-weight-semibold` to `500`. For a shadow-free interface, set `signature-card-box-shadow` to `none` in both modes. To affect only one card:
 
