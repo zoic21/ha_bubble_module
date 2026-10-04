@@ -6,6 +6,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 |---|---|---|---|
 | Signature — card design | 1.8.28 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
 | Signature Flow — instantaneous power and optional sources | 1.0.4 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Weather — forecasts and optional local measurements | 1.0.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.4.1 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Each module has its own folder: `dist` contains the complete YAML file to import, `doc` contains its documentation, and `test` contains its tests.
@@ -22,7 +23,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature`, `signature_flow` and `alert_manager`. The Signature Flow folder is named `signature-flow`.
+The YAML IDs are `signature`, `signature_flow`, `signature_weather` and `alert_manager`. The Signature Flow and Signature Weather folders are named `signature-flow` and `signature-weather`.
 
 ## Updates and Module Store
 
@@ -34,7 +35,7 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 ## Configuration
 
-The distributions do not declare an `editor` schema, so custom options are configured in the card's YAML. Standard controls, entities, and actions remain those provided by Bubble Card. Signature Flow replaces the native button content with a power-flow diagram; see its [home example](signature-flow/examples/home.yaml).
+The distributions do not declare an `editor` schema, so custom options are configured in the card's YAML. Standard controls, entities, and actions remain those provided by Bubble Card. Signature Flow replaces the native button content with a power-flow diagram; see its [home example](signature-flow/examples/home.yaml). Signature Weather replaces it with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
 
 ## Testing
 
@@ -45,6 +46,6 @@ npm ci --ignore-scripts
 npm test
 ```
 
-Use `npm run test:signature`, `npm run test:signature-flow` or `npm run test:alert-manager` to test a single module. Tests are stored in each module's `test` folder and read the actual YAML distributions. The only npm dependency parses YAML during testing; it is not needed in Home Assistant.
+Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather` or `npm run test:alert-manager` to test a single module. Tests are stored in each module's `test` folder and read the actual YAML distributions. The only npm dependency parses YAML during testing; it is not needed in Home Assistant.
 
 GitHub Actions runs the tests on Node.js 22 and 24 for every push and pull request, and can also be triggered manually. It checks alert sources, filters, caching, translations, numeric controls, metadata, YAML examples, and local documentation links. It does not replace checking the rendered cards in Home Assistant.

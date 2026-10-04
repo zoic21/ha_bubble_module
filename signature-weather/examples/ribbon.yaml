@@ -1,0 +1,21 @@
+# Replace weather.home with your weather entity.
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: weather.home
+show_name: false
+show_state: false
+show_icon: false
+button_action:
+  tap_action:
+    action: none
+grid_options:
+  columns: full
+  rows: auto
+modules:
+  - signature_weather
+signature_weather:
+  layout: ribbon
+  forecast_type: daily
+  count: 6
+  precision: 0
