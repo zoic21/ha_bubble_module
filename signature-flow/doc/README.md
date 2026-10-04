@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Configure the numbered blocks under `signature_flow.slots`.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.4.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.4.1**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -206,6 +206,8 @@ Each arrow reuses a native Web Animation and its SVG element. Count changes and 
 
 ## Runtime and validation
 
+The generated CSS is cached per card and reused until its effective configured height changes. Theme variables remain in the CSS; sensor reads, templates, formatting, actions and animation updates still execute on cache hits. This avoids rebuilding the style string, without adding a dependency or claiming a measured full-dashboard loading improvement.
+
 DOM nodes, number formatters, paths and animations are reused on sensor updates. Each connection retains a bounded arrow pool (at most 12 SVG arrows); only visible arrows run animations. When a target entity or configured action changes, only that action element is replaced, preserving its child content and ongoing flow animations; this refreshes Bubble's cached pointer handler. Every evaluation reads the visible slots' direct or inferred display entities and flow entities through Bubble's tracked `hass` object. Source detection is cached in a bounded map; rendered results and entity states are refreshed on each evaluation. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; slot 2's connection and the mobile connections from slots 1 and 3 then follow their fitted text widths. Measurements are batched before path writes. The other connections reuse their existing geometry during sensor updates. There is no JavaScript animation loop.
 
 Teardown cancels animations and pending text fitting, then removes the observer, reduced-motion listener, input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
@@ -219,6 +221,11 @@ Run `npm run test:signature-flow` or `npm test` from the repository root. Tests 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
 
 ## Release notes
+
+### 3.4.1 — 4 October 2026
+
+- Reuses the generated CSS while the effective height is unchanged; dynamic slot data and actions retain their tracked reads.
+- Tests cover sensor refreshes on cache hits, configuration replacement, height bounds and live theme variables.
 
 ### 3.4.0 — 4 October 2026
 

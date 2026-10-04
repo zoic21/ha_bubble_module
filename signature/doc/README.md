@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.2.2**. [Complete file to import](../dist/signature.yaml).
+Version **2.2.3**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -290,13 +290,19 @@ The [Alert Manager module](../../alert_manager/doc/README.md) colors the icon ac
 
 Layout CSS includes only the active compact mode, native control type, secondary text, and multiline option. It is reused while these options, geometry, and surface are unchanged. An empty/nonempty secondary template result or a change in trailing controls updates the cached styles. Dynamic entity states, Jinja results, colors, and actions are still evaluated on each module execution; this cache does not suppress dependency reads or template updates.
 
-A standard compact state button without optional controls or secondary text generates about 6.0 kB of CSS (4.4 kB after Bubble's CSS cleanup), down from 11.4 kB (9.0 kB after cleanup) in 1.8.27. These are generated style sizes for this configuration, not the imported YAML file size; enabled features add their own rules.
+A standard compact state button without optional controls or secondary text generates about 7.0 kB of CSS (5.25 kB after Bubble's CSS cleanup). These are generated style sizes for this configuration, not the imported YAML file size; enabled features add their own rules. Layout-specific secondary rules reuse shared typography. Room controls with explicit styles paint their automatic defaults once. Visual switches share one cached geometry block per card, retaining independent track colors, positions, opacity and native actions. Grouping switches saves CSS when a card has several switches; a single switch has a small custom-property overhead.
 
 The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, and changes in Bubble can affect rendering. Use a recent Bubble version; Jinja templates and lifecycle cleanup use `renderTemplate` and `onTeardown` when available. No specific minimum version is claimed without validation against that version.
 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.2.3 — 4 October 2026
+
+- Shares cached geometry across visual switches on the same card; state, color and availability still refresh on every evaluation.
+- Removes duplicate automatic room-control colors and secondary typography without changing the visual defaults.
+- Keeps module-local styles and live theme variables. See the measured CSS budgets and validation limits in the [style guide](../../STYLE_GUIDE.md#8-performances-et-volume-css).
 
 ### 2.2.2 — 4 October 2026
 

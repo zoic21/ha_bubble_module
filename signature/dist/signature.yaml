@@ -26,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 2.2.2
+  version: 2.2.3
   creator: Loïc
   supported:
     - button
@@ -215,10 +215,19 @@ signature:
             const styles = Object.entries(overrides).filter(([,spec]) => spec && typeof spec === 'object').map(([key,spec]) => {
               const numeric = /^\d+$/.test(key);
               const cls = numeric ? 'bubble-sub-button-'+key : normalize(key);
-              return {cls,spec,b:byClass.get(cls) || (numeric ? flat[Number(key)-1] : null) || {}};
+              const b = byClass.get(cls) || (numeric ? flat[Number(key)-1] : null) || {};
+              const domain = (b.entity || '').split('.')[0];
+              const lock = domain === 'lock' && b.tap_action?.action === 'perform-action'
+                && ['lock.lock','lock.unlock'].includes(b.tap_action.perform_action);
+              const toggle = b.tap_action?.action === 'toggle'
+                && ['switch','input_boolean','light','automation','humidifier'].includes(domain);
+              return {cls,spec,b,visualSwitch:spec.type === 'switch'
+                && (!b.sub_button_type || b.sub_button_type === 'default') && (lock || toggle),lock};
             });
             structure = this._dpStructure = {config:c,options:c.signature,sub,main:sub?.main,bottom:sub?.bottom,overrides:o.sub_button_styles,
-              flat,styles,roleSet:new Set(roles),roles:roles.map(b => ({b,selector:'ha-card .'+normalize(b.css_class)}))};
+              flat,styles,hasSwitches:styles.some(style => style.visualSwitch),
+              styledButtons:new Set(styles.map(style => style.b)),roleSet:new Set(roles),
+              roles:roles.map(b => ({b,selector:'ha-card .'+normalize(b.css_class)}))};
           }
           const {flat,styles,roleSet} = structure;
           const {iconOverrides,restoreIcon,restoreAction} = runtime;
@@ -593,9 +602,43 @@ signature:
             if (spec.column != null) css += selector+' { --room-control-column:'+ (number(spec.column,1,1,roomColumns)-1) +'; }';
             return opacity;
           };
-          if (layout === 'room' && o.room_auto_colors !== false) roles.forEach(({b,selector}) => paint(selector,b,{},true));
+          if (layout === 'room' && o.room_auto_colors !== false) roles.forEach(({b,selector}) => {
+            // Explicit role styles paint the same automatic defaults plus their overrides below.
+            if (!structure.styledButtons.has(b)) paint(selector,b,{},true);
+          });
           if (layout === 'header') flat.forEach((b,i) => paint('ha-card .bubble-sub-button-'+(i+1), b, {background:'color-mix(in srgb, '+accent+' 12%, '+neutralSurface+')'}));
-          styles.forEach(({cls,b,spec}) => {
+          const visualSwitches = ['square','compact'].includes(layout) && structure.hasSwitches;
+          if (visualSwitches && !structure.switchCSS) {
+            const selectors = styles.filter(style => style.visualSwitch).map(style => 'ha-card[data-dp-layout] .bubble-sub-button.'+style.cls);
+            const select = suffix => selectors.map(selector => selector+suffix).join(', ');
+            // Share geometry within this card; only the track, position and opacity vary per switch.
+            structure.switchCSS = `
+              ${select('')} {
+                position: relative; width: 52px !important; min-width: 52px !important;
+                height: 34px !important; flex: 0 0 52px; padding: 0 !important;
+                border-radius: 17px !important; box-shadow: none !important;
+              }
+              ${select(' :is(.bubble-sub-button-icon,.bubble-sub-button-name-container)')} { display: none !important; }
+              ${select('::before')} {
+                content: ''; position: absolute; left: 2px; top: 3px;
+                width: 48px; height: 28px; border-radius: 14px;
+                background: var(--dp-switch-track); pointer-events: none;
+                transition: background 160ms ease;
+              }
+              ${select('::after')} {
+                content: ''; position: absolute; left: 4px; top: 5px;
+                width: 24px; height: 24px; border-radius: 50%; background: #fff;
+                box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+                transform: translateX(var(--dp-switch-offset));
+                transition: transform 160ms ease, background 160ms ease; pointer-events: none;
+              }
+              @media (prefers-reduced-motion: reduce) {
+                ${select('::before')}, ${select('::after')} { transition: none; }
+              }
+            `;
+          }
+          if (visualSwitches) css += structure.switchCSS;
+          styles.forEach(({cls,b,spec,visualSwitch,lock}) => {
             const opacity = paint('ha-card .'+cls,b,spec,layout === 'room' && o.room_auto_colors !== false && roleSet.has(b));
             if (spec.type === 'mode' && layout === 'compact'
                 && (!b.sub_button_type || b.sub_button_type === 'default')) {
@@ -614,49 +657,19 @@ signature:
               });
             }
             // Style only: explicit lock actions, visibility and native handlers stay untouched.
-            const switchDomain = (b.entity || '').split('.')[0];
-            const lockSwitch = switchDomain === 'lock'
-              && b.tap_action?.action === 'perform-action'
-              && ['lock.lock','lock.unlock'].includes(b.tap_action.perform_action);
-            const toggleSwitch = b.tap_action?.action === 'toggle'
-              && ['switch','input_boolean','light','automation','humidifier'].includes(switchDomain);
-            if (spec.type === 'switch' && ['square','compact'].includes(layout)
-                && (!b.sub_button_type || b.sub_button_type === 'default')
-                && (lockSwitch || toggleSwitch)) {
+            if (visualSwitch && visualSwitches) {
               const state = hass.states[b.entity]?.state;
               // ON means passage allowed for locks; transitional/unknown states are dimmed.
-              const on = state === (lockSwitch ? 'unlocked' : 'on');
-              const available = (lockSwitch ? ['locked','unlocked'] : ['on','off']).includes(state);
+              const on = state === (lock ? 'unlocked' : 'on');
+              const available = (lock ? ['locked','unlocked'] : ['on','off']).includes(state);
               const selector = 'ha-card[data-dp-layout] .bubble-sub-button.'+cls;
               // Inherit the configured icon/card color unless this switch has its own color.
               const tint = color(spec.color,iconTint,b.entity);
               const track = on ? tint : 'color-mix(in srgb, var(--primary-text-color) 18%, '+neutralSurface+')';
               css += `
                 ${selector} {
-                  position: relative; width: 52px !important; min-width: 52px !important;
-                  height: 34px !important; flex: 0 0 52px; padding: 0 !important;
-                  background: transparent !important; border-radius: 17px !important;
-                  box-shadow: none !important; opacity: ${(opacity === '' ? 1 : opacity) * (available ? 1 : .4)} !important;
-                }
-                ${selector} .bubble-sub-button-icon,
-                ${selector} .bubble-sub-button-name-container { display: none !important; }
-                ${selector}::before {
-                  content: ''; position: absolute; left: 2px; top: 3px;
-                  width: 48px; height: 28px; border-radius: 14px;
-                  background: ${track}; pointer-events: none;
-                  transition: background 160ms ease;
-                }
-                ${selector}::after {
-                  content: ''; position: absolute; left: 4px; top: 5px;
-                  width: 24px; height: 24px; border-radius: 50%;
-                  background: #fff;
-                  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
-                  transform: translateX(${on ? '20px' : '0'});
-                  transition: transform 160ms ease, background 160ms ease;
-                  pointer-events: none;
-                }
-                @media (prefers-reduced-motion: reduce) {
-                  ${selector}::before, ${selector}::after { transition: none; }
+                  --dp-switch-track: ${track}; --dp-switch-offset: ${on ? '20px' : '0px'};
+                  background: transparent !important; opacity: ${(opacity === '' ? 1 : opacity) * (available ? 1 : .4)} !important;
                 }
               `;
               if (layout === 'square' && o.controls === 'measure' && b === flat[0])
@@ -781,7 +794,7 @@ signature:
         ha-card[data-dp-layout="square"] .bubble-name { min-width: 0; font-size: var(--signature-name-font-size, 14px) !important; font-weight: var(--signature-font-weight-semibold, 600); line-height: 20px; letter-spacing: -0.2px; color: var(--primary-text-color); grid-area: 1 / 2; align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         ha-card[data-dp-layout="square"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center; font-size: var(--signature-value-font-size, 28px) !important; line-height: 1.1; letter-spacing: -.7px; font-weight: var(--signature-font-weight-medium, 500) !important; overflow: hidden; text-overflow: ellipsis; }
         ${secondary ? `ha-card[data-dp-layout="square"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px minmax(0,1fr) max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); row-gap: 4px; }
-        ha-card[data-dp-layout="square"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; font-size: var(--signature-secondary-font-size, 13px); line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); }` : ''}
+        ha-card[data-dp-layout="square"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; }` : ''}
         ha-card[data-dp-layout="square"][data-dp-icon="no"] .bubble-name { grid-column: 1 / 3; }
 
         ha-card[data-dp-layout="square"] .bubble-button-card { transition: none !important; }
@@ -799,7 +812,7 @@ signature:
         ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-container { height: auto !important; min-height: ${180 + (roomRows - 1) * 48}px !important; }
         ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-wrapper { display: block !important; height: auto !important; }
         ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-content-container { position: relative; inset: auto; width: 100%; box-sizing: border-box; padding: 12px 12px ${68 + (roomRows - 1) * 48}px; grid-template-rows: 38px 32px auto; }
-        ha-card[data-dp-layout="room"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); }` : ''}
+        ha-card[data-dp-layout="room"] .dp-secondary { grid-area: 3 / 1 / 4 / 3; }` : ''}
         ha-card[data-dp-layout="room"][data-dp-has-state="yes"] :is(.room-temperature,.room-humidity) { display: none !important; }
         ha-card[data-dp-layout="room"] :is(.bubble-sub-button-container,.bubble-sub-button-group) { position: static !important; transform: none !important; }
         ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity,.room-status,.room-climate,[class*="room-control-"]) { position: absolute !important; margin: 0 !important; padding: 0 !important; min-width: 0 !important; box-sizing: border-box; transform: none !important; }
@@ -825,10 +838,9 @@ signature:
         ha-card[data-dp-layout="room"] .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden]))::after { content: ''; position: absolute; inset-inline: var(--signature-divider-inset, 16px); bottom: ${roomDividerBottom}px; height: 1px; background: var(--dp-divider-color); pointer-events: none; }
         ha-card[data-dp-layout="room"] :is([class*="room-control-"],.room-climate) { top: auto; right: auto; bottom: calc(${roomControlBottom}px + (${roomRows - 1} - var(--dp-room-row,0)) * ${roomControlPitch}px); left: calc(8px + var(--room-control-column,var(--dp-room-column,0)) * (100% - 16px) / ${roomColumns}); width: calc((100% - 16px) / ${roomColumns}); height: 44px; justify-content: center; background: transparent !important; box-shadow: none !important; }
         ha-card[data-dp-layout="room"] :is([class*="room-control-"],.room-climate) .bubble-sub-button-icon { width: 36px; height: 36px; padding: 8px; box-sizing: border-box; border-radius: 50%; --mdc-icon-size: 20px; }
-        ha-card[data-dp-layout="room"] .room-status { top: 7px; left: 43px; width: 22px; height: 22px; border-radius: 50%; background: ${neutralSurface}; --mdc-icon-size: 16px; z-index: 2; }
+        ha-card[data-dp-layout="room"] .room-status { top: 7px; left: 43px; width: 22px; height: 22px; border-radius: 50%; background: ${neutralSurface}; color: var(--warning-color,#ff9800); --mdc-icon-size: 16px; z-index: 2; }
 
         ha-card[data-dp-layout="room"] .bubble-main-icon { color: var(--primary-text-color); opacity: 1; }
-        ha-card[data-dp-layout="room"] .room-status { color: var(--warning-color,#ff9800); }
         ha-card[data-dp-layout="room"] .room-status .bubble-sub-button-icon { color: inherit; }
 
         ha-card[data-dp-layout="room"] .dp-unit { font-size: 11px; }
@@ -848,7 +860,6 @@ signature:
         ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-state { display: block; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         /* Native inline wrapping must not turn a compact state into an extra row. */
         ${!multiline ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"][data-dp-multiline="no"] .bubble-state { display: block !important; white-space: nowrap !important; }` : ''}` : ''}
-        ${secondary ? `ha-card[data-dp-layout="compact"] .dp-secondary { font-size: var(--signature-secondary-font-size, 13px); line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); }` : ''}
         ha-card[data-dp-layout="compact"] .bubble-sub-button-container { position: relative !important; inset-inline-end: 0 !important; margin: 0 !important; flex-shrink: 0; z-index: 2; }
         ha-card[data-dp-layout="compact"] .bubble-buttons-container { position: static !important; margin: 0 !important; gap: 4px; flex-shrink: 0; }
         /* Two compact rows plus the native row gap equal a two-row square. */

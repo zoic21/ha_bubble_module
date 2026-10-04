@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature 2.2.2**, **Signature Flow 3.4.0**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature 2.2.3**, **Signature Flow 3.4.1**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -167,7 +167,7 @@ npx playwright install chromium
 npm run test:styles
 ```
 
-Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 15 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
+Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 16 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
 
 | Dimension à contrôler | Cas requis |
 |---|---|
@@ -185,3 +185,27 @@ Comparer des **styles calculés** et des dimensions réelles, pas seulement des 
 Pour un contrôle d'intégration visuelle, importer les distributions et le thème mis à jour dans Home Assistant, puis vérifier les mêmes cartes sur le navigateur et le téléphone utilisés. L'audit initial a aussi utilisé les feuilles natives de [Bubble Card 3.4.1, commit 061ed837](https://github.com/Clooos/Bubble-Card/tree/061ed8376134307ba1086446869d0ab736265fcf) dans des fixtures Chromium. Cela documente la cascade inspectée, sans identifier la version réellement installée chez l'utilisateur. Safari/iOS et une instance Home Assistant réelle ne sont pas couverts par la suite Chromium du dépôt.
 
 Lors d'un changement livré : augmenter la version du module concerné, maintenir sa version interne de runtime lorsqu'elle existe, mettre à jour le tableau du [README](README.md), son guide et ses notes de version. Si une règle commune évolue, modifier ce document et [le guide du thème](themes/README.md) dans le même changement. Vérifier les tests et les jobs GitHub Actions sur le commit publié. Un push GitHub ne met pas à jour les modules déjà importés dans Home Assistant.
+
+## 8. Performances et volume CSS
+
+Mesurer séparément le YAML importé, le CSS retourné par le module et le CSS nettoyé par Bubble. Bubble Card 3.4.1 enlève déjà espaces et commentaires et réutilise un résultat de nettoyage lorsque la chaîne CSS est inchangée. Ajouter un minificateur à chaque exécution ne réduit donc pas le CSS final et ajoute du travail. Une réduction du CSS ne constitue pas une mesure du temps de chargement complet de Home Assistant.
+
+Conserver les caches par carte : ils doivent suivre la configuration, le layout et la géométrie sans interrompre les lectures d'entités suivies par Bubble. Flow réutilise sa chaîne CSS lorsque la hauteur effective est inchangée. Signature ne livre que le layout actif, réutilise la géométrie des interrupteurs et évite de peindre deux fois les couleurs automatiques d'une commande room avec un style explicite. Les règles de typographie secondaire communes ne doivent pas être répétées dans chaque layout.
+
+Les modules et cartes possèdent leurs propres portées de style. Des tokens communs répétés dans deux distributions autonomes ne sont pas nécessairement des doublons supprimables. Ne pas ajouter une feuille globale, une requête réseau ou une dépendance de runtime pour quelques déclarations communes. Lors d'un regroupement de sélecteurs, préserver leur spécificité, leur ordre utile et les possibilités de personnalisation.
+
+Mesures du 4 octobre 2026 : octets UTF-8 après le nettoyage réel de Bubble Card 3.4.1, comparés au commit `d31eae6`. Les fixtures utilisent un bouton state natif, une valeur de 2,5 kW, le secondaire `65 %` quand indiqué, cinq commandes room allumées avec une couleur explicite, ou des interrupteurs allumés de couleur teal. Ce tableau mesure les styles d'une carte, avec ces options précises.
+
+| Configuration | Avant | Après | Réduction |
+|---|---:|---:|---:|
+| Compact standard | 5 249 | 5 249 | 0 % |
+| Compact avec secondaire | 5 955 | 5 775 | 3,0 % |
+| Square avec secondaire | 5 554 | 5 424 | 2,3 % |
+| Room, cinq commandes avec styles | 11 313 | 9 847 | 13,0 % |
+| Compact, deux interrupteurs | 7 843 | 7 288 | 7,1 % |
+| Compact, quatre interrupteurs | 10 437 | 8 586 | 17,7 % |
+| Compact, huit interrupteurs | 15 625 | 11 182 | 28,4 % |
+
+Un seul interrupteur passe de 6 546 à 6 639 octets : les propriétés CSS permettant le regroupement ajoutent 93 octets. Le gain apparaît à partir de deux interrupteurs. Flow conserve un volume CSS identique ; son changement concerne la réutilisation de la chaîne. Les mesures Node de mises à jour sur DOM simulé ne démontrent pas un gain de temps de chargement complet, et ne doivent pas être présentées comme tel.
+
+Les tests vérifient la réutilisation des caches, les lectures suivies, les couleurs et opacités indépendantes des interrupteurs, leurs dimensions et positions de poignée, le changement de thème sans réexécution et le retrait de leurs styles après remplacement de configuration. Cette validation reste limitée aux fixtures et à Chromium ; Home Assistant réel et Safari/iOS restent à contrôler sur l'installation utilisée.

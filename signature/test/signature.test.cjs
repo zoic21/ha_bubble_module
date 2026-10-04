@@ -167,7 +167,7 @@ test('visual switches combine custom opacity with availability without changing 
     const options={sub_button_styles:{ventilation:{type:'switch',...(opacity == null ? {} : {opacity})}}};
     const {ctx,hass}=fixture(t,{states:{[button.entity]:{state:raw,attributes:{}}}},options,{button_type:'name',sub_button:[button]});
     const before=JSON.stringify(ctx.config);
-    assert.match(run(ctx,hass),new RegExp('box-shadow: none !important; opacity: '+expected+' !important;'));
+    assert.match(run(ctx,hass),new RegExp('background: transparent !important; opacity: '+expected+' !important;'));
     assert.equal(JSON.stringify(ctx.config),before);
   }
 });
@@ -177,9 +177,41 @@ test('visual switch opacity templates refresh without being evaluated twice',t =
   const {ctx,hass}=fixture(t,{states:{[button.entity]:{state:'on',attributes:{}}}},
     {sub_button_styles:{ventilation:{type:'switch',opacity:'{{ opacity }}'}}},{button_type:'name',sub_button:[button]});
   let calls=0;
-  assert.match(run(ctx,hass,()=>{calls++;return '0.3';}),/box-shadow: none !important; opacity: 0.3 !important;/);
+  assert.match(run(ctx,hass,()=>{calls++;return '0.3';}),/background: transparent !important; opacity: 0.3 !important;/);
   assert.equal(calls,1);
-  assert.match(run(ctx,hass,()=> '0.6'),/box-shadow: none !important; opacity: 0.6 !important;/);
+  assert.match(run(ctx,hass,()=> '0.6'),/background: transparent !important; opacity: 0.6 !important;/);
+});
+
+test('room controls paint automatic defaults once when explicit styles are present',t => {
+  const button={entity:'light.room',css_class:'room-control-1'};
+  const {ctx,hass}=fixture(t,{states:{'light.room':{state:'on',attributes:{}}}},
+    {layout:'room',sub_button_styles:{'room-control-1':{color:'teal'}}},
+    {button_type:'name',sub_button:[button]});
+  const css=run(ctx,hass);
+  assert.equal((css.match(/ha-card \.room-control-1 \.bubble-sub-button-icon \{/g)||[]).length,1);
+  assert.match(css,/color:var\(--teal-color, #009688\) !important;background:color-mix/);
+  const changed=run(ctx,{...hass,states:{'light.room':{state:'unavailable',attributes:{}}}});
+  assert.match(changed,/opacity:0.4 !important/);
+});
+
+test('multiple visual switches share cached geometry while retaining independent states',t => {
+  const buttons=Array.from({length:4},(_,i)=>({entity:'switch.control_'+i,css_class:'control-'+i,tap_action:{action:'toggle'}}));
+  const options={sub_button_styles:Object.fromEntries(buttons.map(b=>[b.css_class,{type:'switch'}]))};
+  const {ctx,hass}=fixture(t,{states:Object.fromEntries(buttons.map((b,i)=>[b.entity,{state:i%2?'off':'on',attributes:{}}]))},options,{sub_button:buttons});
+  const css=run(ctx,hass),structure=ctx._dpStructure;
+  assert.equal((css.match(/width: 48px; height: 28px/g)||[]).length,1);
+  assert.equal((css.match(/--dp-switch-offset: 20px/g)||[]).length,2);
+  assert.equal((css.match(/--dp-switch-offset: 0px/g)||[]).length,2);
+  let writes=0,cached=structure.switchCSS;
+  Object.defineProperty(structure,'switchCSS',{get:()=>cached,set:value=>{writes++;cached=value;}});
+  const changed=run(ctx,{...hass,states:{...hass.states,[buttons[1].entity]:{state:'on',attributes:{}}}});
+  assert.equal(writes,0);
+  assert.equal((changed.match(/--dp-switch-offset: 20px/g)||[]).length,3);
+  assert.ok(changed.includes('--signature-card-background'));
+  ctx.config={...ctx.config,signature:{sub_button_styles:{'control-0':{type:'switch'}}}};
+  run(ctx,hass);
+  assert.notEqual(ctx._dpStructure,structure);
+  assert.doesNotMatch(ctx._dpStructure.switchCSS,/control-1/);
 });
 
 test('reusing layout CSS still updates numeric values, Jinja colors and observed state dependencies',t => {

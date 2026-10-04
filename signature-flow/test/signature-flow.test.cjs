@@ -77,7 +77,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.4.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.4.1');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -97,6 +97,29 @@ test('snapshot uses instantaneous values and correct net directions',t=>{
   assert.equal(r.edges[2].group.getAttribute('data-direction'),'-1');
   assert.equal(r.edges[3].group.getAttribute('data-direction'),'-1');
   assert.equal(r.edges[1].group.getAttribute('data-direction'),'1');
+});
+
+test('cached CSS still tracks sensors and updates only when effective height changes',t=>{
+  const {ctx,hass,css,r}=fixture(t);
+  let writes=0,cached=r.styleCSS;
+  Object.defineProperty(r,'styleCSS',{get:()=>cached,set:value=>{writes++;cached=value;},configurable:true});
+  const reads=new Set();
+  const changed={...hass,states:new Proxy({...hass.states,'sensor.solar':state(2400)},{get:(states,id)=>{reads.add(id);return states[id];}})};
+  for(let i=0;i<100;i++) assert.equal(run(ctx,changed),css);
+  assert.equal(writes,0);
+  assert.ok(reads.has('sensor.solar'));
+  assert.equal(r.nodes[1].number.textContent,'2\u202f400');
+  ctx.config={...ctx.config,signature_flow:{...ctx.config.signature_flow,height:400}};
+  assert.match(run(ctx,changed),/height:400px!important/);
+  assert.equal(writes,1);
+  ctx.config.signature_flow.height=400.0;
+  run(ctx,changed);assert.equal(writes,1);
+  ctx.config.signature_flow.height=900;
+  assert.match(run(ctx,changed),/height:600px!important/);
+  assert.equal(writes,2);
+  ctx.config.signature_flow.height=800;
+  run(ctx,changed);assert.equal(writes,2);
+  assert.ok(cached.includes('--signature-card-background'));
 });
 test('every slot accepts the same independent primary, secondary and flow measurements',t=>{
   const {ctx,hass,r}=fixture(t);

@@ -34,6 +34,52 @@ const style = (result, id, selector) => {
 const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
 
+test('shared switch CSS preserves independent tracks, opacity, actions and live themes', async t => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const YAML = require('yaml');
+  const code = YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature/dist/signature.yaml'),'utf8')).signature.code;
+  const page = await fixture(t);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await render(page);
+  const result = await page.evaluate(code => {
+    const ctx=window.contexts[0],host=ctx.card.querySelector('.bubble-sub-button-container');
+    const buttons=Array.from({length:4},(_,i)=>({entity:'switch.demo_'+i,css_class:'switch-'+i,tap_action:{action:'toggle'}}));
+    ctx.config={...ctx.config,sub_button:buttons,signature:{sub_button_styles:Object.fromEntries(buttons.map((b,i)=>[b.css_class,{type:'switch',color:'#008080',opacity:i===2?0.5:1}]))}};
+    buttons.forEach((b,i)=>{
+      const el=document.createElement('div');el.className='bubble-sub-button '+b.css_class;
+      el.innerHTML='<ha-icon class="bubble-sub-button-icon"></ha-icon><span class="bubble-sub-button-name-container">État</span>';
+      host.append(el);ctx._hass.states[b.entity]={state:['on','off','unavailable','on'][i],attributes:{}};
+    });
+    const nodes=[...host.children],config=JSON.stringify(ctx.config);
+    const style=[...ctx.card.getRootNode().querySelectorAll('style')].at(-1);
+    const apply=()=>{style.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);};
+    const read=()=>nodes.map(el=>{
+      const own=getComputedStyle(el),track=getComputedStyle(el,'::before'),knob=getComputedStyle(el,'::after');
+      return {width:own.width,height:own.height,opacity:own.opacity,trackWidth:track.width,trackHeight:track.height,trackColor:track.backgroundColor,knobWidth:knob.width,transform:knob.transform,icon:getComputedStyle(el.firstElementChild).display};
+    });
+    apply();const initial=read();
+    ctx._hass.states[buttons[1].entity]={state:'on',attributes:{}};apply();const toggled=read();
+    ctx._hass.states[buttons[1].entity]={state:'off',attributes:{}};apply();
+    document.body.style.setProperty('--signature-card-background','#1c1c1e');const dark=read();
+    const sameNodes=nodes.every((node,i)=>host.children[i]===node),sameConfig=config===JSON.stringify(ctx.config);
+    ctx.config={...ctx.config,signature:{}};apply();
+    return {initial,toggled,dark,sameNodes,sameConfig,restored:nodes.map(el=>getComputedStyle(el.firstElementChild).display)};
+  },code);
+  for (const control of result.initial) {
+    assert.equal(control.width,'52px');assert.equal(control.height,'34px');
+    assert.equal(control.trackWidth,'48px');assert.equal(control.trackHeight,'28px');
+    assert.equal(control.knobWidth,'24px');assert.equal(control.icon,'none');
+  }
+  assert.equal(result.initial[0].transform,'matrix(1, 0, 0, 1, 20, 0)');
+  assert.equal(result.initial[1].transform,'matrix(1, 0, 0, 1, 0, 0)');
+  assert.equal(result.initial[2].opacity,'0.2');
+  assert.equal(result.toggled[1].transform,'matrix(1, 0, 0, 1, 20, 0)');
+  assert.notEqual(result.initial[1].trackColor,result.dark[1].trackColor);
+  assert.ok(result.sameNodes);assert.ok(result.sameConfig);
+  assert.ok(result.restored.every(display=>display!=='none'));
+});
+
 test('light/dark surfaces agree across five widths and fine/coarse pointers', async t => {
   for (const touch of [false, true]) {
     const page = await fixture(t, touch);
