@@ -1,0 +1,59 @@
+# Replace the five Energy/Water cards with this one card. Keep the section title.
+# Import dist/signature-flow.yaml as a module first; this file is the card config.
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.puissance_maison
+name: Énergie & eau
+card_layout: large
+grid_options:
+  columns: 12
+  rows: 5
+modules:
+  - signature_flow
+signature_flow:
+  height: 310
+  solar:
+    entity: sensor.puissance_solaire_total
+    name: Solaire
+    secondary_entity: sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui
+    secondary: >-
+      {% set id = 'sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui' %}
+      {% set value = states(id) %}
+      {% set unit = state_attr(id, 'unit_of_measurement') %}
+      {{ 'Reste ' ~ (((value | float / (1000 if unit == 'Wh' else 1)) | round(1) | string).replace('.', ',')) ~ ' kWh'
+         if is_number(value) and unit in ['Wh', 'kWh'] else 'Prévision indisponible' }}
+    tap_action:
+      action: navigate
+      navigation_path: '#production-details'
+  grid:
+    entity: sensor.infra_reseaux_puissance
+    name: Réseau
+    tap_action:
+      action: navigate
+      navigation_path: '#reseaux-details'
+  home:
+    entity: sensor.puissance_maison
+    name: Maison
+    tap_action:
+      action: navigate
+      navigation_path: '#consumption-details'
+  battery:
+    entity: sensor.zendure_manager_global_soc
+    power_entity: sensor.zendure_manager_power
+    name: Batterie
+    unit: '%'
+    tap_action:
+      action: navigate
+      navigation_path: '#batterie-details'
+  bottom:
+    entity: sensor.debit_eau
+    name: Eau
+    icon: mdi:water-outline
+    color: '#6ab5f4'
+    scale: 1000
+    unit: L/min
+    precision: 1
+    tap_action:
+      action: navigate
+      navigation_path: '#water-details'

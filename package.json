@@ -4,7 +4,8 @@
   "scripts": {
     "test": "node --test */test/*.test.cjs",
     "test:signature": "node --test signature/test/*.test.cjs",
-    "test:alert-manager": "node --test alert_manager/test/*.test.cjs"
+    "test:alert-manager": "node --test alert_manager/test/*.test.cjs",
+    "test:signature-flow": "node --test signature-flow/test/*.test.cjs"
   },
   "engines": {
     "node": ">=22"

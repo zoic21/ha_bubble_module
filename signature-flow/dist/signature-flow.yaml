@@ -1,0 +1,218 @@
+signature_flow:
+  name: Signature Flow
+  version: 1.0.0
+  creator: Loïc
+  supported:
+    - button
+  description: Instantaneous power flows in the Signature style, with independent actions and optional sources above and below Home.
+  code: |-
+    ${(() => {
+      const config = this.config || {};
+      const options = config.signature_flow || {};
+      const root = this.card;
+      const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
+      const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
+      let runtime = this._signatureFlow;
+      if (runtime && (runtime.root !== root || runtime.host !== host || !enabled)) {
+        runtime.dispose();
+        runtime = null;
+      }
+      if (typeof onTeardown === 'function') onTeardown(() => this._signatureFlow?.dispose());
+      if (!enabled) return '';
+      const ns = 'http://www.w3.org/2000/svg';
+      const create = (tag, cls, svg = false) => {
+        const el = svg ? document.createElementNS(ns, tag) : document.createElement(tag);
+        if (cls) el.setAttribute('class', cls);
+        return el;
+      };
+      const text = (el, value) => { if (el.textContent !== value) el.textContent = value; };
+      const attr = (el, key, value) => { value = String(value); if (el.getAttribute(key) !== value) el.setAttribute(key, value); };
+      if (!runtime) {
+        const canvas = create('div', 'sf-canvas');
+        canvas.setAttribute('role', 'group');
+        const wires = create('svg', 'sf-wires', true);
+        wires.setAttribute('aria-hidden', 'true');
+        canvas.appendChild(wires);
+        runtime = this._signatureFlow = {root, host, canvas, wires, nodes: {}, edges: {}, formatters: new Map()};
+        const current = runtime;
+        current.dispose = () => {
+          current.observer?.disconnect();
+          canvas.removeEventListener('keydown', current.keyboard);
+          canvas.remove();
+          root.removeAttribute('data-signature-flow');
+          if (this._signatureFlow === current) delete this._signatureFlow;
+        };
+        current.keyboard = event => {
+          if (event.repeat || !['Enter', ' '].includes(event.key)) return;
+          const target = event.target.closest?.('.bubble-action');
+          if (!target || !canvas.contains(target) || target.getAttribute('aria-disabled') === 'true') return;
+          event.preventDefault();
+          event.stopPropagation();
+          const actionEvent = new Event('hass-action', {bubbles: true, composed: true});
+          actionEvent.detail = {action: 'tap', config: {entity: target.dataset.entity,
+            entity_id: target.dataset.entity, tap_action: JSON.parse(target.dataset.tapAction)}};
+          target.dispatchEvent(actionEvent);
+        };
+        canvas.addEventListener('keydown', current.keyboard);
+        host.appendChild(canvas);
+        attr(root, 'data-signature-flow', '');
+        // Only card size changes require geometry reads. Sensor updates reuse the paths.
+        current.draw = () => {
+          const box = canvas.getBoundingClientRect();
+          if (!box.width || !box.height) return;
+          canvas.classList.toggle('sf-narrow', box.width < 422);
+          canvas.classList.toggle('sf-small', box.width < 352);
+          const local = key => {
+            const r = current.nodes[key].el.getBoundingClientRect();
+            return {left:r.left-box.left, right:r.right-box.left, top:r.top-box.top,
+              bottom:r.bottom-box.top, cx:(r.left+r.right)/2-box.left, cy:(r.top+r.bottom)/2-box.top};
+          };
+          const solar = local('solar'), grid = local('grid'), home = local('home'), battery = local('battery');
+          const x = (grid.right + home.left)/2, y = grid.cy;
+          attr(wires, 'viewBox', '0 0 '+box.width+' '+box.height);
+          const route = (key, points) => {
+            const d = points.map((p,i) => (i ? 'L' : 'M')+p.join(' ')).join(' ');
+            attr(current.edges[key].line, 'd', d);
+            attr(current.edges[key].flow, 'd', d);
+          };
+          route('solar', canvas.classList.contains('sf-has-top') ?
+            [[solar.right,solar.cy],[x,solar.cy],[x,y]] : [[solar.cx,solar.bottom],[solar.cx,y-12],[x,y-12],[x,y]]);
+          route('grid', [[grid.right,y],[x,y]]);
+          route('home', [[x,y],[home.left,y]]);
+          route('battery', [[battery.cx,battery.top],[battery.cx,battery.top-10],[x,battery.top-10],[x,y]]);
+          for (const key of ['top','bottom']) {
+            if (current.nodes[key].el.hidden) continue;
+            const r = local(key);
+            route(key, key === 'top' ? [[r.cx,r.bottom],[r.cx,home.top]] : [[r.cx,r.top],[r.cx,home.bottom]]);
+          }
+          attr(current.junction, 'cx', x); attr(current.junction, 'cy', y);
+        };
+        for (const key of ['solar','grid','home','battery','top','bottom']) {
+          const el = create('div', 'sf-node sf-'+key);
+          const iconBox = create('span', 'sf-icon');
+          const icon = create('ha-icon'); icon.setAttribute('aria-hidden', 'true'); iconBox.appendChild(icon);
+          const content = create('span', 'sf-content');
+          const label = create('span', 'sf-label');
+          const value = create('span', 'sf-value');
+          const number = create('span'); const unit = create('span', 'sf-unit'); value.append(number, unit);
+          const secondary = create('span', 'sf-secondary');
+          content.append(label, value, secondary); el.append(iconBox, content); canvas.appendChild(el);
+          current.nodes[key] = {el, icon, label, value, number, unit, secondary};
+          const line = create('path', 'sf-line', true), flow = create('path', 'sf-flow', true);
+          const group = create('g', 'sf-edge', true); group.append(line, flow); wires.appendChild(group);
+          current.edges[key] = {group, line, flow};
+        }
+        current.junction = create('circle', 'sf-junction', true); attr(current.junction, 'r', 3); wires.appendChild(current.junction);
+        if (typeof ResizeObserver === 'function') {
+          current.observer = new ResizeObserver(current.draw); current.observer.observe(canvas);
+        }
+      }
+      const language = hass.locale?.language || hass.language || globalThis.navigator?.language || 'en';
+      const french = language.toLowerCase().startsWith('fr');
+      const labels = french ? {solar:'Solaire',grid:'Réseau',home:'Maison',battery:'Batterie',top:'Source',bottom:'Eau',
+        import:'Importation',export:'Injection',charge:'Recharge',discharge:'Décharge',idle:'Au repos',unavailable:'Indisponible',details:'Ouvrir les détails'} :
+        {solar:'Solar',grid:'Grid',home:'Home',battery:'Battery',top:'Source',bottom:'Water',
+        import:'Importing',export:'Exporting',charge:'Charging',discharge:'Discharging',idle:'Idle',unavailable:'Unavailable',details:'Show details'};
+      attr(runtime.canvas, 'aria-label', options.name || (french ? 'Énergie et eau' : 'Energy and water'));
+      const render = (value, id) => {
+        const s = String(value ?? '');
+        return /\{[\{%#]/.test(s) ? (typeof renderTemplate === 'function' ? String(renderTemplate(s,id) ?? '') : '') : s;
+      };
+      const numeric = value => value != null && String(value).trim() !== '' && Number.isFinite(Number(value)) ? Number(value) : null;
+      const read = id => id ? hass.states[id] : undefined;
+      const numberFormat = hass.locale?.number_format;
+      const locales = {comma_decimal:'en-US',decimal_comma:'de',space_comma:'fr',quote_decimal:'de-CH',none:'en-US'};
+      const locale = numberFormat === 'system' ? undefined : locales[numberFormat] || language;
+      const format = (value, digits) => {
+        digits = Math.max(0, Math.min(6, numeric(digits) ?? 0));
+        digits = Math.floor(digits);
+        const key = [locale,numberFormat,digits].join('|');
+        if (!runtime.formatters.has(key)) {
+          if (runtime.formatters.size > 20) runtime.formatters.clear();
+          runtime.formatters.set(key, new Intl.NumberFormat(locale, {minimumFractionDigits:digits,
+            maximumFractionDigits:digits, useGrouping:numberFormat !== 'none'}));
+        }
+        return runtime.formatters.get(key).format(Object.is(value,-0) ? 0 : value);
+      };
+      const colors = {solar:'#ff9800',grid:'#00b8cf',home:'var(--secondary-text-color, #676767)',battery:'#009c90',top:'#b19cdb',bottom:'#6ab5f4'};
+      const icons = {solar:'mdi:white-balance-sunny',grid:'mdi:transmission-tower',home:'mdi:home-outline',battery:'mdi:battery',top:'mdi:flash',bottom:'mdi:water-outline'};
+      const bind = (el, id, cfg, fallback) => {
+        const tap = cfg.tap_action || fallback;
+        const hold = cfg.hold_action || (id ? {action:'more-info'} : {action:'none'});
+        const double = cfg.double_tap_action || {action:'none'};
+        el.classList.add('bubble-action');
+        el.classList.toggle('bubble-action-enabled', [tap,hold,double].some(a => a.action !== 'none'));
+        el.dataset.entity = id || '';
+        for (const [name,action] of [['tapAction',tap],['holdAction',hold],['doubleTapAction',double]]) {
+          const json = JSON.stringify(action); if (el.dataset[name] !== json) el.dataset[name] = json;
+        }
+        attr(el, 'role', 'button'); attr(el, 'tabindex', tap.action === 'none' ? -1 : 0);
+        attr(el, 'aria-disabled', tap.action === 'none');
+      };
+      let geometryChanged = false;
+      for (const key of ['solar','grid','home','battery','top','bottom']) {
+        const node = runtime.nodes[key], edge = runtime.edges[key], cfg = options[key] || {};
+        const optional = key === 'top' || key === 'bottom';
+        const hidden = optional && (!options[key] || cfg.enabled === false);
+        if (node.el.hidden !== hidden) {node.el.hidden = hidden; geometryChanged = true;}
+        edge.group.hidden = hidden;
+        attr(edge.group, 'display', hidden ? 'none' : 'inline');
+        if (hidden) continue;
+        const state = read(cfg.entity), power = key === 'battery' ? read(cfg.power_entity) : state;
+        // Read secondary entities even when a supplied template handles the text.
+        const secondaryState = read(cfg.secondary_entity);
+        const raw = numeric(state?.state), rawPower = numeric(power?.state);
+        const scale = numeric(cfg.scale) ?? 1;
+        const n = raw === null ? null : numeric(raw * scale);
+        const digits = cfg.precision ?? state?.attributes?.display_precision ?? (optional ? 1 : 0);
+        let value = n === null ? '—' : format(n, digits);
+        let unit = n === null ? '' : String(cfg.unit ?? state?.attributes?.unit_of_measurement ?? '');
+        if (cfg.state !== undefined) {
+          const override = render(cfg.state, cfg.entity).trim();
+          value = override || '—'; unit = override ? String(cfg.unit ?? '') : '';
+        }
+        const name = render(cfg.name ?? labels[key], cfg.entity);
+        const configuredColor = render(cfg.color ?? colors[key], cfg.entity).trim();
+        const color = globalThis.CSS?.supports('color',configuredColor) ? configuredColor : colors[key];
+        if (node.el.style.getPropertyValue('--sf-color') !== color) node.el.style.setProperty('--sf-color',color);
+        if (edge.group.style.getPropertyValue('--sf-color') !== color) edge.group.style.setProperty('--sf-color',color);
+        text(node.label, name); text(node.number,value); text(node.unit,unit ? ' '+unit : '');
+        const flowScale = key === 'battery' ? (numeric(cfg.power_scale) ?? 1) : scale;
+        const signed = rawPower === null ? null : numeric(rawPower * flowScale * (cfg.invert_flow === true ? -1 : 1));
+        const threshold = Math.max(0,numeric(cfg.deadband ?? options.deadband) ?? 0);
+        const direction = signed === null || Math.abs(signed) <= threshold ? 0 : Math.sign(signed);
+        attr(edge.group, 'data-direction', direction);
+        let secondary = '';
+        if (cfg.secondary !== undefined) secondary = render(cfg.secondary,cfg.secondary_entity || cfg.entity);
+        else if (key === 'grid') secondary = signed === null ? labels.unavailable : direction > 0 ? labels.import : direction < 0 ? labels.export : labels.idle;
+        else if (key === 'battery') secondary = signed === null ? labels.unavailable : direction === 0 ? labels.idle :
+          (direction > 0 ? labels.discharge : labels.charge)+' · '+format(Math.abs(rawPower * flowScale),cfg.power_precision ?? 0)+' '+(cfg.power_unit ?? power?.attributes?.unit_of_measurement ?? 'W');
+        else if (secondaryState) {
+          const secondaryNumber = numeric(secondaryState.state);
+          secondary = secondaryNumber === null ? labels.unavailable : format(secondaryNumber,cfg.secondary_precision ?? 1)+' '+(secondaryState.attributes?.unit_of_measurement || '');
+        }
+        text(node.secondary,secondary); node.secondary.title = secondary;
+        attr(node.icon, 'icon', render(cfg.icon ?? (key === 'battery' && direction < 0 ? 'mdi:battery-charging' : icons[key]),cfg.entity));
+        attr(node.el, 'aria-label', name+' · '+value+(unit ? ' '+unit : '')+(secondary ? ' · '+secondary : ''));
+        bind(node.el,cfg.entity,cfg,cfg.entity ? {action:'more-info'} : {action:'none'});
+        bind(node.value,cfg.entity,{},cfg.entity ? {action:'more-info'} : {action:'none'});
+        attr(node.value,'aria-label',labels.details+' · '+name);
+        bind(node.secondary,cfg.secondary_entity || (key === 'battery' ? cfg.power_entity : ''),{},
+          cfg.secondary_entity || (key === 'battery' && cfg.power_entity) ? {action:'more-info'} : {action:'none'});
+        // An empty decorative secondary must let taps reach its parent block.
+        node.secondary.classList.toggle('sf-detail', Boolean(secondary && (cfg.secondary_entity || (key === 'battery' && cfg.power_entity))));
+        attr(node.secondary, 'tabindex', node.secondary.classList.contains('sf-detail') ? 0 : -1);
+      }
+      const hasTop = !runtime.nodes.top.el.hidden;
+      if (runtime.canvas.classList.contains('sf-has-top') !== hasTop) {runtime.canvas.classList.toggle('sf-has-top',hasTop);geometryChanged = true;}
+      if (!runtime.drawn || geometryChanged) {runtime.draw(); runtime.drawn = true;}
+      const height = Math.max(280,Math.min(600,numeric(options.height) ?? 310));
+      return '[data-signature-flow] .bubble-container{height:'+height+'px!important;padding:14px;box-sizing:border-box;border-radius:22px!important;background:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))!important;border:1px solid color-mix(in srgb,var(--primary-text-color) 6%,transparent)!important;box-shadow:var(--ha-card-box-shadow,none)}\n'+
+        '[data-signature-flow] .bubble-container>.bubble-wrapper{display:none!important}\n'+
+        '.sf-canvas{position:relative;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--primary-text-color);--sf-surface:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))}\n'+
+        '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-flow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{stroke-dasharray:2 14;animation:sf-forward 2.4s linear infinite}.sf-edge[data-direction="-1"] .sf-flow{animation-direction:reverse}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
+        '.sf-node{position:absolute;display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:2px 0;border-radius:16px;background:var(--sf-surface);text-align:left;line-height:1.2;cursor:pointer}.sf-node[hidden]{display:none}.sf-content{display:grid;grid-template-rows:17px 34px 16px;gap:2px;min-width:0;align-items:start}.sf-label{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;color:var(--sf-color);background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))}.sf-icon ha-icon{--mdc-icon-size:22px}.sf-value{font-size:28px;font-weight:500;letter-spacing:-.7px;white-space:nowrap;line-height:34px;font-variant-numeric:tabular-nums;border-radius:6px}.sf-unit{font-size:16px;font-weight:400;letter-spacing:0;color:var(--secondary-text-color)}.sf-secondary{font-size:13px;white-space:nowrap;color:var(--secondary-text-color);pointer-events:none}.sf-secondary.sf-detail{pointer-events:auto;cursor:pointer;border-radius:4px}.sf-node:focus-visible,.sf-value:focus-visible,.sf-detail:focus-visible{outline:2px solid var(--sf-color);outline-offset:3px}\n'+
+        '.sf-solar{width:192px;top:0;left:calc(50% - 96px)}.sf-grid{width:128px;top:calc(50% - 42px);left:0}.sf-home{width:140px;top:calc(50% - 42px);right:0}.sf-battery{width:192px;bottom:0;left:calc(50% - 96px)}.sf-top,.sf-bottom{width:116px;right:12px;grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-top{top:0}.sf-bottom{bottom:0}.sf-top .sf-icon,.sf-bottom .sf-icon{width:28px;height:28px;border-radius:10px}.sf-top ha-icon,.sf-bottom ha-icon{--mdc-icon-size:18px}.sf-top .sf-value,.sf-bottom .sf-value{font-size:24px}.sf-top .sf-unit,.sf-bottom .sf-unit{font-size:13px}.sf-narrow .sf-battery,.sf-has-top .sf-solar{left:0}\n'+
+        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-grid,.sf-small .sf-home{width:112px}.sf-small .sf-battery{width:140px}.sf-small.sf-has-top .sf-solar{width:156px}.sf-small .sf-battery .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-top,.sf-small .sf-bottom{width:92px;right:10px;grid-template-columns:24px minmax(0,1fr);gap:6px}.sf-small .sf-top .sf-icon,.sf-small .sf-bottom .sf-icon{width:24px;height:24px}.sf-small .sf-top .sf-value,.sf-small .sf-bottom .sf-value{font-size:20px}.sf-small .sf-top .sf-unit,.sf-small .sf-bottom .sf-unit{font-size:12px}\n'+
+        '@keyframes sf-forward{to{stroke-dashoffset:-16}}@media(prefers-reduced-motion:reduce){.sf-flow{animation:none}}@media(hover:hover){.sf-node:hover{background:color-mix(in srgb,var(--primary-text-color) 3%,var(--sf-surface))}}';
+    })()}
