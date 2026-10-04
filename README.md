@@ -5,7 +5,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
 | Signature — card design | 1.8.28 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
-| Signature Flow — instantaneous power and optional sources | 1.0.4 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Flow — six configurable flow slots | 2.0.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.0.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.4.1 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
@@ -35,7 +35,7 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 ## Configuration
 
-The distributions do not declare an `editor` schema, so custom options are configured in the card's YAML. Standard controls, entities, and actions remain those provided by Bubble Card. Signature Flow replaces the native button content with a power-flow diagram; see its [home example](signature-flow/examples/home.yaml). Signature Weather replaces it with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
+The distributions do not declare an `editor` schema, so custom options are configured in the card's YAML. Standard controls, entities, and actions remain those provided by Bubble Card. Signature Flow replaces the native button content with a configurable flow diagram; see its [home example](signature-flow/examples/home.yaml). Signature Weather replaces it with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
 
 ## Testing
 

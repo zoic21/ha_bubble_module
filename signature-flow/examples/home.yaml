@@ -16,50 +16,65 @@ signature_flow:
   animation:
     min_speed: 4
     max_speed: 40
-    reference_power: 10000
-  solar:
-    entity: sensor.puissance_solaire_total
-    name: Solaire
-    secondary_entity: sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui
-    secondary: >-
-      {% set id = 'sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui' %}
-      {% set value = states(id) %}
-      {% set unit = state_attr(id, 'unit_of_measurement') %}
-      {{ 'Reste ' ~ (((value | float / (1000 if unit == 'Wh' else 1)) | round(1) | string).replace('.', ',')) ~ ' kWh'
-         if is_number(value) and unit in ['Wh', 'kWh'] else 'Prévision indisponible' }}
-    tap_action:
-      action: navigate
-      navigation_path: '#production-details'
-  grid:
-    entity: sensor.infra_reseaux_puissance
-    name: Réseau
-    secondary: ''
-    tap_action:
-      action: navigate
-      navigation_path: '#reseaux-details'
-  home:
-    entity: sensor.puissance_maison
-    name: Maison
-    tap_action:
-      action: navigate
-      navigation_path: '#consumption-details'
-  battery:
-    entity: sensor.zendure_manager_global_soc
-    power_entity: sensor.zendure_manager_power
-    name: Batterie
-    unit: '%'
-    tap_action:
-      action: navigate
-      navigation_path: '#batterie-details'
-  bottom:
-    entity: sensor.debit_eau
-    name: Eau
-    icon: mdi:water-outline
-    color: '#6ab5f4'
-    scale: 1000
-    unit: L/min
-    precision: 1
-    animation_reference: 20
-    tap_action:
-      action: navigate
-      navigation_path: '#water-details'
+    reference: 10000
+  slots:
+    1:
+      icon: mdi:white-balance-sunny
+      color: "#ff9800"
+      entity: sensor.puissance_solaire_total
+      name: Solaire
+      secondary_entity: sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui
+      secondary: >-
+        {% set id = 'sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui' %}
+        {% set value = states(id) %}
+        {% set unit = state_attr(id, 'unit_of_measurement') %}
+        {{ 'Reste ' ~ (((value | float / (1000 if unit == 'Wh' else 1)) | round(1) | string).replace('.', ',')) ~ ' kWh'
+           if is_number(value) and unit in ['Wh', 'kWh'] else 'Prévision indisponible' }}
+      tap_action:
+        action: navigate
+        navigation_path: '#production-details'
+    2:
+      icon: mdi:transmission-tower
+      color: "#00b8cf"
+      entity: sensor.infra_reseaux_puissance
+      name: Réseau
+      secondary: ''
+      tap_action:
+        action: navigate
+        navigation_path: '#reseaux-details'
+    3:
+      entity: sensor.zendure_manager_global_soc
+      flow_entity: sensor.zendure_manager_power
+      secondary_entity: sensor.zendure_manager_power
+      color: '#009c90'
+      icon: >-
+        {{ 'mdi:battery-charging' if states('sensor.zendure_manager_power') | float(0) < 0 else 'mdi:battery' }}
+      secondary: >-
+        {% set power = states('sensor.zendure_manager_power') %}
+        {% set value = power | float(0) %}
+        {{ ('Recharge' if value < 0 else 'Décharge') ~ ' · ' ~ (value | abs | round(0) | int | string) ~ ' W'
+           if is_number(power) and value != 0 else 'Au repos' if is_number(power) else 'Indisponible' }}
+      name: Batterie
+      unit: '%'
+      tap_action:
+        action: navigate
+        navigation_path: '#batterie-details'
+    5:
+      icon: mdi:home-outline
+      entity: sensor.puissance_maison
+      name: Maison
+      tap_action:
+        action: navigate
+        navigation_path: '#consumption-details'
+    6:
+      entity: sensor.debit_eau
+      name: Eau
+      icon: mdi:water-outline
+      color: '#6ab5f4'
+      scale: 1000
+      unit: L/min
+      precision: 1
+      animation_reference: 20
+      tap_action:
+        action: navigate
+        navigation_path: '#water-details'

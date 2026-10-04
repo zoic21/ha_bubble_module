@@ -1,16 +1,35 @@
 # Signature Flow
 
-Signature Flow displays instantaneous solar, grid, home and battery power in one neutral card, with the typography, pastel icon backgrounds and 22 px corners of Signature. Battery state of charge remains the main battery value; its power appears below. Optional sources above and below Home connect directly to Home, independently of the electricity junction. Battery and the bottom source share the same label and value baselines.
+Signature Flow displays up to six configurable blocks and their connections, with Signature typography, pastel icon backgrounds and 22 px corners. Each block can represent any measurement. Primary value, secondary value and animated flow can each use a different entity. There is no solar, grid, battery or water-specific behavior in the module.
 
 ## Installation
 
 1. Import the complete [distribution](../dist/signature-flow.yaml) through Bubble Card Tools.
-2. Add `signature_flow` to the `modules` list of a Bubble `button` card with `button_type: state`.
-3. Configure its nodes under `signature_flow`. The module is self-contained: use it without the `signature` design module on this card.
+2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
+3. Configure the numbered blocks under `signature_flow.slots`.
 
-The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.4**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **2.0.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
 
-[Home configuration](../examples/home.yaml) contains the existing sensors, the remaining solar forecast, battery charge and power, water conversion, and the five existing popup hashes. It replaces the five Energy/Water cards, excludes the car charging card, and leaves the section title outside the module. It does not create popup cards: the corresponding popups must already exist in the view. Importing the module does not modify the dashboard.
+Version 2 replaces the former named `solar`, `grid`, `battery`, `home`, `top` and `bottom` options with `slots`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) uses the new schema and preserves the existing sensors, forecast, battery percentage and power, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist.
+
+## Slots and layout
+
+`slots` is a mapping with keys `1` to `6`, not a YAML list. Every slot has the same options. Omit a slot or set `enabled: false` to hide its block and connection. Positions and connections follow the established layout.
+
+| Slot | Desktop position | Mobile position | Positive flow direction |
+|---|---|---|---|
+| `1` | Upper center; moves left when slot 4 is shown | Upper left | Slot 1 → junction |
+| `2` | Middle left | Middle left | Slot 2 → junction |
+| `3` | Lower center | Lower left | Slot 3 → junction |
+| `4` | Upper right | Upper right | Slot 4 → slot 5 |
+| `5` | Middle right | Middle right | Junction → slot 5 |
+| `6` | Lower right | Lower right | Slot 6 → slot 5 |
+
+Negative measurements reverse those directions. Slots 4 and 6 connect independently to slot 5; their connections are hidden when slot 5 is absent. The junction is hidden when none of slots 1, 2, 3 or 5 is configured. No entity type is imposed on any slot.
+
+At card widths below 490 px, slots 1, 2 and 3 form an aligned left column. Slots 4, 5 and 6 align on the right. All icons use the same size; slots 3 and 6 share label and value baselines. The layout responds to the card's width, including a narrow column in a wide browser.
+
+The default height is **310 px** on mobile and desktop. The card fills its parent width; the home example reserves 12 columns and 5 rows in a Sections view. `height` accepts 280–600 px. Keep the dashboard row reservation consistent with a changed height. Hovering a block or value does not change its background.
 
 ```yaml
 type: custom:bubble-card
@@ -24,95 +43,115 @@ grid_options:
 modules:
   - signature_flow
 signature_flow:
-  solar:
-    entity: sensor.solar_power
-  grid:
-    entity: sensor.grid_power
-  home:
-    entity: sensor.home_power
-  battery:
-    entity: sensor.battery_soc
-    power_entity: sensor.battery_power
+  slots:
+    1:
+      name: Production
+      entity: sensor.production_power
+      icon: mdi:white-balance-sunny
+      color: '#ff9800'
+    2:
+      name: Connection
+      entity: sensor.connection_power
+      icon: mdi:transmission-tower
+      color: '#00b8cf'
+    3:
+      name: Storage
+      entity: sensor.storage_percentage
+      flow_entity: sensor.storage_power
+      secondary_entity: sensor.storage_power
+      secondary_precision: 0
+      icon: mdi:battery
+      color: '#009c90'
+    5:
+      name: Building
+      entity: sensor.home_power
+      icon: mdi:home-outline
 ```
 
-## Nodes and layout
+## Slot options
 
-`solar`, `grid`, `home` and `battery` always have a place. Missing or unavailable measurements display `—` without a unit and stop the corresponding animation. `top` and `bottom` are optional; omit the object or set `enabled: false` to hide it. Both can be enabled together. With a top source, Solar moves left to prevent a collision. At card widths below 490 px, Solar, Grid and Battery form an aligned left column, with Home and its optional sources on the right. The connections join a shared vertical axis. All node icons use the same size. The optional sources align with Home. The layout responds to the card's width, including in a wide browser with a narrow dashboard column. Hovering a block or value does not change its background.
-
-The default card height is **310 px**, matching the agreed mockup, across mobile and desktop. The card fills its parent's width; the example reserves 12 columns and 5 rows in a Sections view. `height` can be set from 280 to 600 px. Keep the dashboard row reservation consistent with a changed height. At widths below 320 px or with unusually long values, use shorter names/secondary text or scale power to kW.
-
-| Node option | Behavior |
+| Option | Behavior |
 |---|---|
-| `entity` | Main measurement and value more-info target. |
-| `name`, `icon`, `color` | Override label, MDI icon and icon/connection color. These accept Jinja. Invalid colors use the default. |
-| `unit` | Override the displayed unit; defaults to the entity unit. |
-| `scale` | Multiply the main numeric value and its flow measurement. Defaults to `1`. |
-| `precision` | Fixed decimal places, 0–6. Defaults to entity `display_precision`, then 0 for main nodes and 1 for optional sources. |
-| `state` | Optional Jinja or plain text replacing the main value. Include a separate `unit` if needed. Flow direction still uses the entity's numeric state. |
-| `secondary` | Optional Jinja or plain text. An empty string hides the text while preserving alignment. |
-| `secondary_entity` | Dependency and more-info target of the secondary text. Without `secondary`, its numeric state and unit are displayed. |
-| `secondary_precision` | Decimal places for the automatic secondary measurement. Default `1`. |
-| `tap_action`, `hold_action`, `double_tap_action` | Native Bubble/Home Assistant actions for the block. Tap and hold default to more-info; double tap defaults to none. |
-| `invert_flow` | Reverse the signed sensor convention. Default `false`. |
-| `deadband` | Absolute numeric threshold below which animation stops; applied after scaling. Default `0`. A global `signature_flow.deadband` supplies the default for all nodes. |
-| `animation_reference` | Optional reference for reaching the maximum arrow speed, in this node's scaled flow units. Useful for water or other non-power sources. |
+| `enabled` | Show the configured slot. Default `true`; `false` hides it. |
+| `entity` | Primary measurement and default more-info target. |
+| `name` | Label; accepts Jinja. Defaults to the entity's friendly name, then `Slot N` / `Emplacement N`. |
+| `icon`, `color` | MDI icon and icon/connection color; accept Jinja. Icon defaults to the entity's `icon` attribute, then `mdi:flash`; color defaults to the theme secondary text color. Invalid colors use that neutral default. |
+| `unit` | Display unit; defaults to the primary entity unit. |
+| `scale` | Multiply the primary numeric value. Default `1`. Also scales the flow when no separate `flow_entity` or `flow_scale` is provided. |
+| `precision` | Fixed decimal places, 0–6. Defaults to the entity `display_precision`, then `0`, for every slot. |
+| `state` | Jinja or plain text replacing the primary value. Set `unit` separately if needed. The flow still uses its numeric entity state. |
+| `secondary` | Jinja or plain text below the primary value. An empty string hides it while preserving alignment. |
+| `secondary_entity` | Secondary measurement, template dependency and default secondary more-info target. Without `secondary`, its numeric state and unit are displayed. |
+| `secondary_scale` | Multiply the automatic secondary numeric value. Default `1`. |
+| `secondary_unit` | Override the automatic secondary unit. Defaults to the secondary entity unit. |
+| `secondary_precision` | Decimal places for the automatic secondary value. Default `1`. |
+| `flow_entity` | Entity controlling arrow direction and speed. Defaults to `entity`; independent of display values. |
+| `flow_scale` | Multiply the flow measurement. Defaults to `1` with a separate `flow_entity`, otherwise to `scale`. |
+| `flow_unit` | Unit used for W/kW/MW normalization. Defaults to the separate flow entity unit, or the primary display unit when using the primary entity. Describes units; does not convert values by itself. |
+| `invert_flow` | Reverse the signed flow convention. Default `false`; affects the arrow, not displayed values. |
+| `animate` | Default `true`. Set `false` to keep the thin connection without an arrow. |
+| `deadband` | Absolute threshold below which animation stops, after flow scaling. Default `0`. `signature_flow.deadband` sets a common default. |
+| `animation_reference` | Per-slot measurement at which speed reaches its maximum, in scaled flow units. |
 
-Battery also supports `power_entity`, `power_scale` (default 1), `power_unit` (entity unit by default), and `power_precision` (default 0). They affect its flow and automatic secondary text independently of the SoC display. `secondary` overrides the automatic charge/discharge text. Grid has no automatic import/export subtitle; its signed value and animated arrow show the direction. Optional sources use the same node options as the main nodes; their primary numeric entity controls their own connection to Home.
+A missing, blank, non-finite, `unknown` or `unavailable` primary measurement displays `—` without a unit. An unavailable automatic secondary measurement displays `Unavailable` / `Indisponible`. A valid separate flow can animate even when the primary measurement is unavailable. A missing flow stops the arrow while retaining available display values.
 
-The module respects Home Assistant's language and number-format preference. Default labels and flow descriptions are French for a French interface and English otherwise. Override names and secondary text for other languages. `signature_flow.name` overrides the accessible group label.
+The module uses Home Assistant's language and number-format preference for automatic numeric values. Explicit names and Jinja text remain as configured. `signature_flow.name` sets the accessible group label; its default is `Flows` / `Flux`.
+
+Long numbers fit their slot's available width without reducing the unit size. Short values keep the normal font size. Slot 2 reserves a gap before its connection so the arrow cannot touch the unit. Keep long names and secondary text concise; below 320 px, consider displaying power in kW.
+
+## Actions
+
+| Target | Configuration | Default |
+|---|---|---|
+| Block icon/name | `tap_action`, `hold_action`, `double_tap_action` | Tap/hold: primary more-info; double tap: none |
+| Primary value | `value_tap_action`, `value_hold_action`, `value_double_tap_action` | Tap/hold: primary more-info; double tap: none |
+| Secondary text | `secondary_tap_action`, `secondary_hold_action`, `secondary_double_tap_action` | Tap/hold: secondary more-info; double tap: none |
+
+These are native Bubble/Home Assistant action objects. Without an entity, defaults are `none`; explicit actions still work. Empty or decorative secondary text lets taps reach the block. Enter/Space activates the focused target's tap action. Focus outlines appear for keyboard navigation; restored focus after pointer/touch more-info does not leave a frame around the value.
+
+```yaml
+signature_flow:
+  slots:
+    6:
+      name: Water
+      entity: sensor.water_flow
+      icon: mdi:water-outline
+      color: '#6ab5f4'
+      scale: 1000
+      unit: L/min
+      precision: 1
+      animation_reference: 20
+      tap_action:
+        action: navigate
+        navigation_path: '#water-details'
+      value_tap_action:
+        action: more-info
+```
+
+Add the other slots as needed; slot 6's connection appears when slot 5 is configured. Add slot 4 for a block above slot 5, using exactly the same options.
 
 ## Arrow speed
 
-Arrow speed increases linearly with the absolute flow measurement. Equal power moves at the same speed on different connections; the time to traverse a connection depends on its length. The default range is **4–40 pixels per second**, reaching the maximum at **10,000 W**. Small grid imports/exports remain slow, while larger solar, home or battery power gradually speeds up. Zero or unavailable flows have no arrow.
+Speed increases linearly with the absolute scaled flow. Defaults are **4–40 px/s**, reaching the maximum at a reference of **10,000**. For W/kW/MW flow units, the global reference is in watts and values are normalized. Other units use the reference directly; a per-slot `animation_reference` is appropriate for water, current or other measurements. The home configuration reaches its water maximum at **20 L/min**.
 
 ```yaml
 signature_flow:
   animation:
     min_speed: 4
     max_speed: 40
-    reference_power: 10000
+    reference: 10000
 ```
 
-`min_speed` and `max_speed` are pixels per second; `reference_power` is watts. The module normalizes W/kW/MW power units, including configured display scaling. Above the reference, speed remains capped. A node's `animation_reference` overrides the reference in its scaled flow units: the home example uses `20` for water measured in L/min. An explicit `max_speed` in an existing dashboard overrides the module default; update it to `40` to use the new maximum.
+Above the reference, speed stays capped. Equal flow has equal physical speed on different connections; traversal time depends on path length. An explicit dashboard setting overrides a module default.
 
-Each connection reuses a native Web Animation. Changes in power adjust its playback rate without resetting its position. When the flow changes sign, the arrow turns over 180 ms and travels back from its current position. A temporary zero or unavailable measurement hides and pauses the arrow; it resumes at that position when the flow returns, including in the opposite direction. Sensor updates reuse connection geometry and do not add a JavaScript animation loop.
-
-## Direction and interactions
-
-| Measurement | Positive | Negative |
-|---|---|---|
-| Solar | Solar → junction | Junction → Solar |
-| Grid | Grid → junction (import) | Junction → Grid (export) |
-| Home | Junction → Home | Home → junction |
-| Battery `power_entity` | Battery → junction (discharge) | Junction → Battery (charge) |
-| Top/bottom source | Source → Home | Home → source |
-
-Battery's default convention matches the existing Zendure sensor. Set `invert_flow: true` for a sensor using the opposite convention. A moving chevron follows each active connection in its flow direction. Zero and unavailable measurements keep the thin connection visible, with no arrow. Reduced-motion preferences display a stationary arrow instead. These are instantaneous **net flows** at one common junction; the module does not calculate the portion of solar sent to each destination. Connections between electrical sensors must be configured in compatible power units.
-
-Tap a block's icon or name to run its configured action, such as opening a Bubble popup with `action: navigate` and `navigation_path: '#water-details'`. Tap its main value to open entity more-info. The battery power line opens the power entity; a secondary line with `secondary_entity` opens that entity. Keyboard Enter/Space activates a focused block or value. Pointer taps, holds and double taps use Bubble's delegated action handler. Focus outlines appear for keyboard navigation; a restored focus after pointer/touch more-info does not leave a frame around the value.
-
-The optional top source can be added with:
-
-```yaml
-signature_flow:
-  # Keep the existing solar/grid/home/battery/bottom configuration here.
-  top:
-    entity: sensor.other_source_power
-    name: Source
-    icon: mdi:flash
-    unit: W
-    precision: 0
-    tap_action:
-      action: navigate
-      navigation_path: '#other-source-details'
-```
+Each connection reuses a native Web Animation. Flow changes adjust playback rate without resetting position. When flow changes sign, the arrow turns over 180 ms and travels back from its current point. Zero or unavailable flows hide and pause the arrow; it resumes there when flow returns, including in the opposite direction. Reduced-motion preferences show a stationary arrow. These are signed net measurements; the module does not calculate allocation between sources and destinations.
 
 ## Runtime and validation
 
-The Grid block reserves space before its connection so the arrow cannot touch the unit. Its width follows the available space. If a long number still does not fit, only that number is reduced; the unit and value baseline stay the same. Short values keep the normal font size. A single scheduled frame measures the text when its content or the card size changes.
+DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the visible slots' primary, secondary and flow entities through Bubble's tracked `hass` object. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; measurements are batched before applying font sizes. There is no JavaScript animation loop.
 
-DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the configured entities through Bubble's tracked `hass` object; Jinja uses Bubble's `renderTemplate` helper. There is no polling, service call, extra WebSocket subscription or global CSS injection. A single `ResizeObserver` per card adjusts paths on size changes. Teardown cancels the animations and pending text measurement and removes the observer, reduced-motion listener, keyboard/input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
+Teardown cancels animations and pending text fitting, then removes the observer, reduced-motion listener, input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
 
-This module replaces the native button content. Alert Manager's native main-icon badge is therefore not exposed on the custom flow nodes; no per-node alert integration is included in this first version.
+This module replaces native button content. Alert Manager's native main-icon badge is not exposed on custom slots; no per-slot alert integration is included.
 
-Run `npm run test:signature-flow` or `npm test` from the repository root. Tests use the actual distribution to check directions, position preservation on reversals and rate changes, pause/resume, connection alignment, unavailable states, scaling, localization, dependency reads, native action bindings, configuration changes and teardown. Browser checks additionally verify mobile/desktop layouts and responsive boundaries from 320 to 498 px, both optional sources, icon sizes, baselines, moving arrow positions/directions, hover backgrounds, actions and reduced motion. A live Home Assistant installation remains the final check for its own popup definitions, sensor sign conventions and template results.
+Run `npm run test:signature-flow` or `npm test` from the repository root. Tests read the actual distribution and check generic slots, independent primary/secondary/flow entities, formatting, visibility, actions, tracked reads, reversals, pause/resume, layout and teardown. Browser checks use the real Bubble bundle with simulated Home Assistant data to verify responsive layouts, text clearance, actions, restored focus, keyboard navigation, native motion and cleanup. A live Home Assistant installation remains the final check for its popup definitions, sensor conventions and templates.

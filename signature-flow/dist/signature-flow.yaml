@@ -1,15 +1,15 @@
 signature_flow:
   name: Signature Flow
-  version: 1.0.4
+  version: 2.0.0
   creator: Loïc
   supported:
     - button
-  description: Instantaneous power flows in the Signature style, with independent actions and optional sources above and below Home.
+  description: Six configurable flow slots in the Signature style, with independent display, secondary values, flow entities and actions.
   code: |-
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '1.0.4';
+      const version = '2.0.0';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -20,6 +20,9 @@ signature_flow:
       }
       if (typeof onTeardown === 'function') onTeardown(() => this._signatureFlow?.dispose());
       if (!enabled) return '';
+      const ids = [1,2,3,4,5,6];
+      const slots = options.slots || {};
+      const shown = id => Boolean(slots[id] && slots[id].enabled !== false);
       const ns = 'http://www.w3.org/2000/svg';
       const create = (tag, cls, svg = false) => {
         const el = svg ? document.createElementNS(ns, tag) : document.createElement(tag);
@@ -34,7 +37,7 @@ signature_flow:
         const wires = create('svg', 'sf-wires', true);
         wires.setAttribute('aria-hidden', 'true');
         canvas.appendChild(wires);
-        runtime = this._signatureFlow = {version, root, host, canvas, wires, nodes: {}, edges: {}, formatters: new Map()};
+        runtime = this._signatureFlow = {version, root, host, canvas, wires, nodes: {}, edges: {}, formatters: new Map(), fitTargets: new Set()};
         const current = runtime;
         current.dispose = () => {
           current.observer?.disconnect();
@@ -98,20 +101,22 @@ signature_flow:
         };
         current.motionChanged = () => Object.values(current.edges).forEach(current.updateMotion);
         current.motionPreference?.addEventListener('change', current.motionChanged);
-        // Fit only the grid number; keep its unit, baseline and short values intact.
-        // Coalesce text/size updates into one frame, without an animation loop.
-        current.fitGrid = () => {
-          if (current.fitFrame !== undefined || typeof requestAnimationFrame !== 'function') return;
+        // Fit only overflowing numbers. Batch text measurements into one frame.
+        current.fitValues = id => {
+          if (typeof requestAnimationFrame !== 'function') return;
+          (id === undefined ? ids : [id]).forEach(key => current.fitTargets.add(key));
+          if (current.fitFrame !== undefined) return;
           current.fitFrame = requestAnimationFrame(() => {
             delete current.fitFrame;
-            const node = current.nodes.grid;
-            node.number.style.fontSize = '';
-            const width = node.number.getBoundingClientRect().width;
-            const available = node.value.parentElement.getBoundingClientRect().width-node.unit.getBoundingClientRect().width-2;
-            if (width > available && available > 0) {
-              const size = parseFloat(getComputedStyle(node.value).fontSize);
-              node.number.style.fontSize = (size*available/width)+'px';
-            }
+            const nodes = [...current.fitTargets].map(key => current.nodes[key]).filter(node => !node.el.hidden);
+            current.fitTargets.clear();
+            nodes.forEach(node => {node.number.style.fontSize = '';});
+            const sizes = nodes.map(node => {
+              const width = node.number.getBoundingClientRect().width;
+              const available = node.value.parentElement.getBoundingClientRect().width-node.unit.getBoundingClientRect().width-2;
+              return width > available && available > 0 ? parseFloat(getComputedStyle(node.value).fontSize)*available/width : null;
+            });
+            nodes.forEach((node,i) => {if (sizes[i] !== null) node.number.style.fontSize = sizes[i]+'px';});
           });
         };
         // Layout changes measure connection geometry. Sensor updates reuse the paths.
@@ -125,8 +130,8 @@ signature_flow:
             return {left:r.left-box.left, right:r.right-box.left, top:r.top-box.top,
               bottom:r.bottom-box.top, cx:(r.left+r.right)/2-box.left, cy:(r.top+r.bottom)/2-box.top};
           };
-          const solar = local('solar'), grid = local('grid'), home = local('home'), battery = local('battery');
-          const x = box.width/2, y = grid.cy;
+          const upper = local(1), middle = local(2), lower = local(3), right = local(5);
+          const x = box.width/2, y = box.height/2-4;
           attr(wires, 'viewBox', '0 0 '+box.width+' '+box.height);
           const route = (key, points) => {
             const edge = current.edges[key];
@@ -139,22 +144,22 @@ signature_flow:
               length+Math.hypot(p[0]-points[i][0],p[1]-points[i][1]),0);
             current.updateMotion(edge);
           };
-          route('solar', canvas.classList.contains('sf-has-top') || canvas.classList.contains('sf-narrow') ?
-            [[solar.right,solar.cy],[x,solar.cy],[x,y]] : [[x,solar.bottom],[x,y]]);
-          route('grid', [[grid.right+10,y],[x,y]]);
-          route('home', [[x,y],[home.left,y]]);
-          route('battery', canvas.classList.contains('sf-narrow') ?
-            [[battery.right,battery.cy],[x,battery.cy],[x,y]] : [[x,battery.top],[x,y]]);
-          for (const key of ['top','bottom']) {
-            if (current.nodes[key].el.hidden) continue;
-            const r = local(key);
-            route(key, key === 'top' ? [[r.cx,r.bottom],[r.cx,home.top]] : [[r.cx,r.top],[r.cx,home.bottom]]);
+          if (!current.edges[1].hidden) route(1, canvas.classList.contains('sf-has-4') || canvas.classList.contains('sf-narrow') ?
+            [[upper.right,upper.cy],[x,upper.cy],[x,y]] : [[x,upper.bottom],[x,y]]);
+          if (!current.edges[2].hidden) route(2, [[middle.right+10,y],[x,y]]);
+          if (!current.edges[5].hidden) route(5, [[x,y],[right.left,y]]);
+          if (!current.edges[3].hidden) route(3, canvas.classList.contains('sf-narrow') ?
+            [[lower.right,lower.cy],[x,lower.cy],[x,y]] : [[x,lower.top],[x,y]]);
+          for (const id of [4,6]) {
+            if (current.edges[id].hidden) continue;
+            const r = local(id);
+            route(id, id === 4 ? [[r.cx,r.bottom],[r.cx,right.top]] : [[r.cx,r.top],[r.cx,right.bottom]]);
           }
-          current.fitGrid();
+          current.fitValues();
           attr(current.junction, 'cx', x); attr(current.junction, 'cy', y);
         };
-        for (const key of ['solar','grid','home','battery','top','bottom']) {
-          const el = create('div', 'sf-node sf-'+key);
+        for (const key of ids) {
+          const el = create('div', 'sf-node sf-slot-'+key);
           const iconBox = create('span', 'sf-icon');
           const icon = create('ha-icon'); icon.setAttribute('aria-hidden', 'true'); iconBox.appendChild(icon);
           const content = create('span', 'sf-content');
@@ -177,11 +182,9 @@ signature_flow:
       }
       const language = hass.locale?.language || hass.language || globalThis.navigator?.language || 'en';
       const french = language.toLowerCase().startsWith('fr');
-      const labels = french ? {solar:'Solaire',grid:'Réseau',home:'Maison',battery:'Batterie',top:'Source',bottom:'Eau',
-        charge:'Recharge',discharge:'Décharge',idle:'Au repos',unavailable:'Indisponible',details:'Ouvrir les détails'} :
-        {solar:'Solar',grid:'Grid',home:'Home',battery:'Battery',top:'Source',bottom:'Water',
-        charge:'Charging',discharge:'Discharging',idle:'Idle',unavailable:'Unavailable',details:'Show details'};
-      attr(runtime.canvas, 'aria-label', options.name || (french ? 'Énergie et eau' : 'Energy and water'));
+      const labels = french ? {slot:'Emplacement',unavailable:'Indisponible',details:'Ouvrir les détails'} :
+        {slot:'Slot',unavailable:'Unavailable',details:'Show details'};
+      attr(runtime.canvas, 'aria-label', options.name || (french ? 'Flux' : 'Flows'));
       const render = (value, id) => {
         const s = String(value ?? '');
         return /\{[\{%#]/.test(s) ? (typeof renderTemplate === 'function' ? String(renderTemplate(s,id) ?? '') : '') : s;
@@ -202,12 +205,10 @@ signature_flow:
         }
         return runtime.formatters.get(key).format(Object.is(value,-0) ? 0 : value);
       };
-      const colors = {solar:'#ff9800',grid:'#00b8cf',home:'var(--secondary-text-color, #676767)',battery:'#009c90',top:'#b19cdb',bottom:'#6ab5f4'};
-      const icons = {solar:'mdi:white-balance-sunny',grid:'mdi:transmission-tower',home:'mdi:home-outline',battery:'mdi:battery',top:'mdi:flash',bottom:'mdi:water-outline'};
       const animation = options.animation || {};
       const minSpeed = Math.max(1,numeric(animation.min_speed) ?? 4);
       const maxSpeed = Math.max(minSpeed,numeric(animation.max_speed) ?? 40);
-      const referencePower = Math.max(1,numeric(animation.reference_power) ?? 10000);
+      const referenceFlow = Math.max(1,numeric(animation.reference) ?? 10000);
       const bind = (el, id, cfg, fallback) => {
         const tap = cfg.tap_action || fallback;
         const hold = cfg.hold_action || (id ? {action:'more-info'} : {action:'none'});
@@ -221,72 +222,75 @@ signature_flow:
         attr(el, 'role', 'button'); attr(el, 'tabindex', tap.action === 'none' ? -1 : 0);
         attr(el, 'aria-disabled', tap.action === 'none');
       };
+      const actions = (cfg,prefix) => ({tap_action:cfg[prefix+'_tap_action'],hold_action:cfg[prefix+'_hold_action'],
+        double_tap_action:cfg[prefix+'_double_tap_action']});
       let geometryChanged = false;
-      for (const key of ['solar','grid','home','battery','top','bottom']) {
-        const node = runtime.nodes[key], edge = runtime.edges[key], cfg = options[key] || {};
-        const optional = key === 'top' || key === 'bottom';
-        const hidden = optional && (!options[key] || cfg.enabled === false);
+      for (const key of ids) {
+        const node = runtime.nodes[key], edge = runtime.edges[key], cfg = slots[key] || {};
+        const hidden = !shown(key);
         if (node.el.hidden !== hidden) {node.el.hidden = hidden; geometryChanged = true;}
-        edge.group.hidden = hidden;
-        attr(edge.group, 'display', hidden ? 'none' : 'inline');
-        edge.hidden = hidden;
+        const edgeHidden = hidden || ([4,6].includes(key) && !shown(5));
+        if (edge.hidden !== edgeHidden) geometryChanged = true;
+        edge.hidden = edgeHidden;
+        attr(edge.group, 'display', edgeHidden ? 'none' : 'inline');
         if (hidden) {runtime.updateMotion(edge);continue;}
-        const state = read(cfg.entity), power = key === 'battery' ? read(cfg.power_entity) : state;
-        // Read secondary entities even when a supplied template handles the text.
+        const state = read(cfg.entity), flow = cfg.flow_entity ? read(cfg.flow_entity) : state;
+        // Read secondary entities even when a supplied template handles their text.
         const secondaryState = read(cfg.secondary_entity);
-        const raw = numeric(state?.state), rawPower = numeric(power?.state);
+        const raw = numeric(state?.state), rawFlow = numeric(flow?.state);
         const scale = numeric(cfg.scale) ?? 1;
         const n = raw === null ? null : numeric(raw * scale);
-        const digits = cfg.precision ?? state?.attributes?.display_precision ?? (optional ? 1 : 0);
+        const digits = cfg.precision ?? state?.attributes?.display_precision ?? 0;
         let value = n === null ? '—' : format(n, digits);
         let unit = n === null ? '' : String(cfg.unit ?? state?.attributes?.unit_of_measurement ?? '');
         if (cfg.state !== undefined) {
           const override = render(cfg.state, cfg.entity).trim();
           value = override || '—'; unit = override ? String(cfg.unit ?? '') : '';
         }
-        const name = render(cfg.name ?? labels[key], cfg.entity);
-        const configuredColor = render(cfg.color ?? colors[key], cfg.entity).trim();
-        const color = globalThis.CSS?.supports('color',configuredColor) ? configuredColor : colors[key];
+        const name = render(cfg.name ?? state?.attributes?.friendly_name ?? labels.slot+' '+key, cfg.entity);
+        const configuredColor = render(cfg.color ?? 'var(--secondary-text-color, #676767)', cfg.entity).trim();
+        const color = globalThis.CSS?.supports('color',configuredColor) ? configuredColor : 'var(--secondary-text-color, #676767)';
         if (node.el.style.getPropertyValue('--sf-color') !== color) node.el.style.setProperty('--sf-color',color);
         if (edge.group.style.getPropertyValue('--sf-color') !== color) edge.group.style.setProperty('--sf-color',color);
-        if (key === 'grid' && (node.number.textContent !== value || node.unit.textContent !== (unit ? ' '+unit : '')))
-          runtime.fitGrid();
+        if (node.number.textContent !== value || node.unit.textContent !== (unit ? ' '+unit : '')) runtime.fitValues(key);
         text(node.label, name); text(node.number,value); text(node.unit,unit ? ' '+unit : '');
-        const flowScale = key === 'battery' ? (numeric(cfg.power_scale) ?? 1) : scale;
-        const signed = rawPower === null ? null : numeric(rawPower * flowScale * (cfg.invert_flow === true ? -1 : 1));
+        const flowScale = numeric(cfg.flow_scale) ?? (cfg.flow_entity ? 1 : scale);
+        const signed = rawFlow === null ? null : numeric(rawFlow * flowScale * (cfg.invert_flow === true ? -1 : 1));
         const threshold = Math.max(0,numeric(cfg.deadband ?? options.deadband) ?? 0);
-        const direction = signed === null || Math.abs(signed) <= threshold ? 0 : Math.sign(signed);
+        const direction = cfg.animate === false || signed === null || Math.abs(signed) <= threshold ? 0 : Math.sign(signed);
         edge.direction = direction;
         attr(edge.group, 'data-direction', direction);
-        const flowUnit = String(key === 'battery' ? cfg.power_unit ?? power?.attributes?.unit_of_measurement ?? 'W' :
-          cfg.unit ?? state?.attributes?.unit_of_measurement ?? '').trim();
+        const flowUnit = String(cfg.flow_unit ?? (cfg.flow_entity ? flow?.attributes?.unit_of_measurement :
+          cfg.unit ?? state?.attributes?.unit_of_measurement) ?? '').trim();
         const reference = numeric(cfg.animation_reference);
         const unitScale = flowUnit === 'kW' ? 1000 : flowUnit === 'MW' ? 1000000 : 1;
-        const fraction = Math.min(1,Math.abs(signed ?? 0)/(reference > 0 ? reference : referencePower/unitScale));
+        const fraction = Math.min(1,Math.abs(signed ?? 0)/(reference > 0 ? reference : referenceFlow/unitScale));
         edge.speed = minSpeed+(maxSpeed-minSpeed)*fraction;
         runtime.updateMotion(edge);
         let secondary = '';
         if (cfg.secondary !== undefined) secondary = render(cfg.secondary,cfg.secondary_entity || cfg.entity);
-        else if (key === 'battery') secondary = signed === null ? labels.unavailable : direction === 0 ? labels.idle :
-          (direction > 0 ? labels.discharge : labels.charge)+' · '+format(Math.abs(rawPower * flowScale),cfg.power_precision ?? 0)+' '+(cfg.power_unit ?? power?.attributes?.unit_of_measurement ?? 'W');
         else if (secondaryState) {
-          const secondaryNumber = numeric(secondaryState.state);
-          secondary = secondaryNumber === null ? labels.unavailable : format(secondaryNumber,cfg.secondary_precision ?? 1)+' '+(secondaryState.attributes?.unit_of_measurement || '');
+          const rawSecondary = numeric(secondaryState.state);
+          const secondaryNumber = rawSecondary === null ? null : numeric(rawSecondary*(numeric(cfg.secondary_scale) ?? 1));
+          const secondaryUnit = cfg.secondary_unit ?? secondaryState.attributes?.unit_of_measurement ?? '';
+          secondary = secondaryNumber === null ? labels.unavailable : format(secondaryNumber,cfg.secondary_precision ?? 1)+(secondaryUnit ? ' '+secondaryUnit : '');
         }
         text(node.secondary,secondary); node.secondary.title = secondary;
-        attr(node.icon, 'icon', render(cfg.icon ?? (key === 'battery' && direction < 0 ? 'mdi:battery-charging' : icons[key]),cfg.entity));
+        attr(node.icon, 'icon', render(cfg.icon ?? state?.attributes?.icon ?? 'mdi:flash',cfg.entity));
         attr(node.el, 'aria-label', name+' · '+value+(unit ? ' '+unit : '')+(secondary ? ' · '+secondary : ''));
         bind(node.el,cfg.entity,cfg,cfg.entity ? {action:'more-info'} : {action:'none'});
-        bind(node.value,cfg.entity,{},cfg.entity ? {action:'more-info'} : {action:'none'});
+        bind(node.value,cfg.entity,actions(cfg,'value'),cfg.entity ? {action:'more-info'} : {action:'none'});
         attr(node.value,'aria-label',labels.details+' · '+name);
-        bind(node.secondary,cfg.secondary_entity || (key === 'battery' ? cfg.power_entity : ''),{},
-          cfg.secondary_entity || (key === 'battery' && cfg.power_entity) ? {action:'more-info'} : {action:'none'});
-        // An empty decorative secondary must let taps reach its parent block.
-        node.secondary.classList.toggle('sf-detail', Boolean(secondary && (cfg.secondary_entity || (key === 'battery' && cfg.power_entity))));
-        attr(node.secondary, 'tabindex', node.secondary.classList.contains('sf-detail') ? 0 : -1);
+        const secondaryActions = actions(cfg,'secondary');
+        bind(node.secondary,cfg.secondary_entity,secondaryActions,cfg.secondary_entity ? {action:'more-info'} : {action:'none'});
+        // Decorative secondary text must let taps reach its parent block.
+        const secondaryInteractive = Boolean(secondary && (cfg.secondary_entity || Object.values(secondaryActions).some(action => action && action.action !== 'none')));
+        node.secondary.classList.toggle('sf-detail',secondaryInteractive);
+        attr(node.secondary, 'tabindex', secondaryInteractive && node.secondary.getAttribute('aria-disabled') !== 'true' ? 0 : -1);
       }
-      const hasTop = !runtime.nodes.top.el.hidden;
-      if (runtime.canvas.classList.contains('sf-has-top') !== hasTop) {runtime.canvas.classList.toggle('sf-has-top',hasTop);geometryChanged = true;}
+      const hasUpperRight = shown(4);
+      if (runtime.canvas.classList.contains('sf-has-4') !== hasUpperRight) {runtime.canvas.classList.toggle('sf-has-4',hasUpperRight);geometryChanged = true;}
+      attr(runtime.junction,'display',[1,2,3,5].some(shown) ? 'inline' : 'none');
       if (!runtime.drawn || geometryChanged) {runtime.draw(); runtime.drawn = true;}
       const height = Math.max(280,Math.min(600,numeric(options.height) ?? 310));
       return '[data-signature-flow] .bubble-container{height:'+height+'px!important;padding:14px;box-sizing:border-box;border-radius:22px!important;background:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))!important;border:1px solid color-mix(in srgb,var(--primary-text-color) 6%,transparent)!important;box-shadow:var(--ha-card-box-shadow,none)}\n'+
@@ -294,7 +298,7 @@ signature_flow:
         '.sf-canvas{position:relative;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--primary-text-color);--sf-surface:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))}\n'+
         '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-arrow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{offset-distance:0%;offset-rotate:auto 0deg;offset-anchor:0px 0px;transition:offset-rotate .18s ease}.sf-edge[data-direction="-1"] .sf-flow{offset-rotate:auto 180deg}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
         '.sf-node{position:absolute;display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:2px 0;border-radius:16px;background:var(--sf-surface);text-align:left;line-height:1.2;cursor:pointer}.sf-node[hidden]{display:none}.sf-content{display:grid;grid-template-rows:17px 34px 16px;gap:2px;min-width:0;align-items:start}.sf-label{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;color:var(--sf-color);background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))}.sf-icon ha-icon{--mdc-icon-size:22px}.sf-value{font-size:28px;font-weight:500;letter-spacing:-.7px;white-space:nowrap;line-height:34px;font-variant-numeric:tabular-nums;border-radius:6px}.sf-unit{font-size:16px;font-weight:400;letter-spacing:0;color:var(--secondary-text-color)}.sf-secondary{font-size:13px;white-space:nowrap;color:var(--secondary-text-color);pointer-events:none}.sf-secondary.sf-detail{pointer-events:auto;cursor:pointer;border-radius:4px}.sf-node:focus,.sf-value:focus,.sf-detail:focus{outline:none}.sf-canvas[data-sf-keyboard] .sf-node:focus-visible,.sf-canvas[data-sf-keyboard] .sf-value:focus-visible,.sf-canvas[data-sf-keyboard] .sf-detail:focus-visible{outline:2px solid var(--sf-color);outline-offset:3px}\n'+
-        '.sf-solar{width:180px;top:0;left:calc(50% - 90px)}.sf-grid{width:min(170px,calc(50% - 20px));top:calc(50% - 42px);left:0}.sf-home{width:140px;top:calc(50% - 42px);right:0}.sf-battery{width:180px;bottom:0;left:calc(50% - 90px)}.sf-top,.sf-bottom{width:140px;right:0}.sf-top{top:0}.sf-bottom{bottom:0}.sf-top .sf-value,.sf-bottom .sf-value{font-size:24px}.sf-top .sf-unit,.sf-bottom .sf-unit{font-size:13px}.sf-narrow .sf-solar,.sf-narrow .sf-battery{left:0;width:170px}.sf-has-top .sf-solar{left:0}\n'+
-        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-home{width:112px}.sf-small .sf-battery,.sf-small .sf-solar{width:140px}.sf-small .sf-battery .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-top,.sf-small .sf-bottom{width:112px}.sf-small .sf-top .sf-value,.sf-small .sf-bottom .sf-value{font-size:20px}.sf-small .sf-top .sf-unit,.sf-small .sf-bottom .sf-unit{font-size:12px}\n'+
+        '.sf-slot-1{width:180px;top:0;left:calc(50% - 90px)}.sf-slot-2{width:min(170px,calc(50% - 20px));top:calc(50% - 42px);left:0}.sf-slot-5{width:140px;top:calc(50% - 42px);right:0}.sf-slot-3{width:180px;bottom:0;left:calc(50% - 90px)}.sf-slot-4,.sf-slot-6{width:140px;right:0}.sf-slot-4{top:0}.sf-slot-6{bottom:0}.sf-slot-4 .sf-value,.sf-slot-6 .sf-value{font-size:24px}.sf-slot-4 .sf-unit,.sf-slot-6 .sf-unit{font-size:13px}.sf-narrow .sf-slot-1,.sf-narrow .sf-slot-3{left:0;width:170px}.sf-has-4 .sf-slot-1{left:0}\n'+
+        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-slot-5{width:112px}.sf-small .sf-slot-3,.sf-small .sf-slot-1{width:140px}.sf-small .sf-slot-3 .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-slot-4,.sf-small .sf-slot-6{width:112px}.sf-small .sf-slot-4 .sf-value,.sf-small .sf-slot-6 .sf-value{font-size:20px}.sf-small .sf-slot-4 .sf-unit,.sf-small .sf-slot-6 .sf-unit{font-size:12px}\n'+
         '@media(prefers-reduced-motion:reduce){.sf-flow{offset-distance:50%;transition:none}}';
     })()}
