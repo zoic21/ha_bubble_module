@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 3.0.0
+  version: 3.0.1
   creator: Loïc
   supported:
     - button
@@ -9,7 +9,7 @@ signature_flow:
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '3.0.0';
+      const version = '3.0.1';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -108,7 +108,8 @@ signature_flow:
           if (current.fitFrame !== undefined) return;
           current.fitFrame = requestAnimationFrame(() => {
             delete current.fitFrame;
-            const nodes = [...current.fitTargets].map(key => current.nodes[key]).filter(node => !node.el.hidden);
+            const keys = [...current.fitTargets].filter(key => !current.nodes[key].el.hidden);
+            const nodes = keys.map(key => current.nodes[key]);
             current.fitTargets.clear();
             nodes.forEach(node => {node.number.style.fontSize = '';});
             const sizes = nodes.map(node => {
@@ -117,17 +118,24 @@ signature_flow:
               return width > available && available > 0 ? parseFloat(getComputedStyle(node.value).fontSize)*available/width : null;
             });
             nodes.forEach((node,i) => {if (sizes[i] !== null) node.number.style.fontSize = sizes[i]+'px';});
-            if (nodes.includes(current.nodes[2])) current.updateLeftConnection();
+            current.updateLeftConnections(keys);
           });
         };
-        current.updateLeftConnection = () => {
-          if (current.edges[2].hidden || !current.center) return;
-          const node = current.nodes[2], {x,y} = current.center;
-          const end = (node.unit.textContent ? node.unit : node.number).getBoundingClientRect().right;
-          const start = Math.min(x-10,end-canvas.getBoundingClientRect().left+12);
-          current.route(2,[[start,y],[x,y]]);
+        current.updateLeftConnections = (keys = [1,2,3]) => {
+          if (!current.center) return;
+          const sources = keys.filter(key => [1,2,3].includes(key) && !current.edges[key].hidden &&
+            (key === 2 || canvas.classList.contains('sf-narrow')));
+          if (!sources.length) return;
+          const {x,y} = current.center, left = canvas.getBoundingClientRect().left;
+          const routes = sources.map(key => {
+            const node = current.nodes[key], row = key === 2 ? y : current.center[key];
+            const end = (node.unit.textContent ? node.unit : node.number).getBoundingClientRect().right;
+            const start = Math.min(x-10,end-left+12);
+            return [key,key === 2 ? [[start,y],[x,y]] : [[start,row],[x,row],[x,y]]];
+          });
+          routes.forEach(([key,points]) => current.route(key,points));
         };
-        // Layout changes measure connection geometry; slot 2 also follows its text.
+        // Layout changes measure geometry; horizontal sources also follow their text.
         current.draw = () => {
           const box = canvas.getBoundingClientRect();
           if (!box.width || !box.height) return;
@@ -140,17 +148,19 @@ signature_flow:
           };
           const upper = local(1), lower = local(3), right = local(5);
           const x = box.width/2, y = box.height/2-4;
-          current.center = {x,y};
+          current.center = {x,y,1:upper.cy,3:lower.cy};
           attr(wires, 'viewBox', '0 0 '+box.width+' '+box.height);
           const route = current.route = (key, points) => {
             const edge = current.edges[key];
             const d = points.map((p,i) => (i ? 'L' : 'M')+p.join(' ')).join(' ');
             if (edge.line.getAttribute('d') === d) return;
-            // Keep the arrow's location when slot 2's text changes path length.
-            let position;
-            if (key === 2 && edge.animation && edge.start !== undefined && edge.length) {
+            // A moved origin retains the same path to the junction. Anchor the
+            // arrow's distance from that end, including after the horizontal bend.
+            let remaining;
+            if (edge.animation && edge.length && edge.points?.length === points.length &&
+              edge.points.slice(1).every((p,i) => p[0] === points[i+1][0] && p[1] === points[i+1][1])) {
               const phase = (edge.animation.currentTime ?? 0)%1000/1000;
-              position = edge.start+(edge.motionDirection < 0 ? 1-phase : phase)*edge.length;
+              remaining = (edge.motionDirection < 0 ? phase : 1-phase)*edge.length;
             }
             attr(edge.line, 'd', d);
             const motion = 'path("'+d+'")';
@@ -158,21 +168,19 @@ signature_flow:
               edge.flow.style.setProperty('offset-path', motion);
             edge.length = points.slice(1).reduce((length,p,i) =>
               length+Math.hypot(p[0]-points[i][0],p[1]-points[i][1]),0);
-            if (key === 2) {
-              edge.start = points[0][0];
-              if (position !== undefined && edge.length) {
-                const progress = Math.max(0,Math.min(1,(position-edge.start)/edge.length));
-                edge.animation.currentTime = Math.min((edge.motionDirection < 0 ? 1-progress : progress)*1000,999.9999);
-              }
+            edge.points = points; edge.start = points[0][0];
+            if (remaining !== undefined && edge.length) {
+              const progress = Math.max(0,Math.min(1,1-remaining/edge.length));
+              edge.animation.currentTime = Math.min((edge.motionDirection < 0 ? 1-progress : progress)*1000,999.9999);
             }
             current.updateMotion(edge);
           };
-          if (!current.edges[1].hidden) route(1, canvas.classList.contains('sf-has-4') || canvas.classList.contains('sf-narrow') ?
+          const narrow = canvas.classList.contains('sf-narrow');
+          if (!current.edges[1].hidden && !narrow) route(1, canvas.classList.contains('sf-has-4') ?
             [[upper.right,upper.cy],[x,upper.cy],[x,y]] : [[x,upper.bottom],[x,y]]);
-          current.updateLeftConnection();
+          current.updateLeftConnections();
           if (!current.edges[5].hidden) route(5, [[x,y],[right.left,y]]);
-          if (!current.edges[3].hidden) route(3, canvas.classList.contains('sf-narrow') ?
-            [[lower.right,lower.cy],[x,lower.cy],[x,y]] : [[x,lower.top],[x,y]]);
+          if (!current.edges[3].hidden && !narrow) route(3, [[x,lower.top],[x,y]]);
           for (const id of [4,6]) {
             if (current.edges[id].hidden) continue;
             const r = local(id);
@@ -344,7 +352,7 @@ signature_flow:
         '.sf-canvas{position:relative;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--primary-text-color);--sf-surface:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))}\n'+
         '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-arrow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{offset-distance:0%;offset-rotate:auto 0deg;offset-anchor:0px 0px;transition:offset-rotate .18s ease}.sf-edge[data-direction="-1"] .sf-flow{offset-rotate:auto 180deg}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
         '.sf-node{position:absolute;display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:2px 0;border-radius:16px;background:var(--sf-surface);text-align:left;line-height:1.2;cursor:pointer}.sf-node[hidden]{display:none}.sf-content{display:grid;grid-template-rows:17px 34px 16px;gap:2px;min-width:0;align-items:start}.sf-label{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;color:var(--sf-color);background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))}.sf-icon ha-icon{--mdc-icon-size:22px}.sf-value{font-size:28px;font-weight:500;letter-spacing:-.7px;white-space:nowrap;line-height:34px;font-variant-numeric:tabular-nums;border-radius:6px}.sf-unit{font-size:16px;font-weight:400;letter-spacing:0;color:var(--secondary-text-color)}.sf-secondary{font-size:13px;white-space:nowrap;color:var(--secondary-text-color);pointer-events:none}.sf-secondary.sf-detail{pointer-events:auto;cursor:pointer;border-radius:4px}.sf-node:focus,.sf-value:focus,.sf-detail:focus{outline:none}.sf-canvas[data-sf-keyboard] .sf-node:focus-visible,.sf-canvas[data-sf-keyboard] .sf-value:focus-visible,.sf-canvas[data-sf-keyboard] .sf-detail:focus-visible{outline:2px solid var(--sf-color);outline-offset:3px}\n'+
-        '.sf-slot-1{width:180px;top:0;left:calc(50% - 90px)}.sf-slot-2{background:transparent;width:min(170px,calc(50% - 20px));top:calc(50% - 42px);left:0}.sf-slot-5{width:140px;top:calc(50% - 42px);right:0}.sf-slot-3{width:180px;bottom:0;left:calc(50% - 90px)}.sf-slot-4,.sf-slot-6{width:140px;right:0}.sf-slot-4{top:0}.sf-slot-6{bottom:0}.sf-slot-4 .sf-value,.sf-slot-6 .sf-value{font-size:24px}.sf-slot-4 .sf-unit,.sf-slot-6 .sf-unit{font-size:13px}.sf-narrow .sf-slot-1,.sf-narrow .sf-slot-3{left:0;width:170px}.sf-has-4 .sf-slot-1{left:0}\n'+
-        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-slot-5{width:112px}.sf-small .sf-slot-3,.sf-small .sf-slot-1{width:140px}.sf-small .sf-slot-3 .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-slot-4,.sf-small .sf-slot-6{width:112px}.sf-small .sf-slot-4 .sf-value,.sf-small .sf-slot-6 .sf-value{font-size:20px}.sf-small .sf-slot-4 .sf-unit,.sf-small .sf-slot-6 .sf-unit{font-size:12px}\n'+
+        '.sf-slot-1{width:180px;top:0;left:calc(50% - 90px)}.sf-slot-2{background:transparent;width:min(170px,calc(50% - 20px));top:calc(50% - 42px);left:0}.sf-slot-5{width:140px;top:calc(50% - 42px);right:0}.sf-slot-3{width:180px;bottom:0;left:calc(50% - 90px)}.sf-slot-4,.sf-slot-6{width:140px;right:0}.sf-slot-4{top:0}.sf-slot-6{bottom:0}.sf-slot-4 .sf-value,.sf-slot-6 .sf-value{font-size:24px}.sf-slot-4 .sf-unit,.sf-slot-6 .sf-unit{font-size:13px}.sf-narrow .sf-slot-1,.sf-narrow .sf-slot-3{background:transparent;left:0;width:min(170px,calc(50% - 20px))}.sf-has-4 .sf-slot-1{left:0}\n'+
+        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-slot-5{width:112px}.sf-small .sf-slot-3,.sf-small .sf-slot-1{width:min(140px,calc(50% - 20px))}.sf-small .sf-slot-3 .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-slot-4,.sf-small .sf-slot-6{width:112px}.sf-small .sf-slot-4 .sf-value,.sf-small .sf-slot-6 .sf-value{font-size:20px}.sf-small .sf-slot-4 .sf-unit,.sf-small .sf-slot-6 .sf-unit{font-size:12px}\n'+
         '@media(prefers-reduced-motion:reduce){.sf-flow{offset-distance:50%;transition:none}}';
     })()}

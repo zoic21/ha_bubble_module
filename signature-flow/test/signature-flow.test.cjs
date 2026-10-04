@@ -77,7 +77,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.0.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.0.1');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -347,6 +347,24 @@ test('slot 2 retains its physical arrow position when the connection grows or sh
     assert.equal(animation.playbackRate,edge.speed/edge.length);
   }
 });
+test('mobile sources retain arrow position on either side of their bend when the origin moves',t=>{
+  const {r}=fixture(t);
+  for(const id of [1,3]) for(const direction of [-1,1]) {
+    const edge=r.edges[id],animation=edge.animation;
+    edge.direction=direction;r.updateMotion(edge);
+    r.route(id,[[20,30],[100,30],[100,136]]);
+    for(const fraction of [.2,.5,.99]) {
+      animation.currentTime=(direction<0?1-fraction:fraction)*1000;
+      const remaining=(1-progress(animation))*edge.length;
+      for(const start of [30,5,40,20]) {
+        r.route(id,[[start,30],[100,30],[100,136]]);
+        assert.equal(edge.animation,animation);
+        assert.ok(Math.abs((1-progress(animation))*edge.length-remaining)<.00001);
+        assert.equal(animation.playbackRate,edge.speed/edge.length);
+      }
+    }
+  }
+});
 test('reduced motion cancels native animations, resumes active flows and releases listeners',t=>{
   const {ctx,r}=fixture(t);const preference=r.motionPreference;
   const originals=Object.values(r.edges).map(edge=>edge.animation).filter(Boolean);
@@ -446,6 +464,29 @@ test('connections share the center axis on desktop and join aligned mobile colum
     assert.equal(r.edges[6].line.getAttribute('d'),'M'+(width-70)+' 204 L'+(width-70)+' 174');
     assert.equal(r.edges[1].flow.style.getPropertyValue('offset-path'),'path("'+r.edges[1].line.getAttribute('d')+'")');
   }
+});
+test('mobile left connections start after their displayed unit or number and update only changed sources',t=>{
+  const {ctx,hass,r}=fixture(t);
+  const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
+  r.canvas.getBoundingClientRect=()=>rect(0,0,360,280);
+  const positions={1:rect(0,0,160,76),2:rect(0,98,160,76),3:rect(0,204,160,76),
+    5:rect(220,98,140,76),6:rect(220,204,140,76)};
+  for(const [id,box] of Object.entries(positions)) r.nodes[id].el.getBoundingClientRect=()=>box;
+  for(const [id,end] of [[1,102],[2,83],[3,76]]) r.nodes[id].unit.getBoundingClientRect=()=>rect(end-20,0,20,16);
+  r.draw();
+  assert.equal(r.edges[1].line.getAttribute('d'),'M114 38 L180 38 L180 136');
+  assert.equal(r.edges[2].line.getAttribute('d'),'M95 136 L180 136');
+  assert.equal(r.edges[3].line.getAttribute('d'),'M88 242 L180 242 L180 136');
+  const paths=[2,3].map(id=>r.edges[id].line.getAttribute('d'));
+  r.nodes[1].unit.getBoundingClientRect=()=>rect(55,0,20,16);r.updateLeftConnections([1]);
+  assert.equal(r.edges[1].line.getAttribute('d'),'M87 38 L180 38 L180 136');
+  assert.deepEqual([2,3].map(id=>r.edges[id].line.getAttribute('d')),paths);
+  ctx.config.signature_flow.slots[1].primary_unit='';run(ctx,hass);
+  r.nodes[1].number.getBoundingClientRect=()=>rect(46,0,40,34);r.updateLeftConnections([1]);
+  assert.equal(r.edges[1].line.getAttribute('d'),'M98 38 L180 38 L180 136');
+  r.canvas.getBoundingClientRect=()=>rect(0,0,468,280);r.draw();
+  assert.equal(r.edges[1].line.getAttribute('d'),'M234 76 L234 136');
+  assert.equal(r.edges[3].line.getAttribute('d'),'M234 204 L234 136');
 });
 test('teardown disconnects the observer and restores the native card on removal or unsupported type',t=>{
   const {ctx,hass,r}=fixture(t);ctx.config.button_type='slider';run(ctx,hass);
