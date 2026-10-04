@@ -14,8 +14,8 @@ modules:
 signature_flow:
   height: 310
   animation:
-    min_speed: 4
-    max_speed: 40
+    speed: 24
+    max_arrows: 5
     reference: 10000
   slots:
     1:
