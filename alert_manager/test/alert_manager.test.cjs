@@ -35,6 +35,85 @@ test('no options watches the main entity; every lifecycle partition has the righ
   assert.equal(run(context(),normal()),'');
 });
 
+test('default badges distinguish active and pending while keeping the selected alert color',()=>{
+  const active=run(context(),withAlerts([custom()]));
+  assert.equal(accent(active),red);
+  assert.match(active,/content: '!'/);
+  const pending=run(context(),withAlerts([custom()],1));
+  assert.equal(accent(pending),orange);
+  assert.ok(pending.includes('--am-clock'));
+  assert.ok(!pending.includes("content: '!'"));
+  const simultaneous=withAlerts([custom()]);simultaneous.states[ids[1]]=manager([custom()]);
+  const css=run(context(),simultaneous);
+  assert.match(css,/content: '!'/);
+  assert.ok(!css.includes('--am-clock'),'Active alerts take precedence for both color and badge');
+  assert.equal(run(context(),normal()),'','Resolving alerts removes all module styling');
+});
+
+test('the general badge switch preserves colors for all entities, packs and supported card types',()=>{
+  for (const card_type of ['button','cover','climate','media-player']) {
+    const ctx=context({show_badge:false,packs:{battery:{}},entities:{[target]:{}}},{card_type});
+    for (const entity of [primary,target]) for (const alert of [custom(entity),pack(entity)]) {
+      for (const partition of [0,1]) {
+        const css=run(ctx,withAlerts([alert],partition));
+        assert.equal(accent(css),partition === 1 ? orange : red);
+        assert.ok(!/::before|::after|overflow|--am-clock/.test(css),'No badge or overflow override when disabled');
+      }
+    }
+  }
+  for (const show_badge of [undefined,true,'false',0,null]) {
+    assert.match(run(context({show_badge}),withAlerts([custom()])),/content: '!'/,'Only boolean false disables badges');
+  }
+});
+
+test('badge colors follow the winning entity pack rather than a fixed severity palette',()=>{
+  const ctx=context({colors:{active:'#112233',pending:'#223344'},
+    entities:{[primary]:{packs:{battery:{colors:{active:'#334455',pending:'#445566'}}}}}});
+  for (const partition of [0,1]) {
+    const css=run(ctx,withAlerts([pack()],partition));
+    const expected=partition === 1 ? '#445566' : '#334455';
+    assert.equal(accent(css),expected);
+    assert.ok(css.includes('border: 1.5px solid '+expected));
+    if (partition === 1) assert.ok(css.includes('background: '+expected));
+    else assert.ok(css.includes('color: '+expected));
+  }
+});
+
+test('changing the badge switch without new sensor data reuses the index and keeps dependencies',()=>{
+  let visits=0;
+  const records=new Proxy([custom()],{get(array,prop){
+    if(prop===Symbol.iterator) return function*(){for(const item of array){visits++;yield item;}};
+    return Reflect.get(array,prop);
+  }});
+  const hass=withAlerts(records);
+  const reads=new Set();
+  const tracked={...hass,states:new Proxy(hass.states,{get(states,id){reads.add(id);return states[id];}})};
+  const ctx=context();
+  assert.match(run(ctx,tracked),/content: '!'/);
+  ctx.config.alert_manager={show_badge:false};
+  const hidden=run(ctx,tracked);
+  assert.equal(accent(hidden),red);assert.ok(!hidden.includes('::after'));
+  ctx.config.alert_manager={show_badge:true};
+  assert.match(run(ctx,tracked),/content: '!'/);
+  assert.equal(visits,1,'Badge preferences never traverse unchanged alerts again');
+  assert.deepEqual([...reads],ids,'Badges add no entity reads or source dependencies');
+});
+
+test('badges disappear when policies filter an alert or the source changes to acknowledged',()=>{
+  const ctx=context();const hass=withAlerts([custom()]);
+  assert.match(run(ctx,hass),/content: '!'/);
+  ctx.config.alert_manager={entities:{[primary]:{exclude:['temperature']}}};
+  assert.equal(run(ctx,hass),'');
+  ctx.config.alert_manager={ignore_pending:true};
+  hass.states[ids[0]]=manager();hass.states[ids[1]]=manager([custom()]);
+  assert.equal(run(ctx,hass),'');
+  ctx.config.alert_manager={};
+  assert.ok(run(ctx,hass).includes('--am-clock'));
+  hass.states[ids[1]]=manager();
+  hass.states['sensor.alert_manager_main_acknowledge']=manager([custom()]);
+  assert.equal(run(ctx,hass),'','Acknowledged alerts do not keep a badge');
+});
+
 test('acknowledged alerts never color the card or become source dependencies',()=>{
   const hass=withAlerts([custom()]);
   const acknowledged='sensor.alert_manager_main_acknowledge';
@@ -605,6 +684,17 @@ test('all documented configuration examples are valid YAML',() => {
   const blocks=[...doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)];
   assert.ok(blocks.length>0);
   for (const [,example] of blocks) assert.doesNotThrow(()=>YAML.parse(example));
+});
+
+test('the documented general badge option hides only the badge',()=>{
+  const doc=fs.readFileSync(path.resolve(__dirname,'../doc/README.md'),'utf8');
+  const options=[...doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)]
+    .map(([,example])=>YAML.parse(example).alert_manager)
+    .find(options=>options?.show_badge === false);
+  assert.ok(options,'A working show_badge: false example is documented');
+  const css=run(context(options),withAlerts([custom()]));
+  assert.equal(accent(css),red);
+  assert.ok(!css.includes('::after'));
 });
 
 test('documented pack examples activate declared packs for active alerts',()=>{

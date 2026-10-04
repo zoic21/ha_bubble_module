@@ -1,19 +1,20 @@
 # Sans options : toutes les entités de la carte, règles personnalisées uniquement.
 # alert_manager : sensors, packs (objets indexés par ID), ignore_pending,
 # colors et entities (exceptions et ajouts indexés par entity_id).
+# show_badge: false masque la pastille pour toute la carte, sans désactiver les couleurs.
 # entities.<entity_id>.exclude : true pour toute l’entité, liste d’ID pour des règles ou packs.
 # Couleurs : active (rouge), pending (orange), priorité pack de l’entité > entité > pack > général.
 # Aucune disponibilité, souscription ou temporisation ; index partagé par connexion HA.
 alert_manager:
   name: Alert Manager
-  version: 3.2.1
+  version: 3.3.0
   creator: Loïc
   supported:
     - button
     - cover
     - climate
     - media-player
-  description: 'Surveille toutes les entités de la carte et les règles personnalisées par défaut. alert_manager permet de configurer les capteurs sources, d’activer des packs par ID, d’exclure des entités ou des règles et packs par entité, de masquer les alertes à venir et de personnaliser les couleurs par entité, pack ou globalement. Chaque pack déclaré dans packs est activé et peut définir ignore_pending et colors.active/pending. Colore uniquement l’icône principale et son fond pastel.'
+  description: 'Surveille toutes les entités de la carte et les règles personnalisées par défaut. alert_manager permet de configurer les capteurs sources, d’activer des packs par ID, d’exclure des entités ou des règles et packs par entité, de masquer les alertes à venir et de personnaliser les couleurs par entité, pack ou globalement. Chaque pack déclaré dans packs est activé et peut définir ignore_pending et colors.active/pending. Colore l’icône principale et son fond pastel, avec une pastille ! pour une alerte active ou une horloge en attente. show_badge: false masque les pastilles pour toute la carte en conservant les couleurs.'
   code: |2-
         ${(() => {
           const c = this.config;
@@ -141,10 +142,51 @@ alert_manager:
           const state = selected.severity === 2 ? 'active' : 'pending';
           const accent = policy.packs.get(selected.pack)?.colors[state] ?? policy.colors[state] ?? watched.colors[state];
           const surface = 'var(--ha-card-background, var(--card-background-color, #fff))';
+          // CSS overlays disappear with the alert or module, without DOM cleanup or extra HA reads.
+          const badge = options.show_badge === false ? '' : `
+            ha-card .bubble-main-icon-container { overflow: visible !important; }
+            ha-card .bubble-main-icon-container::after {
+              content: '${state === 'active' ? '!' : ''}';
+              position: absolute;
+              top: -3px;
+              right: -3px;
+              width: 16px;
+              height: 16px;
+              box-sizing: border-box;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1.5px solid ${accent};
+              border-radius: 50%;
+              background: ${surface};
+              box-shadow: 0 0 0 2px ${surface};
+              color: ${accent};
+              font: 700 12px/1 var(--primary-font-family, system-ui);
+              pointer-events: none;
+              z-index: 2;
+            }
+            ${state === 'pending' ? `
+              ha-card .bubble-main-icon-container::before {
+                content: '';
+                position: absolute;
+                top: -1px;
+                right: -1px;
+                width: 12px;
+                height: 12px;
+                background: ${accent};
+                --am-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5v7l5 3' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+                -webkit-mask: var(--am-clock) center / contain no-repeat;
+                mask: var(--am-clock) center / contain no-repeat;
+                pointer-events: none;
+                z-index: 3;
+              }
+            ` : ''}
+          `;
           return `
             ha-card .bubble-main-icon-container .bubble-main-icon { color: ${accent} !important; }
             ha-card .bubble-main-icon-container {
               --bubble-icon-background-color: color-mix(in srgb, ${accent} 16%, ${surface}) !important;
             }
+            ${badge}
           `;
         })()}

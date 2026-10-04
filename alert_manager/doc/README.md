@@ -1,6 +1,6 @@
-# Bubble Alert Manager module 3.2.1
+# Bubble Alert Manager module 3.3.0
 
-[Module to import](../dist/alert_manager.yaml), independent of `signature`. It colors only the main icon and its pastel background based on Alert Manager alerts. Thresholds and delays are not duplicated in cards.
+[Module to import](../dist/alert_manager.yaml), independent of `signature`. It colors the main icon and its pastel background based on Alert Manager alerts, and adds a small badge at the icon's upper-right corner. Thresholds and delays are not duplicated in cards.
 
 Requires the [Home Assistant Alert Manager integration](https://github.com/zoic21/ha_alert_manager).
 
@@ -31,6 +31,7 @@ The module can also be used on its own with native Bubble cards. With `signature
 | `sensors.active/pending` | IDs of the two source sensors | Sensors created by the integration by default |
 | `packs.<pack_id>` | Enables a pack and optionally sets its `ignore_pending` and `colors.active/pending` | No packs enabled |
 | `ignore_pending` | Hides pending alerts | `false` |
+| `show_badge` | Shows a badge for the selected alert; `false` keeps only the alert colors | `true` |
 | `colors.active` | Active alert color | Theme red |
 | `colors.pending` | Pending alert color | Theme orange |
 | `entities.<entity_id>` | Overrides for a card entity, or adds an external entity | No overrides |
@@ -39,6 +40,27 @@ The module can also be used on its own with native Bubble cards. With `signature
 Each `entities` entry accepts `exclude`, `ignore_pending`, `packs.<pack_id>`, and `colors.active/pending`. Packs use the same configuration object globally and within an entity. Boolean options use only YAML booleans `true` and `false`.
 
 To disable the module on a card, remove `alert_manager` from its `modules` list.
+
+## Alert badges
+
+Badges are enabled by default and use the same selected alert and color as the main icon:
+
+- **Active:** a small circular badge with `!`.
+- **Pending:** a small clock, unless that pending alert is ignored.
+- **No matching alert:** no badge; the card returns to its normal appearance.
+
+The badge has a surface-colored background and outer ring so it remains distinct from the pastel icon in light and dark themes. It overlays the main icon without changing the card's layout or intercepting its actions. The device icon remains visible.
+
+To hide badges for all monitored entities and packs on a card while preserving alert colors, use the general option:
+
+```yaml
+alert_manager:
+  show_badge: false
+```
+
+This option belongs directly under `alert_manager`, alongside `ignore_pending` and `colors`; it is not an entity or pack option. Only the YAML boolean `false` disables badges. Omit it or set `true` to restore them. Like the module's other general options, its scope is the current card, not other cards in the dashboard.
+
+Exclusions, pack activation, source sensor settings, and pending policies apply equally to colors and badges. Acknowledged alerts remain outside this module's monitored sources, and missing or truncated source data does not create an uncertainty badge.
 
 ## Source sensors
 
@@ -188,11 +210,11 @@ Values accept a valid CSS color: hexadecimal, a name (`red`, `teal`…), `rgb(..
 
 | Situation | Display |
 |---|---|
-| Matching active alert | `active`, red by default |
-| Matching pending alert, with no active alert | `pending`, orange by default |
-| No matching alert | The card's own colors, with no added styling |
+| Matching active alert | `active`, red by default, with a `!` badge |
+| Matching pending alert, with no active alert | `pending`, orange by default, with a clock badge |
+| No matching alert | The card's own colors, with no badge or added styling |
 
-An active alert takes precedence over a pending alert, regardless of its custom color. At equal severity, the first entity encountered in the card configuration wins; for multiple alerts on that entity, the lexically smallest alert ID determines the color. Reordering data received from the manager therefore does not change the winning color.
+An active alert takes precedence over a pending alert, regardless of its custom color. At equal severity, the first entity encountered in the card configuration wins; for multiple alerts on that entity, the lexically smallest alert ID determines the color and badge. Reordering data received from the manager therefore does not change the winning color.
 
 Values, switches, other sub-buttons, and the card background retain their appearance. Specific selectors with `!important` give the module priority over `signature` during an alert; a more specific third-party style may still override them.
 
@@ -228,6 +250,15 @@ After a manual update, import the YAML again and reload the frontend. A commit i
 
 ## Validation in Home Assistant
 
-On a test entity, check active and pending custom alerts, an exclusion, and then explicitly enabling a pack. When all matching alerts disappear, the card returns to its normal colors.
+On a test entity, check active and pending custom alerts, an exclusion, and then explicitly enabling a pack. Verify the `!` and clock badges, including with custom colors and in both light and dark themes. Set `show_badge: false`: the badges should disappear while alert colors remain. Remove that option to restore them. When all matching alerts disappear, the card returns to its normal colors and the badge disappears. Check the main icon and sub-button actions on narrow and wide screens.
 
 YAML/JavaScript syntax checks do not validate rendering or data in a real Home Assistant instance. Check that the compact sensors work and cards respond correctly in your installation.
+
+## Release notes
+
+### 3.3.0 — 4 October 2026
+
+- Adds active (`!`) and pending (clock) badges, enabled by default, with the selected alert's custom color.
+- Adds the general `show_badge: false` option to retain alert colors without badges on a card.
+- Preserves source sensors, exclusions, pending masks, shared caching, native commands, and card dimensions.
+- Verification: 98 automated repository tests passed. Browser checks with simulated HA data covered 11 configurations and 19 scenarios (209 card/scenario checks), both module orders, custom colors, light/desktop and dark/narrow screens, option changes without new sensor data, resolution, module removal, cleanup, and native actions. No added template subscriptions or browser errors. Real Home Assistant installation remains to be tested.
