@@ -256,7 +256,7 @@ test('acknowledged alerts never color the card or become source dependencies',()
 
 test('default discovery covers sub-button arrays, main/bottom groups, targets and secondary entities',()=>{
   const extra = {sub_button:{main:[{entity:target},{group:[{entity:power}]}],bottom:[{group:[{entity:'sensor.bottom'}]}]},
-    signature:{secondary_entity:'sensor.secondary'},button_action:{tap_action:{target:{entity_id:['light.one','light.two']}}}};
+    signature:{secondary:'sensor.secondary'},button_action:{tap_action:{target:{entity_id:['light.one','light.two']}}}};
   for (const entity of [primary,target,power,'sensor.bottom','sensor.secondary','light.one','light.two']) {
     assert.equal(accent(run(context(undefined,extra),withAlerts([custom(entity)]))),red,entity);
   }
@@ -309,6 +309,12 @@ test('global pending policy can be overridden explicitly per entity',()=>{
   for (const value of [false,'true',1]) {
     assert.equal(accent(run(context({entities:{[primary]:{ignore_pending:value}}}),withAlerts([custom()],1))),orange);
   }
+});
+
+test('direct Signature and Flow values remain monitored without auxiliary entity fields',()=>{
+  const ctx=context(undefined,{signature:{secondary:target},signature_flow:{slots:{1:{primary:power,secondary:'sensor.secondary'}}}});
+  for(const entity of [target,power,'sensor.secondary'])assert.equal(accent(run(ctx,withAlerts([custom(entity)]))),red);
+  assert.equal(run(ctx,withAlerts([custom('sensor.unrelated')])),'');
 });
 
 test('all automatic packs are excluded by default and arbitrary future IDs work',()=>{

@@ -286,7 +286,7 @@ test('secondary template presence updates cached CSS without rebuilding it for t
     ['compact',{}],['compact',{compact_mode:'value'}],['square',{auto_height:true}],['room',{}],['header',{}],
   ]) {
     const config={button_type:layout === 'header' ? 'name' : 'state',sub_button:[{entity:'switch.room'}]};
-    const signature={...options,layout,secondary:'{{ text }}',secondary_entity:id};
+    const signature={...options,layout,secondary:"{{ states('input_number.target') }}"};
     const {ctx,hass}=fixture(t,{},signature,config);
     const content=new Element(),name=new Element();content.append(name);ctx.card.append(content);
     ctx.elements.contentContainer=content;ctx.elements.nameContainer=name;
@@ -319,7 +319,7 @@ test('multiline changes restore the correct wrapping rules in cached standard an
 });
 
 test('cached secondary text refreshes templates, survives DOM replacement and is removed on teardown',t => {
-  const {ctx,hass}=fixture(t,{}, {secondary:'{{ text }}',secondary_entity:id});
+  const {ctx,hass}=fixture(t,{}, {secondary:"{{ states('input_number.target') }}"});
   const content=new Element(),name=new Element();
   content.append(name);ctx.card.append(content);
   ctx.elements.contentContainer=content;ctx.elements.nameContainer=name;
@@ -337,6 +337,115 @@ test('cached secondary text refreshes templates, survives DOM replacement and is
   ctx.teardown();
   assert.equal(ctx.card.querySelector('.dp-secondary'),null);
   assert.equal(ctx._dpRuntime,undefined);
+});
+
+function secondaryFixture(t,options,extra={},config={}) {
+  const {ctx,hass}=fixture(t,extra,options,config);
+  const content=new Element(),name=new Element();content.append(name);ctx.card.append(content);
+  ctx.elements.contentContainer=content;ctx.elements.nameContainer=name;
+  return {ctx,hass};
+}
+
+test('direct secondary entities display native units, precision and locale and refresh without rebuilding',t => {
+  const target='sensor.temperature';
+  const {ctx,hass}=secondaryFixture(t,{secondary:target},{locale:{language:'fr',number_format:'space_comma'},
+    entities:{[target]:{display_precision:1}},states:{[id]:state,[target]:{state:'21.25',attributes:{unit_of_measurement:'°C'}}}});
+  const css=run(ctx,hass),node=ctx.card.querySelector('.dp-secondary');
+  assert.equal(node.textContent,'21,3 °C');
+  assert.equal(node.dataset.entity,target);
+  assert.equal(JSON.parse(node.dataset.tapAction).action,'more-info');
+  assert.equal(JSON.parse(node.dataset.holdAction).action,'more-info');
+  assert.equal(ctx.elements.state.dataset.entity,id);
+  const source=ctx._dpRuntime.secondarySource,formatter=ctx._dpRuntime.secondaryFormat.formatter;
+  hass.states[target]={state:'22.75',attributes:{unit_of_measurement:'°C'}};
+  assert.equal(run(ctx,hass),css);
+  assert.equal(node.textContent,'22,8 °C');
+  assert.equal(ctx.card.querySelector('.dp-secondary'),node);
+  assert.equal(ctx._dpRuntime.secondarySource,source);
+  assert.equal(ctx._dpRuntime.secondaryFormat.formatter,formatter);
+  run(ctx,{...hass,locale:{language:'fr',number_format:'comma_decimal'}});
+  assert.equal(node.textContent,'22.8 °C');
+});
+
+test('secondary entity detection runs once for repeated updates and again only after a source change',t => {
+  const original=String.prototype.match;let analyses=0;
+  t.mock.method(String.prototype,'match',function(pattern){
+    if(pattern?.source?.includes('states|state_attr|is_state|is_state_attr|has_value'))analyses++;
+    return original.call(this,pattern);
+  });
+  const {ctx,hass}=secondaryFixture(t,{secondary:"{{ states('sensor.one') }}"});
+  for(let i=0;i<1000;i++)run(ctx,hass,()=> String(i));
+  assert.equal(analyses,1);
+  ctx.config.signature={secondary:"{{ states('sensor.one') }}"};
+  run(ctx,hass,()=> 'Same configuration');assert.equal(analyses,1);
+  ctx.config.signature={secondary:"{{ states('sensor.two') }}"};
+  run(ctx,hass,()=> 'New source');assert.equal(analyses,2);
+});
+
+test('direct secondary states are read on every render and missing values retain their details target',t => {
+  const target='sensor.temperature';let reads=0,current={state:'23.5',attributes:{unit_of_measurement:'°C'}};
+  const states={[id]:state};Object.defineProperty(states,target,{get:()=>{reads++;return current;}});
+  const {ctx,hass}=secondaryFixture(t,{secondary:target},{states});
+  const before=reads;run(ctx,hass);run(ctx,hass);
+  assert.equal(reads-before,2);
+  for(const raw of ['unknown','unavailable',undefined]) {
+    current=raw === undefined ? undefined : {state:raw,attributes:{unit_of_measurement:'°C'}};
+    run(ctx,hass);const node=ctx.card.querySelector('.dp-secondary');
+    assert.equal(node.textContent,'—');assert.equal(node.dataset.entity,target);
+  }
+  current={state:'on',attributes:{}};
+  run(ctx,{...hass,formatEntityState:()=> 'Allumé'});
+  assert.equal(ctx.card.querySelector('.dp-secondary').textContent,'Allumé');
+});
+
+test('secondary templates select their first entity in source order and retain the native rendering context',t => {
+  for(const [secondary,target]of [
+    ["{{ states('sensor.one') }} · {{ states('sensor.two') }}",'sensor.one'],
+    ['{{ state_attr("sensor.two", "measured_at") }}','sensor.two'],
+    ['{{ states.sensor.dotted.state }}','sensor.dotted'],
+    ['{{ states(entity) }}',id],
+    ["{{ state_attr(entity, 'measured_at') }}",id],
+    ["{{ states(entity) }} {{ states('sensor.one') }}",id],
+    ["{{ states('sensor.one') }} {{ states(entity) }}",'sensor.one'],
+  ]) {
+    const {ctx,hass}=secondaryFixture(t,{secondary});
+    run(ctx,hass,(text,entity)=>{assert.equal(text,secondary);assert.equal(entity,id);return 'Details';});
+    const node=ctx.card.querySelector('.dp-secondary');
+    assert.equal(node.textContent,'Details');assert.equal(node.dataset.entity,target);
+    assert.equal(node.classList.contains('bubble-action'),true);
+    assert.equal(ctx.elements.state.dataset.entity,id);
+  }
+});
+
+test('fixed secondary text and templates without a static entity keep their text and native card actions',t => {
+  for(const secondary of ['Protect','**Ajax**','{{ text }}',"{{ states('sensor.' ~ room) }}"]) {
+    const {ctx,hass}=secondaryFixture(t,{secondary,secondary_bold:true});
+    run(ctx,hass,()=> '<img src=x>');const node=ctx.card.querySelector('.dp-secondary');
+    assert.equal(node.classList.contains('bubble-action'),false);
+    assert.equal(node.dataset.entity,undefined);
+    assert.equal(ctx.elements.state.dataset.entity,id);
+    if(secondary.includes('{{'))assert.equal(node.textContent,'<img src=x>');
+  }
+});
+
+test('changing a secondary target replaces its cached action node and switching to plain text removes actions',t => {
+  const {ctx,hass}=secondaryFixture(t,{secondary:"{{ states('sensor.one') }}"});
+  run(ctx,hass,()=> 'First');const first=ctx.card.querySelector('.dp-secondary');
+  ctx.config.signature={secondary:"{{ states('sensor.two') }}"};
+  run(ctx,hass,()=> 'Second');const second=ctx.card.querySelector('.dp-secondary');
+  assert.notEqual(second,first);assert.equal(second.dataset.entity,'sensor.two');
+  assert.equal(ctx.card.contains(first),false);assert.equal(first.dataset.entity,undefined);
+  ctx.config.signature={secondary:'Protect'};run(ctx,hass);
+  const plain=ctx.card.querySelector('.dp-secondary');
+  assert.notEqual(plain,second);assert.equal(plain.textContent,'Protect');
+  assert.equal(plain.classList.contains('bubble-action'),false);
+  assert.equal(second.dataset.entity,undefined);
+});
+
+test('custom main state keeps the Bubble entity as its details target',t => {
+  const {ctx,hass}=secondaryFixture(t,{state:"{{ states('sensor.other') }} kW",secondary:'Details'});
+  run(ctx,hass,()=> '12 kW');assert.equal(ctx.elements.state.dataset.entity,id);
+  assert.equal(ctx.elements.state.textContent,'12kW');
 });
 
 test('service errors use native translations and retain the original error detail',async t => {

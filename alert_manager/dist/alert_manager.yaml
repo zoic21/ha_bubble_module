@@ -10,7 +10,7 @@
 # Aucune disponibilité, souscription ou temporisation ; index partagé par connexion HA.
 alert_manager:
   name: Alert Manager
-  version: 3.4.1
+  version: 3.4.2
   creator: Loïc
   supported:
     - button
@@ -38,7 +38,7 @@ alert_manager:
             // Nested cards have their own module and must not color their parent.
             const collect = (value,field = '') => {
               if (typeof value === 'string') {
-                if (/^(entity|entity_id|entities|entity_ids)$|_entity$/.test(field)) add(value);
+                if (/^(entity|entity_id|entities|entity_ids|primary|secondary)$|_entity$/.test(field)) add(value);
                 if (/\{[\{%]|\$\{/.test(value)) {
                   for (const match of value.matchAll(/['"]([a-z0-9_]+\.[a-z0-9_]+)['"]/g)) add(match[1]);
                   for (const match of value.matchAll(/\bstates\.([a-z0-9_]+\.[a-z0-9_]+)/g)) add(match[1]);

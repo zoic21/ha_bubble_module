@@ -2,6 +2,7 @@
 # Header/title : seules les couleurs et l’opacité des sous-boutons sont animées.
 # Compact : controls: number ajoute − / valeur et unité / + pour number et input_number.
 # Lock : type: switch avec lock.lock/unlock explicites ; ON = unlocked.
+# Secondary : entité directe, template ou texte ; cible more-info détectée et mise en cache.
 # Option secondary_bold: true : **texte** en gras dans secondary uniquement.
 # Compact value : mesures à 20px, unités à 13px, textes à 16px ; retrait commun de 6px à droite.
 # Option square : auto_height: true adapte la hauteur au contenu.
@@ -25,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 1.8.28
+  version: 2.0.0
   creator: Loïc
   supported:
     - button
@@ -225,7 +226,36 @@ signature:
           // Computed summaries have no single entity; name buttons can use the same value layout.
           const compactValue = layout === 'compact' && kind === 'button' && o.compact_mode === 'value'
             && (c.button_type === 'state' || (c.button_type === 'name' && custom));
-          const secondary = render(o.secondary).trim();
+          const displayState = (state, id, slot) => {
+            const raw = state?.state;
+            if (raw == null || ['unknown','unavailable'].includes(raw)) return {value:'—',unit:''};
+            if (String(raw).trim() === '' || !Number.isFinite(Number(raw))) {
+              return {value:typeof hass.formatEntityState === 'function' ? hass.formatEntityState(state) : raw,unit:''};
+            }
+            // Share native precision and locale rules; cache one formatter per displayed value.
+            const precision = hass.entities?.[id]?.display_precision ?? state.attributes?.suggested_display_precision;
+            const [mantissa,exponent = '0'] = String(raw).toLowerCase().split('e');
+            const inferredDigits = Math.max(0,(mantissa.split('.')[1] || '').length - Number(exponent));
+            const digits = precision == null ? Math.min(20,inferredDigits) : number(precision,2,0,20);
+            const key = localeFor(hass)+'|'+hass.locale?.number_format+'|'+digits+'|'+(precision == null);
+            if (runtime[slot]?.key !== key) runtime[slot] = {key,
+              formatter:formatterFor(hass,{minimumFractionDigits:precision == null ? 0 : digits,maximumFractionDigits:digits})};
+            return {value:runtime[slot].formatter.format(Number(raw)),unit:state.attributes?.unit_of_measurement || ''};
+          };
+          const secondaryInput = String(o.secondary ?? '').trim();
+          if (runtime.secondarySource?.input !== secondaryInput) {
+            const template = /\{[\{%#]/.test(secondaryInput);
+            const direct = !template && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(secondaryInput);
+            const match = template ? secondaryInput.match(/(['"])([a-z_][a-z0-9_]*\.[a-z0-9_]+)\1|\bstates\.([a-z_][a-z0-9_]*\.[a-z0-9_]+)\b|\b(?:states|state_attr|is_state|is_state_attr|has_value)\s*\(\s*(entity)\s*[,)]/) : null;
+            runtime.secondarySource = {input:secondaryInput,direct,entity:direct ? secondaryInput : match?.[2] || match?.[3],main:!!match?.[4]};
+          }
+          const source = runtime.secondarySource;
+          const secondaryEntity = source.main ? c.entity : source.entity;
+          let secondary;
+          if (source.direct) {
+            const {value,unit} = displayState(hass.states[secondaryEntity],secondaryEntity,'secondaryFormat');
+            secondary = value+(unit ? ' '+unit : '');
+          } else secondary = render(o.secondary).trim();
           const multiline = o.multiline === true;
           // Opt-in natural sizing; fixed-height cards retain their existing layout.
           const autoHeight = layout === 'square' && o.auto_height === true;
@@ -363,23 +393,7 @@ signature:
               if (parts) { value = parts[1]; unit = parts[2]; }
               else duration = value.match(/^([^\S\r\n]*\d+)([^\S\r\n]+h)([^\S\r\n]+\d+)([^\S\r\n]+min[^\S\r\n]*)$/);
             } else {
-              const raw = entityState?.state;
-              const numeric = raw != null && String(raw).trim() !== '' && Number.isFinite(Number(raw));
-              if (raw == null || ['unknown','unavailable'].includes(raw)) value = '—';
-              else if (numeric) {
-                // Local display precision: no extra server subscription per numeric tile.
-                const precision = hass.entities?.[c.entity]?.display_precision ?? entityState.attributes?.suggested_display_precision;
-                const [mantissa,exponent = '0'] = String(raw).toLowerCase().split('e');
-                const inferredDigits = Math.max(0,(mantissa.split('.')[1] || '').length - Number(exponent));
-                const digits = precision == null ? Math.min(20,inferredDigits) : number(precision,2,0,20);
-                const formatKey = localeFor(hass)+'|'+hass.locale?.number_format+'|'+digits+'|'+(precision == null);
-                if (this._dpFormatKey !== formatKey) {
-                  this._dpFormatKey = formatKey;
-                  this._dpFormatter = formatterFor(hass,{minimumFractionDigits:precision == null ? 0 : digits,maximumFractionDigits:digits});
-                }
-                value = this._dpFormatter.format(Number(raw));
-                unit = entityState.attributes?.unit_of_measurement || '';
-              } else value = typeof hass.formatEntityState === 'function' ? hass.formatEntityState(entityState) : raw;
+              ({value,unit} = displayState(entityState,c.entity,'stateFormat'));
             }
             const signature = String(value) + '\u0001' + unit + (duration ? '\u0001duration' : '');
             if (stateEl.dataset.dpSignature !== signature || !stateEl.querySelector('.dp-value')) {
@@ -462,6 +476,9 @@ signature:
           // A dedicated secondary node leaves Bubble's native line and event handlers intact.
           let secondaryEl = runtime.secondaryEl;
           if (secondaryEl && !root.contains(secondaryEl)) secondaryEl = null;
+          // Bubble caches action handlers on first use; a new target needs a new node.
+          if (secondaryEl && runtime.secondaryTarget !== secondaryEntity) { secondaryEl.remove(); secondaryEl = null; }
+          runtime.secondaryTarget = secondaryEntity;
           if (secondary && nameBox && content) {
             if (!secondaryEl) { secondaryEl = document.createElement('div'); secondaryEl.className = 'dp-secondary'; }
             const parent = ['square','room'].includes(layout) ? content : nameBox;
@@ -507,7 +524,7 @@ signature:
           };
           const info = id => ({entity:id,tapAction:'{"action":"more-info"}',holdAction:'{"action":"more-info"}',doubleTapAction:'{"action":"none"}'});
           bindAction('state', c.entity ? stateEl : null, info(c.entity));
-          bindAction('secondary', secondary && o.secondary_entity ? secondaryEl : null, info(o.secondary_entity));
+          bindAction('secondary', secondary && secondaryEntity ? secondaryEl : null, info(secondaryEntity));
           if (kind === 'climate') {
             for (const key of ['tempDisplay','lowTempDisplay','highTempDisplay']) bindAction(key,this.elements?.[key],info(c.entity));
           }

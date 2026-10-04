@@ -1,4 +1,4 @@
-# Bubble Alert Manager module 3.4.1
+# Bubble Alert Manager module 3.4.2
 
 [Module to import](../dist/alert_manager.yaml), independent of `signature`. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
@@ -278,7 +278,7 @@ Values, switches, other sub-buttons, and the main icon retain their appearance. 
 
 ## Entity discovery and limitations
 
-Discovery covers the main entity and the `entity`, `entity_id`, `entities`, `entity_ids`, and `*_entity` fields, including individual/grouped sub-buttons, action targets, and `secondary_entity`. It also detects quoted literal IDs in Jinja/JavaScript templates and `states.sensor.name` in Jinja. Duplicates are removed. Child cards have their own monitoring scope.
+Discovery covers the main entity and the `entity`, `entity_id`, `entities`, `entity_ids`, `primary`, `secondary`, and `*_entity` fields, including individual/grouped sub-buttons, action targets, direct Signature secondary values, and Signature Flow measurements. It also detects quoted literal IDs in Jinja/JavaScript templates and `states.sensor.name` in Jinja. Duplicates are removed. Child cards have their own monitoring scope.
 
 A dynamically constructed ID in a template cannot be inferred: add it to `alert_manager.entities`. An entity referenced by a hidden button is not automatically removed from monitoring; use `exclude: true` if needed.
 
@@ -313,6 +313,11 @@ On a test entity, check active and pending custom alerts, an exclusion, and then
 YAML/JavaScript syntax checks do not validate rendering or data in a real Home Assistant instance. Check that the compact sensors work and cards respond correctly in your installation.
 
 ## Release notes
+
+### 3.4.2 — 4 October 2026
+
+- Discovers direct entity IDs in `primary` and `secondary`, so Signature 2 secondary values and Signature Flow measurements remain monitored without auxiliary entity fields.
+- Discovery remains cached per card configuration; alert source reads and filtering are unchanged.
 
 ### 3.4.1 — 4 October 2026
 

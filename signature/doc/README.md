@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **1.8.28**. [Complete file to import](../dist/signature.yaml).
+Version **2.0.0**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -58,8 +58,7 @@ A `square` tile's height depends on the card and the Home Assistant grid: the mo
 | `icon_border_color` | Color or Jinja | No added border | Adds a 2 px inner border to the icon background |
 | `compact_mode` | `value` | Standard | Shows the value on the right for a `state` button, or a `name` button with a custom `state` |
 | `state` | Text or Jinja | Native state | Computed value to display; follows native state display options |
-| `secondary` | Text or Jinja | None | Additional secondary text |
-| `secondary_entity` | Entity ID | None | Target when clicking the secondary text; does not supply its text |
+| `secondary` | Entity ID, text or Jinja | None | Secondary value; direct entities supply their state and unit, and the details target is detected automatically |
 | `secondary_bold` | Boolean | `false` | Interprets `**text**` in the secondary text |
 | `multiline` | Boolean | `false` | Allows line breaks in the state and secondary text |
 | `auto_height` | Boolean | `false` | Adjusts height to content, only in `square` |
@@ -114,13 +113,18 @@ signature:
   auto_height: true
   multiline: true
   secondary_bold: true
-  secondary_entity: sensor.living_room_temperature
   secondary: |-
     {{ states('sensor.living_room_temperature') }} °C
     **Indoor comfort**
 ```
 
-`secondary` is not an automatically resolved entity. `secondary_entity` is used only to open that entity's details. Bold formatting supports only `**…**` pairs on the same line, not full Markdown or HTML.
+`secondary` accepts an entity ID, Jinja template or fixed text. A direct entity displays its state and unit using the same Home Assistant locale and precision rules as the main measurement; missing or unavailable states display `—` without a unit. For example, `secondary: sensor.living_room_temperature` displays the temperature and opens its details when clicked.
+
+For templates, the first quoted literal entity ID or `states.sensor.name` reference supplies the details target. Native references such as `states(entity)` and `state_attr(entity, 'measured_at')` use the Bubble card's main entity. References are inspected in source order and cached until the configured secondary changes. Template rendering retains Bubble's main `entity` context and never appends a unit automatically. Fixed text and templates without a detectable entity have no secondary details action. Dynamically constructed entity IDs cannot be inferred.
+
+For a template using several entities, place the intended details entity first. This is a source-based convention, not an inference about which branch rendered. Bold formatting supports only `**…**` pairs on the same line, not full Markdown or HTML.
+
+Version 2 removes `secondary_entity`. Delete that option from existing cards and check the first entity referenced by each secondary template. The main entity remains the native Bubble `entity`; the optional `state` only customizes its display. There is no `primary` field.
 
 `controls: measure` positions the first two existing sub-buttons: a control at the top right and a detail at the bottom right. `reserve_measure_detail: true` reserves the lower space even without a second sub-button. The module does not create these buttons.
 
@@ -266,7 +270,7 @@ For a banner, use `card_type: button`, `button_type: name`, and `layout: header`
 - Simple numeric measurements follow Home Assistant's number format and precision settings. Scientific notation contributes its exponent to inferred decimal precision, up to 20 decimal places; an explicit display precision takes precedence. A missing or unavailable numeric state becomes `—`, without a unit.
 - A custom value must include its unit. Simple quantities (`500 g`, `50 %`, `−4.5 °C`) and durations such as `2 h 52 min` are visually split into numbers and units without changing the calculation.
 - `state_content` and native attribute/timestamp options are respected. An explicitly hidden state stays hidden.
-- Clicking or holding the main value opens `more-info` for the main entity. Secondary text does the same when `secondary_entity` is defined. Sub-buttons retain their native actions.
+- Clicking or holding the main value opens `more-info` for the native Bubble `entity`, including when `state` customizes its display. Secondary text does the same for its automatically detected entity. Sub-buttons retain their native actions.
 - The main icon uses explicit navigation from `tap_action`, or otherwise `button_action.tap_action`. Clicking the card and clicking its value can therefore perform different actions.
 
 ## Using with Alert Manager
@@ -291,3 +295,13 @@ A standard compact state button without optional controls or secondary text gene
 The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, and changes in Bubble can affect rendering. Use a recent Bubble version; Jinja templates and lifecycle cleanup use `renderTemplate` and `onTeardown` when available. No specific minimum version is claimed without validation against that version.
 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
+
+## Release notes
+
+### 2.0.0 — 4 October 2026
+
+- Keeps the main entity and its details action native to Bubble; `state` remains an optional display override.
+- Accepts a direct entity, template or text in `secondary`, with automatic details targeting. Removes the redundant `secondary_entity` option.
+- Caches secondary source detection until its configuration changes, while continuing to refresh rendered values and entity dependencies. Numeric values reuse locale/precision formatters; no polling or additional subscriptions are introduced.
+- Replaces the secondary action node only when its target changes, avoiding Bubble's previously cached action handler opening the old entity.
+- Verification: 184 automated repository tests passed, including one proving that 1,000 updates and an equivalent configuration replacement trigger only one secondary source analysis. A Node.js 24 benchmark with simulated DOM fixtures measured about 0.11–0.14 µs additional execution time per update for secondary templates (about 2%), with no increase in the compact/room samples. A direct secondary retained its source cache and formatter over 50,000 updates without observed heap growth. These measurements cover module execution, not real Home Assistant layout or asynchronous template rendering.
