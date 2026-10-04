@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 1.0.0
+  version: 1.0.1
   creator: Loïc
   supported:
     - button
@@ -9,11 +9,12 @@ signature_flow:
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
+      const version = '1.0.1';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
       let runtime = this._signatureFlow;
-      if (runtime && (runtime.root !== root || runtime.host !== host || !enabled)) {
+      if (runtime && (runtime.version !== version || runtime.root !== root || runtime.host !== host || !enabled)) {
         runtime.dispose();
         runtime = null;
       }
@@ -33,7 +34,7 @@ signature_flow:
         const wires = create('svg', 'sf-wires', true);
         wires.setAttribute('aria-hidden', 'true');
         canvas.appendChild(wires);
-        runtime = this._signatureFlow = {root, host, canvas, wires, nodes: {}, edges: {}, formatters: new Map()};
+        runtime = this._signatureFlow = {version, root, host, canvas, wires, nodes: {}, edges: {}, formatters: new Map()};
         const current = runtime;
         current.dispose = () => {
           current.observer?.disconnect();
@@ -60,7 +61,7 @@ signature_flow:
         current.draw = () => {
           const box = canvas.getBoundingClientRect();
           if (!box.width || !box.height) return;
-          canvas.classList.toggle('sf-narrow', box.width < 422);
+          canvas.classList.toggle('sf-narrow', box.width < 460);
           canvas.classList.toggle('sf-small', box.width < 352);
           const local = key => {
             const r = current.nodes[key].el.getBoundingClientRect();
@@ -68,18 +69,21 @@ signature_flow:
               bottom:r.bottom-box.top, cx:(r.left+r.right)/2-box.left, cy:(r.top+r.bottom)/2-box.top};
           };
           const solar = local('solar'), grid = local('grid'), home = local('home'), battery = local('battery');
-          const x = (grid.right + home.left)/2, y = grid.cy;
+          const x = box.width/2, y = grid.cy;
           attr(wires, 'viewBox', '0 0 '+box.width+' '+box.height);
           const route = (key, points) => {
             const d = points.map((p,i) => (i ? 'L' : 'M')+p.join(' ')).join(' ');
             attr(current.edges[key].line, 'd', d);
-            attr(current.edges[key].flow, 'd', d);
+            const motion = 'path("'+d+'")';
+            if (current.edges[key].flow.style.getPropertyValue('offset-path') !== motion)
+              current.edges[key].flow.style.setProperty('offset-path', motion);
           };
-          route('solar', canvas.classList.contains('sf-has-top') ?
-            [[solar.right,solar.cy],[x,solar.cy],[x,y]] : [[solar.cx,solar.bottom],[solar.cx,y-12],[x,y-12],[x,y]]);
+          route('solar', canvas.classList.contains('sf-has-top') || canvas.classList.contains('sf-narrow') ?
+            [[solar.right,solar.cy],[x,solar.cy],[x,y]] : [[x,solar.bottom],[x,y]]);
           route('grid', [[grid.right,y],[x,y]]);
           route('home', [[x,y],[home.left,y]]);
-          route('battery', [[battery.cx,battery.top],[battery.cx,battery.top-10],[x,battery.top-10],[x,y]]);
+          route('battery', canvas.classList.contains('sf-narrow') ?
+            [[battery.right,battery.cy],[x,battery.cy],[x,y]] : [[x,battery.top],[x,y]]);
           for (const key of ['top','bottom']) {
             if (current.nodes[key].el.hidden) continue;
             const r = local(key);
@@ -98,7 +102,9 @@ signature_flow:
           const secondary = create('span', 'sf-secondary');
           content.append(label, value, secondary); el.append(iconBox, content); canvas.appendChild(el);
           current.nodes[key] = {el, icon, label, value, number, unit, secondary};
-          const line = create('path', 'sf-line', true), flow = create('path', 'sf-flow', true);
+          const line = create('path', 'sf-line', true), flow = create('g', 'sf-flow', true);
+          const arrow = create('path', 'sf-arrow', true);
+          attr(arrow, 'd', 'M-3 -3 L0 0 L-3 3'); flow.appendChild(arrow);
           const group = create('g', 'sf-edge', true); group.append(line, flow); wires.appendChild(group);
           current.edges[key] = {group, line, flow};
         }
@@ -110,9 +116,9 @@ signature_flow:
       const language = hass.locale?.language || hass.language || globalThis.navigator?.language || 'en';
       const french = language.toLowerCase().startsWith('fr');
       const labels = french ? {solar:'Solaire',grid:'Réseau',home:'Maison',battery:'Batterie',top:'Source',bottom:'Eau',
-        import:'Importation',export:'Injection',charge:'Recharge',discharge:'Décharge',idle:'Au repos',unavailable:'Indisponible',details:'Ouvrir les détails'} :
+        charge:'Recharge',discharge:'Décharge',idle:'Au repos',unavailable:'Indisponible',details:'Ouvrir les détails'} :
         {solar:'Solar',grid:'Grid',home:'Home',battery:'Battery',top:'Source',bottom:'Water',
-        import:'Importing',export:'Exporting',charge:'Charging',discharge:'Discharging',idle:'Idle',unavailable:'Unavailable',details:'Show details'};
+        charge:'Charging',discharge:'Discharging',idle:'Idle',unavailable:'Unavailable',details:'Show details'};
       attr(runtime.canvas, 'aria-label', options.name || (french ? 'Énergie et eau' : 'Energy and water'));
       const render = (value, id) => {
         const s = String(value ?? '');
@@ -184,7 +190,6 @@ signature_flow:
         attr(edge.group, 'data-direction', direction);
         let secondary = '';
         if (cfg.secondary !== undefined) secondary = render(cfg.secondary,cfg.secondary_entity || cfg.entity);
-        else if (key === 'grid') secondary = signed === null ? labels.unavailable : direction > 0 ? labels.import : direction < 0 ? labels.export : labels.idle;
         else if (key === 'battery') secondary = signed === null ? labels.unavailable : direction === 0 ? labels.idle :
           (direction > 0 ? labels.discharge : labels.charge)+' · '+format(Math.abs(rawPower * flowScale),cfg.power_precision ?? 0)+' '+(cfg.power_unit ?? power?.attributes?.unit_of_measurement ?? 'W');
         else if (secondaryState) {
@@ -210,9 +215,9 @@ signature_flow:
       return '[data-signature-flow] .bubble-container{height:'+height+'px!important;padding:14px;box-sizing:border-box;border-radius:22px!important;background:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))!important;border:1px solid color-mix(in srgb,var(--primary-text-color) 6%,transparent)!important;box-shadow:var(--ha-card-box-shadow,none)}\n'+
         '[data-signature-flow] .bubble-container>.bubble-wrapper{display:none!important}\n'+
         '.sf-canvas{position:relative;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--primary-text-color);--sf-surface:var(--card-background-color,var(--ha-card-background,var(--secondary-background-color)))}\n'+
-        '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-flow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{stroke-dasharray:2 14;animation:sf-forward 2.4s linear infinite}.sf-edge[data-direction="-1"] .sf-flow{animation-direction:reverse}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
+        '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-arrow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{offset-distance:0%;offset-rotate:auto;offset-anchor:0px 0px;animation:sf-forward 2.4s linear infinite}.sf-edge[data-direction="-1"] .sf-flow{animation-direction:reverse;offset-rotate:auto 180deg}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+
         '.sf-node{position:absolute;display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;min-height:76px;padding:2px 0;border-radius:16px;background:var(--sf-surface);text-align:left;line-height:1.2;cursor:pointer}.sf-node[hidden]{display:none}.sf-content{display:grid;grid-template-rows:17px 34px 16px;gap:2px;min-width:0;align-items:start}.sf-label{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;color:var(--sf-color);background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))}.sf-icon ha-icon{--mdc-icon-size:22px}.sf-value{font-size:28px;font-weight:500;letter-spacing:-.7px;white-space:nowrap;line-height:34px;font-variant-numeric:tabular-nums;border-radius:6px}.sf-unit{font-size:16px;font-weight:400;letter-spacing:0;color:var(--secondary-text-color)}.sf-secondary{font-size:13px;white-space:nowrap;color:var(--secondary-text-color);pointer-events:none}.sf-secondary.sf-detail{pointer-events:auto;cursor:pointer;border-radius:4px}.sf-node:focus-visible,.sf-value:focus-visible,.sf-detail:focus-visible{outline:2px solid var(--sf-color);outline-offset:3px}\n'+
-        '.sf-solar{width:192px;top:0;left:calc(50% - 96px)}.sf-grid{width:128px;top:calc(50% - 42px);left:0}.sf-home{width:140px;top:calc(50% - 42px);right:0}.sf-battery{width:192px;bottom:0;left:calc(50% - 96px)}.sf-top,.sf-bottom{width:116px;right:12px;grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-top{top:0}.sf-bottom{bottom:0}.sf-top .sf-icon,.sf-bottom .sf-icon{width:28px;height:28px;border-radius:10px}.sf-top ha-icon,.sf-bottom ha-icon{--mdc-icon-size:18px}.sf-top .sf-value,.sf-bottom .sf-value{font-size:24px}.sf-top .sf-unit,.sf-bottom .sf-unit{font-size:13px}.sf-narrow .sf-battery,.sf-has-top .sf-solar{left:0}\n'+
-        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-grid,.sf-small .sf-home{width:112px}.sf-small .sf-battery{width:140px}.sf-small.sf-has-top .sf-solar{width:156px}.sf-small .sf-battery .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-top,.sf-small .sf-bottom{width:92px;right:10px;grid-template-columns:24px minmax(0,1fr);gap:6px}.sf-small .sf-top .sf-icon,.sf-small .sf-bottom .sf-icon{width:24px;height:24px}.sf-small .sf-top .sf-value,.sf-small .sf-bottom .sf-value{font-size:20px}.sf-small .sf-top .sf-unit,.sf-small .sf-bottom .sf-unit{font-size:12px}\n'+
-        '@keyframes sf-forward{to{stroke-dashoffset:-16}}@media(prefers-reduced-motion:reduce){.sf-flow{animation:none}}@media(hover:hover){.sf-node:hover{background:color-mix(in srgb,var(--primary-text-color) 3%,var(--sf-surface))}}';
+        '.sf-solar{width:180px;top:0;left:calc(50% - 90px)}.sf-grid{width:128px;top:calc(50% - 42px);left:0}.sf-home{width:140px;top:calc(50% - 42px);right:0}.sf-battery{width:180px;bottom:0;left:calc(50% - 90px)}.sf-top,.sf-bottom{width:140px;right:0}.sf-top{top:0}.sf-bottom{bottom:0}.sf-top .sf-value,.sf-bottom .sf-value{font-size:24px}.sf-top .sf-unit,.sf-bottom .sf-unit{font-size:13px}.sf-narrow .sf-solar,.sf-narrow .sf-battery{left:0;width:170px}.sf-has-top .sf-solar{left:0}\n'+
+        '.sf-small .sf-node{grid-template-columns:28px minmax(0,1fr);gap:8px}.sf-small .sf-icon{width:28px;height:28px;border-radius:10px}.sf-small .sf-icon ha-icon{--mdc-icon-size:20px}.sf-small .sf-grid,.sf-small .sf-home{width:112px}.sf-small .sf-battery,.sf-small .sf-solar{width:140px}.sf-small .sf-battery .sf-secondary{font-size:12px;margin-left:-36px}.sf-small .sf-value{font-size:26px}.sf-small .sf-top,.sf-small .sf-bottom{width:112px}.sf-small .sf-top .sf-value,.sf-small .sf-bottom .sf-value{font-size:20px}.sf-small .sf-top .sf-unit,.sf-small .sf-bottom .sf-unit{font-size:12px}\n'+
+        '@keyframes sf-forward{to{offset-distance:100%}}@media(prefers-reduced-motion:reduce){.sf-flow{animation:none;offset-distance:50%}}';
     })()}

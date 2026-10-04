@@ -46,17 +46,18 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'1.0.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'1.0.1');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.bottom.scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
+  assert.equal(home.signature_flow.grid.secondary,'');
   for(const key of ['solar','grid','home','battery','bottom']) assert.match(home.signature_flow[key].tap_action.navigation_path,/^#/);
 });
 test('snapshot uses instantaneous values and correct net directions',t=>{
   const {r}=fixture(t);assert.equal(r.nodes.solar.value.textContent,'1\u202f794 W');
   assert.equal(r.nodes.battery.value.textContent,'14 %');assert.equal(r.nodes.bottom.value.textContent,'0,0 L/min');
   assert.equal(r.nodes.battery.secondary.textContent,'Recharge · 1\u202f381 W');
-  assert.equal(r.nodes.grid.secondary.textContent,'Injection');
+  assert.equal(r.nodes.grid.secondary.textContent,'');
   assert.equal(r.edges.grid.group.getAttribute('data-direction'),'-1');
   assert.equal(r.edges.battery.group.getAttribute('data-direction'),'-1');
   assert.equal(r.edges.solar.group.getAttribute('data-direction'),'1');
@@ -64,7 +65,8 @@ test('snapshot uses instantaneous values and correct net directions',t=>{
 test('grid import, battery discharge and inversion update existing elements',t=>{
   const {ctx,hass,r}=fixture(t);
   run(ctx,{...hass,states:{...hass.states,'sensor.grid':state(130),'sensor.battery':state(200)}});
-  assert.equal(ctx._signatureFlow,r);assert.equal(r.nodes.grid.secondary.textContent,'Importation');
+  assert.equal(ctx._signatureFlow,r);assert.equal(r.nodes.grid.secondary.textContent,'');
+  assert.equal(r.edges.grid.group.getAttribute('data-direction'),'1');
   assert.equal(r.nodes.battery.secondary.textContent,'Décharge · 200 W');
   ctx.config.signature_flow.battery={...options.battery,invert_flow:true};run(ctx,hass);
   assert.equal(r.nodes.battery.secondary.textContent,'Décharge · 1\u202f381 W');
@@ -132,11 +134,36 @@ test('optional sources can be enabled, disabled and retargeted without rebuildin
   ctx.config.signature_flow.top.enabled=false;ctx.config.signature_flow.bottom.entity='sensor.home';run(ctx,hass);
   assert.equal(r.nodes.top.el.hidden,true);assert.equal(r.nodes.bottom.value.dataset.entity,'sensor.home');
 });
+test('connections share the center axis on desktop and join aligned mobile columns',t=>{
+  const {r}=fixture(t);
+  const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
+  for(const width of [468,360]) {
+    const narrow=width<460,sourceWidth=narrow?170:180;
+    const positions={solar:rect(narrow?0:width/2-90,0,sourceWidth,76),grid:rect(0,98,128,76),
+      home:rect(width-140,98,140,76),battery:rect(narrow?0:width/2-90,204,sourceWidth,76),
+      bottom:rect(width-140,204,140,76)};
+    r.canvas.getBoundingClientRect=()=>rect(0,0,width,280);
+    for(const [key,box] of Object.entries(positions)) r.nodes[key].el.getBoundingClientRect=()=>box;
+    r.draw();
+    const x=width/2;
+    assert.equal(r.junction.getAttribute('cx'),String(x));
+    assert.equal(r.edges.solar.line.getAttribute('d'),narrow?'M170 38 L180 38 L180 136':'M234 76 L234 136');
+    assert.equal(r.edges.battery.line.getAttribute('d'),narrow?'M170 242 L180 242 L180 136':'M234 204 L234 136');
+    assert.equal(r.edges.bottom.line.getAttribute('d'),'M'+(width-70)+' 204 L'+(width-70)+' 174');
+    assert.equal(r.edges.solar.flow.style.getPropertyValue('offset-path'),'path("'+r.edges.solar.line.getAttribute('d')+'")');
+  }
+});
 test('teardown disconnects the observer and restores the native card on removal or unsupported type',t=>{
   const {ctx,hass,r}=fixture(t);ctx.config.button_type='slider';run(ctx,hass);
   assert.equal(ctx._signatureFlow,undefined);assert.ok(r.observer.disconnected);
   assert.equal(r.canvas.listeners.size,0);assert.equal(r.host.children.length,0);
   assert.equal(r.root.getAttribute('data-signature-flow'),null);ctx.teardown();
+});
+test('a module update replaces the old runtime once and retains the new one on sensor refreshes',t=>{
+  const {ctx,hass,r}=fixture(t);delete r.version;run(ctx,hass);
+  const updated=ctx._signatureFlow;assert.notEqual(updated,r);assert.ok(r.observer.disconnected);
+  assert.equal(updated.version,definition.version);assert.equal(updated.host.children.length,1);
+  run(ctx,hass);assert.equal(ctx._signatureFlow,updated);assert.equal(updated.host.children.length,1);
 });
 test('documentation links resolve locally',()=>{
   const doc=fs.readFileSync(path.join(base,'doc/README.md'),'utf8');

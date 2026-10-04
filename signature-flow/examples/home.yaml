@@ -29,6 +29,7 @@ signature_flow:
   grid:
     entity: sensor.infra_reseaux_puissance
     name: Réseau
+    secondary: ''
     tap_action:
       action: navigate
       navigation_path: '#reseaux-details'

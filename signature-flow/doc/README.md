@@ -8,7 +8,7 @@ Signature Flow displays instantaneous solar, grid, home and battery power in one
 2. Add `signature_flow` to the `modules` list of a Bubble `button` card with `button_type: state`.
 3. Configure its nodes under `signature_flow`. The module is self-contained: use it without the `signature` design module on this card.
 
-The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.0**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the YAML module ID and options key are `signature_flow`. Version: **1.0.1**. Options are configured in YAML; this module has no editor schema. Sliders and other card types are outside its scope.
 
 [Home configuration](../examples/home.yaml) contains the existing sensors, the remaining solar forecast, battery charge and power, water conversion, and the five existing popup hashes. It replaces the five Energy/Water cards, excludes the car charging card, and leaves the section title outside the module. It does not create popup cards: the corresponding popups must already exist in the view. Importing the module does not modify the dashboard.
 
@@ -37,7 +37,7 @@ signature_flow:
 
 ## Nodes and layout
 
-`solar`, `grid`, `home` and `battery` always have a place. Missing or unavailable measurements display `—` without a unit and stop the corresponding animation. `top` and `bottom` are optional; omit the object or set `enabled: false` to hide it. Both can be enabled together. With a top source, Solar moves left to prevent a collision. The layout responds to the card's width, including in a wide browser with a narrow dashboard column.
+`solar`, `grid`, `home` and `battery` always have a place. Missing or unavailable measurements display `—` without a unit and stop the corresponding animation. `top` and `bottom` are optional; omit the object or set `enabled: false` to hide it. Both can be enabled together. With a top source, Solar moves left to prevent a collision. At card widths below 490 px, Solar, Grid and Battery form an aligned left column, with Home and its optional sources on the right. The connections join a shared vertical axis. All node icons use the same size. The optional sources align with Home. The layout responds to the card's width, including in a wide browser with a narrow dashboard column. Hovering a block or value does not change its background.
 
 The default card height is **310 px**, matching the agreed mockup, across mobile and desktop. The card fills its parent's width; the example reserves 12 columns and 5 rows in a Sections view. `height` can be set from 280 to 600 px. Keep the dashboard row reservation consistent with a changed height. At widths below 320 px or with unusually long values, use shorter names/secondary text or scale power to kW.
 
@@ -56,7 +56,7 @@ The default card height is **310 px**, matching the agreed mockup, across mobile
 | `invert_flow` | Reverse the signed sensor convention. Default `false`. |
 | `deadband` | Absolute numeric threshold below which animation stops; applied after scaling. Default `0`. A global `signature_flow.deadband` supplies the default for all nodes. |
 
-Battery also supports `power_entity`, `power_scale` (default 1), `power_unit` (entity unit by default), and `power_precision` (default 0). They affect its flow and automatic secondary text independently of the SoC display. `secondary` overrides the automatic charge/discharge text. Optional sources use the same node options as the main nodes; their primary numeric entity controls their own connection to Home.
+Battery also supports `power_entity`, `power_scale` (default 1), `power_unit` (entity unit by default), and `power_precision` (default 0). They affect its flow and automatic secondary text independently of the SoC display. `secondary` overrides the automatic charge/discharge text. Grid has no automatic import/export subtitle; its signed value and animated arrow show the direction. Optional sources use the same node options as the main nodes; their primary numeric entity controls their own connection to Home.
 
 The module respects Home Assistant's language and number-format preference. Default labels and flow descriptions are French for a French interface and English otherwise. Override names and secondary text for other languages. `signature_flow.name` overrides the accessible group label.
 
@@ -70,7 +70,7 @@ The module respects Home Assistant's language and number-format preference. Defa
 | Battery `power_entity` | Battery → junction (discharge) | Junction → Battery (charge) |
 | Top/bottom source | Source → Home | Home → source |
 
-Battery's default convention matches the existing Zendure sensor. Set `invert_flow: true` for a sensor using the opposite convention. Zero and unavailable measurements keep the thin connection visible, with no moving dots. Animations respect reduced-motion preferences. These are instantaneous **net flows** at one common junction; the module does not calculate the portion of solar sent to each destination. Connections between electrical sensors must be configured in compatible power units.
+Battery's default convention matches the existing Zendure sensor. Set `invert_flow: true` for a sensor using the opposite convention. A moving chevron follows each active connection in its flow direction. Zero and unavailable measurements keep the thin connection visible, with no arrow. Reduced-motion preferences display a stationary arrow instead. These are instantaneous **net flows** at one common junction; the module does not calculate the portion of solar sent to each destination. Connections between electrical sensors must be configured in compatible power units.
 
 Tap a block's icon or name to run its configured action, such as opening a Bubble popup with `action: navigate` and `navigation_path: '#water-details'`. Tap its main value to open entity more-info. The battery power line opens the power entity; a secondary line with `secondary_entity` opens that entity. Keyboard Enter/Space activates a focused block or value. Pointer taps, holds and double taps use Bubble's delegated action handler.
 
@@ -96,4 +96,4 @@ DOM nodes, number formatters and paths are reused. Every evaluation reads the co
 
 This module replaces the native button content. Alert Manager's native main-icon badge is therefore not exposed on the custom flow nodes; no per-node alert integration is included in this first version.
 
-Run `npm run test:signature-flow` or `npm test` from the repository root. Tests use the actual distribution to check directions, unavailable states, scaling, localization, dependency reads, native action bindings, configuration changes and teardown. Browser checks additionally verify the 320/390/498 px layouts, both optional sources, baselines, actions and reduced motion. A live Home Assistant installation remains the final check for its own popup definitions, sensor sign conventions and template results.
+Run `npm run test:signature-flow` or `npm test` from the repository root. Tests use the actual distribution to check directions, connection alignment, unavailable states, scaling, localization, dependency reads, native action bindings, configuration changes and teardown. Browser checks additionally verify mobile/desktop layouts and responsive boundaries from 320 to 498 px, both optional sources, icon sizes, baselines, moving arrow positions/directions, hover backgrounds, actions and reduced motion. A live Home Assistant installation remains the final check for its own popup definitions, sensor sign conventions and template results.
