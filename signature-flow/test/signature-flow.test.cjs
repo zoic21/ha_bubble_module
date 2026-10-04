@@ -20,10 +20,10 @@ class Animation {
 class Element {
   constructor() {
     this.children=[]; this.attrs=new Map(); this.dataset={}; this.listeners=new Map(); this.hidden=false; this.events=[];
-    const classes=new Set();
+    const classes=this.classes=new Set();
     this.classList={add:(...v)=>v.forEach(x=>classes.add(x)),contains:x=>classes.has(x),
       toggle:(x,on)=>{if(on ?? !classes.has(x)) classes.add(x);else classes.delete(x);},remove:x=>classes.delete(x)};
-    const styles=new Map();this.style={setProperty:(k,v)=>styles.set(k,v),getPropertyValue:k=>styles.get(k)||''};
+    const styles=this.styles=new Map();this.style={setProperty:(k,v)=>styles.set(k,v),getPropertyValue:k=>styles.get(k)||''};
   }
   setAttribute(k,v) {this.attrs.set(k,String(v));if(k==='class') this.classList.add(...v.split(' '));}
   getAttribute(k) {return this.attrs.get(k) ?? null;}
@@ -32,6 +32,21 @@ class Element {
   set textContent(v) {this.children=[];this._text=String(v);}
   append(...nodes) {nodes.forEach(n=>{n.parentElement=this;this.children.push(n);});}
   appendChild(n) {this.append(n);return n;}
+  get childNodes() {
+    if (!this._text) return this.children;
+    const node=new Element();node._text=this._text;return [node,...this.children];
+  }
+  cloneNode() {
+    const clone=new Element();
+    for(const [key,value] of this.attrs) clone.setAttribute(key,value);
+    for(const cls of this.classes) clone.classList.add(cls);
+    for(const [key,value] of this.styles) clone.style.setProperty(key,value);
+    Object.assign(clone.dataset,this.dataset);clone.hidden=this.hidden;clone.style.fontSize=this.style.fontSize;
+    return clone;
+  }
+  replaceWith(next) {
+    const parent=this.parentElement;parent.children[parent.children.indexOf(this)]=next;next.parentElement=parent;
+  }
   contains(n) {return this===n||this.children.some(c=>c.contains(n));}
   remove() {this.parentElement.children=this.parentElement.children.filter(c=>c!==this);}
   addEventListener(k,fn) {this.listeners.set(k,fn);}
@@ -49,8 +64,8 @@ global.ResizeObserver=class {constructor(fn){this.fn=fn;}observe(){}disconnect()
 global.matchMedia=()=>({matches:false,listeners:new Set(),
   addEventListener(_,fn){this.listeners.add(fn);},removeEventListener(_,fn){this.listeners.delete(fn);}});
 const state=(value,unit='W')=>({state:String(value),attributes:{unit_of_measurement:unit}});
-const options={1:{entity:'sensor.solar'},2:{entity:'sensor.grid'},3:{entity:'sensor.soc',flow_entity:'sensor.battery',secondary_entity:'sensor.battery',secondary_precision:0},
-  5:{entity:'sensor.home'},6:{entity:'sensor.water',scale:1000,unit:'L/min',precision:1}};
+const options={1:{primary:'sensor.solar'},2:{primary:'sensor.grid'},3:{primary:'sensor.soc',flow_entity:'sensor.battery',secondary:'sensor.battery',secondary_precision:0},
+  5:{primary:'sensor.home'},6:{primary:'sensor.water',primary_scale:1000,primary_unit:'L/min',primary_precision:1}};
 const states={'sensor.solar':state(1794),'sensor.grid':state(-11),'sensor.home':state(401),
   'sensor.soc':state(14,'%'),'sensor.battery':state(-1381),'sensor.water':state(0,'m³/min')};
 const run=(ctx,hass,template)=>render.call(ctx,hass,fn=>ctx.teardown=fn,template);
@@ -62,16 +77,17 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'2.0.1');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.0.0');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
-  assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].scale,1000);
+  assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
   assert.equal(home.signature_flow.slots[2].secondary,'');
   assert.deepEqual(home.signature_flow.animation,{min_speed:4,max_speed:40,reference:10000});
   assert.equal(home.signature_flow.slots[6].animation_reference,20);
   for(const key of [1,2,3,5,6]) assert.match(home.signature_flow.slots[key].tap_action.navigation_path,/^#/);
-  assert.equal(home.signature_flow.slots[3].flow_entity,home.signature_flow.slots[3].entity);
-  assert.equal(home.signature_flow.slots[3].secondary_entity,'sensor.zendure_manager_global_soc');
+  assert.equal(home.signature_flow.slots[3].primary,'sensor.zendure_manager_power');
+  assert.equal(home.signature_flow.slots[3].flow_entity,undefined);
+  assert.equal(home.signature_flow.slots[3].secondary,"{{ states('sensor.zendure_manager_global_soc') | int }} %");
 });
 test('snapshot uses instantaneous values and correct net directions',t=>{
   const {r}=fixture(t);assert.equal(r.nodes[1].value.textContent,'1\u202f794 W');
@@ -85,8 +101,8 @@ test('snapshot uses instantaneous values and correct net directions',t=>{
 test('every slot accepts the same independent primary, secondary and flow measurements',t=>{
   const {ctx,hass,r}=fixture(t);
   ctx.config.signature_flow.slots=Object.fromEntries([1,2,3,4,5,6].map(id=>[id,{
-    entity:'sensor.soc',flow_entity:'sensor.battery',secondary_entity:'sensor.temperature',
-    name:'Any measurement',icon:'mdi:thermometer',color:'#009c90',precision:1,
+    primary:'sensor.soc',flow_entity:'sensor.battery',secondary:'sensor.temperature',
+    name:'Any measurement',icon:'mdi:thermometer',color:'#009c90',primary_precision:1,
     secondary_precision:1,flow_scale:.001,flow_unit:'kW'
   }]));
   run(ctx,{...hass,states:{...hass.states,'sensor.temperature':state(23.6,'°C')}});
@@ -117,10 +133,78 @@ test('a separate flow remains active when its primary or secondary measurement i
   assert.equal(r.nodes[3].secondary.textContent,'Indisponible');
 });
 test('secondary scaling, units and precision are independent of primary and flow scaling',t=>{
-  const {r}=fixture(t,{3:{...options[3],secondary_entity:'sensor.water',secondary_scale:1000,secondary_unit:'L/min',secondary_precision:1}},
+  const {r}=fixture(t,{3:{...options[3],secondary:'sensor.water',secondary_scale:1000,secondary_unit:'L/min',secondary_precision:1}},
     {'sensor.water':state(.005,'m³/min')});
   assert.equal(r.nodes[3].value.textContent,'14 %');assert.equal(r.nodes[3].secondary.textContent,'5,0 L/min');
   assert.equal(r.edges[3].direction,-1);assert.ok(r.edges[3].speed>4);
+});
+test('primary and secondary share entity formatting defaults and support text states',t=>{
+  const measurement={state:'23.64',attributes:{unit_of_measurement:'°C',display_precision:1}};
+  const {ctx,hass,r}=fixture(t,{4:{primary:'sensor.temperature',secondary:'sensor.temperature'}},
+    {'sensor.temperature':measurement,'binary_sensor.door':state('on','')});
+  assert.equal(r.nodes[4].value.textContent,'23,6 °C');assert.equal(r.nodes[4].secondary.textContent,'23,6 °C');
+  ctx.config.signature_flow.slots[4]={primary:'binary_sensor.door',secondary:'binary_sensor.door'};run(ctx,hass);
+  assert.equal(r.nodes[4].value.textContent,'on');assert.equal(r.nodes[4].secondary.textContent,'on');
+  assert.equal(r.edges[4].direction,0);assert.equal(r.nodes[4].value.dataset.entity,'binary_sensor.door');
+});
+test('both template values infer the first literal entity in textual order for more-info',t=>{
+  const {ctx,hass,r}=fixture(t);
+  const expressions=[
+    "{{ states('sensor.solar') }}",
+    '{{ state_attr("sensor.solar", "unit_of_measurement") }}',
+    "{% set id = 'sensor.solar' %} {{ states(id) }}",
+    "{{ states.sensor.solar.state }}",
+    "{{ states('sensor.solar') | float + states('sensor.home') | float }}"
+  ];
+  for(const expression of expressions) {
+    ctx.config.signature_flow.slots=Object.fromEntries([1,2,3,4,5,6].map(id=>[id,{primary:expression,secondary:expression}]));
+    const calls=[];run(ctx,hass,(template,id)=>{calls.push([template,id]);return 'Calculated';});
+    assert.equal(calls.length,12);assert.ok(calls.every(([template,id])=>template===expression&&id==='sensor.solar'));
+    for(const node of Object.values(r.nodes)) {
+      assert.equal(node.value.textContent,'Calculated');assert.equal(node.secondary.textContent,'Calculated');
+      for(const target of [node.el,node.value,node.secondary]) {
+        assert.equal(target.dataset.entity,'sensor.solar');assert.equal(JSON.parse(target.dataset.tapAction).action,'more-info');
+      }
+    }
+    assert.ok(Object.values(r.edges).every(edge=>edge.direction===0));
+  }
+});
+test('template display values do not implicitly control flow, but a separate flow does',t=>{
+  const {ctx,hass,r}=fixture(t,{1:{primary:"{{ states('sensor.solar') | float / 1000 }}",primary_unit:'kW',
+    primary_scale:1000,primary_precision:0,secondary:'Fixed text'}});
+  run(ctx,hass,()=> '1.794');
+  assert.equal(r.nodes[1].value.textContent,'1.794 kW');assert.equal(r.edges[1].direction,0);
+  assert.equal(r.nodes[1].secondary.dataset.entity,'');assert.equal(r.nodes[1].secondary.classList.contains('sf-detail'),false);
+  ctx.config.signature_flow.slots[1].flow_entity='sensor.solar';run(ctx,hass,()=> '1.794');
+  assert.equal(r.edges[1].direction,1);assert.ok(Math.abs(r.edges[1].speed-(4+36*.1794))<.0001);
+});
+test('plain text and templates without literal entities have no inferred actions',t=>{
+  const {ctx,hass,r}=fixture(t,{4:{primary:'See sensor.solar',secondary:'{{ states(variable) }}'}});
+  run(ctx,hass,()=> 'Unknown source');
+  for(const target of [r.nodes[4].el,r.nodes[4].value,r.nodes[4].secondary]) {
+    assert.equal(target.dataset.entity,'');assert.equal(JSON.parse(target.dataset.tapAction).action,'none');
+  }
+  ctx.config.signature_flow.slots[4].primary='';ctx.config.signature_flow.slots[4].secondary='';run(ctx,hass);
+  assert.equal(r.nodes[4].value.textContent,'—');assert.equal(r.nodes[4].secondary.textContent,'');
+});
+test('explicit primary and secondary actions override inferred more-info targets',t=>{
+  const {r}=fixture(t,{4:{primary:"{{ states('sensor.solar') }}",secondary:"{{ states('sensor.battery') }}",
+    primary_tap_action:{action:'more-info',entity:'sensor.home'},primary_hold_action:{action:'none'},
+    secondary_tap_action:{action:'navigate',navigation_path:'#custom'},secondary_hold_action:{action:'none'}}});
+  const node=r.nodes[4];
+  assert.deepEqual(JSON.parse(node.value.dataset.tapAction),{action:'more-info',entity:'sensor.home'});
+  assert.equal(node.value.dataset.entity,'sensor.solar');assert.equal(JSON.parse(node.value.dataset.holdAction).action,'none');
+  assert.equal(JSON.parse(node.secondary.dataset.tapAction).navigation_path,'#custom');
+  assert.equal(node.secondary.dataset.entity,'sensor.battery');assert.equal(JSON.parse(node.secondary.dataset.holdAction).action,'none');
+});
+test('template sources refresh their text and inferred target when configuration changes',t=>{
+  const {ctx,hass,r}=fixture(t,{1:{primary:"{{ states('sensor.solar') }}",secondary:"{{ states('sensor.battery') }}"}});
+  run(ctx,hass,(_,id)=>hass.states[id].state);
+  assert.equal(r.nodes[1].value.textContent,'1794');assert.equal(r.nodes[1].secondary.textContent,'-1381');
+  const updated={...hass,states:{...hass.states,'sensor.solar':state(2100)}};run(ctx,updated,(_,id)=>updated.states[id].state);
+  assert.equal(r.nodes[1].value.textContent,'2100');
+  ctx.config.signature_flow.slots[1].primary="{{ states('sensor.home') }}";run(ctx,updated,(_,id)=>updated.states[id].state);
+  assert.equal(ctx._signatureFlow,r);assert.equal(r.nodes[1].value.dataset.entity,'sensor.home');assert.equal(r.nodes[1].value.textContent,'401');
 });
 test('all slots are optional and hiding them removes their connections and the junction',t=>{
   const {ctx,hass,r}=fixture(t);
@@ -129,12 +213,12 @@ test('all slots are optional and hiding them removes their connections and the j
     assert.equal(r.nodes[id].el.hidden,true);assert.equal(r.edges[id].group.getAttribute('display'),'none');
   }
   assert.equal(r.junction.getAttribute('display'),'none');
-  ctx.config.signature_flow.slots[2]={entity:'sensor.home',name:'Only block'};run(ctx,hass);
+  ctx.config.signature_flow.slots[2]={primary:'sensor.home',name:'Only block'};run(ctx,hass);
   assert.equal(r.nodes[2].el.hidden,false);assert.equal(r.nodes[2].label.textContent,'Only block');
   assert.equal(r.junction.getAttribute('display'),'inline');
 });
 test('right-side connections pause when slot 5 is absent and resume when it returns',t=>{
-  const {ctx,hass,r}=fixture(t,{4:{entity:'sensor.solar'}}, {'sensor.water':state(.01,'m³/min')});
+  const {ctx,hass,r}=fixture(t,{4:{primary:'sensor.solar'}}, {'sensor.water':state(.01,'m³/min')});
   const animations=[r.edges[4].animation,r.edges[6].animation];
   delete ctx.config.signature_flow.slots[5];run(ctx,hass);
   for(const [index,id] of [4,6].entries()) {
@@ -168,10 +252,10 @@ test('missing, blank, unknown and non-finite values never animate as zero',t=>{
     assert.equal(r.edges[1].group.getAttribute('data-direction'),'0');
     assert.equal(r.nodes[3].secondary.textContent,'Indisponible');
   }
-  const {r}=fixture(t,{1:{entity:'sensor.missing'}});assert.equal(r.nodes[1].value.textContent,'—');
+  const {r}=fixture(t,{1:{primary:'sensor.missing'}});assert.equal(r.nodes[1].value.textContent,'—');
 });
 test('zero, deadband, scaling and power scaling affect their own measurements',t=>{
-  const {r}=fixture(t,{deadband:0.2,1:{entity:'sensor.solar',scale:0.001,unit:'kW',precision:2},
+  const {r}=fixture(t,{deadband:0.2,1:{primary:'sensor.solar',primary_scale:0.001,primary_unit:'kW',primary_precision:2},
     3:{...options[3],flow_scale:0.001,flow_unit:'kW',secondary_scale:0.001,secondary_unit:'kW',secondary_precision:2}}, {'sensor.water':state(0.0001,'m³/min')});
   assert.equal(r.nodes[1].value.textContent,'1,79 kW');assert.equal(r.nodes[6].value.textContent,'0,1 L/min');
   assert.equal(r.edges[6].group.getAttribute('data-direction'),'0');
@@ -191,7 +275,7 @@ test('arrow speed grows across the power range, caps at its reference and ignore
 test('equal power has equal physical speed across W/kW, display scaling and different path lengths',t=>{
   const {ctx,hass,r}=fixture(t);const initial=r.edges[1].speed;
   run(ctx,{...hass,states:{...hass.states,'sensor.solar':state(1.794,'kW')}});assert.equal(r.edges[1].speed,initial);
-  ctx.config.signature_flow.slots[1]={...options[1],scale:0.001,unit:'kW'};run(ctx,hass);
+  ctx.config.signature_flow.slots[1]={...options[1],primary_scale:0.001,primary_unit:'kW'};run(ctx,hass);
   assert.equal(r.edges[1].speed,initial);
   const a=r.edges[1],b=r.edges[5];a.length=60;b.length=120;b.speed=a.speed;
   r.updateMotion(a);r.updateMotion(b);
@@ -293,9 +377,9 @@ test('native action targets distinguish the block, primary value and battery pow
   assert.equal(JSON.parse(r.nodes[3].el.dataset.doubleTapAction).action,'toggle');
 });
 test('primary and secondary actions can be overridden independently, even without entities',t=>{
-  const {r}=fixture(t,{4:{name:'Controls',state:'Open',secondary:'Settings',
+  const {r}=fixture(t,{4:{name:'Controls',primary:'Open',secondary:'Settings',
     tap_action:{action:'navigate',navigation_path:'#block'},
-    value_tap_action:{action:'navigate',navigation_path:'#value'},value_hold_action:{action:'none'},
+    primary_tap_action:{action:'navigate',navigation_path:'#value'},primary_hold_action:{action:'none'},
     secondary_tap_action:{action:'navigate',navigation_path:'#secondary'},secondary_double_tap_action:{action:'toggle'}}});
   const node=r.nodes[4];
   for(const [target,path] of [[node.el,'#block'],[node.value,'#value'],[node.secondary,'#secondary']]) {
@@ -323,15 +407,15 @@ test('focus feedback follows keyboard/pointer input and input-mode listeners are
   ctx.teardown();assert.ok(!documentListeners.has(r.modalityKey));assert.ok(!documentListeners.has(r.modalityPointer));
 });
 test('templates use the supplied helper and output remains inert text',t=>{
-  const {ctx,hass,r}=fixture(t,{1:{...options[1],state:'{{ main }}',secondary:'{{ forecast }}',
-    secondary_entity:'sensor.forecast',unit:'kW',color:'invalid'}});
+  const {ctx,hass,r}=fixture(t,{1:{primary:"{{ states('sensor.solar') }}",secondary:"{{ states('sensor.forecast') }}",
+    primary_unit:'kW',color:'invalid'}});
   const calls=[];run(ctx,hass,(template,id)=>{calls.push([template,id]);return '<img src=x onerror=alert(1)>';});
-  assert.deepEqual(calls,[['{{ main }}','sensor.solar'],['{{ forecast }}','sensor.forecast']]);
+  assert.deepEqual(calls,[["{{ states('sensor.solar') }}",'sensor.solar'],["{{ states('sensor.forecast') }}",'sensor.forecast']]);
   assert.equal(r.nodes[1].number.textContent,'<img src=x onerror=alert(1)>');
   assert.equal(r.nodes[1].number.children.length,0);assert.equal(r.nodes[1].el.style.getPropertyValue('--sf-color'),'var(--secondary-text-color, #676767)');
 });
 test('each evaluation reads every configured state through the tracked object',t=>{
-  const {ctx,hass}=fixture(t,{1:{...options[1],secondary_entity:'sensor.forecast'}});
+  const {ctx,hass}=fixture(t,{1:{...options[1],secondary:'sensor.forecast'}});
   for(let i=0;i<2;i++) {
     const reads=new Set();run(ctx,{...hass,states:new Proxy(hass.states,{get(target,id){reads.add(id);return target[id];}})});
     for(const id of [...Object.keys(states),'sensor.forecast']) assert.ok(reads.has(id),id);
@@ -339,9 +423,9 @@ test('each evaluation reads every configured state through the tracked object',t
 });
 test('optional sources can be enabled, disabled and retargeted without rebuilding',t=>{
   const {ctx,hass,r}=fixture(t);assert.ok(r.nodes[4].el.hidden);
-  ctx.config.signature_flow.slots[4]={entity:'sensor.solar',name:'Other'};run(ctx,hass);
+  ctx.config.signature_flow.slots[4]={primary:'sensor.solar',name:'Other'};run(ctx,hass);
   assert.equal(r.nodes[4].el.hidden,false);assert.ok(r.canvas.classList.contains('sf-has-4'));
-  ctx.config.signature_flow.slots[4].enabled=false;ctx.config.signature_flow.slots[6].entity='sensor.home';run(ctx,hass);
+  ctx.config.signature_flow.slots[4].enabled=false;ctx.config.signature_flow.slots[6].primary='sensor.home';run(ctx,hass);
   assert.equal(r.nodes[4].el.hidden,true);assert.equal(r.nodes[6].value.dataset.entity,'sensor.home');
 });
 test('connections share the center axis on desktop and join aligned mobile columns',t=>{

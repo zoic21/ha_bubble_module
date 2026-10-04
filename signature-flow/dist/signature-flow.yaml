@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 2.0.1
+  version: 3.0.0
   creator: Loïc
   supported:
     - button
@@ -9,7 +9,7 @@ signature_flow:
     ${(() => {
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '2.0.1';
+      const version = '3.0.0';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -37,7 +37,7 @@ signature_flow:
         const wires = create('svg', 'sf-wires', true);
         wires.setAttribute('aria-hidden', 'true');
         canvas.appendChild(wires);
-        runtime = this._signatureFlow = {version, root, host, canvas, wires, nodes: {}, edges: {}, formatters: new Map(), fitTargets: new Set()};
+        runtime = this._signatureFlow = {version, root, host, canvas, wires, nodes: {}, edges: {}, sources: new Map(), formatters: new Map(), fitTargets: new Set()};
         const current = runtime;
         current.dispose = () => {
           current.observer?.disconnect();
@@ -214,6 +214,17 @@ signature_flow:
       };
       const numeric = value => value != null && String(value).trim() !== '' && Number.isFinite(Number(value)) ? Number(value) : null;
       const read = id => id ? hass.states[id] : undefined;
+      const source = value => {
+        const input = String(value ?? '').trim();
+        if (!runtime.sources.has(input)) {
+          const template = /\{[\{%#]/.test(input);
+          const direct = !template && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(input);
+          const match = template ? input.match(/(['"])([a-z_][a-z0-9_]*\.[a-z0-9_]+)\1|\bstates\.([a-z_][a-z0-9_]*\.[a-z0-9_]+)\b/) : null;
+          if (runtime.sources.size >= 32) runtime.sources.clear();
+          runtime.sources.set(input, {input, direct, entity:direct ? input : match?.[2] || match?.[3]});
+        }
+        return runtime.sources.get(input);
+      };
       const numberFormat = hass.locale?.number_format;
       const locales = {comma_decimal:'en-US',decimal_comma:'de',space_comma:'fr',quote_decimal:'de-CH',none:'en-US'};
       const locale = numberFormat === 'system' ? undefined : locales[numberFormat] || language;
@@ -228,6 +239,28 @@ signature_flow:
         }
         return runtime.formatters.get(key).format(Object.is(value,-0) ? 0 : value);
       };
+      const measurement = (cfg, prefix) => {
+        const parsed = source(cfg[prefix]);
+        const state = read(parsed.entity);
+        const unit = cfg[prefix+'_unit'];
+        let value, suffix = '';
+        if (parsed.direct) {
+          const raw = numeric(state?.state);
+          const n = raw === null ? null : numeric(raw*(numeric(cfg[prefix+'_scale']) ?? 1));
+          if (n !== null) {
+            value = format(n,cfg[prefix+'_precision'] ?? state?.attributes?.display_precision ?? 0);
+            suffix = String(unit ?? state?.attributes?.unit_of_measurement ?? '');
+          } else {
+            const unavailable = !state || ['','unknown','unavailable','NaN','Infinity','-Infinity'].includes(state.state);
+            value = unavailable ? (prefix === 'primary' ? '—' : labels.unavailable) : state.state;
+          }
+        } else {
+          value = render(parsed.input,parsed.entity).trim();
+          if (value) suffix = String(unit ?? '');
+          else if (prefix === 'primary') value = '—';
+        }
+        return {...parsed, state, value, unit:suffix};
+      };
       const animation = options.animation || {};
       const minSpeed = Math.max(1,numeric(animation.min_speed) ?? 4);
       const maxSpeed = Math.max(minSpeed,numeric(animation.max_speed) ?? 40);
@@ -236,14 +269,20 @@ signature_flow:
         const tap = cfg.tap_action || fallback;
         const hold = cfg.hold_action || (id ? {action:'more-info'} : {action:'none'});
         const double = cfg.double_tap_action || {action:'none'};
+        const values = [['entity',id || ''],['tapAction',JSON.stringify(tap)],
+          ['holdAction',JSON.stringify(hold)],['doubleTapAction',JSON.stringify(double)]];
+        // Bubble caches a target's action handler after its first pointer use.
+        // Replace only its shell when its binding changes, retaining the content.
+        if (el.dataset.tapAction !== undefined && values.some(([key,value]) => el.dataset[key] !== value)) {
+          const next = el.cloneNode(false);
+          next.append(...el.childNodes); el.replaceWith(next); el = next;
+        }
         el.classList.add('bubble-action');
         el.classList.toggle('bubble-action-enabled', [tap,hold,double].some(a => a.action !== 'none'));
-        el.dataset.entity = id || '';
-        for (const [name,action] of [['tapAction',tap],['holdAction',hold],['doubleTapAction',double]]) {
-          const json = JSON.stringify(action); if (el.dataset[name] !== json) el.dataset[name] = json;
-        }
+        for (const [key,value] of values) if (el.dataset[key] !== value) el.dataset[key] = value;
         attr(el, 'role', 'button'); attr(el, 'tabindex', tap.action === 'none' ? -1 : 0);
         attr(el, 'aria-disabled', tap.action === 'none');
+        return el;
       };
       const actions = (cfg,prefix) => ({tap_action:cfg[prefix+'_tap_action'],hold_action:cfg[prefix+'_hold_action'],
         double_tap_action:cfg[prefix+'_double_tap_action']});
@@ -257,57 +296,41 @@ signature_flow:
         edge.hidden = edgeHidden;
         attr(edge.group, 'display', edgeHidden ? 'none' : 'inline');
         if (hidden) {runtime.updateMotion(edge);continue;}
-        const state = read(cfg.entity), flow = cfg.flow_entity ? read(cfg.flow_entity) : state;
-        // Read secondary entities even when a supplied template handles their text.
-        const secondaryState = read(cfg.secondary_entity);
-        const raw = numeric(state?.state), rawFlow = numeric(flow?.state);
-        const scale = numeric(cfg.scale) ?? 1;
-        const n = raw === null ? null : numeric(raw * scale);
-        const digits = cfg.precision ?? state?.attributes?.display_precision ?? 0;
-        let value = n === null ? '—' : format(n, digits);
-        let unit = n === null ? '' : String(cfg.unit ?? state?.attributes?.unit_of_measurement ?? '');
-        if (cfg.state !== undefined) {
-          const override = render(cfg.state, cfg.entity).trim();
-          value = override || '—'; unit = override ? String(cfg.unit ?? '') : '';
-        }
-        const name = render(cfg.name ?? state?.attributes?.friendly_name ?? labels.slot+' '+key, cfg.entity);
-        const configuredColor = render(cfg.color ?? 'var(--secondary-text-color, #676767)', cfg.entity).trim();
+        const primary = measurement(cfg,'primary'), detail = measurement(cfg,'secondary');
+        const flow = cfg.flow_entity ? read(cfg.flow_entity) : primary.direct ? primary.state : undefined;
+        const rawFlow = numeric(flow?.state);
+        const value = primary.value, unit = primary.unit;
+        const name = render(cfg.name ?? primary.state?.attributes?.friendly_name ?? labels.slot+' '+key, primary.entity);
+        const configuredColor = render(cfg.color ?? 'var(--secondary-text-color, #676767)', primary.entity).trim();
         const color = globalThis.CSS?.supports('color',configuredColor) ? configuredColor : 'var(--secondary-text-color, #676767)';
         if (node.el.style.getPropertyValue('--sf-color') !== color) node.el.style.setProperty('--sf-color',color);
         if (edge.group.style.getPropertyValue('--sf-color') !== color) edge.group.style.setProperty('--sf-color',color);
         if (node.number.textContent !== value || node.unit.textContent !== (unit ? ' '+unit : '')) runtime.fitValues(key);
         text(node.label, name); text(node.number,value); text(node.unit,unit ? ' '+unit : '');
-        const flowScale = numeric(cfg.flow_scale) ?? (cfg.flow_entity ? 1 : scale);
+        const flowScale = numeric(cfg.flow_scale) ?? (cfg.flow_entity ? 1 : numeric(cfg.primary_scale) ?? 1);
         const signed = rawFlow === null ? null : numeric(rawFlow * flowScale * (cfg.invert_flow === true ? -1 : 1));
         const threshold = Math.max(0,numeric(cfg.deadband ?? options.deadband) ?? 0);
         const direction = cfg.animate === false || signed === null || Math.abs(signed) <= threshold ? 0 : Math.sign(signed);
         edge.direction = direction;
         attr(edge.group, 'data-direction', direction);
         const flowUnit = String(cfg.flow_unit ?? (cfg.flow_entity ? flow?.attributes?.unit_of_measurement :
-          cfg.unit ?? state?.attributes?.unit_of_measurement) ?? '').trim();
+          cfg.primary_unit ?? primary.state?.attributes?.unit_of_measurement) ?? '').trim();
         const reference = numeric(cfg.animation_reference);
         const unitScale = flowUnit === 'kW' ? 1000 : flowUnit === 'MW' ? 1000000 : 1;
         const fraction = Math.min(1,Math.abs(signed ?? 0)/(reference > 0 ? reference : referenceFlow/unitScale));
         edge.speed = minSpeed+(maxSpeed-minSpeed)*fraction;
         runtime.updateMotion(edge);
-        let secondary = '';
-        if (cfg.secondary !== undefined) secondary = render(cfg.secondary,cfg.secondary_entity || cfg.entity);
-        else if (secondaryState) {
-          const rawSecondary = numeric(secondaryState.state);
-          const secondaryNumber = rawSecondary === null ? null : numeric(rawSecondary*(numeric(cfg.secondary_scale) ?? 1));
-          const secondaryUnit = cfg.secondary_unit ?? secondaryState.attributes?.unit_of_measurement ?? '';
-          secondary = secondaryNumber === null ? labels.unavailable : format(secondaryNumber,cfg.secondary_precision ?? 1)+(secondaryUnit ? ' '+secondaryUnit : '');
-        }
+        const secondary = detail.value+(detail.unit ? ' '+detail.unit : '');
         text(node.secondary,secondary); node.secondary.title = secondary;
-        attr(node.icon, 'icon', render(cfg.icon ?? state?.attributes?.icon ?? 'mdi:flash',cfg.entity));
+        attr(node.icon, 'icon', render(cfg.icon ?? primary.state?.attributes?.icon ?? 'mdi:flash',primary.entity));
         attr(node.el, 'aria-label', name+' · '+value+(unit ? ' '+unit : '')+(secondary ? ' · '+secondary : ''));
-        bind(node.el,cfg.entity,cfg,cfg.entity ? {action:'more-info'} : {action:'none'});
-        bind(node.value,cfg.entity,actions(cfg,'value'),cfg.entity ? {action:'more-info'} : {action:'none'});
+        node.el = bind(node.el,primary.entity,cfg,primary.entity ? {action:'more-info'} : {action:'none'});
+        node.value = bind(node.value,primary.entity,actions(cfg,'primary'),primary.entity ? {action:'more-info'} : {action:'none'});
         attr(node.value,'aria-label',labels.details+' · '+name);
         const secondaryActions = actions(cfg,'secondary');
-        bind(node.secondary,cfg.secondary_entity,secondaryActions,cfg.secondary_entity ? {action:'more-info'} : {action:'none'});
+        node.secondary = bind(node.secondary,detail.entity,secondaryActions,detail.entity ? {action:'more-info'} : {action:'none'});
         // Decorative secondary text must let taps reach its parent block.
-        const secondaryInteractive = Boolean(secondary && (cfg.secondary_entity || Object.values(secondaryActions).some(action => action && action.action !== 'none')));
+        const secondaryInteractive = Boolean(secondary && (detail.entity || Object.values(secondaryActions).some(action => action && action.action !== 'none')));
         node.secondary.classList.toggle('sf-detail',secondaryInteractive);
         attr(node.secondary, 'tabindex', secondaryInteractive && node.secondary.getAttribute('aria-disabled') !== 'true' ? 0 : -1);
       }

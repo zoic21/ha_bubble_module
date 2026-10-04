@@ -21,9 +21,8 @@ signature_flow:
     1:
       icon: mdi:white-balance-sunny
       color: "#ff9800"
-      entity: sensor.puissance_solaire_total
+      primary: sensor.puissance_solaire_total
       name: Solaire
-      secondary_entity: sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui
       secondary: >-
         {% set id = 'sensor.solcast_pv_forecast_previsions_de_production_restantes_aujourd_hui' %}
         {% set value = states(id) %}
@@ -36,40 +35,38 @@ signature_flow:
     2:
       icon: mdi:transmission-tower
       color: "#00b8cf"
-      entity: sensor.infra_reseaux_puissance
+      primary: sensor.infra_reseaux_puissance
       name: Réseau
       secondary: ''
       tap_action:
         action: navigate
         navigation_path: '#reseaux-details'
     3:
-      entity: sensor.zendure_manager_power
-      flow_entity: sensor.zendure_manager_power
-      secondary_entity: sensor.zendure_manager_global_soc
+      primary: sensor.zendure_manager_power
       color: '#009c90'
       icon: >-
         {{ 'mdi:battery-charging' if states('sensor.zendure_manager_power') | float(0) < 0 else 'mdi:battery' }}
       secondary: "{{ states('sensor.zendure_manager_global_soc') | int }} %"
       name: Batterie
-      unit: W
+      primary_unit: W
       tap_action:
         action: navigate
         navigation_path: '#batterie-details'
     5:
       icon: mdi:home-outline
-      entity: sensor.puissance_maison
+      primary: sensor.puissance_maison
       name: Maison
       tap_action:
         action: navigate
         navigation_path: '#consumption-details'
     6:
-      entity: sensor.debit_eau
+      primary: sensor.debit_eau
       name: Eau
       icon: mdi:water-outline
       color: '#6ab5f4'
-      scale: 1000
-      unit: L/min
-      precision: 1
+      primary_scale: 1000
+      primary_unit: L/min
+      primary_precision: 1
       animation_reference: 20
       tap_action:
         action: navigate

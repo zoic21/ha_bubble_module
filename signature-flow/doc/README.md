@@ -8,9 +8,9 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Configure the numbered blocks under `signature_flow.slots`.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **2.0.1**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.0.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
 
-Version 2 replaces the former named `solar`, `grid`, `battery`, `home`, `top` and `bottom` options with `slots`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) uses the new schema and preserves the existing sensors, forecast, battery percentage and power, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist.
+Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
 ## Slots and layout
 
@@ -46,25 +46,25 @@ signature_flow:
   slots:
     1:
       name: Production
-      entity: sensor.production_power
+      primary: sensor.production_power
       icon: mdi:white-balance-sunny
       color: '#ff9800'
     2:
       name: Connection
-      entity: sensor.connection_power
+      primary: sensor.connection_power
       icon: mdi:transmission-tower
       color: '#00b8cf'
     3:
       name: Storage
-      entity: sensor.storage_percentage
+      primary: sensor.storage_percentage
       flow_entity: sensor.storage_power
-      secondary_entity: sensor.storage_power
+      secondary: sensor.storage_power
       secondary_precision: 0
       icon: mdi:battery
       color: '#009c90'
     5:
       name: Building
-      entity: sensor.home_power
+      primary: sensor.home_power
       icon: mdi:home-outline
 ```
 
@@ -73,27 +73,40 @@ signature_flow:
 | Option | Behavior |
 |---|---|
 | `enabled` | Show the configured slot. Default `true`; `false` hides it. |
-| `entity` | Primary measurement and default more-info target. |
-| `name` | Label; accepts Jinja. Defaults to the entity's friendly name, then `Slot N` / `Emplacement N`. |
-| `icon`, `color` | MDI icon and icon/connection color; accept Jinja. Icon defaults to the entity's `icon` attribute, then `mdi:flash`; color defaults to the theme secondary text color. Invalid colors use that neutral default. |
-| `unit` | Display unit; defaults to the primary entity unit. |
-| `scale` | Multiply the primary numeric value. Default `1`. Also scales the flow when no separate `flow_entity` or `flow_scale` is provided. |
-| `precision` | Fixed decimal places, 0–6. Defaults to the entity `display_precision`, then `0`, for every slot. |
-| `state` | Jinja or plain text replacing the primary value. Set `unit` separately if needed. The flow still uses its numeric entity state. |
-| `secondary` | Jinja or plain text below the primary value. An empty string hides it while preserving alignment. |
-| `secondary_entity` | Secondary measurement, template dependency and default secondary more-info target. Without `secondary`, its numeric state and unit are displayed. |
-| `secondary_scale` | Multiply the automatic secondary numeric value. Default `1`. |
-| `secondary_unit` | Override the automatic secondary unit. Defaults to the secondary entity unit. |
-| `secondary_precision` | Decimal places for the automatic secondary value. Default `1`. |
-| `flow_entity` | Entity controlling arrow direction and speed. Defaults to `entity`; independent of display values. |
-| `flow_scale` | Multiply the flow measurement. Defaults to `1` with a separate `flow_entity`, otherwise to `scale`. |
-| `flow_unit` | Unit used for W/kW/MW normalization. Defaults to the separate flow entity unit, or the primary display unit when using the primary entity. Describes units; does not convert values by itself. |
+| `primary`, `secondary` | An entity ID, Jinja template or fixed text. Primary appears as the large value; secondary appears below it. Empty secondary text hides it while preserving alignment. |
+| `primary_unit`, `secondary_unit` | Override the displayed unit. Direct entity values use their entity unit by default. Templates and fixed text have no automatic unit; an explicit unit is appended. |
+| `primary_scale`, `secondary_scale` | Multiply direct numeric entity values. Both default to `1`. Templates supply their own calculation. |
+| `primary_precision`, `secondary_precision` | Fixed decimal places, 0–6, for direct numeric entity values. Both default to the entity's `display_precision`, then `0`. Templates supply their own formatting. |
+| `name` | Label; accepts Jinja. Defaults to the primary entity's friendly name, then `Slot N` / `Emplacement N`. |
+| `icon`, `color` | MDI icon and icon/connection color; accept Jinja. Icon defaults to the primary entity's `icon` attribute, then `mdi:flash`; color defaults to the theme secondary text color. Invalid colors use that neutral default. |
+| `flow_entity` | Entity controlling arrow direction and speed. Defaults to `primary` only when it is a direct entity ID. Templates and fixed text require an explicit flow entity to animate. |
+| `flow_scale` | Multiply the flow measurement. Defaults to `1` with an explicit `flow_entity`, otherwise to `primary_scale`. |
+| `flow_unit` | Unit used for W/kW/MW normalization. Defaults to the explicit flow entity unit, or `primary_unit` / primary entity unit when using the default flow. Describes units; does not convert values by itself. |
 | `invert_flow` | Reverse the signed flow convention. Default `false`; affects the arrow, not displayed values. |
 | `animate` | Default `true`. Set `false` to keep the thin connection without an arrow. |
 | `deadband` | Absolute threshold below which animation stops, after flow scaling. Default `0`. `signature_flow.deadband` sets a common default. |
 | `animation_reference` | Per-slot measurement at which speed reaches its maximum, in scaled flow units. |
 
-A missing, blank, non-finite, `unknown` or `unavailable` primary measurement displays `—` without a unit. An unavailable automatic secondary measurement displays `Unavailable` / `Indisponible`. A valid separate flow can animate even when the primary measurement is unavailable. A missing flow stops the arrow while retaining available display values.
+For direct entities, a missing, blank, non-finite, `unknown` or `unavailable` primary measurement displays `—` without a unit. An unavailable secondary measurement displays `Unavailable` / `Indisponible`. Other nonnumeric entity states are displayed as text. A valid explicit flow can animate even when either display measurement is unavailable. A missing or nonnumeric flow stops the arrow while retaining available display values.
+
+### Entities, templates and text
+
+The same rules apply to both display fields:
+
+```yaml
+signature_flow:
+  slots:
+    3:
+      name: Storage
+      primary: sensor.storage_power
+      secondary: "{{ states('sensor.storage_percentage') | int }} %"
+```
+
+An entity ID alone reads and formats its state and unit. A template displays its rendered result as text, without further scaling or numeric formatting. A plain string displays fixed text. Explicit units can be appended to all three forms; include a unit either in the template or in the unit option to avoid duplication.
+
+The default more-info target is the direct entity ID, or the first literal entity reference in a template, in textual order. Detection supports quoted IDs used by `states(...)`, `state_attr(...)`, `is_state(...)` or a variable assignment such as `{% set id = 'sensor.forecast' %}`, and dotted references such as `states.sensor.forecast.state`. Detection does not evaluate Jinja or resolve entity IDs assembled dynamically. Templates with no detectable entity and fixed text have no default action. Configure an explicit action when the first entity is not the desired target.
+
+The inferred entity supplies the template's `entity` context and primary name/icon metadata. It does not supply a template's display unit or control its flow. Jinja expressions referring only to `entity` or to a dynamically built ID cannot infer a target on their own. Numeric templates still require `flow_entity` for animation, because a calculation may combine several sensors.
 
 The module uses Home Assistant's language and number-format preference for automatic numeric values. Explicit names and Jinja text remain as configured. `signature_flow.name` sets the accessible group label; its default is `Flows` / `Flux`.
 
@@ -103,29 +116,42 @@ Long numbers fit their slot's available width without reducing the unit size. Sh
 
 | Target | Configuration | Default |
 |---|---|---|
-| Block icon/name | `tap_action`, `hold_action`, `double_tap_action` | Tap/hold: primary more-info; double tap: none |
-| Primary value | `value_tap_action`, `value_hold_action`, `value_double_tap_action` | Tap/hold: primary more-info; double tap: none |
-| Secondary text | `secondary_tap_action`, `secondary_hold_action`, `secondary_double_tap_action` | Tap/hold: secondary more-info; double tap: none |
+| Block icon/name | `tap_action`, `hold_action`, `double_tap_action` | Tap/hold: detected primary more-info; double tap: none |
+| Primary value | `primary_tap_action`, `primary_hold_action`, `primary_double_tap_action` | Tap/hold: detected primary more-info; double tap: none |
+| Secondary text | `secondary_tap_action`, `secondary_hold_action`, `secondary_double_tap_action` | Tap/hold: detected secondary more-info; double tap: none |
 
-These are native Bubble/Home Assistant action objects. Without an entity, defaults are `none`; explicit actions still work. Empty or decorative secondary text lets taps reach the block. Enter/Space activates the focused target's tap action. Focus outlines appear for keyboard navigation; restored focus after pointer/touch more-info does not leave a frame around the value.
+These are native Bubble/Home Assistant action objects. Explicit actions override inferred defaults. Without a detected entity, defaults are `none`; explicit actions still work. Empty or decorative secondary text lets taps reach the block. Enter/Space activates the focused target's tap action. Focus outlines appear for keyboard navigation; restored focus after pointer/touch more-info does not leave a frame around the value.
 
 ```yaml
 signature_flow:
   slots:
     6:
       name: Water
-      entity: sensor.water_flow
+      primary: sensor.water_flow
       icon: mdi:water-outline
       color: '#6ab5f4'
-      scale: 1000
-      unit: L/min
-      precision: 1
+      primary_scale: 1000
+      primary_unit: L/min
+      primary_precision: 1
       animation_reference: 20
       tap_action:
         action: navigate
         navigation_path: '#water-details'
-      value_tap_action:
+      primary_tap_action:
         action: more-info
+```
+
+To open a different entity from a calculated value, specify it in the action:
+
+```yaml
+signature_flow:
+  slots:
+    3:
+      primary: "{{ states('sensor.storage_power') | float + states('sensor.production_power') | float }}"
+      flow_entity: sensor.storage_power
+      primary_tap_action:
+        action: more-info
+        entity: sensor.production_power
 ```
 
 Add the other slots as needed; slot 6's connection appears when slot 5 is configured. Add slot 4 for a block above slot 5, using exactly the same options.
@@ -148,10 +174,10 @@ Each connection reuses a native Web Animation. Flow changes adjust playback rate
 
 ## Runtime and validation
 
-DOM nodes, number formatters, paths and animations are reused. Every evaluation reads the visible slots' primary, secondary and flow entities through Bubble's tracked `hass` object. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; slot 2's connection then follows its fitted text width. Other connections reuse their existing geometry during sensor updates. There is no JavaScript animation loop.
+DOM nodes, number formatters, paths and animations are reused on sensor updates. When a target entity or configured action changes, only that action element is replaced, preserving its child content and ongoing flow animations; this refreshes Bubble's cached pointer handler. Every evaluation reads the visible slots' direct or inferred display entities and flow entities through Bubble's tracked `hass` object. Source detection is cached in a bounded map; rendered results and entity states are refreshed on each evaluation. Jinja uses Bubble's `renderTemplate` helper and its native template subscriptions. The module adds no polling, service call, direct WebSocket subscription or global CSS injection. One `ResizeObserver` adjusts paths after layout changes. Changed display values and resizing coalesce text fitting into one scheduled frame; slot 2's connection then follows its fitted text width. Other connections reuse their existing geometry during sensor updates. There is no JavaScript animation loop.
 
 Teardown cancels animations and pending text fitting, then removes the observer, reduced-motion listener, input-mode handlers and custom DOM. Text and template results are inserted as text, never as HTML.
 
 This module replaces native button content. Alert Manager's native main-icon badge is not exposed on custom slots; no per-slot alert integration is included.
 
-Run `npm run test:signature-flow` or `npm test` from the repository root. Tests read the actual distribution and check generic slots, independent primary/secondary/flow entities, formatting, visibility, actions, tracked reads, reversals, pause/resume, layout and teardown. Browser checks use the real Bubble bundle with simulated Home Assistant data to verify responsive layouts, text clearance, actions, restored focus, keyboard navigation, native motion and cleanup. A live Home Assistant installation remains the final check for its popup definitions, sensor conventions and templates.
+Run `npm run test:signature-flow` or `npm test` from the repository root. Tests read the actual distribution and check generic slots, symmetric entity/template/text values, inferred targets, independent flow entities, formatting, visibility, explicit actions, tracked reads, reversals, pause/resume, layout and teardown. Browser checks use the real Bubble bundle with simulated Home Assistant data to verify responsive layouts, text clearance, actions, restored focus, keyboard navigation, native motion and cleanup. A live Home Assistant installation remains the final check for its popup definitions, sensor conventions and templates.
