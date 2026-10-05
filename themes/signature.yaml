@@ -11,6 +11,10 @@ Signature:
   signature-name-font-size: 14px
   signature-secondary-font-size: 13px
   signature-caption-font-size: 12px
+  signature-header-font-size: 38px
+  signature-header-small-font-size: 32px
+  signature-title-font-size: 18px
+  signature-header-button-border-radius: 24px
   signature-value-font-size: 28px
   signature-compact-value-font-size: 20px
   signature-temperature-font-size: 30px
@@ -65,3 +69,4 @@ Signature:
     dark:
       signature-card-box-shadow: "0 2px 10px rgba(0, 0, 0, 0.20)"
       signature-control-box-shadow: "0 1px 4px rgba(0, 0, 0, 0.25)"
+

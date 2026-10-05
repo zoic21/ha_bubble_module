@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const YAML=require('yaml');
 const root=path.resolve(__dirname,'../..');
-const names=['signature','signature-flow','signature-weather','signature-wind-rose'];
+const names=['signature','signature-flow','signature-weather','signature-wind-rose','signature-square','signature-compact','signature-room','signature-header'];
 const modules=Object.fromEntries(names.map(k=>[k,Object.values(YAML.parse(fs.readFileSync(path.join(root,k,'dist',k+'.yaml'),'utf8')))[0]]));
 const theme=YAML.parse(fs.readFileSync(path.join(root,'themes/signature.yaml'),'utf8')).Signature;
 const cases=[
@@ -45,6 +45,13 @@ async function setup(page){
  });
 }
 async function render(page,scenario={}){
+ const split=scenario.split ?? process.env.BUBBLE_SIGNATURE_SPLIT === '1';
+ const activeCases=cases.map(([id,module,options])=>{
+  if(!split || module!=='signature' || id.includes('media') || id.startsWith('native-'))return [id,module,options];
+  const layout=id.startsWith('square')?'square':id.startsWith('room')?'room':['header','title'].includes(id)?'header':'compact';
+  const {layout:previousLayout,...settings}=options;
+  return [id,'signature-'+layout,settings];
+ });
  const mode=scenario.mode||'light';
  const vars={...common,...nativeModes[mode],...scenario.nativePalette,...(scenario.plain?{}:{...theme,...theme.modes[mode]}),...scenario.overrides};delete vars.modes;
  return page.evaluate(async ({cases,modules,vars,scenario,base,button,sub,cover,climate,media,nativeControls})=>{
@@ -102,6 +109,6 @@ async function render(page,scenario={}){
      const overflow=[...root.querySelectorAll('.sw-entry,.sf-content,.dp-secondary,.swr-footer,.swr-tabs')].filter(el=>el.scrollWidth>el.clientWidth+1).map(el=>({cls:el.className,scroll:el.scrollWidth,client:el.clientWidth}));
      return {id:shell.dataset.id,styles,dividers,overflow,flowClasses:root.querySelector('.sf-canvas')?.className,svgWidth:root.querySelector('.swr-svg')?.getBoundingClientRect().width};
     })};
-   },{cases,modules,vars,scenario:{width:328,...scenario},base,button:'',sub:'',cover:'',climate:'',media,nativeControls});
+   },{cases:activeCases,modules,vars,scenario:{width:328,...scenario},base,button:'',sub:'',cover:'',climate:'',media,nativeControls});
 }
 module.exports={setup,render,theme,nativeModes};

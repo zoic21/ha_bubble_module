@@ -1,0 +1,26 @@
+type: custom:bubble-card
+card_type: button
+button_type: name
+name: Séjour
+icon: mdi:sofa
+card_layout: large
+rows: 3
+show_state: false
+sub_button:
+  main:
+    - entity: sensor.living_room_temperature
+      css_class: room-temperature
+      show_state: true
+      show_icon: false
+    - entity: sensor.living_room_humidity
+      css_class: room-humidity
+      show_state: true
+      show_icon: true
+    - entity: light.living_room
+      css_class: room-control-1
+      tap_action:
+        action: toggle
+modules:
+  - signature_room
+signature_room:
+  room_control_columns: 4

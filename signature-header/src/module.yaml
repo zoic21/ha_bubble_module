@@ -1,0 +1,59 @@
+name: Signature Header
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+  - separator
+description: Module autonome header ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte. Le module historique signature reste disponible.
+editor:
+  - type: constant
+    label: "Le type natif de carte choisit la présentation : bouton Nom pour l’en-tête, séparateur pour le titre de section. Actions et sous-boutons restent natifs."
+  - name: ""
+    label: Réglages header
+    type: signature_options
+    fields:
+      color:
+        label: Couleur de l’icône
+        default: blue
+        selector:
+          select:
+            mode: dropdown
+            custom_value: true
+            options:
+              - label: Bleu
+                value: blue
+              - label: Bleu clair
+                value: light-blue
+              - label: Turquoise
+                value: teal
+              - label: Cyan
+                value: cyan
+              - label: Vert
+                value: green
+              - label: Orange
+                value: orange
+              - label: Ambre
+                value: amber
+              - label: Jaune
+                value: yellow
+              - label: Rouge
+                value: red
+              - label: Rose
+                value: pink
+              - label: Indigo
+                value: indigo
+              - label: Violet
+                value: purple
+              - label: Gris
+                value: grey
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
+        description: Couleur de la palette, couleur CSS ou template Jinja.
+      sub_button_styles:
+        label: Styles des sous-boutons (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
+        description: Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles.

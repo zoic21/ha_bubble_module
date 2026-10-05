@@ -9,13 +9,18 @@
     "test:signature-weather": "node --test signature-weather/test/*.test.cjs",
     "test:signature-wind-rose": "node --test signature-wind-rose/test/*.test.cjs",
     "test:signature-navigation": "node --test signature-navigation/test/*.test.cjs",
-    "test:styles": "node --test styles/test/*.browser.cjs"
+    "test:styles": "node --test styles/test/*.browser.cjs",
+    "build:signature": "node scripts/build-signature.cjs",
+    "check:signature": "node scripts/build-signature.cjs --check",
+    "test:signature-split": "node --test signature-shared/test/*.test.cjs",
+    "test:styles:split": "BUBBLE_SIGNATURE_SPLIT=1 node --test styles/test/coherence.browser.cjs"
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
     "playwright": "1.62.1",
+    "terser": "5.51.2",
     "yaml": "2.9.1"
   }
 }

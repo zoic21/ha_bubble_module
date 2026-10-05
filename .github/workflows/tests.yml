@@ -34,7 +34,9 @@ jobs:
       - name: Install test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test modules and documentation
-        run: npm test
+        run: |
+          npm run check:signature
+          npm test
 
   styles:
     name: Computed styles (Chromium)
@@ -55,4 +57,6 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Check computed styles
-        run: npm run test:styles
+        run: |
+          npm run test:styles
+          npm run test:styles:split

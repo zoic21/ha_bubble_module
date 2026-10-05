@@ -12,6 +12,16 @@ Les sections des éditeurs Signature, Flow, Weather, Wind Rose et Alert Manager 
 
 Weather 1.3.0, Wind Rose 1.2.0 et Alert Manager 3.6.0 partagent le formulaire `signature_module_options`, livré dans chaque distribution pour fonctionner seul. Les sous-formulaires restent dans leur portée YAML existante. Conserver les sources météo chaîne/objet, les listes de mesures explicitement vides, les périodes numériques et les valeurs nulles de retour à l’héritage. Les listes natives de packs/entités ne sont qu’une représentation : les valeurs enregistrées restent des objets indexés par ID, avec validation des doublons et conservation des options supplémentaires. Les cases à défaut actif et les sélecteurs d’héritage ne doivent pas être persistés en ouvrant le formulaire ni écraser une politique héritée. Aucun observateur ou abonnement de rendu supplémentaire ne doit être ajouté pour l’éditeur.
 
+## Modules de présentation autonomes
+
+**Signature Square, Compact, Room et Header 1.0.0** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module `signature` historique reste disponible sans modification de son code. Les distributions autonomes sont générées à partir de leurs `src` et des [sources communes](signature-shared/README.md) ; ne pas modifier directement leurs `dist`. Le build ne dépend pas du module historique.
+
+Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Le lecteur multimédia reste dans le module historique.
+
+Le thème définit quatre variables supplémentaires pour Header, avec les mêmes valeurs de secours : `signature-header-font-size` 38 px, `signature-header-small-font-size` 32 px, `signature-title-font-size` 18 px et `signature-header-button-border-radius` 24 px. Elles suivent les changements du thème sans exécution du module. Les autres variables gardent leurs noms et leurs rôles.
+
+Les contrôles comparent les styles calculés de chaque présentation à Signature en clair/sombre, avec/sans thème et à plusieurs largeurs. Les tests de comportement couvrent également les valeurs, templates, actions et le nettoyage. Ajouter `npm run check:signature` et `npm run test:styles:split` aux vérifications habituelles. Ces fixtures Chromium ne prouvent pas un fonctionnement dans Home Assistant ou Safari/iOS.
+
 ## 1. Variables et cascade
 
 Utiliser les propriétés `signature-*` existantes avant de créer une nouvelle valeur fixe pour un rôle partagé. Dans le YAML du thème, écrire `signature-name-font-size`; dans le CSS, écrire `--signature-name-font-size`. Le préfixe nomme les variables, il ne limite pas leur portée : elles sont héritées normalement.
@@ -228,3 +238,4 @@ Mesures du 4 octobre 2026 : octets UTF-8 après le nettoyage réel de Bubble Car
 Un seul interrupteur passe de 6 546 à 6 639 octets : les propriétés CSS permettant le regroupement ajoutent 93 octets. Le gain apparaît à partir de deux interrupteurs. Flow conserve un volume CSS identique ; son changement concerne la réutilisation de la chaîne. Les mesures Node de mises à jour sur DOM simulé ne démontrent pas un gain de temps de chargement complet, et ne doivent pas être présentées comme tel.
 
 Les tests vérifient la réutilisation des caches, les lectures suivies, les couleurs et opacités indépendantes des interrupteurs, leurs dimensions et positions de poignée, le changement de thème sans réexécution et le retrait de leurs styles après remplacement de configuration. Cette validation reste limitée aux fixtures et à Chromium ; Home Assistant réel et Safari/iOS restent à contrôler sur l'installation utilisée.
+

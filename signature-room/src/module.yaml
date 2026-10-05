@@ -1,0 +1,168 @@
+name: Signature Room
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+description: Module autonome room ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte. Le module historique signature reste disponible.
+editor:
+  - type: constant
+    label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.
+  - name: ""
+    label: Réglages room
+    type: signature_options
+    fields:
+      color:
+        label: Couleur de l’icône
+        default: blue
+        selector:
+          select:
+            mode: dropdown
+            custom_value: true
+            options:
+              - label: Bleu
+                value: blue
+              - label: Bleu clair
+                value: light-blue
+              - label: Turquoise
+                value: teal
+              - label: Cyan
+                value: cyan
+              - label: Vert
+                value: green
+              - label: Orange
+                value: orange
+              - label: Ambre
+                value: amber
+              - label: Jaune
+                value: yellow
+              - label: Rouge
+                value: red
+              - label: Rose
+                value: pink
+              - label: Indigo
+                value: indigo
+              - label: Violet
+                value: purple
+              - label: Gris
+                value: grey
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: Couleur de la palette, couleur CSS ou template Jinja.
+      secondary:
+        label: Texte secondaire (entité, texte ou template)
+        default: ""
+        selector:
+          text:
+            multiline: true
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      state:
+        label: Valeur principale personnalisée (texte ou template)
+        default: ""
+        selector:
+          text:
+            multiline: true
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      secondary_bold:
+        label: Interpréter **texte** en gras dans le texte secondaire
+        default: false
+        selector:
+          boolean: {}
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() !== '')
+      multiline:
+        label: Autoriser les textes sur plusieurs lignes
+        default: false
+        selector:
+          boolean: {}
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      sub_button_styles:
+        label: Styles des sous-boutons (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles.
+      room_auto_colors:
+        label: Coloration automatique des commandes (booléen YAML)
+        default: true
+        selector:
+          object: {}
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: true par défaut ; false désactive les couleurs automatiques.
+      room_control_columns:
+        label: Colonnes de commandes
+        default: 4
+        selector:
+          number:
+            mode: box
+            min: 1
+            max: 6
+            step: 1
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: 4 colonnes par défaut, de 1 à 6.
+      room_measures_position:
+        label: Position des mesures
+        default: content
+        selector:
+          select:
+            mode: dropdown
+            options:
+              - label: Dans le contenu
+                value: content
+              - label: Dans l’en-tête
+                value: header
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true && card.button_type === 'name' && String(item.state || '').trim() === '')))
+      color_background:
+        label: Colorer aussi le fond (booléen ou template YAML)
+        default: false
+        selector:
+          object: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: false par défaut. Saisir true/false ou un template Jinja entre guillemets.
+      icon_color:
+        label: Couleur personnalisée de l’icône
+        default: ""
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      icon_opacity:
+        label: Opacité de l’icône (nombre ou template YAML)
+        default: null
+        selector:
+          object: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets.
+      border_color:
+        label: Couleur de la bordure de la carte
+        default: ""
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      icon_border_color:
+        label: Couleur de la bordure du fond de l’icône
+        default: ""
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

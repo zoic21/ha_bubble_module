@@ -1,0 +1,81 @@
+# Signature Room
+
+Version **1.0.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+
+Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
+
+## Installation et exemple
+
+Importer la distribution dans **Modules** de l’éditeur Bubble, puis sélectionner **Signature Room**. Les réglages sont en français. Les options restent directement sous `signature_room` ; il n’y a pas de sélecteur `layout`. Remplacer les entités de l’exemple par celles de votre installation.
+
+```yaml
+type: custom:bubble-card
+card_type: button
+button_type: name
+name: Séjour
+icon: mdi:sofa
+card_layout: large
+rows: 3
+show_state: false
+sub_button:
+  main:
+    - entity: sensor.living_room_temperature
+      css_class: room-temperature
+      show_state: true
+      show_icon: false
+    - entity: sensor.living_room_humidity
+      css_class: room-humidity
+      show_state: true
+      show_icon: true
+    - entity: light.living_room
+      css_class: room-control-1
+      tap_action:
+        action: toggle
+modules:
+  - signature_room
+signature_room:
+  room_control_columns: 4
+```
+
+## Compatibilité et comportement
+
+Cartes `button`, hors boutons `switch` et `slider`. Une carte pièce commence à 156 px et peut grandir avec le texte et les rangées de commandes. Une configuration incompatible ne reçoit aucun style de ce module.
+
+Les classes natives sont `room-temperature`, `room-humidity`, `room-status`, `room-control-N` et `room-climate`. `room_control_columns` va de 1 à 6. `room_auto_colors: false` désactive les couleurs automatiques. `room_measures_position: header` place les mesures dans l’en-tête quand l’état principal et le secondaire ne prennent pas cette place. Un état principal affiché masque les mesures redondantes.
+
+Les valeurs conservent le format numérique Home Assistant et leur unité. `state` personnalise l’état affiché avec du texte ou Jinja. `secondary` accepte du texte, une entité directe ou Jinja ; l’entité directe fournit l’unité. La première référence d’entité détectée dans un template définit la cible des détails, sans analyser quelle branche Jinja est affichée. `secondary_bold: true` autorise `**texte**`, sans interpréter du HTML.
+
+Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button_styles` est un objet indexé par classe CSS ou numéro natif. Les switches visuels sont disponibles en square/compact, avec des actions toggle compatibles ou des actions lock/unlock explicites ; ils ne créent pas de commande supplémentaire.
+
+## Options
+
+| Option | Défaut | Usage |
+|---|---|---|
+| `color` | `blue` | Couleur de la palette, couleur CSS ou template Jinja. Valeurs : `blue`, `light-blue`, `teal`, `cyan`, `green`, `orange`, `amber`, `yellow`, `red`, `pink`, `indigo`, `purple`, `grey`. |
+| `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
+| `state` | Aucun | Valeur principale personnalisée (texte ou template) |
+| `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
+| `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
+| `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
+| `room_auto_colors` | `true` | true par défaut ; false désactive les couleurs automatiques. |
+| `room_control_columns` | `4` | 4 colonnes par défaut, de 1 à 6. |
+| `room_measures_position` | `content` | Position des mesures Valeurs : `content`, `header`. |
+| `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
+| `icon_color` | Aucun | Couleur personnalisée de l’icône |
+| `icon_opacity` | Comportement natif / aucun | Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets. |
+| `border_color` | Aucun | Couleur de la bordure de la carte |
+| `icon_border_color` | Aucun | Couleur de la bordure du fond de l’icône |
+
+## Thème et coexistence
+
+Le [thème Signature](../../themes/README.md) centralise l’apparence via les variables `--signature-*`. Le navigateur résout ces variables, y compris dans le CSS mis en cache, sans lecture JavaScript du thème. Les valeurs de secours reproduisent le rendu actuel en l’absence du thème. Les grilles, les placements et les comportements appartiennent au module. Aucune dépendance entre modules n’est à installer et aucun `card-mod` n’est nécessaire.
+
+Utiliser **un seul module de présentation par carte**. `alert_manager` peut être ajouté après celui-ci ; les alertes gardent leurs couleurs prioritaires. Les modules séparés et l’ancien `signature` peuvent coexister sur des cartes différentes. Le lecteur multimédia conserve son habillage dans `signature`.
+
+Pour migrer : remplacer `signature` dans `modules` par `signature_room`, déplacer les options sous cette nouvelle clé et retirer `layout`. Conserver les entités, actions et sous-boutons natifs. Voir le [guide de migration](../../signature-shared/doc/MIGRATION.md). Importer un module ne migre pas les dashboards existants.
+
+## Maintenance et validation
+
+Modifier les fichiers `src` du module et les [fonctions partagées](../../signature-shared/README.md), puis exécuter `npm run build:signature`. Les distributions sont autonomes et ne chargent aucun fichier partagé dans Home Assistant. Le build ne lit ni ne modifie l’ancien module `signature`. Respecter le [contrat de style](../../STYLE_GUIDE.md).
+
+Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.

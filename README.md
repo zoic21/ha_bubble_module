@@ -5,13 +5,17 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
 | Signature — card design | 2.3.3 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
+| Signature Square — square tiles | 1.0.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Compact — information and control rows | 1.0.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Room — room summaries and controls | 1.0.0 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Header — page headers and section titles | 1.0.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.5.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.2.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.4 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.6.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
-Each module has its own folder: `dist` contains the complete YAML file to import, `doc` contains its documentation, and `test` contains its tests.
+Each module has its own folder: `dist` contains the complete YAML file to import and `doc` contains its documentation. Existing modules keep their own `test` folders; the four standalone presentation modules share behavior and build tests in `signature-shared/test`.
 
 ## Installation
 
@@ -25,7 +29,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation` and `alert_manager`. The standalone Signature module folders use hyphens: `signature-flow`, `signature-weather`, `signature-wind-rose` and `signature-navigation`.
+The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_header`, `signature`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
 
 ## Updates and Module Store
 
@@ -34,6 +38,12 @@ This repository contains the distributions and documentation. It does not automa
 Publishing to the store requires a separate discussion for each module in [Share your Modules](https://github.com/Clooos/Bubble-Card/discussions/categories/share-your-modules), including its complete export and a screenshot. The store discussions have not been created yet.
 
 For a manual installation, import the updated YAML file again. For a store release, update the YAML in the same discussion and increase the version. A commit in this repository does not, by itself, update modules installed in Home Assistant.
+
+## Standalone Signature presentations
+
+Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Use one presentation module per card, with optional Alert Manager. The legacy `signature` distribution remains unchanged and available, including its media-player styling. Existing dashboards are not migrated automatically. See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
+
+The optional Signature theme supplies common CSS appearance variables; each module owns its layout and controls. Shared JavaScript and CSS source files are assembled at build time, so no base module or runtime import is needed.
 
 ## Configuration
 
@@ -63,10 +73,13 @@ With Node.js 22 or later, run these commands from the repository root:
 
 ```sh
 npm ci --ignore-scripts
+npm run check:signature
 npm test
 ```
 
-Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose`, `npm run test:signature-navigation` or `npm run test:alert-manager` to test a single module. Module tests are stored in each module's `test` folder; shared editor round-trip and condition tests are in `editors/test` and read the actual YAML distributions. YAML and Playwright are development dependencies; neither is needed in Home Assistant.
+Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose`, `npm run test:signature-navigation` or `npm run test:alert-manager` to test a single existing module. Shared editor round-trip and condition tests are in `editors/test` and read the actual YAML distributions. YAML, Terser and Playwright are development dependencies; none is needed in Home Assistant.
+
+Run `npm run build:signature` after editing the new presentation sources; `npm run check:signature` rejects stale distributions. `npm run test:signature-split` compares standalone behavior to the legacy module. `npm run test:styles:split` also runs the full style contract with the new presentation modules.
 
 For browser style checks, run `npx playwright install chromium` once, then `npm run test:styles`. These tests load the actual module distributions in a minimal Bubble-shaped DOM and check computed styles, theme switching, keyboard focus, dividers and touch targets. They do not run Home Assistant itself.
 

@@ -1,0 +1,12 @@
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.living_room_temperature
+name: Température
+icon: mdi:thermometer
+card_layout: large
+modules:
+  - signature_compact
+signature_compact:
+  color: orange
+  compact_mode: value

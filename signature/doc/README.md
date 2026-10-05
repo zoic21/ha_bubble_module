@@ -6,6 +6,8 @@ Version **2.3.3**. [Complete file to import](../dist/signature.yaml).
 
 The module provides five layouts, neutral surfaces, colored icons, rounded corners, and consistent system typography. It works in Bubble Card without `card-mod` or global CSS. It preserves the card's native entities, visibility conditions, and actions.
 
+The legacy distribution is retained unchanged. New [Square](../../signature-square/doc/README.md), [Compact](../../signature-compact/doc/README.md), [Room](../../signature-room/doc/README.md) and [Header](../../signature-header/doc/README.md) modules provide separate presentations and focused forms. See the [optional migration guide](../../signature-shared/doc/MIGRATION.md). Media-player styling remains available here.
+
 ## Installation and first example
 
 Install Bubble Card and Bubble Card Tools, then import the complete YAML file from the Modules section of a card's editor. Apply Signature to the card, then expand **Modules → Signature** to configure its options in the visual editor. YAML remains available and existing configurations need no migration. Reimport the complete distribution to update an already installed module; a repository update does not change the copy installed in Home Assistant.
@@ -392,3 +394,4 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 ## Signature theme
 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
+

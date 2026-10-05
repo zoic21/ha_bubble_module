@@ -99,3 +99,17 @@ styles: |
 - [Signature Wind Rose](../signature-wind-rose/doc/README.md)
 - [Signature Navigation](../signature-navigation/doc/README.md)
 - [Alert Manager](../alert_manager/doc/README.md)
+
+
+## Modules de présentation autonomes
+
+Signature Square, Compact, Room et Header 1.0.0 consomment les mêmes variables `signature-*`, sans changement des dashboards existants utilisant le module historique. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
+
+| Variable supplémentaire | Défaut | Usage |
+|---|---|---|
+| `signature-header-font-size` | 38 px | Grand en-tête, largeur supérieure à 600 px |
+| `signature-header-small-font-size` | 32 px | Grand en-tête, largeur au plus égale à 600 px |
+| `signature-title-font-size` | 18 px | Titre de section natif separator |
+| `signature-header-button-border-radius` | 24 px | Pilules du grand en-tête |
+
+Ces quatre variables sont utilisées par Signature Header, sans modifier l’ancien module Signature. Le navigateur les résout à chaque changement de thème.

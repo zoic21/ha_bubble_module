@@ -1,0 +1,10 @@
+type: custom:bubble-card
+card_type: button
+button_type: name
+name: Étage
+card_layout: large
+show_state: false
+modules:
+  - signature_header
+signature_header:
+  color: teal

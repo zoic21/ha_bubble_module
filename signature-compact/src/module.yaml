@@ -1,0 +1,179 @@
+name: Signature Compact
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+  - cover
+  - climate
+description: Module autonome compact ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte. Le module historique signature reste disponible.
+editor:
+  - type: constant
+    label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.
+  - name: ""
+    label: Réglages compact
+    type: signature_options
+    fields:
+      color:
+        label: Couleur de l’icône
+        default: blue
+        selector:
+          select:
+            mode: dropdown
+            custom_value: true
+            options:
+              - label: Bleu
+                value: blue
+              - label: Bleu clair
+                value: light-blue
+              - label: Turquoise
+                value: teal
+              - label: Cyan
+                value: cyan
+              - label: Vert
+                value: green
+              - label: Orange
+                value: orange
+              - label: Ambre
+                value: amber
+              - label: Jaune
+                value: yellow
+              - label: Rouge
+                value: red
+              - label: Rose
+                value: pink
+              - label: Indigo
+                value: indigo
+              - label: Violet
+                value: purple
+              - label: Gris
+                value: grey
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        description: Couleur de la palette, couleur CSS ou template Jinja.
+      secondary:
+        label: Texte secondaire (entité, texte ou template)
+        default: ""
+        selector:
+          text:
+            multiline: true
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      compact_mode:
+        label: Valeur compacte
+        default: default
+        selector:
+          select:
+            mode: dropdown
+            options:
+              - label: Affichage standard
+                value: default
+              - label: Valeur à droite
+                value: value
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
+      state:
+        label: Valeur principale personnalisée (texte ou template)
+        default: ""
+        selector:
+          text:
+            multiline: true
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      secondary_bold:
+        label: Interpréter **texte** en gras dans le texte secondaire
+        default: false
+        selector:
+          boolean: {}
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (String(item.secondary || '').trim() !== '')
+      multiline:
+        label: Autoriser les textes sur plusieurs lignes
+        default: false
+        selector:
+          boolean: {}
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      controls:
+        label: Commandes
+        default: native
+        selector:
+          select:
+            mode: dropdown
+            options:
+              - label: Commandes natives
+                value: native
+              - label: Numériques (− / valeur / +)
+                value: number
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0])))
+        warn_text: "Numériques : bouton number/input_number en compacte. Mesure : tuile carrée avec les sous-boutons natifs."
+        warn_if: item.controls === 'number' && !(!card || ((card.card_type || 'button') === 'button' && card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0])))
+        warn_message: Les commandes numériques nécessitent un bouton État lié à number ou input_number.
+      sub_buttons_position:
+        label: Position des sous-boutons en compacte
+        default: default
+        selector:
+          select:
+            mode: dropdown
+            options:
+              - label: Position standard
+                value: default
+              - label: Après les commandes natives
+                value: end
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      sub_button_styles:
+        label: Styles des sous-boutons (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        description: Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles.
+      color_background:
+        label: Colorer aussi le fond (booléen ou template YAML)
+        default: false
+        selector:
+          object: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        description: false par défaut. Saisir true/false ou un template Jinja entre guillemets.
+      icon_color:
+        label: Couleur personnalisée de l’icône
+        default: ""
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      icon_opacity:
+        label: Opacité de l’icône (nombre ou template YAML)
+        default: null
+        selector:
+          object: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        description: Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets.
+      border_color:
+        label: Couleur de la bordure de la carte
+        default: ""
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      icon_border_color:
+        label: Couleur de la bordure du fond de l’icône
+        default: ""
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
