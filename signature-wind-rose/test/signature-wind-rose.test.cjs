@@ -57,7 +57,7 @@ function history(f,direction=135,speed=3) {
 const result=f=>f.r.cache.get(f.r.period).data;
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.1.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.1.1');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');
@@ -78,6 +78,7 @@ test('constant wind uses boundary state for the entire period and does not requi
   const f=fixture(t);await f.resolve(history(f));const d=result(f);
   assert.equal(d.wind,86400000);assert.equal(d.bins[6],86400000);assert.equal(d.dominant,6);
   assert.equal(f.r.dominantValue.textContent,'SE');assert.equal(f.r.chart.hidden,false);assert.equal(f.r.status.hidden,true);
+  assert.equal(f.r.frequencyLabel.textContent,'Fréquence');assert.equal(f.r.frequencyValue.textContent,'100 %');
   assert.ok(!/NaN|undefined/.test(f.r.sectors[6].getAttribute('d')));
 });
 test('weights elapsed time rather than state counts, and uses compressed last_updated at the boundary',async t=>{
@@ -97,6 +98,7 @@ test('joins asynchronous direction/speed histories and excludes calm and unavail
   await f.resolve({'sensor.direction':[compressed(start,0),compressed(start+6*h,90),compressed(start+20*h,'unavailable')],
     'sensor.speed':[compressed(start,2),compressed(start+3*h,0.5),compressed(start+9*h,2),compressed(start+12*h,'unknown'),compressed(start+15*h,3)]});
   const d=result(f);assert.equal(d.bins[0],3*h);assert.equal(d.bins[4],8*h);assert.equal(d.calm,6*h);assert.equal(d.covered,17*h);
+  assert.equal(f.r.frequencyValue.textContent,'72,7 %');
   assert.match(f.r.footer.getAttribute('title'),/17 h \/ 24 h/);
   f.r.sectors[4].click();assert.match(f.r.tooltip.textContent,/72,7 %/);assert.match(f.r.tooltip.textContent,/8 h/);
 });
@@ -114,11 +116,13 @@ test('zero and missing speeds remain distinct; negative speed is invalid and cal
   await f.resolve({'sensor.speed':[compressed(start,0),compressed(start+6*h,-1),compressed(start+12*h,3)]});
   assert.equal(result(f).calm,6*h);assert.equal(result(f).wind,0);assert.equal(f.r.dominantValue.textContent,'Calme');
   assert.match(f.r.status.textContent,/Vent calme/);assert.equal(f.r.chart.hidden,true);
+  assert.equal(f.r.frequencyValue.textContent,'—');
 });
 test('empty or unavailable history does not fall back to a fabricated current distribution',async t=>{
   const f=fixture(t,{speed_entity:'sensor.speed'});f.hass.states['sensor.direction']={state:'135'};
   await f.resolve({'sensor.direction':[compressed(f.now-86400000,'unknown')]});
   assert.equal(result(f).covered,0);assert.equal(f.r.dominantValue.textContent,'—');assert.equal(f.r.status.textContent,'Aucun historique exploitable');
+  assert.equal(f.r.frequencyValue.textContent,'—');
 });
 test('sector detail is available through touch and keyboard and suppresses native card actions',async t=>{
   const f=fixture(t);await f.resolve(history(f));const el=f.r.sectors[6];
@@ -175,6 +179,7 @@ test('teardown cleans timers/listeners/DOM and ignores a request still in flight
 test('locale changes update compass labels and numbers without another history request',async t=>{
   const f=fixture(t);await f.resolve(history(f,270));assert.equal(f.r.dominantValue.textContent,'O');
   f.hass.locale={language:'en',number_format:'comma_decimal'};f.run();assert.equal(f.r.dominantValue.textContent,'W');assert.equal(f.r.tabNodes[1].textContent,'1 day');assert.equal(f.requests.length,1);
+  assert.equal(f.r.frequencyLabel.textContent,'Frequency');assert.equal(f.r.frequencyValue.textContent,'100 %');
 });
 test('invalid options fall back and absent direction shows a configuration message',t=>{
   const f=fixture(t,{hours:5,refresh_interval:1,calm_threshold:-1});assert.equal(f.r.period,24);assert.equal(f.r.refresh,60);assert.equal(f.r.calmThreshold,0);

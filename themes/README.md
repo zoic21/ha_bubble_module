@@ -14,9 +14,9 @@ The optional [signature.yaml](signature.yaml) theme provides light and dark mode
 
 3. Restart Home Assistant if you have just enabled themes. If theme loading was already configured, run `frontend.reload_themes` from Developer tools > Actions.
 4. Select **Signature** in your Home Assistant profile and choose light, dark or automatic mode. A view-level or card-level theme override takes precedence for that view or card.
-5. Import the updated modules to enable their shared styling variables: Signature 2.2.2, Signature Flow 3.4.0, Signature Weather 1.2.1, Signature Wind Rose 1.1.0, and Alert Manager 3.5.0.
+5. Import the updated modules to enable their shared styling variables: Signature 2.2.2, Signature Flow 3.4.0, Signature Weather 1.2.1, Signature Wind Rose 1.1.1, and Alert Manager 3.5.0.
 
-Signature Wind Rose 1.1.0 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
+Signature Wind Rose 1.1.1 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
 
 The theme can be used on its own. Older modules retain their hard-coded styles until their updated YAML distributions are imported. Custom cards only honor the theme variables they consume; a theme cannot replace a card's hard-coded CSS or canvas drawing styles. Some Home Assistant appearance variables are internal and can change between frontend versions.
 

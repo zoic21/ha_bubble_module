@@ -1,8 +1,8 @@
 # Signature Wind Rose
 
-**Version: 1.1.0** · Module ID: `signature_wind_rose`
+**Version: 1.1.1** · Module ID: `signature_wind_rose`
 
-A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and selected period. Tap a sector to see its percentage and recorded duration; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
+A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Tap a sector to see its percentage and recorded duration; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
 The card shows where the wind comes **from**: north is at the top and west at the left. It deliberately omits current speed, gust values, a vertical speed legend and a large center percentage, so it can sit below an existing wind graph.
 
@@ -62,6 +62,8 @@ When speed is configured, periods with speed at or below `calm_threshold` are ex
 
 Sector percentages add up to 100% of the **usable non-calm duration**, before display rounding. They are not percentages of the entire selected period if there are gaps or calm intervals. The footer's accessible description and hover text report usable coverage and calm duration. Ties for dominant direction use the first sector clockwise from north.
 
+The footer's **Frequency** is the dominant sector's share of that same usable non-calm duration, rounded to at most one decimal with Home Assistant's number format. For example, `S` and `32 %` mean that wind came from south during 32% of the usable windy history. It updates with the selected period and uses the cached aggregate, without another history request. Calm-only or unusable history shows `—` for frequency.
+
 Sector areas are proportional to duration. The largest sector reaches the outer guide ring; the scale adapts to each period, so ring positions do not imply a fixed percentage. There is no arithmetic averaging of bearings: 359° and 1° correctly contribute to north. Long-term direction statistics are not used because their arithmetic mean can misrepresent circular data.
 
 ## History and performance
@@ -104,6 +106,11 @@ styles: |
 Run `npm run test:signature-wind-rose` or `npm test` from the repository root. Tests exercise the actual imported YAML code, including duration weighting, asynchronous history responses, missing/calm data, localization, cache, refresh and teardown. Verify the installed card with your recorded station data in Home Assistant after importing.
 
 ## Release notes
+
+### 1.1.1 — 5 October 2026
+
+- Replaces the repeated period in the footer with the dominant direction's frequency, using the same percentage as its sector detail.
+- Keeps the period selector, shared styles and existing history requests unchanged.
 
 ### 1.1.0 — 4 October 2026
 

@@ -1,6 +1,6 @@
 signature_wind_rose:
   name: Signature Wind Rose
-  version: 1.1.0
+  version: 1.1.1
   creator: Loïc
   supported:
     - button
@@ -56,14 +56,14 @@ signature_wind_rose:
     [data-signature-wind-rose] .swr-footer::before { content: ''; position: absolute; top: 0; inset-inline: var(--signature-divider-inset,16px); height: 1px; background: var(--swr-divider); pointer-events: none; }
     [data-signature-wind-rose] .swr-label { color: var(--secondary-text-color); font-size: var(--signature-caption-font-size,12px); }
     [data-signature-wind-rose] .swr-value { margin-top: 4px; font-size: var(--signature-name-font-size,14px); font-weight: var(--signature-font-weight-medium,500); font-variant-numeric: tabular-nums; }
-    [data-signature-wind-rose] .swr-duration { text-align: right; }
+    [data-signature-wind-rose] .swr-frequency { text-align: right; }
     @media (pointer: coarse) { [data-signature-wind-rose] .swr-tab { min-height: var(--signature-control-touch-height,44px); } }
     ${(() => {
       const config = this.config || {};
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
-      const version = '1.1.0';
+      const version = '1.1.1';
       let r = this._signatureWindRose;
       if (r && (r.version !== version || r.root !== root || r.host !== host || !enabled)) { r.dispose(); r = null; }
       if (typeof onTeardown === 'function') onTeardown(() => this._signatureWindRose?.dispose());
@@ -94,12 +94,12 @@ signature_wind_rose:
         const tooltip = create('div','swr-tooltip'); attr(tooltip,'role','status'); tooltip.hidden = true;
         chart.append(svg,tooltip);
         const status = create('div','swr-status'); attr(status,'role','status');
-        const footer = create('div','swr-footer'), dominant = create('div'), duration = create('div','swr-duration');
+        const footer = create('div','swr-footer'), dominant = create('div'), frequency = create('div','swr-frequency');
         const dominantLabel = create('div','swr-label'), dominantValue = create('div','swr-value'); dominant.append(dominantLabel,dominantValue);
-        const durationLabel = create('div','swr-label'), durationValue = create('div','swr-value'); duration.append(durationLabel,durationValue);
-        footer.append(dominant,duration); canvas.append(toolbar,chart,status,footer); host.append(canvas); attr(root,'data-signature-wind-rose','');
+        const frequencyLabel = create('div','swr-label'), frequencyValue = create('div','swr-value'); frequency.append(frequencyLabel,frequencyValue);
+        footer.append(dominant,frequency); canvas.append(toolbar,chart,status,footer); host.append(canvas); attr(root,'data-signature-wind-rose','');
         r = this._signatureWindRose = {version,root,host,canvas,tabs,chart,svg,sectors,cardinals,tooltip,status,footer,
-          dominantLabel,dominantValue,durationLabel,durationValue,cache:new Map(),tabNodes:[],selected:null,generation:0};
+          dominantLabel,dominantValue,frequencyLabel,frequencyValue,cache:new Map(),tabNodes:[],selected:null,generation:0};
         const runtime = r;
         r.clearTimer = () => { clearTimeout(r.timer); r.timer = null; };
         r.active = () => !r.disposed && host.isConnected && !document.hidden;
@@ -210,7 +210,7 @@ signature_wind_rose:
           const renderKey = [r.phase,r.period,r.cache.get(r.period)?.loadedAt,r.selected,r.formatKey,r.inFlight].join('|');
           if (r.renderKey === renderKey) return;
           r.renderKey = renderKey;
-          text(dominantLabel,r.labels.dominant); text(durationLabel,r.labels.period); text(durationValue,r.period === 168 ? '7 '+r.labels.days : r.format(r.period)+' h');
+          text(dominantLabel,r.labels.dominant); text(frequencyLabel,r.labels.frequency);
           attr(tabs,'aria-label',r.labels.period); attr(svg,'aria-label',r.labels.rose);
           [1,24,168].forEach((hours,index) => {
             let node = r.tabNodes[index];
@@ -230,6 +230,7 @@ signature_wind_rose:
           attr(canvas,'aria-busy',Boolean(r.inFlight));
           text(status,r.phase === 'ready' ? (data?.calm > 0 ? r.labels.calm : r.labels.empty) : r.labels[r.phase] || r.labels.loading);
           text(dominantValue,ready ? r.labels.directions[data.dominant] : r.phase === 'ready' && data?.calm > 0 ? r.labels.calmShort : '—');
+          text(frequencyValue,ready ? r.format(data.bins[data.dominant]/data.wind*100)+' %' : '—');
           attr(footer,'title',data && r.phase === 'ready' ? r.labels.coverage+' '+r.duration(data.covered)+' / '+r.duration(data.end-data.start)+' · '+r.labels.calmShort+' '+r.duration(data.calm) : '');
           attr(footer,'aria-description',footer.getAttribute('title'));
           if (!ready) return;
@@ -272,13 +273,13 @@ signature_wind_rose:
       if (!r.labels || r.french !== french) {
         r.french = french;
         r.labels = french ? {
-        dominant:'Dominant',period:'Période',days:'jours',tabs:['1 h','1 jour','1 semaine'],cardinals:['N','E','S','O'],
+        dominant:'Dominant',frequency:'Fréquence',period:'Période',tabs:['1 h','1 jour','1 semaine'],cardinals:['N','E','S','O'],
         directions:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'],
         rose:'Rose des vents : provenance du vent, fréquences par durée hors calme',coverage:'Données exploitables :',
         loading:'Chargement de l’historique…',empty:'Aucun historique exploitable',calm:'Vent calme sur la période enregistrée',calmShort:'Calme',
         error:'Historique indisponible',configuration:'Configurez une entité de direction du vent'
       } : {
-        dominant:'Dominant',period:'Period',days:'days',tabs:['1 h','1 day','1 week'],cardinals:['N','E','S','W'],
+        dominant:'Dominant',frequency:'Frequency',period:'Period',tabs:['1 h','1 day','1 week'],cardinals:['N','E','S','W'],
         directions:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
         rose:'Wind rose: wind origin, time-weighted frequencies excluding calm',coverage:'Usable history:',
         loading:'Loading history…',empty:'No usable history',calm:'Calm wind during the recorded period',calmShort:'Calm',
