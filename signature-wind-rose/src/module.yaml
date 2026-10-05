@@ -1,0 +1,86 @@
+name: Signature Wind Rose
+version: 1.2.1
+creator: Loïc
+supported:
+  - button
+description: A minimal, time-weighted wind rose with 1 hour, 1 day and 1 week periods. Requires Bubble Card 3.3 or later and recorded wind direction states.
+editor:
+  - type: constant
+    label: Réglages pour une carte Bubble de type bouton. Les entités et options masquées restent conservées.
+  - name: ""
+    type: signature_module_options
+    label: Réglages du module
+    fields:
+      direction_entity:
+        label: Entité de direction du vent
+        description: "Vide : utiliser l’entité de la carte. État enregistré, en degrés ou direction cardinale."
+        selector:
+          entity: {}
+        group: Sources du vent
+        group_icon: mdi:weather-windy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      speed_entity:
+        label: Entité de vitesse du vent
+        description: "Facultative : permet d’exclure les périodes calmes. La vitesse n’est pas affichée."
+        selector:
+          entity: {}
+        group: Sources du vent
+        group_icon: mdi:weather-windy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      calm_threshold:
+        label: Seuil de vent calme
+        description: "Par défaut : 0, dans l’unité native du capteur de vitesse."
+        selector:
+          number:
+            min: 0
+            step: any
+            mode: box
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) && (!!item.speed_entity)
+        group: Sources du vent
+        group_icon: mdi:weather-windy
+      direction_offset:
+        label: Correction de direction
+        description: "Par défaut : 0°. Correction dans le sens horaire."
+        selector:
+          number:
+            step: any
+            mode: box
+        group: Sources du vent
+        group_icon: mdi:weather-windy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      hours:
+        label: Période initiale
+        default: "24"
+        selector:
+          select:
+            options:
+              - value: "1"
+                label: 1 heure
+              - value: "24"
+                label: 1 jour
+              - value: "168"
+                label: 1 semaine
+            mode: dropdown
+        number_choice: true
+        group: Historique
+        group_icon: mdi:history
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      refresh_interval:
+        label: Intervalle de rafraîchissement
+        description: "Par défaut : 300 secondes, minimum : 60. Nécessite l’historique Recorder."
+        selector:
+          number:
+            min: 60
+            step: 1
+            mode: box
+        group: Historique
+        group_icon: mdi:history
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      color:
+        label: Couleur des secteurs
+        description: "Vide : couleur du thème. Accepte une couleur CSS, par exemple #4db6ac ou var(--teal-color)."
+        selector:
+          text: {}
+        group: Apparence
+        group_icon: mdi:palette-outline
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"

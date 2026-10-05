@@ -2,6 +2,10 @@
   "name": "ha-bubble-module",
   "private": true,
   "scripts": {
+    "build": "node scripts/build-modules.cjs",
+    "build:modules": "node scripts/build-modules.cjs",
+    "check:modules": "node scripts/build-modules.cjs --check",
+    "test:build": "node --test shared/test/*.test.cjs",
     "test": "node --test */test/*.test.cjs",
     "test:signature": "node --test signature/test/*.test.cjs",
     "test:alert-manager": "node --test alert_manager/test/*.test.cjs",

@@ -1,4 +1,4 @@
-# Bubble Alert Manager module 3.6.0
+# Bubble Alert Manager module 3.6.1
 
 [Module to import](../dist/alert_manager.yaml), independent of `signature`. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
@@ -324,6 +324,11 @@ YAML/JavaScript syntax checks do not validate rendering or data in a real Home A
 
 ## Release notes
 
+### 3.6.1 — 5 October 2026
+
+- Generated from module sources and shared functions; existing configuration and rendering are preserved.
+- See the [repository build guide](../../shared/README.md).
+
 ### 3.6.0 — 5 October 2026
 
 - Adds a French visual form for general display/filtering, sensors, colors/icons, packs and entity exceptions.
@@ -367,3 +372,7 @@ YAML/JavaScript syntax checks do not validate rendering or data in a real Home A
 ## Signature theme
 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The existing styles remain the fallback when the theme is absent. Card options and actions are unchanged.
+
+## Maintenance des sources
+
+Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

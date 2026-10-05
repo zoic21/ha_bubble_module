@@ -113,3 +113,7 @@ Signature Compact 1.1.0 et Square, Room et Header 1.0.0 consomment les mêmes va
 | `signature-header-button-border-radius` | 24 px | Pilules du grand en-tête |
 
 Ces quatre variables sont utilisées par Signature Header, sans modifier l’ancien module Signature. Le navigateur les résout à chaque changement de thème.
+
+## Maintenance des modules
+
+Toutes les distributions Bubble sont désormais générées depuis leurs sources et les [fonctions communes](../shared/README.md). Le thème reste un fichier YAML directement modifiable ; ses variables CSS sont conservées dans le code généré et résolues à l’exécution par le navigateur.

@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.3.0** · Module ID: `signature_weather`
+**Version: 1.3.1** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -211,6 +211,11 @@ From version 1.1.1, horizontal dividers share a 16 px inset from each card edge 
 
 ## Release notes
 
+### 1.3.1 — 5 October 2026
+
+- Generated from module sources and shared functions; existing configuration and rendering are preserved.
+- See the [repository build guide](../../shared/README.md).
+
 ### 1.3.0 — 5 October 2026
 
 - Adds a French visual form for every forecast/current option and all ten local sources, with native entity and attribute pickers.
@@ -225,3 +230,7 @@ From version 1.1.1, horizontal dividers share a 16 px inset from each card edge 
 
 - Harmonizes shared surface fallbacks, system typography and role-based CSS variables with the other Signature modules.
 - Period selectors use the same font, colors, derived corners and 40 px desktop / 44 px touch height as Wind Rose, including keyboard focus.
+
+## Maintenance des sources
+
+Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

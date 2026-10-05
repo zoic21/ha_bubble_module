@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.2.0** · Module ID: `signature_wind_rose`
+**Version: 1.2.1** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage and recorded duration. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -113,6 +113,11 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 
 ## Release notes
 
+### 1.2.1 — 5 October 2026
+
+- Generated from module sources and shared functions; existing configuration and rendering are preserved.
+- See the [repository build guide](../../shared/README.md).
+
 ### 1.2.0 — 5 October 2026
 
 - Adds a French visual form for all wind sources, history and appearance options.
@@ -133,3 +138,7 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 
 - Harmonizes shared surface fallbacks, system typography and role-based CSS variables with the other Signature modules.
 - Period selectors match Weather. Tooltip corners and shadow follow the theme; caption sizes remain adjustable.
+
+## Maintenance des sources
+
+Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

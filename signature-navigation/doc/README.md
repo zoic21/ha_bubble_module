@@ -1,6 +1,6 @@
 # Signature Navigation
 
-Version **1.0.4**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+Version **1.0.5**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
 
 ## Installation
 
@@ -104,6 +104,10 @@ Unit tests exercise the actual distribution and example, native configuration pr
 
 ## Changelog
 
+### 1.0.5
+
+- Generated from module sources through the repository-wide build; native navigation behavior and styles are preserved.
+
 ### 1.0.4
 
 - Placed the navigation footer below Bubble popup content and its backdrop, avoiding overlapping content and intercepted outside clicks regardless of their relative DOM order.
@@ -134,3 +138,7 @@ Unit tests exercise the actual distribution and example, native configuration pr
 - Added a French settings form for mobile margins, blur and background opacity.
 - Preserved native sub-button actions and automatic dashboard selection without required CSS classes.
 - Corrected the selection corners with a uniform 6 px inset and a radius derived from the bar.
+
+## Maintenance des sources
+
+Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

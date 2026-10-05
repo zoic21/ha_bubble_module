@@ -35,7 +35,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test modules and documentation
         run: |
-          npm run check:signature
+          npm run check:modules
           npm test
 
   styles:

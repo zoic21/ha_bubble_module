@@ -1,0 +1,573 @@
+name: Signature Weather
+version: 1.3.1
+creator: Loïc
+supported:
+  - button
+description: Weather forecasts in three Signature layouts, with optional local measurements. Requires Bubble Card 3.4.1 or later.
+editor:
+  - type: constant
+    label: Réglages pour une carte Bubble de type bouton. Les entités et options masquées restent conservées.
+  - name: ""
+    type: signature_module_options
+    label: Réglages du module
+    fields:
+      layout:
+        label: Présentation
+        default: ribbon
+        selector:
+          select:
+            options:
+              - value: ribbon
+                label: Ruban de prévisions
+              - value: ranges
+                label: Plages de température
+              - value: summary
+                label: Résumé météo
+            mode: dropdown
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      entity:
+        label: Entité météo
+        description: "Vide : utiliser l’entité de la carte."
+        selector:
+          entity:
+            filter:
+              domain: weather
+        group: Prévisions
+        group_icon: mdi:weather-partly-cloudy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      forecast_type:
+        label: Type de prévision
+        default: auto
+        selector:
+          select:
+            options:
+              - value: auto
+                label: Automatique
+              - value: daily
+                label: Journalière
+              - value: hourly
+                label: Horaire
+              - value: twice_daily
+                label: Jour / nuit
+            mode: dropdown
+        auto_choice: true
+        description: "Automatique : premier type pris en charge. Un choix explicite reste conservé même si le fournisseur ne le propose pas."
+        group: Prévisions
+        group_icon: mdi:weather-partly-cloudy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      count:
+        label: Nombre de prévisions
+        description: "Par défaut : 6."
+        selector:
+          number:
+            min: 1
+            max: 12
+            step: 1
+            mode: box
+        group: Prévisions
+        group_icon: mdi:weather-partly-cloudy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      precision:
+        label: Décimales des prévisions
+        description: "Par défaut : 0."
+        selector:
+          number:
+            min: 0
+            max: 1
+            step: 1
+            mode: box
+        group: Prévisions
+        group_icon: mdi:weather-partly-cloudy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      show_details:
+        label: Afficher le détail de la prévision sélectionnée
+        default: true
+        selector:
+          boolean: {}
+        group: Prévisions
+        group_icon: mdi:weather-partly-cloudy
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      show_current:
+        label: Afficher les conditions actuelles
+        default: auto
+        selector:
+          select:
+            options:
+              - value: auto
+                label: Automatique selon la présentation et les mesures locales
+              - value: "false"
+                label: Non
+              - value: "true"
+                label: Oui
+            mode: dropdown
+        boolean_choice: true
+        group: Conditions actuelles
+        group_icon: mdi:thermometer
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      name:
+        label: Nom affiché
+        description: "Vide : nom de la carte, puis de l’entité météo."
+        selector:
+          text: {}
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) && (item.show_current !== 'false' && (item.show_current === 'true' || item.layout === 'summary' || Object.keys(item.local || {}).length > 0))
+        group: Conditions actuelles
+        group_icon: mdi:thermometer
+      current_precision:
+        label: Décimales de la température actuelle
+        description: "Par défaut : 1. Une précision locale peut la remplacer."
+        selector:
+          number:
+            min: 0
+            max: 2
+            step: 1
+            mode: box
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) && (item.show_current !== 'false' && (item.show_current === 'true' || item.layout === 'summary' || Object.keys(item.local || {}).length > 0))
+        group: Conditions actuelles
+        group_icon: mdi:thermometer
+      current_metrics:
+        label: Mesures actuelles affichées
+        fields:
+          mode:
+            label: Choix des mesures
+            default: auto
+            selector:
+              select:
+                options:
+                  - value: auto
+                    label: Automatique
+                  - value: custom
+                    label: Choisir les mesures
+                mode: dropdown
+          values:
+            label: Mesures et ordre d’affichage
+            description: Une sélection vide masque toutes les mesures. L’ordre de sélection est conservé.
+            selector:
+              select:
+                options:
+                  - value: apparent_temperature
+                    label: Ressenti
+                  - value: humidity
+                    label: Humidité
+                  - value: pressure
+                    label: Pression
+                  - value: wind_speed
+                    label: Vent
+                  - value: wind_gust_speed
+                    label: Rafales
+                  - value: wind_bearing
+                    label: Direction du vent
+                  - value: precipitation
+                    label: Pluie
+                  - value: uv_index
+                    label: UV
+                multiple: true
+                custom_value: true
+            visible_if: item.mode === 'custom'
+        empty_undefined: true
+        choice_list: true
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) && (item.show_current !== 'false' && (item.show_current === 'true' || item.layout === 'summary' || Object.keys(item.local || {}).length > 0))
+        group: Conditions actuelles
+        group_icon: mdi:thermometer
+      local:
+        label: Mesures locales
+        fields:
+          temperature:
+            label: Température
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Vide : précision de la température actuelle."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Température
+            group_icon: mdi:weather-partly-cloudy
+          condition:
+            label: Condition météo
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Condition météo
+            group_icon: mdi:weather-partly-cloudy
+          apparent_temperature:
+            label: Ressenti
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 0."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Ressenti
+            group_icon: mdi:weather-partly-cloudy
+          humidity:
+            label: Humidité
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 0."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Humidité
+            group_icon: mdi:weather-partly-cloudy
+          pressure:
+            label: Pression
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 0."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Pression
+            group_icon: mdi:weather-partly-cloudy
+          wind_speed:
+            label: Vent
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 0."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Vent
+            group_icon: mdi:weather-partly-cloudy
+          wind_gust_speed:
+            label: Rafales
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 0."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Rafales
+            group_icon: mdi:weather-partly-cloudy
+          wind_bearing:
+            label: Direction du vent
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 0."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Direction du vent
+            group_icon: mdi:weather-partly-cloudy
+          precipitation:
+            label: Pluie
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 1."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: Pluie
+            group_icon: mdi:weather-partly-cloudy
+          uv_index:
+            label: UV
+            fields:
+              entity:
+                label: Entité locale
+                description: "Vide : mesure du fournisseur météo."
+                selector:
+                  entity: {}
+              attribute:
+                label: Attribut
+                description: "Vide : état de l’entité."
+                selector:
+                  attribute: {}
+                visible_if: "!!item.entity"
+              unit:
+                label: Unité affichée
+                description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                selector:
+                  text: {}
+                visible_if: "!!item.entity"
+              scale:
+                label: Multiplicateur
+                description: "Par défaut : 1. La valeur 0 est valide."
+                selector:
+                  number:
+                    step: any
+                    mode: box
+                visible_if: "!!item.entity"
+              precision:
+                label: Décimales
+                description: "Par défaut : 0."
+                selector:
+                  number:
+                    min: 0
+                    max: 2
+                    step: 1
+                    mode: box
+                visible_if: "!!item.entity"
+            empty_undefined: true
+            source: true
+            group: UV
+            group_icon: mdi:weather-partly-cloudy
+        empty_undefined: true
+        group: Mesures locales
+        group_icon: mdi:home-thermometer-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) && (item.show_current !== 'false')

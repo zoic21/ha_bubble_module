@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.0.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.0.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -76,6 +76,10 @@ Pour migrer : remplacer `signature` dans `modules` par `signature_room`, déplac
 
 ## Maintenance et validation
 
-Modifier les fichiers `src` du module et les [fonctions partagées](../../signature-shared/README.md), puis exécuter `npm run build:signature`. Les distributions sont autonomes et ne chargent aucun fichier partagé dans Home Assistant. Le build ne lit ni ne modifie l’ancien module `signature`. Respecter le [contrat de style](../../STYLE_GUIDE.md).
+Modifier les fichiers `src` du module et les [fonctions partagées](../../signature-shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Les distributions sont autonomes et ne chargent aucun fichier partagé dans Home Assistant. Le build complet génère également le module historique `signature` depuis ses sources. Voir le [guide de build commun](../../shared/README.md). Respecter le [contrat de style](../../STYLE_GUIDE.md).
 
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
+
+## Notes de version
+
+- **1.0.1** : Build depuis les sources du module et les fonctions communes ; distribution autonome, configuration et rendu conservés.

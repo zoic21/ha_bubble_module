@@ -1,0 +1,4 @@
+/* @include signature-wind-rose/src/presentation.css */
+${(() => {
+/* @include signature-wind-rose/src/runtime.js */
+})()}

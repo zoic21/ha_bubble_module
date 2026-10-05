@@ -1,0 +1,306 @@
+  /* @include shared/src/editor-options.js */
+  const config = this.config || {};
+  const root = this.card;
+  const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
+  const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
+  const version = '@@MODULE_VERSION@@';
+  let runtime = this._signatureWeather;
+  if (runtime && (runtime.version !== version || runtime.root !== root || runtime.host !== host || !enabled)) {
+    runtime.dispose(); runtime = null;
+  }
+  if (typeof onTeardown === 'function') onTeardown(() => this._signatureWeather?.dispose());
+  if (!enabled) return '';
+  const create = (tag, cls) => {
+    const el = document.createElement(tag);
+    if (cls) el.setAttribute('class', cls);
+    return el;
+  };
+  const text = (el, value) => { value = String(value); if (el.textContent !== value) el.textContent = value; };
+  const attr = (el, key, value) => { value = String(value); if (el.getAttribute(key) !== value) el.setAttribute(key, value); };
+  /* @include shared/src/numeric-value.js */
+  const available = state => state && !['unknown','unavailable'].includes(state.state);
+  if (!runtime) {
+    const canvas = create('div', 'sw-canvas');
+    const current = create('div', 'sw-current');
+    const currentIcon = create('ha-icon', 'sw-current-icon'); currentIcon.setAttribute('aria-hidden','true');
+    const heading = create('div');
+    const name = create('div', 'sw-name'), condition = create('div', 'sw-condition'); heading.append(name, condition);
+    const temperature = create('button', 'sw-current-temperature'); temperature.type = 'button';
+    const temperatureValue = create('span'), temperatureUnit = create('span','sw-current-unit'); temperature.append(temperatureValue,temperatureUnit);
+    current.append(currentIcon,heading,temperature);
+    const metrics = create('div', 'sw-current-metrics');
+    const toolbar = create('div', 'sw-toolbar');
+    const tabs = create('div','sw-tabs'); attr(tabs,'role','group');
+    toolbar.appendChild(tabs);
+    const forecast = create('div','sw-forecast');
+    const status = create('div','sw-status'); attr(status,'role','status');
+    const detail = create('div','sw-detail'); attr(detail,'aria-live','polite');
+    const detailTitle = create('span','sw-detail-title'); detail.appendChild(detailTitle);
+    canvas.append(current,metrics,toolbar,forecast,status,detail); host.appendChild(canvas);
+    attr(root,'data-signature-weather','');
+    runtime = this._signatureWeather = {version,root,host,canvas,current,currentIcon,name,condition,
+      temperature,temperatureValue,temperatureUnit,metrics,toolbar,tabs,forecast,status,
+      detail,detailTitle,entries:[],metricNodes:{},detailNodes:{},tabNodes:{},forecasts:{},selected:0,formatters:new Map()};
+    const r = runtime;
+    r.moreInfo = (event,id) => {
+      event.stopPropagation();
+      if (id) canvas.dispatchEvent(new CustomEvent('hass-more-info',{bubbles:true,composed:true,detail:{entityId:id}}));
+    };
+    temperature.addEventListener('click', event => r.moreInfo(event,r.temperatureEntity));
+    r.stopSubscription = () => {
+      const s = r.subscription;
+      if (!s) return;
+      s.active = false;
+      if (s.unsubscribe) Promise.resolve(s.unsubscribe()).catch(() => {});
+      r.subscription = null;
+    };
+    r.dispose = () => {
+      r.disposed = true; r.stopSubscription(); canvas.remove(); root.removeAttribute('data-signature-weather');
+      if (this._signatureWeather === r) delete this._signatureWeather;
+    };
+    r.subscribe = () => {
+      if (r.phase === 'error' && r.weather !== r.failedWeather) r.subscriptionKey = null;
+      const key = [r.connection,r.entity,r.period,Boolean(available(r.weather)),r.types.includes(r.period)];
+      if (r.subscriptionKey && key.every((value,i) => value === r.subscriptionKey[i])) return;
+      r.stopSubscription(); r.subscriptionKey = key;
+      r.phase = !available(r.weather) ? 'unavailable' : !r.types.includes(r.period) ? 'unsupported' : 'loading';
+      if (r.phase !== 'loading' || !r.connection?.subscribeMessage) { if (r.phase === 'loading') r.phase = 'unavailable'; return; }
+      const s = r.subscription = {active:true};
+      r.connection.subscribeMessage(event => {
+        if (!s.active || r.disposed) return;
+        r.forecasts[r.period] = Array.isArray(event.forecast) ? event.forecast : [];
+        r.phase = 'ready'; r.render(true);
+      },{type:'weather/subscribe_forecast',forecast_type:r.period,entity_id:r.entity}).then(unsubscribe => {
+        if (s.active) s.unsubscribe = unsubscribe;
+        else Promise.resolve(unsubscribe()).catch(() => {});
+      }).catch(() => {
+        if (!s.active || r.disposed) return;
+        r.forecasts[r.period] = []; r.failedWeather = r.weather; r.phase = 'error'; r.render(true);
+      });
+    };
+    r.readCurrent = key => {
+      const source = r.options.local?.[key];
+      const cfg = typeof source === 'string' ? {entity:source} : source || {};
+      const state = source !== undefined ? r.hass.states[cfg.entity] : r.weather;
+      const raw = !available(state) ? null : source !== undefined ?
+        (cfg.attribute ? state.attributes?.[cfg.attribute] : state.state) : (key === 'condition' ? state.state : state.attributes?.[key]);
+      const unitKey = key === 'temperature' || key === 'apparent_temperature' ? 'temperature_unit' :
+        key === 'wind_speed' || key === 'wind_gust_speed' ? 'wind_speed_unit' : key === 'precipitation' ? 'precipitation_unit' : key === 'pressure' ? 'pressure_unit' : '';
+      const defaults = {humidity:'%',uv_index:'',wind_bearing:'°'};
+      const unit = cfg.unit ?? (source !== undefined && !cfg.attribute ? state?.attributes?.unit_of_measurement : null) ??
+        state?.attributes?.[unitKey] ?? defaults[key] ?? r.weather?.attributes?.[unitKey] ?? '';
+      const value = key === 'condition' ? (raw == null ? null : String(raw)) :
+        key === 'wind_bearing' && numeric(raw) === null && raw != null && String(raw).trim() ? String(raw) : numeric(raw);
+      return {value:value === null || typeof value === 'string' ? value : value*(numeric(cfg.scale) ?? 1),unit,
+        entity:source !== undefined ? cfg.entity : r.entity,precision:cfg.precision};
+    };
+    r.format = (value, digits = 0) => {
+      if (value === null) return '—';
+      digits = Math.floor(Math.max(0,Math.min(2,numeric(digits) ?? 0)));
+      const key = 'number|'+digits;
+      if (!r.formatters.has(key)) r.formatters.set(key,new Intl.NumberFormat(r.numberLocale,
+        {minimumFractionDigits:digits,maximumFractionDigits:digits,useGrouping:r.numberFormat !== 'none'}));
+      return r.formatters.get(key).format(Object.is(value,-0) ? 0 : value);
+    };
+    r.date = (value, kind) => {
+      const key = 'date|'+kind;
+      if (!r.formatters.has(key)) r.formatters.set(key,new Intl.DateTimeFormat(kind === 'key' ? 'en-CA' : r.language,
+        {timeZone:r.timeZone,...(kind === 'key' ? {year:'numeric',month:'2-digit',day:'2-digit'} :
+        kind === 'hour' ? {hour:'numeric',minute:'2-digit',hourCycle:r.hass.locale?.time_format === '12' ? 'h12' : 'h23'} :
+        kind === 'full' ? {weekday:'long',day:'numeric',month:'short'} : {weekday:'short'})}));
+      return r.formatters.get(key).format(value);
+    };
+    r.conditionName = value => {
+      if (!value) return r.labels.unavailable;
+      return r.hass.localize?.('component.weather.entity_component._.state.'+value) || r.labels.conditions[value] || value;
+    };
+    const icons = {'clear-night':'weather-night',cloudy:'weather-cloudy',exceptional:'alert-circle-outline',fog:'weather-fog',hail:'weather-hail',
+      lightning:'weather-lightning','lightning-rainy':'weather-lightning-rainy',partlycloudy:'weather-partly-cloudy',pouring:'weather-pouring',
+      rainy:'weather-rainy',snowy:'weather-snowy','snowy-rainy':'weather-snowy-rainy',sunny:'weather-sunny',windy:'weather-windy','windy-variant':'weather-windy-variant'};
+    r.icon = (el,value) => {
+      attr(el,'icon','mdi:'+(icons[value] || 'weather-cloudy'));
+      el.style.color = ['sunny','partlycloudy','clear-night'].includes(value) ? 'var(--sw-sun)' :
+        ['rainy','pouring','snowy','snowy-rainy','hail','lightning','lightning-rainy'].includes(value) ? 'var(--sw-rain)' : 'var(--sw-cloud)';
+    };
+    const measurementIcons = {apparent_temperature:'thermometer',humidity:'water-percent',pressure:'gauge',wind_speed:'weather-windy',
+      wind_gust_speed:'weather-windy',wind_bearing:'compass-outline',precipitation:'weather-rainy',uv_index:'sun-wireless-outline'};
+    r.render = (force = false) => {
+      if (r.disposed) return;
+      // These reads must happen on every style pass, even on a cache hit:
+      // Bubble Card tracks them to refresh when a local sensor changes.
+      const locals = Object.values(r.options.local || {}).map(source => r.hass.states[typeof source === 'string' ? source : source?.entity]);
+      const now = new Date();
+      const inputs = [r.optionsKey,r.weather,r.language,r.numberFormat,r.timeZone,r.hass.locale?.time_format,
+        r.forecasts[r.period],r.period,r.phase,r.selected,Math.floor(now.getTime()/3600000),...locals];
+      if (!force && r.inputs && inputs.length === r.inputs.length && inputs.every((value,i) => value === r.inputs[i])) return;
+      r.inputs = inputs;
+      const showCurrent = r.options.show_current ?? (r.layout === 'summary' || Object.keys(r.options.local || {}).length > 0);
+      r.current.hidden = !showCurrent;
+      attr(canvas,'data-layout',r.layout); attr(canvas,'aria-label',r.options.name || r.configName || r.labels.weather);
+      if (showCurrent) {
+        const temp = r.readCurrent('temperature'), currentCondition = r.readCurrent('condition');
+        text(r.name,r.options.name || r.configName || r.weather?.attributes?.friendly_name || r.labels.weather);
+        text(r.condition,r.conditionName(currentCondition.value)); r.icon(r.currentIcon,currentCondition.value);
+        text(r.temperatureValue,r.format(temp.value,temp.precision ?? r.options.current_precision ?? 1));
+        text(r.temperatureUnit,temp.value === null ? '' : temp.unit);
+        r.temperatureEntity = temp.entity; attr(r.temperature,'aria-label',r.labels.temperature+' · '+r.temperatureValue.textContent+' '+r.temperatureUnit.textContent);
+      }
+      const metricKeys = Array.isArray(r.options.current_metrics) ? r.options.current_metrics :
+        Object.keys(r.options.local || {}).filter(key => measurementIcons[key]);
+      if (!metricKeys.length && !Array.isArray(r.options.current_metrics)) metricKeys.push('humidity','wind_speed');
+      const selectedMetrics = new Set(metricKeys.filter(key => measurementIcons[key]));
+      const metricOrder = [...selectedMetrics].join('|');
+      Object.entries(r.metricNodes).forEach(([key,node]) => { node.el.hidden = !showCurrent || !selectedMetrics.has(key); });
+      for (const key of selectedMetrics) {
+        let node = r.metricNodes[key];
+        if (!node) {
+          const el = create('button','sw-metric'); el.type = 'button';
+          const icon = create('ha-icon'); attr(icon,'icon','mdi:'+measurementIcons[key]); attr(icon,'aria-hidden','true');
+          const value = create('span'); el.append(icon,value); r.metrics.appendChild(el);
+          node = r.metricNodes[key] = {el,value}; el.addEventListener('click',event => r.moreInfo(event,node.entity));
+        }
+        const measurement = r.readCurrent(key);
+        // Omit unsupported provider attributes; keep an unavailable configured local sensor visible.
+        node.el.hidden = !showCurrent || (r.options.local?.[key] === undefined && measurement.value === null);
+        node.entity = measurement.entity;
+        text(node.value,typeof measurement.value === 'string' ? measurement.value :
+          r.format(measurement.value,measurement.precision ?? (key === 'precipitation' ? 1 : 0))+(measurement.value === null || !measurement.unit ? '' : ' '+measurement.unit));
+        attr(node.el,'aria-label',r.labels[key]+' · '+node.value.textContent); attr(node.el,'title',r.labels[key]);
+        if (r.metricOrder !== metricOrder) r.metrics.appendChild(node.el);
+      }
+      r.metricOrder = metricOrder;
+      r.metrics.hidden = !showCurrent || !Object.values(r.metricNodes).some(node => !node.el.hidden);
+      for (const [type,node] of Object.entries(r.tabNodes)) node.hidden = r.layout !== 'summary' || !r.types.includes(type);
+      for (const type of r.types) {
+        if (!r.tabNodes[type]) {
+          const button = create('button','sw-tab'); button.type = 'button'; r.tabs.appendChild(button); r.tabNodes[type] = button;
+          button.addEventListener('click',event => {
+            event.stopPropagation(); if (r.period === type) return;
+            r.period = type; r.selected = 0; r.selectedDate = null; r.subscribe(); r.render(true);
+          });
+        }
+        const button = r.tabNodes[type]; text(button,r.labels[type]); attr(button,'aria-pressed',r.period === type);
+        button.hidden = r.layout !== 'summary';
+      }
+      r.tabs.hidden = r.layout !== 'summary' || r.types.length < 2;
+      r.toolbar.hidden = r.tabs.hidden;
+      attr(r.tabs,'aria-label',r.labels.forecast);
+      const temperatureUnit = r.weather?.attributes?.temperature_unit || r.hass.config?.unit_system?.temperature || '';
+      const today = r.date(now,'key');
+      const records = (['loading','ready'].includes(r.phase) ? r.forecasts[r.period] || [] : []).map(item => ({...item,date:new Date(item.datetime)}))
+        .filter(item => Number.isFinite(item.date.getTime()) && (r.period === 'hourly' ? item.date.getTime() >= Math.floor(now.getTime()/3600000)*3600000 : r.date(item.date,'key') >= today))
+        .sort((a,b) => a.date-b.date).slice(0,r.count);
+      if (r.selectedDate) { const index = records.findIndex(item => item.datetime === r.selectedDate); r.selected = index < 0 ? 0 : index; }
+      r.selected = Math.min(r.selected,Math.max(0,records.length-1));
+      r.selectedDate = records[r.selected]?.datetime || null;
+      r.records = records;
+      const temperatures = records.flatMap(item => [numeric(item.temperature),numeric(item.templow)]).filter(value => value !== null);
+      const minimum = temperatures.length ? Math.min(...temperatures)-1 : 0;
+      const maximum = temperatures.length ? Math.max(...temperatures)+1 : 1;
+      const span = maximum-minimum;
+      records.forEach((item,index) => {
+        let node = r.entries[index];
+        if (!node) {
+          const el = create('button','sw-entry'); el.type = 'button';
+          const label = create('span','sw-entry-label'), icon = create('ha-icon','sw-entry-icon'); attr(icon,'aria-hidden','true');
+          const high = create('span','sw-high'), low = create('span','sw-low');
+          const range = create('span','sw-range'), fill = create('span','sw-range-fill'), point = create('span','sw-range-point');
+          attr(range,'aria-hidden','true'); range.append(fill,point); el.append(label,icon,high,low,range); r.forecast.appendChild(el);
+          node = r.entries[index] = {el,label,icon,high,low,range,fill,point};
+          el.addEventListener('click',event => { event.stopPropagation(); r.selected = index; r.selectedDate = r.records[index]?.datetime; r.render(true); });
+        }
+        const high = numeric(item.temperature), low = numeric(item.templow);
+        const day = r.date(item.date,'key') === today ? r.labels.today : r.date(item.date,'day');
+        const label = r.period === 'hourly' ? r.date(item.date,'hour') : day+(r.period === 'twice_daily' ? '\n'+(item.is_daytime === false ? r.labels.night : r.labels.day) : '');
+        text(node.label,label); r.icon(node.icon,item.condition);
+        text(node.high,r.format(high,r.precision)+(high === null ? '' : '°'));
+        text(node.low,r.period === 'hourly' ? '' : r.format(low,r.precision)+(low === null ? '' : '°'));
+        node.low.hidden = r.period === 'hourly' && r.layout !== 'ranges'; node.el.hidden = false;
+        const hasRange = high !== null && low !== null && high !== low;
+        node.fill.hidden = !hasRange; node.point.hidden = hasRange || high === null;
+        node.fill.style.left = ((Math.min(high ?? 0,low ?? 0)-minimum)/span*100)+'%';
+        node.fill.style.width = (Math.abs((high ?? 0)-(low ?? 0))/span*100)+'%';
+        node.point.style.left = (((high ?? 0)-minimum)/span*100)+'%';
+        attr(node.el,'aria-pressed',index === r.selected);
+        attr(node.el,'aria-label',r.date(item.date,'full')+(r.period === 'hourly' ? ' '+r.date(item.date,'hour') : r.period === 'twice_daily' ? ' '+(item.is_daytime === false ? r.labels.night : r.labels.day) : '')+
+          ' · '+r.conditionName(item.condition)+' · '+r.labels.maximum+' '+node.high.textContent+(r.period === 'hourly' ? '' : ' · '+r.labels.minimum+' '+node.low.textContent)+' '+temperatureUnit);
+      });
+      r.entries.slice(records.length).forEach(node => { node.el.hidden = true; });
+      r.forecast.hidden = !records.length;
+      r.status.hidden = Boolean(records.length);
+      text(r.status,r.labels[r.phase] || r.labels.empty);
+      r.detail.hidden = r.options.show_details === false || !records.length;
+      if (records.length) {
+        const item = records[r.selected];
+        text(r.detailTitle,(r.period === 'hourly' ? r.date(item.date,'hour') : r.date(item.date,'full'))+
+          (r.period === 'twice_daily' ? ' · '+(item.is_daytime === false ? r.labels.night : r.labels.day) : '')+' · '+r.conditionName(item.condition));
+        const detailFields = {precipitation_probability:{icon:'water-outline',unit:'%',name:r.labels.rain_probability},
+          precipitation:{icon:'weather-rainy',unit:r.weather?.attributes?.precipitation_unit || '',name:r.labels.precipitation,precision:1},
+          wind_speed:{icon:'weather-windy',unit:r.weather?.attributes?.wind_speed_unit || '',name:r.labels.wind_speed}};
+        for (const [key,field] of Object.entries(detailFields)) {
+          let node = r.detailNodes[key];
+          if (!node) {
+            const el = create('span','sw-detail-metric'), icon = create('ha-icon'), value = create('span');
+            attr(icon,'icon','mdi:'+field.icon); attr(icon,'aria-hidden','true'); el.append(icon,value); detail.appendChild(el);
+            node = r.detailNodes[key] = {el,value};
+          }
+          const value = numeric(item[key]); node.el.hidden = value === null;
+          text(node.value,r.format(value,field.precision)+(value === null || !field.unit ? '' : ' '+field.unit));
+          attr(node.el,'aria-label',field.name+' · '+node.value.textContent); attr(node.el,'title',field.name);
+        }
+      }
+    };
+  }
+  runtime.hass = hass;
+  runtime.options = config.signature_weather || {};
+  runtime.configName = config.name;
+  runtime.layout = ['ribbon','ranges','summary'].includes(runtime.options.layout) ? runtime.options.layout : 'ribbon';
+  runtime.count = Math.floor(Math.max(1,Math.min(12,numeric(runtime.options.count) ?? 6)));
+  runtime.precision = Math.floor(Math.max(0,Math.min(1,numeric(runtime.options.precision) ?? 0)));
+  const language = hass.locale?.language || hass.language || 'en';
+  const numberFormat = hass.locale?.number_format;
+  const timeZone = hass.config?.time_zone || 'UTC';
+  const formatKey = [language,numberFormat,timeZone,hass.locale?.time_format].join('|');
+  if (runtime.formatKey !== formatKey) { runtime.formatters.clear(); runtime.formatKey = formatKey; }
+  runtime.language = language; runtime.numberFormat = numberFormat; runtime.timeZone = timeZone;
+  /* @include shared/src/number-locales.js */
+  runtime.numberLocale = numberFormat === 'system' ? undefined : locales[numberFormat] || language;
+  const french = language.toLowerCase().startsWith('fr');
+  if (!runtime.labels || runtime.french !== french) {
+    runtime.french = french;
+    runtime.labels = french ? {
+    weather:'Météo',forecast:'Prévisions',daily:'Jours',hourly:'Heures',twice_daily:'Jour / Nuit',today:'Auj.',day:'Jour',night:'Nuit',
+    temperature:'Température',apparent_temperature:'Ressenti',humidity:'Humidité',pressure:'Pression',wind_speed:'Vent',wind_gust_speed:'Rafales',
+    wind_bearing:'Direction du vent',precipitation:'Pluie',uv_index:'UV',rain_probability:'Risque de pluie',minimum:'Minimum',maximum:'Maximum',
+    loading:'Chargement des prévisions…',ready:'Aucune prévision disponible',empty:'Aucune prévision disponible',
+    unavailable:'Météo indisponible',unsupported:'Ce type de prévision n’est pas pris en charge',error:'Prévisions indisponibles',
+    conditions:{'clear-night':'Ciel dégagé',cloudy:'Nuageux',exceptional:'Exceptionnel',fog:'Brouillard',hail:'Grêle',lightning:'Orage',
+      'lightning-rainy':'Pluie et orage',partlycloudy:'Éclaircies',pouring:'Forte pluie',rainy:'Pluie',snowy:'Neige','snowy-rainy':'Pluie et neige',sunny:'Ensoleillé',windy:'Venteux','windy-variant':'Nuageux et venteux'}
+  } : {
+    weather:'Weather',forecast:'Forecast',daily:'Days',hourly:'Hours',twice_daily:'Day / Night',today:'Today',day:'Day',night:'Night',
+    temperature:'Temperature',apparent_temperature:'Feels like',humidity:'Humidity',pressure:'Pressure',wind_speed:'Wind',wind_gust_speed:'Gusts',
+    wind_bearing:'Wind direction',precipitation:'Rain',uv_index:'UV',rain_probability:'Chance of rain',minimum:'Minimum',maximum:'Maximum',
+    loading:'Loading forecast…',ready:'No forecast available',empty:'No forecast available',
+    unavailable:'Weather unavailable',unsupported:'This forecast type is not supported',error:'Forecast unavailable',
+    conditions:{'clear-night':'Clear night',cloudy:'Cloudy',exceptional:'Exceptional',fog:'Fog',hail:'Hail',lightning:'Thunderstorm',
+      'lightning-rainy':'Rain and thunderstorm',partlycloudy:'Partly cloudy',pouring:'Heavy rain',rainy:'Rain',snowy:'Snow','snowy-rainy':'Snow and rain',sunny:'Sunny',windy:'Windy','windy-variant':'Cloudy and windy'}
+  };
+  }
+  const entity = runtime.options.entity || config.entity;
+  const connection = hass.connection;
+  if (runtime.entity !== entity || runtime.connection !== connection) {
+    runtime.stopSubscription(); runtime.subscriptionKey = null; runtime.forecasts = {}; runtime.selected = 0; runtime.selectedDate = null;
+    runtime.entity = entity; runtime.connection = connection; runtime.period = null;
+  }
+  runtime.weather = hass.states[entity];
+  const features = Number(runtime.weather?.attributes?.supported_features) || 0;
+  runtime.types = [['daily',1],['twice_daily',4],['hourly',2]].filter(([,flag]) => features & flag).map(([type]) => type);
+  if (!runtime.period || runtime.configuredType !== runtime.options.forecast_type ||
+      (!runtime.options.forecast_type && !runtime.types.includes(runtime.period))) {
+    runtime.period = runtime.options.forecast_type || runtime.types[0] || 'daily';
+    runtime.selected = 0; runtime.selectedDate = null;
+  }
+  runtime.configuredType = runtime.options.forecast_type;
+  runtime.optionsKey = JSON.stringify([runtime.options,config.name]);
+  runtime.subscribe(); runtime.render();
+  return '';

@@ -1,5 +1,7 @@
 # Repository instructions
 
+- All module distributions are generated. Edit `src` and shared source files, then run `npm run build:modules` and `npm run check:modules`. See [shared/README.md](shared/README.md). Never patch `dist` directly.
+
 Before changing styles in Signature, Signature Flow, Signature Weather, Signature Wind Rose or the shared theme, read [STYLE_GUIDE.md](STYLE_GUIDE.md).
 
 - Keep shared visual roles consistent, including their CSS variable fallbacks without the Signature theme.

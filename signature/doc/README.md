@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.3.3**. [Complete file to import](../dist/signature.yaml).
+Version **2.3.4**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -323,6 +323,11 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 
 ## Release notes
 
+### 2.3.4 — 5 October 2026
+
+- Generated from module sources and shared functions; existing configuration and rendering are preserved.
+- See the [repository build guide](../../shared/README.md).
+
 ### 2.3.3 — 5 October 2026
 
 - Aligns editor section corners with the native Home Assistant panels and theme, including live radius changes.
@@ -395,3 +400,7 @@ After importing, check your layouts on mobile and desktop, long names, units, an
 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
 
+
+## Maintenance des sources
+
+Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.
