@@ -26,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 2.2.4
+  version: 2.3.0
   creator: Loïc
   supported:
     - button
@@ -34,7 +34,213 @@ signature:
     - climate
     - separator
     - media-player
-  description: 'Cinq layouts : compacte, carrée, pièce, en-tête et titre de section. Le layout title habille les séparateurs natifs sans trait horizontal. Les actions et sub_button restent natifs. Fond neutre par défaut, couleur sur l’icône et son fond pastel ; color_background: true teinte aussi la carte et accepte Jinja. Les lecteurs multimédias suivent ce choix sans modifier leurs commandes natives. Square accepte auto_height: true pour adapter sa hauteur au contenu, avec multiline: true pour les textes longs. Police système, noms compact/square à 14 px, sous-textes compact/square à 13 px, valeurs compactes à 20 px et square à 28 px et espacements compacts communs à tous les écrans. Les popups et sliders restent hors du module.'
+  description: 'Configuration dans l’éditeur Bubble en français ou en YAML. Cinq layouts : compacte, carrée, pièce, en-tête et titre de section. Le layout title habille les séparateurs natifs sans trait horizontal. Les actions et sub_button restent natifs. Fond neutre par défaut, couleur sur l’icône et son fond pastel ; color_background: true teinte aussi la carte et accepte Jinja. Les lecteurs multimédias suivent ce choix sans modifier leurs commandes natives. Square accepte auto_height: true pour adapter sa hauteur au contenu, avec multiline: true pour les textes longs. Police système, noms compact/square à 14 px, sous-textes compact/square à 13 px, valeurs compactes à 20 px et square à 28 px et espacements compacts communs à tous les écrans. Les popups et sliders restent hors du module.'
+  editor:
+    - type: constant
+      label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.
+    - name: layout
+      label: Présentation
+      default: compact
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: Compacte
+              value: compact
+            - label: Carrée
+              value: square
+            - label: Pièce
+              value: room
+            - label: En-tête
+              value: header
+            - label: Titre de section
+              value: title
+    - name: color
+      label: Couleur de l’icône
+      default: blue
+      selector:
+        select:
+          mode: dropdown
+          custom_value: true
+          options:
+            - label: Bleu
+              value: blue
+            - label: Bleu clair
+              value: light-blue
+            - label: Turquoise
+              value: teal
+            - label: Cyan
+              value: cyan
+            - label: Vert
+              value: green
+            - label: Orange
+              value: orange
+            - label: Ambre
+              value: amber
+            - label: Jaune
+              value: yellow
+            - label: Rouge
+              value: red
+            - label: Rose
+              value: pink
+            - label: Indigo
+              value: indigo
+            - label: Violet
+              value: purple
+            - label: Gris
+              value: grey
+    - name: secondary
+      label: Texte secondaire (entité, texte ou template)
+      default: ''
+      selector:
+        text:
+          multiline: true
+    # Unnamed sections keep every option directly under signature.
+    - type: expandable
+      title: Valeurs et textes
+      icon: mdi:format-text
+      expanded: false
+      schema:
+        - name: compact_mode
+          label: Valeur compacte
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Affichage standard
+                  value: default
+                - label: Valeur à droite
+                  value: value
+        - name: state
+          label: Valeur principale personnalisée (texte ou template)
+          default: ''
+          selector:
+            text:
+              multiline: true
+        - name: secondary_bold
+          label: Interpréter **texte** en gras dans le texte secondaire
+          default: false
+          selector:
+            boolean: {}
+        - name: multiline
+          label: Autoriser les textes sur plusieurs lignes
+          default: false
+          selector:
+            boolean: {}
+    - type: expandable
+      title: Commandes et sous-boutons
+      icon: mdi:gesture-tap-button
+      expanded: false
+      schema:
+        - type: constant
+          label: "Numérique : commandes en compacte. Mesure : sous-boutons existants en carrée. Styles : objet indexé par css_class ou numéro de sous-bouton."
+        - name: controls
+          label: Commandes
+          default: native
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Commandes natives
+                  value: native
+                - label: Numériques (− / valeur / +)
+                  value: number
+                - label: Mesure (commande et détail)
+                  value: measure
+        - name: sub_buttons_position
+          label: Position des sous-boutons en compacte
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Position standard
+                  value: default
+                - label: Après les commandes natives
+                  value: end
+        - name: sub_button_styles
+          label: Styles des sous-boutons (objet YAML)
+          default: {}
+          selector:
+            object: {}
+    - type: expandable
+      title: Tuile carrée
+      icon: mdi:card-outline
+      expanded: false
+      schema:
+        - name: auto_height
+          label: Adapter la hauteur au contenu
+          default: false
+          selector:
+            boolean: {}
+        - name: reserve_measure_detail
+          label: Réserver la ligne de détail avec les commandes de mesure
+          default: false
+          selector:
+            boolean: {}
+    - type: expandable
+      title: Pièce
+      icon: mdi:sofa-outline
+      expanded: false
+      schema:
+        - name: room_auto_colors
+          label: Colorer automatiquement les commandes actives
+          default: true
+          selector:
+            boolean: {}
+        - name: room_control_columns
+          label: Colonnes de commandes
+          default: 4
+          selector:
+            number:
+              mode: box
+              min: 1
+              max: 6
+              step: 1
+        - name: room_measures_position
+          label: Position des mesures
+          default: content
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Dans le contenu
+                  value: content
+                - label: Dans l’en-tête
+                  value: header
+    - type: expandable
+      title: Apparence avancée
+      icon: mdi:palette-outline
+      expanded: false
+      schema:
+        - type: constant
+          label: "Champs YAML : fond true/false ; opacité de 0 à 1 ou null pour l’opacité native. Les templates Jinja doivent être entre guillemets."
+        - name: color_background
+          label: Colorer aussi le fond (booléen ou template YAML)
+          default: false
+          selector:
+            object: {}
+        - name: icon_color
+          label: Couleur personnalisée de l’icône
+          default: ''
+          selector:
+            text: {}
+        - name: icon_opacity
+          label: Opacité de l’icône (nombre ou template YAML)
+          default: null
+          selector:
+            object: {}
+        - name: border_color
+          label: Couleur de la bordure de la carte
+          default: ''
+          selector:
+            text: {}
+        - name: icon_border_color
+          label: Couleur de la bordure du fond de l’icône
+          default: ''
+          selector:
+            text: {}
   code: |2-
         ${(() => {
           const c = this.config;

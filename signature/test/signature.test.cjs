@@ -627,6 +627,58 @@ test('a service failure received after teardown does not dispatch a notification
   assert.equal(controls.disposed,true);
 });
 
+function editorFields(schema=definition.editor) {
+  return schema.flatMap(field=>field.schema ? editorFields(field.schema) : field.selector ? [field] : []);
+}
+
+test('visual editor covers the existing option keys without nesting or narrowing mixed YAML types',() => {
+  const fields=editorFields();
+  const names=fields.map(field=>field.name);
+  const runtimeNames=[...new Set([...code.matchAll(/\bo\.([a-z_]+)/g)].map(match=>match[1]))];
+  assert.equal(new Set(names).size,names.length,'Each option has a single input');
+  assert.deepEqual([...names].sort(),runtimeNames.sort(),'The form exposes the runtime options directly');
+  for (const section of definition.editor.filter(field=>field.schema)) {
+    assert.equal(section.name,undefined,'Sections must not nest the existing YAML keys');
+  }
+  for (const field of fields) {
+    assert.ok(Object.hasOwn(field,'default'),field.name);
+    assert.ok(field.label,field.name);
+    if (field.selector.select) {
+      assert.ok(field.selector.select.options.some(option=>option.value === field.default),field.name);
+    }
+  }
+  for (const name of ['color_background','icon_opacity','sub_button_styles']) {
+    assert.deepEqual(fields.find(field=>field.name === name).selector,{object:{}},name);
+  }
+  assert.equal(fields.find(field=>field.name === 'color').selector.select.custom_value,true);
+});
+
+test('shown editor defaults preserve card rendering and explicit template and scalar settings',t => {
+  const defaults=Object.fromEntries(editorFields().map(field=>[field.name,field.default]));
+  const template=input=>input === '{{ background }}' ? 'False' : input === '{{ opacity }}' ? '0' : 'Details';
+  for (const [options,config] of [
+    [{},{}],
+    [{layout:'square'},{}],
+    [{layout:'room'},{button_type:'name',show_state:false}],
+    [{layout:'header'},{button_type:'name',show_state:false}],
+    [{layout:'title'},{card_type:'separator'}],
+    [{},{card_type:'cover'}],
+    [{},{card_type:'climate'}],
+    [{},{card_type:'media-player'}],
+    [{controls:'number'},{}],
+    [{icon_opacity:0,color_background:false},{}],
+    [{icon_opacity:'{{ opacity }}',color_background:'{{ background }}',secondary:'{{ details }}',
+      sub_button_styles:{ventilation:{type:'switch',color:'teal'}}},{}],
+  ]) {
+    const original=fixture(t,{},options,config);
+    const shown=fixture(t,{}, {...defaults,...options},config);
+    assert.equal(run(shown.ctx,shown.hass,template),run(original.ctx,original.hass,template),JSON.stringify([options,config]));
+    assert.deepEqual([...shown.ctx.card.attributes],[...original.ctx.card.attributes]);
+    assert.equal(shown.ctx.elements.state.textContent,original.ctx.elements.state.textContent);
+    for (const key of Object.keys(options)) assert.deepEqual(shown.ctx.config.signature[key],options[key]);
+  }
+});
+
 test('distribution metadata and documented versions agree',() => {
   assert.equal(definition.name,'Signature');
   assert.match(definition.version,/^\d+\.\d+\.\d+$/);

@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.2.4**. [Complete file to import](../dist/signature.yaml).
+Version **2.3.0**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -8,7 +8,7 @@ The module provides five layouts, neutral surfaces, colored icons, rounded corne
 
 ## Installation and first example
 
-Install Bubble Card and Bubble Card Tools, then import the complete YAML file from the Modules section of a card's editor. Custom options in this version are configured in YAML: the module does not yet declare an `editor` schema.
+Install Bubble Card and Bubble Card Tools, then import the complete YAML file from the Modules section of a card's editor. Apply Signature to the card, then expand **Modules → Signature** to configure its options in the visual editor. YAML remains available and existing configurations need no migration. Reimport the complete distribution to update an already installed module; a repository update does not change the copy installed in Home Assistant.
 
 ```yaml
 type: custom:bubble-card
@@ -28,6 +28,22 @@ signature:
 ```
 
 Place `signature` at the card's root, at the same level as `entity` and `modules`. Replace the example entities with those from your installation.
+
+## Visual configuration
+
+The form uses French labels. Presentation, accent color and secondary text are immediately accessible; the other settings are grouped in collapsible sections for values/text, controls/sub-buttons, square tiles, rooms and advanced appearance. The main entity and native sub-buttons/actions are still configured in Bubble's own editor.
+
+Every field writes the existing key directly under `signature`. Sections have no `name`, so they never create intermediate objects in the card configuration. Declared defaults match the runtime; Bubble versions that display schema defaults can show the effective settings without storing untouched defaults. Earlier versions may leave unset controls empty. Selecting the explicit standard choices (`compact_mode: default`, `controls: native`, `sub_buttons_position: default`, `room_measures_position: content`) has the same behavior as omitting those options.
+
+Color accepts the existing palette names as well as custom CSS colors or Jinja. Main/secondary text fields accept multiline Jinja and fixed text; secondary also accepts a direct entity ID. An entity ID in a mixed text field is entered as text because that field also supports templates. The main entity uses Bubble's native entity picker.
+
+Three advanced fields intentionally use native YAML inputs inside the form:
+
+- `color_background`: a boolean (`true`/`false`) or a quoted Jinja string.
+- `icon_opacity`: a number from 0 to 1 or a quoted Jinja string; `null` preserves native opacity. Keeping the scalar type also preserves a numeric zero.
+- `sub_button_styles`: the existing object keyed by `css_class` or sub-button number; arbitrary keys and templates remain supported.
+
+For example, enter `"{{ is_state('light.living_room', 'on') }}"` in the background field. The YAML input preserves an existing boolean or template when another setting is edited. It does not convert style objects to lists or introduce new template override keys. No extra JavaScript, polling or subscription is added to displayed cards.
 
 ## Layouts and compatibility
 
@@ -56,19 +72,19 @@ A `square` tile's height depends on the card and the Home Assistant grid: the mo
 | `icon_opacity` | Number from 0 to 1, or Jinja | Native behavior | Main icon opacity |
 | `border_color` | Color or Jinja | No added border | Adds a 2 px inner card border |
 | `icon_border_color` | Color or Jinja | No added border | Adds a 2 px inner border to the icon background |
-| `compact_mode` | `value` | Standard | Shows the value on the right for a `state` button, or a `name` button with a custom `state` |
+| `compact_mode` | `default` or `value` | `default` | Shows the value on the right for a `state` button, or a `name` button with a custom `state` |
 | `state` | Text or Jinja | Native state | Computed value to display; follows native state display options |
 | `secondary` | Entity ID, text or Jinja | None | Secondary value; direct entities supply their state and unit, and the details target is detected automatically |
 | `secondary_bold` | Boolean | `false` | Interprets `**text**` in the secondary text |
 | `multiline` | Boolean | `false` | Allows line breaks in the state and secondary text |
 | `auto_height` | Boolean | `false` | Adjusts height to content, only in `square` |
-| `controls` | `measure` or `number` | Native controls | Positions measurement controls in square, or adds numeric controls in compact |
+| `controls` | `native`, `measure` or `number` | `native` | Positions measurement controls in square, or adds numeric controls in compact |
 | `reserve_measure_detail` | Boolean | `false` | Reserves the lower detail row in square with `controls: measure` |
-| `sub_buttons_position` | `end` | Standard position | Places sub-buttons after native controls in compact |
+| `sub_buttons_position` | `default` or `end` | `default` | Places sub-buttons after native controls in compact |
 | `sub_button_styles` | Object keyed by class or number | None | Customizes existing sub-buttons |
 | `room_auto_colors` | Boolean | `true` | Automatically colors active room controls |
 | `room_control_columns` | Number from 1 to 6 | `4` | Number of room control columns, rounded and clamped |
-| `room_measures_position` | `header` | Measurements in the content area | Places temperature/humidity in the header when neither a main state nor secondary text is displayed |
+| `room_measures_position` | `content` or `header` | `content` | Places temperature/humidity in the header when neither a main state nor secondary text is displayed |
 
 Not all tile options apply to `title` and `media-player`. For `title`, use the native sub-button options; for `media-player`, the supported color options are `color` and `color_background`.
 
@@ -297,6 +313,13 @@ The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.3.0 — 5 October 2026
+
+- Adds a native Bubble configuration form with French labels, the existing color palette and collapsible option sections.
+- Exposes every current Signature option without changing its key, layouts, actions, templates or runtime code.
+- Keeps background/opacity scalars and sub-button style maps in native YAML fields inside the form, preserving mixed types and arbitrary map keys.
+- Declares defaults matching the current runtime; explicit standard choices also preserve existing behavior.
 
 ### 2.2.4 — 5 October 2026
 
