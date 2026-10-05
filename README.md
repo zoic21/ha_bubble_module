@@ -4,11 +4,10 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature — card design | 2.3.4 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
-| Signature Square — square tiles | 1.0.1 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information, control rows and media players | 1.1.1 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Room — room summaries and controls | 1.0.1 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
-| Signature Header — page headers and section titles | 1.0.1 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
+| Signature Square — square tiles | 1.0.2 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.1.2 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Room — room summaries and controls | 1.0.2 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Header — page headers and section titles | 1.0.2 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.5.3 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.1 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.2.1 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
@@ -29,7 +28,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_header`, `signature`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
+The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_header`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
 
 ## Updates and Module Store
 
@@ -41,17 +40,17 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 ## Standalone Signature presentations
 
-Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Compact also styles native media-player cards, preserving their artwork, controls and dimensions. Use one presentation module per card, with optional Alert Manager. The legacy `signature` module remains available with its existing options and also reuses the shared sources. Existing dashboards are not migrated automatically. See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
+Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Compact also styles native media-player cards, preserving their artwork, controls and dimensions. Use one presentation module per card, with optional Alert Manager. The legacy `signature` module has been removed after checking the Home Assistant configuration export. Older installations must migrate every card before deleting their installed copy. See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
 
 The optional Signature theme supplies common CSS appearance variables; each module owns its layout and controls. Shared JavaScript and CSS source files are assembled at build time, so no base module or runtime import is needed.
 
 ## Source maintenance
 
-All ten module YAML distributions are generated. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
+All nine module YAML distributions are generated. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
 
 ## Configuration
 
-Signature declares an `editor` schema: open **Modules → Signature** in the card editor to configure its options directly with French labels and collapsible sections. The form follows the effective layout and native card type: square hides room settings, cover/climate/switch cards use compact settings, and media players expose their two color options. An inline editor bridge reuses Bubble Card's object-field logic and `visible_if` support without its redundant item header or delete button; it is validated against 3.4.1. Existing YAML configurations remain valid and hidden values are retained. Sub-button style objects, background/opacity scalars and the default-on room color setting use small YAML fields inside the form to preserve their types. Standard controls, entities, and actions remain those provided by Bubble Card.
+Each Signature presentation declares an `editor` schema: open its module in the card editor to configure its options with French labels and collapsible sections. Square, Room and Header expose only their own settings; Compact supports button, cover, climate and media-player cards. Media players expose only their two color options. An inline editor bridge reuses Bubble Card's object-field logic and `visible_if` support without its redundant item header or delete button; it is validated against 3.4.1. Existing YAML configurations remain valid and hidden values are retained. Sub-button style objects, background/opacity scalars and the default-on room color setting use small YAML fields inside the form to preserve their types. Standard controls, entities, and actions remain those provided by Bubble Card.
 
 Signature Flow uses the same inline form under **Modules → Signature Flow**, with common settings and six collapsible slot sections. Values, appearance, formatting, flow entities, global/per-slot animation and native actions are configurable there. Disabled slots, empty secondary text and template values hide irrelevant settings; existing YAML keys and animation inheritance are preserved. It replaces the native button content with a configurable flow diagram; see its [home example](signature-flow/examples/home.yaml). Signature Weather replaces the button content with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
 
@@ -83,7 +82,7 @@ npm test
 
 Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose`, `npm run test:signature-navigation` or `npm run test:alert-manager` to test a single existing module. Shared editor round-trip and condition tests are in `editors/test` and read the actual YAML distributions. YAML, Terser and Playwright are development dependencies; none is needed in Home Assistant.
 
-Run `npm run build:modules` after editing any module or common source; `npm run check:modules` rejects stale distributions for all ten modules. See the [shared-source build guide](shared/README.md). `build:signature` and `check:signature` remain available for the four standalone presentations. `npm run test:signature-split` compares standalone behavior to the legacy module. `npm run test:styles:split` also runs the full style contract with the new presentation modules.
+Run `npm run build:modules` after editing any module or common source; `npm run check:modules` rejects stale distributions for all nine modules. See the [shared-source build guide](shared/README.md). `build:signature` and `check:signature` remain available for the four standalone presentations. `npm run test:signature-split` checks the standalone presentation behaviors, editor forms and documentation. `npm run test:styles:split` is a compatibility alias for the full presentation style contract.
 
 For browser style checks, run `npx playwright install chromium` once, then `npm run test:styles`. These tests load the actual module distributions in a minimal Bubble-shaped DOM and check computed styles, theme switching, keyboard focus, dividers and touch targets. They do not run Home Assistant itself.
 

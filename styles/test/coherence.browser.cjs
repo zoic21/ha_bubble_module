@@ -36,10 +36,10 @@ const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key]
 
 test('Module editor sections follow native expansion-panel radii across live theme changes',async t => {
   const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
-  const definitions=['signature','signature-flow','signature-weather','signature-wind-rose','alert_manager'].map(name=>Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0]);
+  const definitions=['signature-square','signature-compact','signature-room','signature-header','signature-flow','signature-weather','signature-wind-rose','alert_manager'].map(name=>Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0]);
   const modules=definitions.map(definition=>{
     const start=definition.code.indexOf('// Signature'),end=definition.code.indexOf('// End Signature');
-    return {bootstrap:definition.code.slice(start,end),schema:definition.editor.find(field=>field.fields)};
+    return {bootstrap:start === -1 ? definition.code : definition.code.slice(start,end),schema:definition.editor.find(field=>field.fields)};
   });
   const page=await fixture(t);
   const result=await page.evaluate(async modules=>{
@@ -64,7 +64,7 @@ test('Module editor sections follow native expansion-panel radii across live the
       _computeLabel(){return '';}_computeHelper(){return '';}
     });
     const container=document.createElement('div');document.body.append(container);
-    for(const module of modules){new Function(module.bootstrap)();const form=document.createElement('ha-form-'+module.schema.type);Object.assign(form,{schema:module.schema,data:{},hass:{states:{}}});container.append(form);}
+    for(const module of modules){if(module.bootstrap.startsWith('${'))new Function('return `'+module.bootstrap+'`;').call({config:{card_type:'pop-up'}});else new Function(module.bootstrap)();const form=document.createElement('ha-form-'+module.schema.type);Object.assign(form,{schema:module.schema,data:{},hass:{states:{}}});container.append(form);}
     await Promise.resolve();
     const editors=[...container.children].map(form=>form._form.schema[0].type);
     const native=document.createElement('ha-expansion-panel');native.setAttribute('outlined','');container.append(native);
@@ -83,7 +83,7 @@ test('Module editor sections follow native expansion-panel radii across live the
     }
     return {editors,snapshots,renderInherited:Object.getPrototypeOf(customElements.get('ha-form-signature_group').prototype)===customElements.get('ha-form-bc_group').prototype};
   },modules);
-  assert.deepEqual(result.editors,Array(5).fill('signature_group'));
+  assert.deepEqual(result.editors,Array(8).fill('signature_group'));
   assert.equal(result.renderInherited,true);
   for(const snapshot of result.snapshots){
     assert.deepEqual(snapshot.styled,snapshot.native);
@@ -176,14 +176,14 @@ test('shared switch CSS preserves independent tracks, opacity, actions and live 
   const fs = require('node:fs');
   const path = require('node:path');
   const YAML = require('yaml');
-  const code = YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature/dist/signature.yaml'),'utf8')).signature.code;
+  const code = YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-compact/dist/signature-compact.yaml'),'utf8')).signature_compact.code;
   const page = await fixture(t);
   await page.emulateMedia({reducedMotion:'reduce'});
   await render(page);
   const result = await page.evaluate(code => {
     const ctx=window.contexts[0],host=ctx.card.querySelector('.bubble-sub-button-container');
     const buttons=Array.from({length:4},(_,i)=>({entity:'switch.demo_'+i,css_class:'switch-'+i,tap_action:{action:'toggle'}}));
-    ctx.config={...ctx.config,sub_button:buttons,signature:{sub_button_styles:Object.fromEntries(buttons.map((b,i)=>[b.css_class,{type:'switch',color:'#008080',opacity:i===2?0.5:1}]))}};
+    ctx.config={...ctx.config,sub_button:buttons,signature_compact:{sub_button_styles:Object.fromEntries(buttons.map((b,i)=>[b.css_class,{type:'switch',color:'#008080',opacity:i===2?0.5:1}]))}};
     buttons.forEach((b,i)=>{
       const el=document.createElement('div');el.className='bubble-sub-button '+b.css_class;
       el.innerHTML='<ha-icon class="bubble-sub-button-icon"></ha-icon><span class="bubble-sub-button-name-container">État</span>';
@@ -201,7 +201,7 @@ test('shared switch CSS preserves independent tracks, opacity, actions and live 
     ctx._hass.states[buttons[1].entity]={state:'off',attributes:{}};apply();
     document.body.style.setProperty('--signature-card-background','#1c1c1e');const dark=read();
     const sameNodes=nodes.every((node,i)=>host.children[i]===node),sameConfig=config===JSON.stringify(ctx.config);
-    ctx.config={...ctx.config,signature:{}};apply();
+    ctx.config={...ctx.config,signature_compact:{}};apply();
     return {initial,toggled,dark,sameNodes,sameConfig,restored:nodes.map(el=>getComputedStyle(el.firstElementChild).display)};
   },code);
   for (const control of result.initial) {

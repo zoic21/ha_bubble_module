@@ -1,6 +1,6 @@
 # Bubble Alert Manager module 3.6.1
 
-[Module to import](../dist/alert_manager.yaml), independent of `signature`. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
+[Module to import](../dist/alert_manager.yaml), independent of the Signature presentation modules. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
 Requires the [Home Assistant Alert Manager integration](https://github.com/zoic21/ha_alert_manager).
 
@@ -14,15 +14,13 @@ card_type: button
 button_type: state
 entity: sensor.fridge_temperature
 modules:
-  - signature
+  - signature_compact
   - alert_manager
-signature:
-  layout: compact
 ```
 
 Place options under **`alert_manager`, at the card's root**.
 
-The module can also be used on its own with native Bubble cards. With `signature`, either order works; placing `alert_manager` last is still recommended when using other modules.
+The module can also be used on its own with native Bubble cards. With a Signature presentation module, either order works; placing `alert_manager` last is still recommended when using other modules.
 
 ## Visual configuration
 
@@ -150,7 +148,7 @@ sub_button:
     - entity: sensor.fridge_plug_power
     - entity: switch.fridge_plug
 modules:
-  - signature
+  - signature_compact
   - alert_manager
 alert_manager:
   entities:
@@ -312,7 +310,7 @@ Install Bubble Card and [Bubble Card Tools](https://github.com/Clooos/Bubble-Car
 
 The [Home Assistant Alert Manager integration](https://github.com/zoic21/ha_alert_manager) is required. Check that the two sensors listed above exist under the IDs you use and expose the compact `alerts` attributes. Adjust `sensors` if their IDs have been renamed. A missing sensor supplies no alerts to the module.
 
-[Signature](../../signature/doc/README.md) is optional: the module also works on native Bubble cards. Import both distributions if an example uses both modules.
+[Signature Compact](../../signature-compact/doc/README.md) is optional: the module also works on native Bubble cards. Import both distributions if an example uses both modules.
 
 After a manual update, import the YAML again and reload the frontend. A commit in this repository does not update your Home Assistant installation. Child cards need their own module activation.
 

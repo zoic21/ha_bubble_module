@@ -1,12 +1,12 @@
 name: Signature Compact
-version: 1.1.1
+version: 1.1.2
 creator: Loïc
 supported:
   - button
   - cover
   - climate
   - media-player
-description: Module autonome compact ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte. Le module historique signature reste disponible.
+description: Module autonome compact ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte.
 editor:
   - type: constant
     label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.

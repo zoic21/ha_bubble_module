@@ -4,24 +4,24 @@ const fs=require('node:fs');
 const path=require('node:path');
 const YAML=require('yaml');
 const root=path.resolve(__dirname,'../..');
-const names=['signature','signature-flow','signature-weather','signature-wind-rose','signature-square','signature-compact','signature-room','signature-header'];
+const names=['signature-flow','signature-weather','signature-wind-rose','signature-square','signature-compact','signature-room','signature-header'];
 const modules=Object.fromEntries(names.map(k=>[k,Object.values(YAML.parse(fs.readFileSync(path.join(root,k,'dist',k+'.yaml'),'utf8')))[0]]));
 const theme=YAML.parse(fs.readFileSync(path.join(root,'themes/signature.yaml'),'utf8')).Signature;
 const cases=[
-  ['compact','signature',{layout:'compact',compact_mode:'value',secondary:'65 %'}],
-  ['compact-standard','signature',{layout:'compact',secondary:'65 %'}],
-  ['square','signature',{layout:'square',secondary:'65 %'}],
-  ['square-auto','signature',{layout:'square',secondary:'65 %',auto_height:true}],
-  ['room','signature',{layout:'room',secondary:'65 %'}],
-  ['room-no-controls','signature',{layout:'room'}],
-  ['header','signature',{layout:'header'}],
-  ['title','signature',{layout:'title'}],
-  ['media','signature',{}],
-  ['cover','signature',{}],
-  ['climate','signature',{}],
-  ['number','signature',{controls:'number'}],
-  ['native-cover','signature',{}],
-  ['native-media','signature',{}],
+  ['compact','signature-compact',{compact_mode:'value',secondary:'65 %'}],
+  ['compact-standard','signature-compact',{secondary:'65 %'}],
+  ['square','signature-square',{secondary:'65 %'}],
+  ['square-auto','signature-square',{secondary:'65 %',auto_height:true}],
+  ['room','signature-room',{secondary:'65 %'}],
+  ['room-no-controls','signature-room',{}],
+  ['header','signature-header',{}],
+  ['title','signature-header',{}],
+  ['media','signature-compact',{}],
+  ['cover','signature-compact',{}],
+  ['climate','signature-compact',{}],
+  ['number','signature-compact',{controls:'number'}],
+  ['native-cover','signature-compact',{}],
+  ['native-media','signature-compact',{}],
   ['flow','signature-flow',{}],
   ['weather-ranges','signature-weather',{layout:'ranges',show_current:true}],
   ['weather-ribbon','signature-weather',{layout:'ribbon',show_current:true}],
@@ -45,13 +45,6 @@ async function setup(page){
  });
 }
 async function render(page,scenario={}){
- const split=scenario.split ?? process.env.BUBBLE_SIGNATURE_SPLIT === '1';
- const activeCases=cases.map(([id,module,options])=>{
-  if(!split || module!=='signature' || id.startsWith('native-'))return [id,module,options];
-  const layout=id.startsWith('square')?'square':id.startsWith('room')?'room':['header','title'].includes(id)?'header':'compact';
-  const {layout:previousLayout,...settings}=options;
-  return [id,'signature-'+layout,settings];
- });
  const mode=scenario.mode||'light';
  const vars={...common,...nativeModes[mode],...scenario.nativePalette,...(scenario.plain?{}:{...theme,...theme.modes[mode]}),...scenario.overrides};delete vars.modes;
  return page.evaluate(async ({cases,modules,vars,scenario,base,button,sub,cover,climate,media,nativeControls})=>{
@@ -74,7 +67,7 @@ async function render(page,scenario={}){
      const entity=module==='signature-weather'?'weather.home':module==='signature-wind-rose'?'sensor.direction':'sensor.demo';
      if(kind==='cover')query('.bubble-buttons-container').innerHTML='<div class="bubble-cover-button"></div>';
      if(kind==='media-player'){query('.bubble-buttons-container').innerHTML='<div class="bubble-media-button"></div>';const info=document.createElement('div');info.className='bubble-media-info-container';info.innerHTML='<div class="bubble-title">Une chanson</div><div class="bubble-artist">Un artiste</div>';query('.bubble-content-container').append(info);}
-     const config={card_type:kind,button_type:id==='header'?'name':'state',entity,show_state:!id.startsWith('room'),show_name:true,card_layout:'large',[modules[module].key]:options};
+     const config={card_type:kind,button_type:id==='header'||id.startsWith('room')?'name':'state',entity,show_state:!id.startsWith('room'),show_name:true,card_layout:'large',[modules[module].key]:options};
      config[module.replaceAll('-','_')]=options;
      const ctx={card:root,elements:{mainContainer:host,contentContainer:query('.bubble-content-container'),nameContainer:query('.bubble-name-container'),iconContainer:query('.bubble-icon-container'),state:query('.bubble-state')},config};
      if(id==='room'){
@@ -109,6 +102,6 @@ async function render(page,scenario={}){
      const overflow=[...root.querySelectorAll('.sw-entry,.sf-content,.dp-secondary,.swr-footer,.swr-tabs')].filter(el=>el.scrollWidth>el.clientWidth+1).map(el=>({cls:el.className,scroll:el.scrollWidth,client:el.clientWidth}));
      return {id:shell.dataset.id,styles,dividers,overflow,flowClasses:root.querySelector('.sf-canvas')?.className,svgWidth:root.querySelector('.swr-svg')?.getBoundingClientRect().width};
     })};
-   },{cases:activeCases,modules,vars,scenario:{width:328,...scenario},base,button:'',sub:'',cover:'',climate:'',media,nativeControls});
+   },{cases,modules,vars,scenario:{width:328,...scenario},base,button:'',sub:'',cover:'',climate:'',media,nativeControls});
 }
 module.exports={setup,render,theme,nativeModes};

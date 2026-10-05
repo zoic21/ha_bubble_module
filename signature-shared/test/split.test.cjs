@@ -6,24 +6,22 @@ const {test} = require('node:test');
 const YAML = require('yaml');
 const {build, layouts} = require('../../scripts/build-signature.cjs');
 const root = path.resolve(__dirname, '../..');
-const legacy = YAML.parse(fs.readFileSync(path.join(root, 'signature/dist/signature.yaml'), 'utf8')).signature;
 const definitions = Object.fromEntries(layouts.map(layout => [layout, YAML.parse(fs.readFileSync(path.join(root, 'signature-' + layout + '/dist/signature-' + layout + '.yaml'), 'utf8'))['signature_' + layout]]));
 
-// The behavior comparison exercises both actual distributions independently
-// in a native-shaped DOM, without executing Home Assistant itself.
+// Exercise the actual distributions in a native-shaped DOM, without Home Assistant.
 const context = vm.createContext({...require('./dom.cjs'), Intl, setTimeout, clearTimeout});
 const compile = definition => vm.runInContext('(function(hass,onTeardown,renderTemplate){return `' + definition.code + '`;})', context);
-const renders = new Map([legacy,...Object.values(definitions)].map(d => [d, compile(d)]));
+const renders = new Map(Object.values(definitions).map(d => [d, compile(d)]));
 
-function fixture(layout, options = {}, config = {}, states = {}, old = false) {
+function fixture(layout, options = {}, config = {}, states = {}) {
   const Element = context.Element;
   const card = new Element(), wrapper = new Element(), content = new Element(), names = new Element(), state = new Element(), icon = new Element(), subs = new Element();
   wrapper.className = 'bubble-wrapper';content.className = 'bubble-content-container';names.className = 'bubble-name-container';state.className = 'bubble-state';icon.className = 'bubble-icon-container';subs.className = 'bubble-sub-button-container';
   card.append(wrapper);wrapper.append(content,subs);content.append(icon,names);names.append(state);
   const entity = 'sensor.demo';
   state.textContent = '22,5 °C';
-  const key = old ? 'signature' : 'signature_' + layout;
-  const cfg = {card_type:'button',button_type:layout === 'header' || layout === 'room' ? 'name' : 'state',entity,show_state:layout !== 'header' && layout !== 'room',[key]:old ? {layout,...options} : options,...config};
+  const key = 'signature_' + layout;
+  const cfg = {card_type:'button',button_type:layout === 'header' || layout === 'room' ? 'name' : 'state',entity,show_state:layout !== 'header' && layout !== 'room',[key]:options,...config};
   if (cfg.show_state === false) state.classList.add('hidden');
   const buttons = cfg.sub_button?.main || [];
   buttons.forEach((b,i) => {
@@ -34,56 +32,30 @@ function fixture(layout, options = {}, config = {}, states = {}, old = false) {
   });
   const ctx = {card, config:cfg,elements:{state,nameContainer:names,contentContainer:content,iconContainer:icon}};
   const hass = {locale:{language:'fr-FR',number_format:'space_comma'},states:{[entity]:{state:'22.5',attributes:{unit_of_measurement:'°C'}},'sensor.humidity':{state:'65',attributes:{unit_of_measurement:'%'}},'light.demo':{state:'on',attributes:{}},...states},callService:async()=>{}};
-  const definition = old ? legacy : definitions[layout];
+  const definition = definitions[layout];
   const run = (template = value => value) => renders.get(definition).call(ctx,hass,fn => ctx.teardown = fn,template);
   return {ctx,hass,run};
 }
-const css = value => value.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s+/g,' ').trim();
 const snapshot = f => ({attributes:[...f.ctx.card.attributes].sort((a,b)=>a.name.localeCompare(b.name)),state:f.ctx.elements.state.textContent,stateData:{...f.ctx.elements.state.dataset},secondary:f.ctx.card.querySelector('.dp-secondary')?.textContent});
 
-test('generated modules are current, autonomous and leave the legacy distribution untouched',async()=>{
-  const before=fs.readFileSync(path.join(root,'signature/dist/signature.yaml'),'utf8');
+test('generated modules are current, autonomous and limited to their own presentation',async()=>{
   for(const layout of layouts){
     const output=await build(layout);
     assert.equal(output.content,fs.readFileSync(path.join(root,output.file),'utf8'));
     assert.match(definitions[layout].version,/^\d+\.\d+\.\d+$/);
     assert.ok(definitions[layout].editor[1].fields);
     assert.ok(!Object.hasOwn(definitions[layout].editor[1].fields,'layout'));
-    assert.ok(Buffer.byteLength(output.content)<Buffer.byteLength(before));
+    assert.ok(Buffer.byteLength(output.content)<70000);
     for(const other of layouts.filter(name=>name!==layout))assert.ok(!definitions[layout].code.includes('ha-card[data-dp-layout="'+other+'"]'),layout+' contains '+other+' CSS');
-  }
-  assert.equal(fs.readFileSync(path.join(root,'signature/dist/signature.yaml'),'utf8'),before);
-});
-
-for(const layout of ['square','compact','room'])test(layout+' preserves values, CSS, templates, actions and teardown from Signature',()=>{
-  const sub_button={main:[{entity:'light.demo',css_class:'room-control-1',tap_action:{action:'toggle'}},{entity:'sensor.demo',css_class:'room-temperature'},{entity:'sensor.humidity',css_class:'room-humidity'}]};
-  const scenarios=[
-    [{},{}], [{color:'teal',secondary:'sensor.humidity'},{}],
-    [{state:'{{ value }}',secondary:"{{ states('sensor.humidity') }}",secondary_bold:true,multiline:true},{}],
-    [{state:'1 h 30 min',color_background:true,icon_opacity:0,icon_color:'red'},{}],
-    [{state:'Ouvert',compact_mode:'value',secondary:'Détails',sub_button_styles:{'room-control-1':{type:'switch',opacity:0.5,color:'teal'}}},{sub_button}],
-    [layout==='square'?{auto_height:true,controls:'measure',reserve_measure_detail:true}:layout==='compact'?{compact_mode:'value',sub_buttons_position:'end'}:{room_measures_position:'header',room_control_columns:2},{sub_button}],
-    [{secondary:'sensor.humidity'},{entity:'sensor.missing'}],
-  ];
-  for(const [options,config]of scenarios){
-    const old=fixture(layout,options,config,{},true),fresh=fixture(layout,options,config);
-    const template=value=>value==='{{ value }}'?'12.5 kWh':value.includes('states(')?'**Confort**':value;
-    assert.equal(css(fresh.run(template)),css(old.run(template)),JSON.stringify([layout,options,config]));
-    assert.deepEqual(snapshot(fresh),snapshot(old));
-    old.hass.states['sensor.humidity']={state:'unavailable',attributes:{unit_of_measurement:'%'}};
-    fresh.hass.states['sensor.humidity']=old.hass.states['sensor.humidity'];
-    assert.equal(css(fresh.run(template)),css(old.run(template)));
-    assert.deepEqual(snapshot(fresh),snapshot(old));
-    fresh.ctx.teardown();old.ctx.teardown();
-    assert.deepEqual(snapshot(fresh),snapshot(old));
   }
 });
 
 test('Compact preserves native cover/climate/switch cards and number acknowledgements',async()=>{
   for(const card_type of ['cover','climate']){
-    const old=fixture('compact',{}, {card_type}, {},true),fresh=fixture('compact',{}, {card_type});
-    assert.equal(css(fresh.run()),css(old.run()));assert.deepEqual(snapshot(fresh),snapshot(old));
-    fresh.ctx.teardown();old.ctx.teardown();
+    const fresh=fixture('compact',{}, {card_type});
+    assert.ok(fresh.run().length > 0);
+    assert.equal(fresh.ctx.card.getAttribute('data-dp-kind'),card_type);
+    assert.equal(fresh.ctx._signatureCompactNumber,undefined);fresh.ctx.teardown();
   }
   const f=fixture('compact',{controls:'number'},{entity:'input_number.target'}, {'input_number.target':{state:'2.5',attributes:{min:0,max:10,step:0.5,unit_of_measurement:'kW'}}});
   const calls=[];f.hass.callService=async(...args)=>calls.push(args);f.run();
@@ -94,10 +66,10 @@ test('Compact preserves native cover/climate/switch cards and number acknowledge
   await nc.minus.click();f.ctx.teardown();assert.equal(nc.disposed,true);assert.equal(f.ctx._signatureCompactNumber,undefined);
 });
 
-test('Compact media preserves legacy colors, templates, native nodes and actions without a tile runtime',async()=>{
+test('Compact media preserves colors, templates, native nodes and actions without a tile runtime',async()=>{
   const scenarios=[{}, {color:'teal',color_background:true}, {color:'{{ accent }}',color_background:'{{ tint }}'}, {color_background:false,compact_mode:'value',controls:'number',secondary:'Ignored',state:'Ignored',multiline:true}];
   for(const options of scenarios){
-    const old=fixture('compact',options,{card_type:'media-player'}, {},true),fresh=fixture('compact',options,{card_type:'media-player'});
+    const fresh=fixture('compact',options,{card_type:'media-player'});
     const button=new context.Element(),artwork=new context.Element();
     button.className='bubble-media-button';artwork.className='bubble-media-player-picture';
     artwork.setAttribute('src','native-artwork.jpg');fresh.ctx.elements.contentContainer.append(button,artwork);
@@ -105,13 +77,16 @@ test('Compact media preserves legacy colors, templates, native nodes and actions
     const before=snapshot(fresh),children=[...fresh.ctx.elements.contentContainer.children];
     const template=value=>value==='{{ accent }}'?'orange':value==='{{ tint }}'?'False':value;
     const output=fresh.run(template);
-    assert.equal(css(output),css(old.run(template)));
+    assert.match(output,/bubble-media-player-main-background-color/);
+    assert.match(output,new RegExp(options.color==='{{ accent }}'?'--orange-color':options.color==='teal'?'--teal-color':'--blue-color'));
+    if(options.color_background===true)assert.match(output,/var\(--dp-accent\) var\(--dp-tint, 16%\)/);
+    else assert.doesNotMatch(output,/var\(--dp-accent\) var\(--dp-tint, 16%\)/);
     assert.deepEqual(snapshot(fresh),before);assert.deepEqual(fresh.ctx.elements.contentContainer.children,children);
     assert.equal(fresh.ctx._signatureCompactRuntime,undefined);assert.equal(fresh.ctx._signatureCompactNumber,undefined);
     assert.equal(fresh.ctx._signatureCompactValueWatch,undefined);assert.equal(fresh.ctx._signatureCompactActions,undefined);
     assert.doesNotMatch(output,/data-dp-layout|height: 56px|dp-number-control/);
     await button.click();assert.equal(calls,1);assert.equal(artwork.getAttribute('src'),'native-artwork.jpg');
-    fresh.ctx.teardown();old.ctx.teardown();assert.deepEqual(snapshot(fresh),before);
+    fresh.ctx.teardown();assert.deepEqual(snapshot(fresh),before);
   }
 });
 

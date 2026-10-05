@@ -93,7 +93,10 @@ styles: |
 ## References
 
 - [Home Assistant themes](https://www.home-assistant.io/integrations/frontend/)
-- [Signature](../signature/doc/README.md)
+- [Signature Compact](../signature-compact/doc/README.md)
+- [Signature Square](../signature-square/doc/README.md)
+- [Signature Room](../signature-room/doc/README.md)
+- [Signature Header](../signature-header/doc/README.md)
 - [Signature Flow](../signature-flow/doc/README.md)
 - [Signature Weather](../signature-weather/doc/README.md)
 - [Signature Wind Rose](../signature-wind-rose/doc/README.md)
@@ -103,7 +106,7 @@ styles: |
 
 ## Modules de présentation autonomes
 
-Signature Compact 1.1.0 et Square, Room et Header 1.0.0 consomment les mêmes variables `signature-*`, sans changement des dashboards existants utilisant le module historique. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
+Signature Compact 1.1.2 et Square, Room et Header 1.0.2 consomment les mêmes variables `signature-*`. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
 
 | Variable supplémentaire | Défaut | Usage |
 |---|---|---|

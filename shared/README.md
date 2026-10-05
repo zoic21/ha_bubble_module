@@ -1,6 +1,6 @@
 # Sources communes et build de tous les modules Bubble
 
-Les dix modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
+Les neuf modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
 
 ## Organisation
 
@@ -9,13 +9,13 @@ Les dix modules du dépôt sont générés à partir de sources. Chaque YAML dan
 | `shared/src/editor-options.js` | Formulaire natif commun à Weather, Wind Rose et Alert Manager |
 | `shared/src/editor-group.js` | Groupes de formulaire et arrondis natifs pour tous les éditeurs concernés |
 | `shared/src/number-locales.js` | Correspondance des préférences numériques Home Assistant |
-| `shared/src/number-format.js` | Formatage localisé de Signature et des présentations séparées |
+| `shared/src/number-format.js` | Formatage localisé des présentations Signature |
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
-| [signature-shared/src](../signature-shared/src) | Éditeur et comportements des présentations Signature, également réutilisés par le module historique |
+| [signature-shared/src](../signature-shared/src) | Éditeur et comportements des présentations Signature |
 | `signature-*/src` et `alert_manager/src` | Métadonnées, formulaires et code propres à chaque module |
 | [scripts/build-modules.cjs](../scripts/build-modules.cjs) | Build et vérification de toutes les distributions |
 
-Le module historique réutilise aussi les commandes numériques et le lecteur de Compact ainsi que les mesures et la géométrie de Room. Ses options et son ID `signature` sont conservés. Les différences de lecture numérique restent explicites : Wind Rose refuse les booléens et Navigation conserve son traitement existant des valeurs vides.
+Compact définit les commandes numériques et l’habillage du lecteur ; Room définit les mesures et leur géométrie. Les différences de lecture numérique restent explicites : Wind Rose refuse les booléens et Navigation conserve son traitement existant des valeurs vides.
 
 ## Modifier et publier
 
@@ -28,7 +28,6 @@ npm run check:modules
 npm test
 npx playwright install chromium
 npm run test:styles
-npm run test:styles:split
 ```
 
 1. Modifier les sources propres au module ou les fonctions communes. Ne pas éditer directement `dist`.
@@ -41,7 +40,7 @@ npm run test:styles:split
 
 Le workflow [Build module distributions](../.github/workflows/build.yml) démarre après un push qui modifie un fichier `**/src/**`, un script de build, `package.json`, `package-lock.json` ou le workflow lui-même. Il fonctionne sur les branches du dépôt, y compris `main`, et peut aussi être lancé manuellement depuis l'onglet Actions.
 
-Il installe les dépendances, reconstruit les dix modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
+Il installe les dépendances, reconstruit les neuf modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
 
 Les builds d'une même branche sont sérialisés. Si un autre commit arrive pendant le build, le script reprend la dernière révision et reconstruit avant de retenter le push, au maximum trois fois, sans push forcé. La publication utilise le `GITHUB_TOKEN` du job avec `contents: write` ; les branches protégées conservent leurs règles. Aucun secret supplémentaire n'est requis. Les commits du bot limités à `dist` ne correspondent pas au filtre des sources ; GitHub ne déclenche pas non plus de nouveau workflow `push` pour un commit publié avec ce token ([documentation GitHub](https://docs.github.com/en/actions/concepts/security/github_token)).
 
@@ -55,8 +54,8 @@ Les fichiers sont inclus par un commentaire placé sur sa propre ligne, avec un 
 /* @include shared/src/editor-options.js */
 ```
 
-L'assembleur développe récursivement les inclusions et conserve leur indentation. Les chemins absents, extérieurs au dépôt ou les cycles interrompent le build. Les six modules migrés utilisent `src/code.css` comme enveloppe Bubble, avec `runtime.js`, un éditeur et une feuille `presentation.css` lorsque nécessaire. Le champ `code` conserve le mélange CSS/templates JavaScript attendu par Bubble.
+L'assembleur développe récursivement les inclusions et conserve leur indentation. Les chemins absents, extérieurs au dépôt ou les cycles interrompent le build. Les cinq autres modules utilisent `src/code.css` comme enveloppe Bubble, avec `runtime.js`, un éditeur et une feuille `presentation.css` lorsque nécessaire. Le champ `code` conserve le mélange CSS/templates JavaScript attendu par Bubble.
 
 Flow, Weather et Wind Rose utilisent `@@MODULE_VERSION@@` dans leur source de runtime ; le build y injecte la version déclarée dans `module.yaml`. Les caches, abonnements et fonctions de nettoyage restent propres à chaque carte. Les variables du thème restent dans le CSS pour suivre les changements de thème sans reconstruction.
 
-Square, Compact, Room et Header conservent leur assembleur spécialisé : il choisit leurs fragments JavaScript/CSS puis élimine les branches constantes avec Terser, sans renommage de variables ni optimisation unsafe. Le build complet appelle cet assembleur et génère les six autres modules sans transformation de leur logique.
+Square, Compact, Room et Header conservent leur assembleur spécialisé : il choisit leurs fragments JavaScript/CSS puis élimine les branches constantes avec Terser, sans renommage de variables ni optimisation unsafe. Le build complet appelle cet assembleur et génère les cinq autres modules sans transformation de leur logique.

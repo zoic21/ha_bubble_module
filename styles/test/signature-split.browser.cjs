@@ -5,19 +5,9 @@ const {setup,render}=require('./fixtures.cjs');
 let browser;
 before(async()=>{browser=await chromium.launch({headless:true,...(process.env.BUBBLE_STYLE_BROWSER_PATH?{executablePath:process.env.BUBBLE_STYLE_BROWSER_PATH}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});});
 after(async()=>{await browser?.close();});
-test('standalone presentations match legacy computed styles across sizes and light/dark themes',async t=>{
- const page=await browser.newPage({viewport:{width:1400,height:1400}});t.after(()=>page.close());await setup(page);
- const ids=['compact','compact-standard','square','square-auto','room','room-no-controls','header','title','cover','climate','number','media'];
- for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [190,328,520]){
-  const legacy=await render(page,{mode,plain,width,split:false});
-  const fresh=await render(page,{mode,plain,width,split:true});
-  assert.deepEqual(legacy.errors,[]);assert.deepEqual(fresh.errors,[]);
-  for(const id of ids)assert.deepEqual(fresh.cards.find(c=>c.id===id),legacy.cards.find(c=>c.id===id),JSON.stringify({mode,plain,width,id}));
- }
-});
 test('standalone modules resolve live theme variables without a module execution',async t=>{
  const page=await browser.newPage({viewport:{width:1400,height:1400}});t.after(()=>page.close());await setup(page);
- const result=await render(page,{split:true});assert.deepEqual(result.errors,[]);
+ const result=await render(page,{});assert.deepEqual(result.errors,[]);
  const read=()=>page.evaluate(()=>Object.fromEntries(['compact','square','room','header','title','media'].map(id=>{
   const root=document.querySelector('[data-id="'+id+'"]').shadowRoot;
   const name=root.querySelector('.bubble-name'),box=root.querySelector('.bubble-container');

@@ -4,11 +4,11 @@ const path = require('node:path');
 const {test} = require('node:test');
 const YAML = require('yaml');
 
-const file = process.argv[2] || path.resolve(__dirname, '../dist/signature.yaml');
-const definition = YAML.parse(fs.readFileSync(file, 'utf8')).signature;
-const code = definition.code;
-assert.ok(code, 'Module code missing');
-const render = new Function('hass', 'onTeardown', 'renderTemplate', 'return `'+code+'`;');
+const layouts = ['compact', 'square', 'room', 'header'];
+const renders = Object.fromEntries(layouts.map(layout => {
+  const definition = YAML.parse(fs.readFileSync(path.resolve(__dirname, '../../signature-' + layout + '/dist/signature-' + layout + '.yaml'), 'utf8'))['signature_' + layout];
+  return [layout, new Function('hass', 'onTeardown', 'renderTemplate', 'return `'+definition.code+'`;')];
+}));
 
 // Minimal DOM fixtures exercise behavior; real rendering still needs Home Assistant.
 class Element {
@@ -50,11 +50,24 @@ Object.defineProperty(globalThis,'navigator',{value:{language:'en-US'},configura
 
 const id = 'input_number.target';
 const state = {state:'2.5',attributes:{min:0,max:10,step:0.5,unit_of_measurement:'kW'}};
-const run = (ctx,hass,template) => render.call(ctx,hass,fn => ctx.teardown=fn,template);
+// presentation is fixture input only; each actual renderer receives its own
+// module options without a layout field. Simulate Bubble teardown on a module change.
+function run(ctx, hass, template) {
+  const config = ctx.config;
+  const {layout: requested = 'compact', ...options} = config.presentation || {};
+  const layout = requested === 'title' ? 'header' : requested;
+  if (ctx.activeLayout && ctx.activeLayout !== layout) ctx.teardown?.();
+  ctx.activeLayout = layout;
+  const {presentation, ...native} = config;
+  ctx.config = {...native, ['signature_' + layout]: options};
+  try { return renders[layout].call(ctx,hass,fn => ctx.teardown=fn,template); }
+  finally { ctx.config = config; }
+}
+const runtimeField = (ctx, suffix) => ctx['_signature' + ctx.activeLayout[0].toUpperCase() + ctx.activeLayout.slice(1) + suffix];
 function fixture(t,extra={},options={controls:'number'},config={}) {
   const root=new Element(),host=new Element(),stateEl=new Element();
   host.className='bubble-wrapper';root.append(host);
-  const ctx={card:root,elements:{state:stateEl},config:{card_type:'button',button_type:'state',entity:id,signature:options,...config}};
+  const ctx={card:root,elements:{state:stateEl},config:{card_type:'button',button_type:'state',entity:id,presentation:options,...config}};
   const hass={states:{[id]:state},callService:async()=>{},...extra};
   run(ctx,hass);t.after(() => ctx.teardown());
   return {ctx,hass};
@@ -64,11 +77,11 @@ test('native translations label all controls and preserve numeric service calls'
   const labels={'ui.card.counter.actions.decrement':'Verringern','ui.dialogs.more_info_control.details':'Details anzeigen','ui.card.counter.actions.increment':'Erhöhen'};
   let service;
   const {ctx}=fixture(t,{locale:{language:'de-DE'},localize:key=>labels[key],callService:async(...args)=>{service=args;}});
-  assert.equal(ctx._dpNumber.minus.getAttribute('aria-label'),'Verringern');
-  assert.equal(ctx._dpNumber.display.getAttribute('aria-label'),'Details anzeigen');
-  assert.equal(ctx._dpNumber.plus.getAttribute('aria-label'),'Erhöhen');
-  assert.equal(ctx._dpNumber.display.textContent,'2,5 kW');
-  await ctx._dpNumber.plus.click();
+  assert.equal(ctx._signatureCompactNumber.minus.getAttribute('aria-label'),'Verringern');
+  assert.equal(ctx._signatureCompactNumber.display.getAttribute('aria-label'),'Details anzeigen');
+  assert.equal(ctx._signatureCompactNumber.plus.getAttribute('aria-label'),'Erhöhen');
+  assert.equal(ctx._signatureCompactNumber.display.textContent,'2,5 kW');
+  await ctx._signatureCompactNumber.plus.click();
   assert.deepEqual(service,['input_number','set_value',{entity_id:id,value:3}]);
 });
 
@@ -79,18 +92,18 @@ test('missing translations fall back to French or English with the selected numb
     ['de-DE','Decrease','Increase','Show details','2,5 kW'],
   ]) {
     const {ctx}=fixture(t,{locale:{language},localize:()=>undefined});
-    assert.equal(ctx._dpNumber.minus.getAttribute('aria-label'),minus);
-    assert.equal(ctx._dpNumber.plus.getAttribute('aria-label'),plus);
-    assert.equal(ctx._dpNumber.display.getAttribute('aria-label'),details);
-    assert.equal(ctx._dpNumber.display.textContent,value);
+    assert.equal(ctx._signatureCompactNumber.minus.getAttribute('aria-label'),minus);
+    assert.equal(ctx._signatureCompactNumber.plus.getAttribute('aria-label'),plus);
+    assert.equal(ctx._signatureCompactNumber.display.getAttribute('aria-label'),details);
+    assert.equal(ctx._signatureCompactNumber.display.textContent,value);
   }
 });
 
 test('locale changes update existing controls without recreating them',t => {
   const {ctx,hass}=fixture(t,{locale:{language:'fr-FR'}});
-  const controls=ctx._dpNumber;
+  const controls=ctx._signatureCompactNumber;
   run(ctx,{...hass,locale:{language:'en-US'}});
-  assert.equal(ctx._dpNumber,controls);
+  assert.equal(ctx._signatureCompactNumber,controls);
   assert.equal(controls.minus.getAttribute('aria-label'),'Decrease');
   assert.equal(controls.display.textContent,'2.5 kW');
 });
@@ -98,22 +111,22 @@ test('locale changes update existing controls without recreating them',t => {
 test('translations loaded later update labels even when the locale stays the same',t => {
   const {ctx,hass}=fixture(t,{locale:{language:'de-DE'}});
   run(ctx,{...hass,localize:key=>key === 'ui.card.counter.actions.increment' ? 'Erhöhen' : undefined});
-  assert.equal(ctx._dpNumber.plus.getAttribute('aria-label'),'Erhöhen');
-  assert.equal(ctx._dpNumber.minus.getAttribute('aria-label'),'Decrease');
+  assert.equal(ctx._signatureCompactNumber.plus.getAttribute('aria-label'),'Erhöhen');
+  assert.equal(ctx._signatureCompactNumber.minus.getAttribute('aria-label'),'Decrease');
 });
 
 test('number formatting falls back to hass.language then the browser language',t => {
   const first=fixture(t,{language:'fr-FR'});
-  assert.equal(first.ctx._dpNumber.display.textContent,'2,5 kW');
+  assert.equal(first.ctx._signatureCompactNumber.display.textContent,'2,5 kW');
   const second=fixture(t);
-  assert.equal(second.ctx._dpNumber.display.textContent,'2.5 kW');
-  assert.equal(second.ctx._dpNumber.minus.getAttribute('aria-label'),'Decrease');
+  assert.equal(second.ctx._signatureCompactNumber.display.textContent,'2.5 kW');
+  assert.equal(second.ctx._signatureCompactNumber.minus.getAttribute('aria-label'),'Decrease');
 });
 
 test('ordinary numeric states use the same locale fallback without number controls',t => {
   const {ctx}=fixture(t,{language:'en-US'},{});
   assert.equal(ctx.elements.state.textContent,'2.5kW');
-  assert.equal(ctx._dpNumber,undefined);
+  assert.equal(ctx._signatureCompactNumber,undefined);
 });
 
 test('numeric states and controls respect every Home Assistant number format',t => {
@@ -124,19 +137,19 @@ test('numeric states and controls respect every Home Assistant number format',t 
     const ordinary=fixture(t,hass,{});
     const controls=fixture(t,hass);
     assert.equal(ordinary.ctx.elements.state.querySelector('.dp-value').textContent,expected,number_format);
-    assert.equal(controls.ctx._dpNumber.display.textContent,expected+' kW',number_format);
+    assert.equal(controls.ctx._signatureCompactNumber.display.textContent,expected+' kW',number_format);
   }
 });
 
 test('changing only number_format refreshes existing formatters and preserves translated labels',t => {
   const hass={locale:{language:'fr-FR',number_format:'language'},states:{[id]:{...state,state:'1234.5'}}};
   const ordinary=fixture(t,hass,{}),controls=fixture(t,hass);
-  const group=controls.ctx._dpNumber;
+  const group=controls.ctx._signatureCompactNumber;
   for (const item of [ordinary,controls]) run(item.ctx,{...item.hass,locale:{language:'fr-FR',number_format:'none'}});
   assert.equal(ordinary.ctx.elements.state.querySelector('.dp-value').textContent,'1234.5');
   assert.equal(group.display.textContent,'1234.5 kW');
   assert.equal(group.minus.getAttribute('aria-label'),'Diminuer');
-  assert.equal(controls.ctx._dpNumber,group);
+  assert.equal(controls.ctx._signatureCompactNumber,group);
 });
 
 test('scientific notation retains decimal precision and explicit precision still wins',t => {
@@ -155,9 +168,9 @@ test('room overrides do not reactivate automatic colors when room_auto_colors is
   const css=run(ctx,hass);
   assert.doesNotMatch(css,/ha-card \.room-control-1 \.bubble-sub-button-icon \{(?:color|background|opacity):/);
   assert.match(css,/ha-card \.room-control-1 \{ --room-control-column:1;/);
-  ctx.config.signature={...options,sub_button_styles:{'room-control-1':{color:'teal',background:'#ff0000'}}};
+  ctx.config.presentation={...options,sub_button_styles:{'room-control-1':{color:'teal',background:'#ff0000'}}};
   assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon \{color:var\(--teal-color, #009688\) !important;background:#ff0000 !important;/);
-  ctx.config.signature={...options,room_auto_colors:true};
+  ctx.config.presentation={...options,room_auto_colors:true};
   assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon \{color:var\(--warning-color/);
 });
 
@@ -198,7 +211,7 @@ test('multiple visual switches share cached geometry while retaining independent
   const buttons=Array.from({length:4},(_,i)=>({entity:'switch.control_'+i,css_class:'control-'+i,tap_action:{action:'toggle'}}));
   const options={sub_button_styles:Object.fromEntries(buttons.map(b=>[b.css_class,{type:'switch'}]))};
   const {ctx,hass}=fixture(t,{states:Object.fromEntries(buttons.map((b,i)=>[b.entity,{state:i%2?'off':'on',attributes:{}}]))},options,{sub_button:buttons});
-  const css=run(ctx,hass),structure=ctx._dpStructure;
+  const css=run(ctx,hass),structure=runtimeField(ctx, 'Structure');
   assert.equal((css.match(/width: 48px; height: 28px/g)||[]).length,1);
   assert.equal((css.match(/--dp-switch-offset: 20px/g)||[]).length,2);
   assert.equal((css.match(/--dp-switch-offset: 0px/g)||[]).length,2);
@@ -208,15 +221,15 @@ test('multiple visual switches share cached geometry while retaining independent
   assert.equal(writes,0);
   assert.equal((changed.match(/--dp-switch-offset: 20px/g)||[]).length,3);
   assert.ok(changed.includes('--signature-card-background'));
-  ctx.config={...ctx.config,signature:{sub_button_styles:{'control-0':{type:'switch'}}}};
+  ctx.config={...ctx.config,presentation:{sub_button_styles:{'control-0':{type:'switch'}}}};
   run(ctx,hass);
-  assert.notEqual(ctx._dpStructure,structure);
-  assert.doesNotMatch(ctx._dpStructure.switchCSS,/control-1/);
+  assert.notEqual(runtimeField(ctx, 'Structure'),structure);
+  assert.doesNotMatch(runtimeField(ctx, 'Structure').switchCSS,/control-1/);
 });
 
 test('reusing layout CSS still updates numeric values, Jinja colors and observed state dependencies',t => {
   const {ctx,hass}=fixture(t,{}, {compact_mode:'value',color:'{{ color }}'});
-  const runtime=ctx._dpRuntime;
+  const runtime=runtimeField(ctx, 'Runtime');
   let layoutCSS=runtime.styleCSS,writes=0;
   Object.defineProperty(runtime,'styleCSS',{get:()=>layoutCSS,set:value=>{writes++;layoutCSS=value;},configurable:true});
   let queries=0;
@@ -258,7 +271,7 @@ test('cached layout CSS follows geometry, controls, surface and layout changes l
     [{controls:'number'},{button_type:'state'}],
     [{},{button_type:'state'}],
   ]) {
-    ctx.config={card_type:'button',entity:id,signature:options,...config};
+    ctx.config={card_type:'button',entity:id,presentation:options,...config};
     const fresh=fixture(t,extra,options,config);
     assert.equal(run(ctx,hass),run(fresh.ctx,fresh.hass),JSON.stringify(options));
   }
@@ -276,7 +289,7 @@ test('a standard compact tile stays below its CSS budget and preserves native vi
 test('cover, climate and numeric controls retain their geometry when a card changes type',t => {
   const {ctx,hass}=fixture(t,{},{});
   for (const [kind,options] of [['cover',{}],['climate',{}],['button',{controls:'number'}],['button',{}]]) {
-    ctx.config={card_type:kind,button_type:'state',entity:id,signature:options};
+    ctx.config={card_type:kind,button_type:'state',entity:id,presentation:options};
     const css=run(ctx,hass);
     const fresh=fixture(t,{},options,{card_type:kind});
     assert.equal(css,run(fresh.ctx,fresh.hass),kind);
@@ -301,7 +314,7 @@ test('trailing value CSS follows sub-buttons, state visibility and numeric contr
     [[button],false,undefined,true],[[button],false,'number',false],[[button],false,undefined,true],
   ]) {
     ctx.config.sub_button=buttons;
-    ctx.config.signature={compact_mode:'value',controls};
+    ctx.config.presentation={compact_mode:'value',controls};
     ctx.config.show_state=!hidden;
     if (hidden) ctx.elements.state.classList.add('hidden');
     else ctx.elements.state.classList.remove('hidden');
@@ -315,19 +328,19 @@ test('trailing value CSS follows sub-buttons, state visibility and numeric contr
 
 test('secondary template presence updates cached CSS without rebuilding it for text-only changes',t => {
   for (const [layout,options] of [
-    ['compact',{}],['compact',{compact_mode:'value'}],['square',{auto_height:true}],['room',{}],['header',{}],
+    ['compact',{}],['compact',{compact_mode:'value'}],['square',{auto_height:true}],['room',{}],
   ]) {
-    const config={button_type:layout === 'header' ? 'name' : 'state',sub_button:[{entity:'switch.room'}]};
-    const signature={...options,layout,secondary:"{{ states('input_number.target') }}"};
-    const {ctx,hass}=fixture(t,{},signature,config);
+    const config={button_type:layout === 'room' ? 'name' : 'state',sub_button:[{entity:'switch.room'}]};
+    const presentation={...options,layout,secondary:"{{ states('input_number.target') }}"};
+    const {ctx,hass}=fixture(t,{},presentation,config);
     const content=new Element(),name=new Element();content.append(name);ctx.card.append(content);
     ctx.elements.contentContainer=content;ctx.elements.nameContainer=name;
     run(ctx,hass,()=> '');
-    let layoutCSS=ctx._dpRuntime.styleCSS,writes=0;
-    Object.defineProperty(ctx._dpRuntime,'styleCSS',{get:()=>layoutCSS,set:value=>{writes++;layoutCSS=value;},configurable:true});
+    let layoutCSS=runtimeField(ctx, 'Runtime').styleCSS,writes=0;
+    Object.defineProperty(runtimeField(ctx, 'Runtime'),'styleCSS',{get:()=>layoutCSS,set:value=>{writes++;layoutCSS=value;},configurable:true});
     for (const [text,expectedWrites] of [['Details',1],['Other details',1],['',2],['**Details**',3]]) {
       const css=run(ctx,hass,()=> text);
-      const fresh=fixture(t,{},signature,config);
+      const fresh=fixture(t,{},presentation,config);
       assert.equal(css,run(fresh.ctx,fresh.hass,()=> text),layout);
       assert.equal(writes,expectedWrites,layout+': '+text);
       assert.equal(css.includes('.dp-secondary'),!!text,layout);
@@ -340,11 +353,11 @@ test('multiline changes restore the correct wrapping rules in cached standard an
   for (const compact_mode of ['standard','value']) {
     const {ctx,hass}=fixture(t,{}, {compact_mode});
     for (const multiline of [true,false,true]) {
-      ctx.config.signature={compact_mode,multiline};
+      ctx.config.presentation={compact_mode,multiline};
       const css=run(ctx,hass);
       assert.equal(css.includes('white-space: pre-line !important;'),multiline);
       assert.equal(css.includes('data-dp-multiline="no"'),!multiline);
-      const fresh=fixture(t,{},ctx.config.signature);
+      const fresh=fixture(t,{},ctx.config.presentation);
       assert.equal(css,run(fresh.ctx,fresh.hass));
     }
   }
@@ -368,7 +381,7 @@ test('cached secondary text refreshes templates, survives DOM replacement and is
   assert.equal(replacement.textContent,'Third');
   ctx.teardown();
   assert.equal(ctx.card.querySelector('.dp-secondary'),null);
-  assert.equal(ctx._dpRuntime,undefined);
+  assert.equal(runtimeField(ctx, 'Runtime'),undefined);
 });
 
 function secondaryFixture(t,options,extra={},config={}) {
@@ -388,13 +401,13 @@ test('direct secondary entities display native units, precision and locale and r
   assert.equal(JSON.parse(node.dataset.tapAction).action,'more-info');
   assert.equal(JSON.parse(node.dataset.holdAction).action,'more-info');
   assert.equal(ctx.elements.state.dataset.entity,id);
-  const source=ctx._dpRuntime.secondarySource,formatter=ctx._dpRuntime.secondaryFormat.formatter;
+  const source=runtimeField(ctx, 'Runtime').secondarySource,formatter=runtimeField(ctx, 'Runtime').secondaryFormat.formatter;
   hass.states[target]={state:'22.75',attributes:{unit_of_measurement:'°C'}};
   assert.equal(run(ctx,hass),css);
   assert.equal(node.textContent,'22,8 °C');
   assert.equal(ctx.card.querySelector('.dp-secondary'),node);
-  assert.equal(ctx._dpRuntime.secondarySource,source);
-  assert.equal(ctx._dpRuntime.secondaryFormat.formatter,formatter);
+  assert.equal(runtimeField(ctx, 'Runtime').secondarySource,source);
+  assert.equal(runtimeField(ctx, 'Runtime').secondaryFormat.formatter,formatter);
   run(ctx,{...hass,locale:{language:'fr',number_format:'comma_decimal'}});
   assert.equal(node.textContent,'22.8 °C');
 });
@@ -408,9 +421,9 @@ test('secondary entity detection runs once for repeated updates and again only a
   const {ctx,hass}=secondaryFixture(t,{secondary:"{{ states('sensor.one') }}"});
   for(let i=0;i<1000;i++)run(ctx,hass,()=> String(i));
   assert.equal(analyses,1);
-  ctx.config.signature={secondary:"{{ states('sensor.one') }}"};
+  ctx.config.presentation={secondary:"{{ states('sensor.one') }}"};
   run(ctx,hass,()=> 'Same configuration');assert.equal(analyses,1);
-  ctx.config.signature={secondary:"{{ states('sensor.two') }}"};
+  ctx.config.presentation={secondary:"{{ states('sensor.two') }}"};
   run(ctx,hass,()=> 'New source');assert.equal(analyses,2);
 });
 
@@ -463,11 +476,11 @@ test('fixed secondary text and templates without a static entity keep their text
 test('changing a secondary target replaces its cached action node and switching to plain text removes actions',t => {
   const {ctx,hass}=secondaryFixture(t,{secondary:"{{ states('sensor.one') }}"});
   run(ctx,hass,()=> 'First');const first=ctx.card.querySelector('.dp-secondary');
-  ctx.config.signature={secondary:"{{ states('sensor.two') }}"};
+  ctx.config.presentation={secondary:"{{ states('sensor.two') }}"};
   run(ctx,hass,()=> 'Second');const second=ctx.card.querySelector('.dp-secondary');
   assert.notEqual(second,first);assert.equal(second.dataset.entity,'sensor.two');
   assert.equal(ctx.card.contains(first),false);assert.equal(first.dataset.entity,undefined);
-  ctx.config.signature={secondary:'Protect'};run(ctx,hass);
+  ctx.config.presentation={secondary:'Protect'};run(ctx,hass);
   const plain=ctx.card.querySelector('.dp-secondary');
   assert.notEqual(plain,second);assert.equal(plain.textContent,'Protect');
   assert.equal(plain.classList.contains('bubble-action'),false);
@@ -485,56 +498,19 @@ test('service errors use native translations and retain the original error detai
   const {ctx}=fixture(t,{locale:{language:'de-DE'},localize:(key,args)=>{
     calls.push([key,args]);return key === 'ui.notification_toast.action_failed' ? 'Aktion fehlgeschlagen.' : undefined;
   },callService:async()=>{throw new Error('service unavailable');}});
-  await ctx._dpNumber.plus.click();
-  const notice=ctx._dpNumber.group.events.find(event=>event.type==='hass-notification');
+  await ctx._signatureCompactNumber.plus.click();
+  const notice=ctx._signatureCompactNumber.group.events.find(event=>event.type==='hass-notification');
   assert.equal(notice.detail.message,'Aktion fehlgeschlagen. service unavailable');
   assert.deepEqual(calls.at(-1),['ui.notification_toast.action_failed',{service:'input_number.set_value'}]);
-  assert.equal(ctx._dpNumber.pending,null);
-  assert.equal(ctx._dpNumber.timer,null);
+  assert.equal(ctx._signatureCompactNumber.pending,null);
+  assert.equal(ctx._signatureCompactNumber.timer,null);
 });
 
 test('service errors have a French or English fallback without native translations',async t => {
   for (const [language,prefix] of [['fr-FR','Impossible de modifier la valeur.'],['en-US','Failed to set the value.']]) {
     const {ctx}=fixture(t,{locale:{language},callService:async()=>{throw new Error('denied');}});
-    await ctx._dpNumber.plus.click();
-    assert.equal(ctx._dpNumber.group.events.at(-1).detail.message,prefix+' denied');
-  }
-});
-
-test('unsupported cards and misplaced title layouts do not access HA',() => {
-  const forbidden=new Proxy({}, {get() {throw new Error('Unexpected hass access');}});
-  for (const config of [
-    {card_type:'pop-up'}, {card_type:'button',button_type:'slider'},
-    {card_type:'button',signature:{layout:'title'}}, {card_type:'button',signature:{layout:'heading'}},
-    {card_type:'separator'},
-  ]) {
-    const ctx={card:new Element(),config};
-    assert.equal(run(ctx,forbidden).trim(),'');
-    assert.equal(typeof ctx.teardown,'function');
-  }
-});
-
-test('section titles hide the separator line without creating tile controls',() => {
-  const ctx={card:new Element(),config:{card_type:'separator',signature:{layout:'title'}}};
-  const css=run(ctx,{});
-  assert.match(css,/\.bubble-line\s*\{\s*display: none !important;/);
-  assert.equal(ctx._dpNumber,undefined);
-  assert.equal(ctx.card.children.length,0);
-});
-
-test('square, room and header layouts apply only to compatible card types',t => {
-  for (const layout of ['compact','square','room','header']) {
-    const {ctx}=fixture(t,{}, {layout},{button_type:layout === 'header' ? 'name' : 'state'});
-    assert.equal(ctx.card.getAttribute('data-dp-layout'),layout);
-  }
-  for (const card_type of ['cover','climate']) {
-    const {ctx}=fixture(t,{}, {layout:'square',controls:'number'},{card_type});
-    assert.equal(ctx.card.getAttribute('data-dp-layout'),'compact');
-    assert.equal(ctx._dpNumber,undefined,'Native controls must remain intact');
-  }
-  for (const [button_type,layout] of [['switch','square'],['state','header']]) {
-    const {ctx}=fixture(t,{}, {layout},{button_type});
-    assert.equal(ctx.card.getAttribute('data-dp-layout'),'compact');
+    await ctx._signatureCompactNumber.plus.click();
+    assert.equal(ctx._signatureCompactNumber.group.events.at(-1).detail.message,prefix+' denied');
   }
 });
 
@@ -553,7 +529,7 @@ test('numeric commands clamp to bounds and do not write an unchanged value',asyn
   ]) {
     const calls=[];
     const {ctx}=fixture(t,{states:{[id]:{state:value,attributes:{...state.attributes,min,max}}},callService:async(...args)=>calls.push(args)});
-    await ctx._dpNumber[direction].click();
+    await ctx._signatureCompactNumber[direction].click();
     assert.deepEqual(calls,expected === undefined ? [] : [['input_number','set_value',{entity_id:id,value:expected}]]);
   }
 });
@@ -566,9 +542,9 @@ test('invalid numeric states and attributes disable commands without service cal
   ]) {
     let calls=0;
     const {ctx}=fixture(t,{states:{[id]:entity},callService:async()=>calls++});
-    assert.equal(ctx._dpNumber.minus.disabled,true);
-    assert.equal(ctx._dpNumber.plus.disabled,true);
-    await ctx._dpNumber.plus.click();
+    assert.equal(ctx._signatureCompactNumber.minus.disabled,true);
+    assert.equal(ctx._signatureCompactNumber.plus.disabled,true);
+    await ctx._signatureCompactNumber.plus.click();
     assert.equal(calls,0);
   }
 });
@@ -576,14 +552,14 @@ test('invalid numeric states and attributes disable commands without service cal
 test('repeated presses wait for HA to acknowledge the new value',async t => {
   const calls=[];
   const {ctx,hass}=fixture(t,{callService:async(...args)=>calls.push(args)});
-  await ctx._dpNumber.plus.click();
-  await ctx._dpNumber.plus.click();
+  await ctx._signatureCompactNumber.plus.click();
+  await ctx._signatureCompactNumber.plus.click();
   assert.equal(calls.length,1);
-  assert.equal(ctx._dpNumber.plus.disabled,true);
+  assert.equal(ctx._signatureCompactNumber.plus.disabled,true);
   const updated={...hass,states:{[id]:{...state,state:'3'}}};
   run(ctx,updated);
-  assert.equal(ctx._dpNumber.plus.disabled,false);
-  await ctx._dpNumber.plus.click();
+  assert.equal(ctx._signatureCompactNumber.plus.disabled,false);
+  await ctx._signatureCompactNumber.plus.click();
   assert.equal(calls.length,2);
   assert.equal(calls[1][2].value,3.5);
 });
@@ -591,26 +567,26 @@ test('repeated presses wait for HA to acknowledge the new value',async t => {
 test('a pending command becomes available again after the acknowledgement timeout',async t => {
   t.mock.timers.enable({apis:['setTimeout']});
   const {ctx}=fixture(t);
-  await ctx._dpNumber.plus.click();
+  await ctx._signatureCompactNumber.plus.click();
   t.mock.timers.tick(4999);
-  assert.equal(ctx._dpNumber.plus.disabled,true);
+  assert.equal(ctx._signatureCompactNumber.plus.disabled,true);
   t.mock.timers.tick(1);
-  assert.equal(ctx._dpNumber.plus.disabled,false);
-  assert.equal(ctx._dpNumber.pending,null);
+  assert.equal(ctx._signatureCompactNumber.plus.disabled,false);
+  assert.equal(ctx._signatureCompactNumber.pending,null);
 });
 
 test('switching to a section title removes pending controls and restores delegated actions',async t => {
   const clear=t.mock.method(globalThis,'clearTimeout');
   const {ctx,hass}=fixture(t);
-  const old=ctx._dpNumber;
+  const old=ctx._signatureCompactNumber;
   await old.plus.click();
   assert.equal(ctx.elements.state.classList.contains('bubble-action'),true);
-  ctx.config={card_type:'separator',signature:{layout:'title'}};
+  ctx.config={card_type:'separator',presentation:{layout:'title'}};
   run(ctx,hass);
   assert.equal(old.disposed,true);
   assert.ok(clear.mock.calls.some(call=>call.arguments[0] === old.timer),'The pending timer is cancelled');
   assert.equal(old.host.children.includes(old.group),false);
-  assert.equal(ctx._dpNumber,undefined);
+  assert.equal(ctx._signatureCompactNumber,undefined);
   assert.equal(ctx.elements.state.classList.contains('bubble-action'),false);
   assert.equal(ctx.elements.state.dataset.entity,undefined);
 });
@@ -618,139 +594,11 @@ test('switching to a section title removes pending controls and restores delegat
 test('a service failure received after teardown does not dispatch a notification',async t => {
   let reject;
   const {ctx}=fixture(t,{callService:()=>new Promise((_,fail)=>{reject=fail;})});
-  const controls=ctx._dpNumber;
+  const controls=ctx._signatureCompactNumber;
   const click=controls.plus.click();
   ctx.teardown();
   reject(new Error('late rejection'));
   await click;
   assert.equal(controls.group.events.length,0);
   assert.equal(controls.disposed,true);
-});
-
-function editorFields(schema=definition.editor) {
-  return schema.flatMap(field=>field.fields
-    ? Object.entries(field.fields).map(([name,options])=>({name,...options}))
-    : field.schema ? editorFields(field.schema) : field.selector ? [field] : []);
-}
-
-test('visual editor covers the existing option keys without nesting or narrowing mixed YAML types',() => {
-  const fields=editorFields();
-  const names=fields.map(field=>field.name);
-  const runtimeNames=[...new Set([...code.matchAll(/\bo\.([a-z_]+)/g)].map(match=>match[1]))];
-  assert.equal(new Set(names).size,names.length,'Each option has a single input');
-  assert.deepEqual([...names].sort(),runtimeNames.sort(),'The form exposes the runtime options directly');
-  const container=definition.editor.find(field=>field.fields);
-  assert.equal(container.name,'','The inline form must edit the module root without nesting it');
-  assert.equal(container.type,'signature_options');
-  assert.equal(container.selector,undefined,'No structured object selector should create an item panel');
-  for (const field of fields) {
-    assert.ok(Object.hasOwn(field,'default'),field.name);
-    assert.ok(field.label,field.name);
-    if (field.selector.select) {
-      assert.ok(field.selector.select.options.some(option=>option.value === field.default),field.name);
-    }
-  }
-  for (const name of ['color_background','icon_opacity','sub_button_styles','room_auto_colors']) {
-    assert.deepEqual(fields.find(field=>field.name === name).selector,{object:{}},name);
-  }
-  assert.equal(fields.find(field=>field.name === 'color').selector.select.custom_value,true);
-});
-
-const editorVisible = (options,card) => editorFields().filter(field=>
-  !field.visible_if || new Function('item','hass','card','return !!('+field.visible_if+');')(options,{},card)
-).map(field=>field.name);
-
-test('editor visibility follows the effective layout and native card compatibility',() => {
-  const roomKeys=['room_auto_colors','room_control_columns','room_measures_position'];
-  const squareKeys=['auto_height','reserve_measure_detail'];
-  const base={card_type:'button',button_type:'state',entity:'sensor.temperature'};
-  const square=editorVisible({layout:'square'},base);
-  assert.ok(square.includes('auto_height'));
-  assert.ok(roomKeys.every(key=>!square.includes(key)));
-  assert.ok(!square.includes('compact_mode'));
-  assert.ok(!square.includes('sub_buttons_position'));
-  assert.ok(!square.includes('reserve_measure_detail'));
-  assert.ok(editorVisible({layout:'square',controls:'measure'},base).includes('reserve_measure_detail'));
-  const room=editorVisible({layout:'room'},{...base,button_type:'name',show_state:false});
-  assert.ok(roomKeys.every(key=>room.includes(key)));
-  assert.ok(squareKeys.every(key=>!room.includes(key)));
-  assert.ok(!room.includes('compact_mode'));
-  assert.ok(!editorVisible({layout:'room',secondary:'Details'},{...base,button_type:'name',show_state:false}).includes('room_measures_position'));
-  assert.ok(!editorVisible({layout:'room'},base).includes('room_measures_position'));
-  for (const card of [{...base,card_type:'cover'},{...base,card_type:'climate'},{...base,button_type:'switch'}]) {
-    const keys=editorVisible({layout:'square'},card);
-    assert.ok([...roomKeys,...squareKeys].every(key=>!keys.includes(key)));
-    assert.ok(keys.includes('sub_buttons_position'),'Native cards use the compact settings');
-    assert.ok(!keys.includes('controls'),'Native controls must not offer numeric or measure modes');
-  }
-  assert.deepEqual(editorVisible({layout:'title'},{card_type:'separator'}),['layout']);
-  assert.deepEqual(editorVisible({},{card_type:'media-player'}),['color','color_background']);
-  assert.ok(editorVisible({layout:'header'},base).includes('compact_mode'),'A state button falls back to compact');
-  assert.ok(!editorVisible({layout:'header'},{...base,button_type:'name'}).includes('compact_mode'));
-  assert.ok(!editorVisible({},{...base,button_type:'slider'}).includes('color'));
-});
-
-test('numeric editor controls require a compact number entity and secondary formatting requires text',() => {
-  for (const entity of ['number.target','input_number.target']) {
-    assert.ok(editorVisible({}, {card_type:'button',button_type:'state',entity}).includes('controls'));
-  }
-  assert.ok(!editorVisible({}, {card_type:'button',button_type:'state',entity:'sensor.temperature'}).includes('controls'));
-  assert.ok(!editorVisible({}, {card_type:'button',button_type:'name',entity:'number.target'}).includes('controls'));
-  assert.ok(editorVisible({secondary:'Details'},{card_type:'button',button_type:'state'}).includes('secondary_bold'));
-  assert.ok(!editorVisible({}, {card_type:'button',button_type:'state'}).includes('secondary_bold'));
-  assert.doesNotThrow(()=>editorVisible({layout:'square'},undefined),'The module definition preview has no card context');
-});
-
-test('shown editor defaults preserve card rendering and explicit template and scalar settings',t => {
-  const defaults=Object.fromEntries(editorFields().map(field=>[field.name,field.default]));
-  const template=input=>input === '{{ background }}' ? 'False' : input === '{{ opacity }}' ? '0' : 'Details';
-  for (const [options,config] of [
-    [{},{}],
-    [{layout:'square'},{}],
-    [{layout:'room'},{button_type:'name',show_state:false}],
-    [{layout:'header'},{button_type:'name',show_state:false}],
-    [{layout:'title'},{card_type:'separator'}],
-    [{},{card_type:'cover'}],
-    [{},{card_type:'climate'}],
-    [{},{card_type:'media-player'}],
-    [{controls:'number'},{}],
-    [{icon_opacity:0,color_background:false},{}],
-    [{icon_opacity:'{{ opacity }}',color_background:'{{ background }}',secondary:'{{ details }}',
-      sub_button_styles:{ventilation:{type:'switch',color:'teal'}}},{}],
-  ]) {
-    const original=fixture(t,{},options,config);
-    const shown=fixture(t,{}, {...defaults,...options},config);
-    assert.equal(run(shown.ctx,shown.hass,template),run(original.ctx,original.hass,template),JSON.stringify([options,config]));
-    assert.deepEqual([...shown.ctx.card.attributes],[...original.ctx.card.attributes]);
-    assert.equal(shown.ctx.elements.state.textContent,original.ctx.elements.state.textContent);
-    for (const key of Object.keys(options)) assert.deepEqual(shown.ctx.config.signature[key],options[key]);
-  }
-});
-
-test('distribution metadata and documented versions agree',() => {
-  assert.equal(definition.name,'Signature');
-  assert.match(definition.version,/^\d+\.\d+\.\d+$/);
-  assert.ok(definition.description);
-  assert.ok(definition.supported.every(type=>typeof type === 'string'));
-  for (const file of ['../doc/README.md','../../README.md']) {
-    assert.ok(fs.readFileSync(path.resolve(__dirname,file),'utf8').includes(definition.version),file);
-  }
-});
-
-test('all documented configuration examples are valid YAML',() => {
-  const doc=fs.readFileSync(path.resolve(__dirname,'../doc/README.md'),'utf8');
-  const blocks=[...doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)];
-  assert.ok(blocks.length>0);
-  for (const [,example] of blocks) assert.doesNotThrow(()=>YAML.parse(example));
-});
-
-test('documentation links resolve to local files',() => {
-  for (const file of ['../doc/README.md','../../README.md']) {
-    const location=path.resolve(__dirname,file);
-    const doc=fs.readFileSync(location,'utf8');
-    for (const [,target] of doc.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
-      if (/^[a-z]+:|^#/i.test(target)) continue;
-      assert.ok(fs.existsSync(path.resolve(path.dirname(location),target.split('#')[0])),target);
-    }
-  }
 });

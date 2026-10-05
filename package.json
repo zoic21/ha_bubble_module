@@ -7,7 +7,7 @@
     "check:modules": "node scripts/build-modules.cjs --check",
     "test:build": "node --test shared/test/*.test.cjs",
     "test": "node --test */test/*.test.cjs",
-    "test:signature": "node --test signature/test/*.test.cjs",
+    "test:signature": "node --test signature-shared/test/*.test.cjs",
     "test:alert-manager": "node --test alert_manager/test/*.test.cjs",
     "test:signature-flow": "node --test signature-flow/test/*.test.cjs",
     "test:signature-weather": "node --test signature-weather/test/*.test.cjs",
@@ -17,7 +17,7 @@
     "build:signature": "node scripts/build-signature.cjs",
     "check:signature": "node scripts/build-signature.cjs --check",
     "test:signature-split": "node --test signature-shared/test/*.test.cjs",
-    "test:styles:split": "BUBBLE_SIGNATURE_SPLIT=1 node --test styles/test/coherence.browser.cjs"
+    "test:styles:split": "node --test styles/test/coherence.browser.cjs"
   },
   "engines": {
     "node": ">=22"

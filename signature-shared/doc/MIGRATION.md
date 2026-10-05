@@ -1,6 +1,6 @@
 # Migrer vers les modules Signature autonomes
 
-**Signature Compact 1.1.0** et **Square, Room et Header 1.0.0** sont autonomes. Le module historique **Signature 2.3.3** est conservé sans modification de sa distribution. Les dashboards existants continuent de l’utiliser jusqu’à leur migration volontaire.
+**Signature Compact 1.1.2** et **Square, Room et Header 1.0.2** sont autonomes. Le module historique `signature` a été retiré du dépôt après vérification des dashboards de `ha_config`. Pour une autre installation, migrer toutes ses cartes avant de supprimer la copie installée de l’ancien module.
 
 | Configuration actuelle | Nouveau module | Nouvelle clé des options |
 |---|---|---|
@@ -13,7 +13,7 @@
 
 Les cartes `cover`, `climate` et les boutons `switch` utilisent actuellement la présentation compacte même si un autre layout est demandé : migrer ces cartes vers **Signature Compact**. Un ancien header sur bouton État retombe aussi en compact. Les nouveaux modules refusent les types incompatibles au lieu de changer leur présentation.
 
-Pour un lecteur multimédia, renommer `signature` en `signature_compact` dans `modules` et dans la clé des options ; conserver `color` et `color_background`. Les réglages natifs Bubble, la pochette, les dimensions et les commandes restent identiques. Compact n’applique pas sa hauteur de 56 px au lecteur. Le module historique reste utilisable si la carte n’est pas encore migrée.
+Pour un lecteur multimédia, renommer `signature` en `signature_compact` dans `modules` et dans la clé des options ; conserver `color` et `color_background`. Les réglages natifs Bubble, la pochette, les dimensions et les commandes restent identiques. Compact n’applique pas sa hauteur de 56 px au lecteur.
 
 1. Importer les nouvelles distributions depuis leurs dossiers `dist`.
 2. Sur chaque carte choisie, remplacer le module de présentation dans `modules`.
@@ -44,6 +44,6 @@ signature_room:
   room_control_columns: 4
 ```
 
-Utiliser un seul module de présentation sur chaque carte ; l’ancien `signature` et les nouveaux modules peuvent rester installés simultanément et être utilisés sur des cartes différentes. Leur éditeur conserve les options directement sous la clé du module. Les noms d’options métier restent les mêmes. Les variables du thème conservent leur préfixe `signature-*`.
+Utiliser un seul module de présentation sur chaque carte. Une fois toutes les cartes migrées, supprimer l’ancien module `signature` dans Bubble Card Tools ou son fichier `/config/bubble_card/modules/signature.yaml`, puis recharger le frontend. Leur éditeur conserve les options directement sous la clé du module. Les noms d’options métier restent les mêmes. Les variables du thème conservent leur préfixe `signature-*`.
 
-Le module Header distingue automatiquement un bouton Nom et un séparateur. Il expose la couleur et le style des pilules du grand en-tête ; un séparateur conserve ses réglages natifs Bubble. Le thème fournit aussi `signature-header-font-size`, `signature-header-small-font-size`, `signature-title-font-size` et `signature-header-button-border-radius`. Ces quatre nouvelles variables concernent Signature Header ; elles ne modifient pas le rendu du module historique.
+Le module Header distingue automatiquement un bouton Nom et un séparateur. Il expose la couleur et le style des pilules du grand en-tête ; un séparateur conserve ses réglages natifs Bubble. Le thème fournit aussi `signature-header-font-size`, `signature-header-small-font-size`, `signature-title-font-size` et `signature-header-button-border-radius`. Ces quatre variables concernent Signature Header.

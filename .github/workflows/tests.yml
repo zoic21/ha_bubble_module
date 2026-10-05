@@ -60,6 +60,4 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Check computed styles
-        run: |
-          npm run test:styles
-          npm run test:styles:split
+        run: npm run test:styles

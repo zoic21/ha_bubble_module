@@ -6,8 +6,8 @@ const YAML = require('yaml');
 const {build, modules} = require('../../scripts/build-modules.cjs');
 const {root, readSource} = require('../../scripts/source-files.cjs');
 
-test('all ten modules have reproducible, autonomous distributions built from sources', async () => {
-  assert.deepEqual(modules(), ['alert_manager', 'signature', 'signature-compact', 'signature-flow', 'signature-header',
+test('all nine modules have reproducible, autonomous distributions built from sources', async () => {
+  assert.deepEqual(modules(), ['alert_manager', 'signature-compact', 'signature-flow', 'signature-header',
     'signature-navigation', 'signature-room', 'signature-square', 'signature-weather', 'signature-wind-rose']);
   for (const folder of modules()) {
     const first = await build(folder), second = await build(folder);
