@@ -18,7 +18,7 @@ function selected(css) {
 }
 
 test('distribution, native example and documentation are complete', () => {
-  assert.equal(definition.version, '1.0.7');
+  assert.equal(definition.version, '1.0.8');
   assert.deepEqual(definition.supported, ['sub-buttons']);
   assert.deepEqual(example.modules, ['signature_navigation']);
   assert.equal(example.card_type, 'sub-buttons');

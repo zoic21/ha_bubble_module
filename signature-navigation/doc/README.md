@@ -1,6 +1,6 @@
 # Signature Navigation
 
-Version **1.0.7**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+Version **1.0.8**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
 
 ## Installation
 
@@ -89,7 +89,7 @@ Popup content covers the bar where they overlap, and the backdrop covers the rem
 - Icons: 26 px. Active icon and keyboard focus use `primary-text-color`; inactive icons use `secondary-text-color`. With native neutral palettes, this gives an anthracite active icon in light mode and a near-white icon in dark mode.
 - Selection fill: 12% primary text in the inherited card surface, then 65% of that mix in transparent. It is visibly darker in light mode and lighter in dark mode while retaining translucency. The small shadow is `0 1px 2px rgb(0 0 0 / .025)`; the inset glass highlight is attenuated to 25%.
 
-The outer surface is intentionally different from a normal content card: a translucent fill, a single soft outer shadow and a 1 px directional rim. The rim is brightest at the top and right, fading at the bottom and left. A CSS mask keeps the gradients on the edge rather than across the whole surface. This technique was inspired by [Takagit's CSS explanation](https://zenn.dev/takagit/articles/css-liquid-glass-backdrop-filter?locale=en).
+The outer surface is intentionally different from a normal content card: a translucent fill, a single soft outer shadow and a 1 px directional rim. The rim is brightest at the top and right, fading at the bottom and left. Its reflection color mixes 90% of the inherited card surface with 10% white, keeping the rim and selection/hover highlights subdued on dark surfaces while preserving the light appearance on white surfaces. A CSS mask keeps the gradients on the edge rather than across the whole surface. This technique was inspired by [Takagit's CSS explanation](https://zenn.dev/takagit/articles/css-liquid-glass-backdrop-filter?locale=en).
 
 Theme variables remain in CSS so live theme changes update the same nodes. Reduced motion disables the short hover/selection transitions. The CSS approximates the glass appearance; it does not implement Apple's background refraction. No card-mod, extra frontend resource or runtime dependency is required.
 
@@ -103,6 +103,11 @@ npm run test:styles
 Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, 26 px icon bounds, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. They also check neutral selection/focus colors, translucency, a visible composed selection fill and stronger active-icon contrast in light and dark palettes, with and without the Signature theme, changing modes on the same nodes without rerendering. Popup/backdrop fixtures in independent shadow roots check real pointer clicks in mobile/desktop widths and light/dark modes: popup content and the backdrop receive clicks above the footer, and native navigation clicks work before opening and after removing the popup. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
 
 ## Changelog
+
+### 1.0.8 — 5 October 2026
+
+- Softened the outer glass rim and the selection/hover reflections in dark mode by keeping their shared reflection color close to the inherited card surface.
+- Reflection colors follow live theme changes in CSS, including without the Signature theme. Existing dashboards only need the imported module updated.
 
 ### 1.0.7 — 5 October 2026
 

@@ -21,7 +21,8 @@ ha-card {
   --signature-nav-margin: ${margin}px;
   --signature-nav-selection-radius: max(0px, calc(var(--signature-card-border-radius, 22px) - 6px));
   /* @include shared/src/styles/card-surface.css {"PROPERTY":"--signature-nav-surface"} */
-  --signature-nav-highlight: color-mix(in srgb, var(--signature-nav-surface) 30%, #fff);
+  /* Keep reflections close to the live surface: dark glass needs a soft rim. */
+  --signature-nav-highlight: color-mix(in srgb, var(--signature-nav-surface) 90%, #fff);
   --bubble-footer-box-shadow: none;
   background: transparent !important;
   border: none !important;
