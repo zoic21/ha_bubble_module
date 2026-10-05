@@ -48,6 +48,8 @@ if (visualSwitches && !structure.switchCSS) {
       transform: translateX(var(--dp-switch-offset));
       transition: transform 160ms ease, background 160ms ease; pointer-events: none;
     }
+    /* Keep the native 52x34 action target; feedback follows the 48x28 track. */
+    ${select(' > ha-ripple')} { inset: 3px 2px; border-radius: 14px; }
     @media (prefers-reduced-motion: reduce) {
       ${select('::before')}, ${select('::after')} { transition: none; }
     }

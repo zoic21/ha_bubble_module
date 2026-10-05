@@ -110,7 +110,7 @@ styles: |
 
 ## Modules de présentation autonomes
 
-Signature Compact 1.2.5, Square et Header 1.1.5 et Room 1.0.7 consomment les mêmes variables `signature-*`. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
+Signature Compact 1.2.6, Square et Header 1.1.6 et Room 1.0.8 consomment les mêmes variables `signature-*`. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
 
 Les caches de ces quatre présentations sont reconstruits lorsqu’une nouvelle version du module remplace leur runtime sur une carte existante. Les variables de thème restent dans le CSS : un changement de thème ou de mode n’impose aucune invalidation de cache.
 
@@ -129,7 +129,9 @@ Toutes les distributions Bubble sont désormais générées depuis leurs sources
 
 ## Numeric icons and soft backgrounds
 
-Compact 1.2.5, Square 1.1.5 and Header 1.1.5 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Icon squares and badges mix 16% of the numeric color into the live card surface, matching ordinary Signature icon styling and becoming dark with the theme. Icons carry the exact graph RGB accent; badge labels retain primary theme text. Contrast adaptation has been removed. Main values, card surfaces and alerts remain unchanged. Active thresholds override manual indicator colors, including `icon_color`. The same sRGB surface mix used by ordinary Square icons follows light/dark themes without style reads, observers or a special night-mode branch. No theme YAML update or dashboard migration is required.
+Compact 1.2.6, Square 1.1.6 and Header 1.1.6 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Icon squares and badges mix 16% of the numeric color into the live card surface, matching ordinary Signature icon styling and becoming dark with the theme. Icons carry the exact graph RGB accent; badge labels retain primary theme text. Contrast adaptation has been removed. Main values, card surfaces and alerts remain unchanged. Active thresholds override manual indicator colors, including `icon_color`. The same sRGB surface mix used by ordinary Square icons follows light/dark themes without style reads, observers or a special night-mode branch. No theme YAML update or dashboard migration is required.
+
+Compact 1.2.6, Square/Header 1.1.6 et Room 1.0.8 ancrent le survol natif sur les bords de la carte ; les interrupteurs Compact/Square gardent leur halo dans la piste visible. Les couleurs de survol continuent à hériter du thème Home Assistant, sans changement des variables YAML. Voir le [contrat de survol](../STYLE_GUIDE.md#survol-et-retour-natif-bubble).
 
 ## Named colors
 

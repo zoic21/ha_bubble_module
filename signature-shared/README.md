@@ -1,6 +1,6 @@
 # Sources communes des modules Signature
 
-Les modules autonomes **Compact 1.2.5** et **Square et Header 1.1.5**, **Room 1.0.7** partagent les helpers JavaScript, le pont d’éditeur et les règles CSS communes de `src`. Chaque module a sa propre définition et sa présentation dans `signature-*/src`. Les commandes numériques et l’habillage des lecteurs multimédias sont définis dans Compact ; la géométrie et le formatage des températures sont définis dans Room. La branche média retourne son CSS avant les transformations de tuiles et ne crée aucun runtime de tuile.
+Les modules autonomes **Compact 1.2.6** et **Square et Header 1.1.6**, **Room 1.0.8** partagent les helpers JavaScript, le pont d’éditeur et les règles CSS communes de `src`. Chaque module a sa propre définition et sa présentation dans `signature-*/src`. Les commandes numériques et l’habillage des lecteurs multimédias sont définis dans Compact ; la géométrie et le formatage des températures sont définis dans Room. La branche média retourne son CSS avant les transformations de tuiles et ne crée aucun runtime de tuile.
 
 Les définitions des champs communs sont dans [shared/src/editor-fields/presentation.yaml](../shared/src/editor-fields/presentation.yaml). Les sources des modules gardent les références `$field`, leur ordre et leurs propriétés locales, dont la visibilité. Le build développe ces références avant de générer les formulaires ; les distributions restent autonomes et leurs options inchangées.
 

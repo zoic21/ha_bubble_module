@@ -16,7 +16,13 @@ font-weight: var(--signature-font-weight-normal, 400);
 border: 0; box-shadow: none;
     }
     /* Scope the tint to the main icon: native sub-buttons share Bubble's fallback token. */
-    ha-card[data-dp-layout] .bubble-main-icon-container { --bubble-icon-background-color: var(--dp-icon-surface); border-radius: var(--bubble-icon-border-radius) !important; }
+    ha-card[data-dp-layout] .bubble-main-icon-container { --bubble-icon-background-color: var(--dp-icon-surface); border-radius: var(--bubble-icon-border-radius) !important; pointer-events: auto; }
+    /* Anchor native feedback explicitly: flex padding and grid placement move an
+       absolute background with automatic insets away from the card edges. */
+    ha-card[data-dp-layout] .bubble-background { inset: 0; width: auto; height: auto; }
+    /* Layout boxes are not controls. Values and the main icon opt back in, while
+       ordinary names and empty space reach Bubble's native card action/ripple. */
+    ha-card[data-dp-layout] .bubble-content-container { pointer-events: none; }
     ha-card[data-dp-layout] :is(.bubble-name,.bubble-state,.bubble-sub-button-name-container) { font-family: inherit; }
     /* Secondary color supplies attenuation; ordinary states stay fully opaque. */
     ha-card[data-dp-layout] .bubble-state { font-weight: var(--signature-font-weight-normal, 400); opacity: 1; }
