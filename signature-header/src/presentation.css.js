@@ -65,4 +65,4 @@ flex: 1 0 0 !important; min-width: max-content !important; max-width: 100%;
 justify-content: center !important;
 }
     }
-    `
+` + headerTextCSS

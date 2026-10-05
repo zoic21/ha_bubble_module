@@ -7,7 +7,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Square — square tiles | 1.1.6 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.2.6 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Room — room summaries and controls | 1.0.8 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
-| Signature Header — page headers and section titles | 1.1.10 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
+| Signature Header — page headers and section titles | 1.1.11 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.3.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
@@ -48,7 +48,7 @@ Square, Compact, Room and Header are separate, autonomous modules with French fo
 
 The optional Signature theme supplies common CSS appearance variables; each module owns its layout and controls. Shared JavaScript and CSS source files are assembled at build time, so no base module or runtime import is needed.
 
-Compact and Square support numeric `color_thresholds.values` on their main icons; all three modules also support existing sub-button badges, including Header section titles. Surfaces mix only 16% of the threshold color into the live theme surface, just like ordinary Signature icons. Icons match the graph's RGB accent without any contrast adaptation; badge labels keep theme text. See the [shared threshold guide](signature-shared/doc/COLOR_THRESHOLDS.md). Room, native controls and Alert Manager retain their behavior.
+Compact and Square support numeric `color_thresholds.values` on their main icons; all three modules also support existing sub-button badges, including Header section titles. Surfaces mix only 16% of the threshold color into the live theme surface, just like ordinary Signature icons. Icons match the graph's RGB accent without any contrast adaptation; badge labels keep theme text. Header also keeps theme text on every ordinary badge and button label, including slider values, while preserving their icon colors, fills and functional opacity. See the [shared threshold guide](signature-shared/doc/COLOR_THRESHOLDS.md). Room, native controls and Alert Manager retain their behavior.
 
 ## Source maintenance
 

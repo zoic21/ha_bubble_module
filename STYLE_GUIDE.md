@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.2.6**, **Square 1.1.6**, **Header 1.1.10**, **Room 1.0.8**, **Signature Flow 3.6.0**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.3.0** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.2.6**, **Square 1.1.6**, **Header 1.1.11**, **Room 1.0.8**, **Signature Flow 3.6.0**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.3.0** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.3.0 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.2.6**, **Square 1.1.6**, **Header 1.1.10** et **Room 1.0.8** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.2.6**, **Square 1.1.6**, **Header 1.1.11** et **Room 1.0.8** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -91,6 +91,8 @@ Les onglets de période restent en graisse normale dans les deux états. La sél
 ### Opacité et lisibilité
 
 Le texte secondaire ordinaire utilise `secondary-text-color` avec **`opacity: 1`**. Ne pas cumuler cette couleur avec l'opacité native de `.bubble-state` : Bubble Card 3.4.1 y applique `0.7`, ce qui atténue une seconde fois le texte. La correction concerne aussi cover, climate et media.
+
+Dans Header, tous les libellés de sous-boutons et les valeurs `.bubble-range-value` utilisent `primary-text-color`, y compris sans seuils, dans le grand en-tête comme dans les titres de section. La règle porte sur le texte enfant : conserver la couleur du parent pour les icônes et les fonds utilisant `currentColor`. Les styles manuels, templates et couleurs de seuils gardent leurs rôles d’accent ; aucune adaptation de contraste ou branche nuit supplémentaire.
 
 Conserver les opacités qui expriment un état fonctionnel : icône désactivée, indisponibilité, interrupteur ou option explicite de l'utilisateur. Une règle destinée au texte ne doit pas réactiver un élément masqué ni rendre une commande indisponible active.
 

@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.10**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.11**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -41,6 +41,8 @@ Sur mobile (fenêtre de 600 px ou moins), tous les sous-boutons restent à droit
 
 ## Couleurs du fond d’icône selon la valeur
 
+Tous les libellés des infos et commandes du grand en-tête et des titres de section, ainsi que les valeurs des sliders natifs, suivent `primary-text-color` en clair et sombre, avec ou sans seuils. Les couleurs manuelles et templates continuent à teinter les icônes et les fonds ; les fonds fondés sur `currentColor` gardent leur accent. Les masquages et opacités fonctionnelles sont conservés. Un changement de thème agit sur les mêmes nœuds en CSS, sans adaptation de contraste ni réexécution du module.
+
 Les sous-boutons du grand en-tête et des titres de section acceptent `color_thresholds` dans `sub_button_styles`. Le fond du badge utilise une teinte douce à 16 % dans la surface du thème ; l’icône porte l’accent du graphe. Le texte garde simplement la couleur du thème ; aucune gestion du contraste. Les seuils actifs remplacent `background`, `color` et `icon_color` de l’indicateur ; retirer les seuils restitue le style ordinaire. Voir le [guide commun et ses exemples](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 ## Options
@@ -67,6 +69,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.11 — 5 octobre 2026
+
+- Texte du thème pour toutes les infos et commandes des titres, même sans seuils, ainsi que pour les valeurs de sliders natifs.
+- Couleurs d’icônes, fonds utilisant `currentColor`, opacités, masquages, actions et disposition mobile de 1.1.10 conservés.
+- Régression Chromium en clair/sombre, avec/sans thème, mobile/bureau, grand en-tête/titre et changement de thème sans réexécution.
 
 ### 1.1.10 — 5 octobre 2026
 

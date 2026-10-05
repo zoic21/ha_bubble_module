@@ -1,3 +1,9 @@
+// Labels stay readable while their parent tint still colors icons and currentColor backgrounds.
+const headerTextCSS = `
+  ha-card .bubble-sub-button :is(.bubble-sub-button-name-container,.bubble-range-value) {
+    color: var(--primary-text-color,#212121) !important;
+  }
+`;
 if (c.card_type === 'separator') {
   return `
     .bubble-container {
@@ -37,5 +43,5 @@ if (c.card_type === 'separator') {
       margin-inline-start: auto !important;
       flex-shrink: 0;
     }
-  ` + styles.map(({cls,b,spec,thresholdScale}) => subThresholdCSS('ha-card .'+cls,b,spec,thresholdScale)).join('');
+  ` + styles.map(({cls,b,spec,thresholdScale}) => subThresholdCSS('ha-card .'+cls,b,spec,thresholdScale)).join('') + headerTextCSS;
 }
