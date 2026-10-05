@@ -1,5 +1,6 @@
 // Minimal native-shaped fixture, not a Home Assistant runtime or a Bubble Card build.
 // The native secondary-opacity rule intentionally reproduces the audited cascade.
+const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const YAML=require('yaml');
@@ -47,7 +48,7 @@ async function setup(page){
 async function render(page,scenario={}){
  const mode=scenario.mode||'light';
  const vars={...common,...nativeModes[mode],...scenario.nativePalette,...(scenario.plain?{}:{...theme,...theme.modes[mode]}),...scenario.overrides};delete vars.modes;
- return page.evaluate(async ({cases,modules,vars,scenario,base,button,sub,cover,climate,media,nativeControls})=>{
+ const result=await page.evaluate(async ({cases,modules,vars,scenario,base,button,sub,cover,climate,media,nativeControls})=>{
     window.contexts?.forEach(ctx=>ctx.teardown?.());window.contexts=[];
     const container=document.getElementById('cards');container.innerHTML='';
     document.body.style.cssText=Object.entries(vars).map(([k,v])=>'--'+k+':'+v).join(';');document.body.style.backgroundColor='var(--primary-background-color)';document.body.style.color='var(--primary-text-color)';document.body.style.fontFamily='var(--signature-font-family,Roboto,sans-serif)';
@@ -103,5 +104,7 @@ async function render(page,scenario={}){
      return {id:shell.dataset.id,styles,dividers,overflow,flowClasses:root.querySelector('.sf-canvas')?.className,svgWidth:root.querySelector('.swr-svg')?.getBoundingClientRect().width};
     })};
    },{cases,modules,vars,scenario:{width:328,...scenario},base,button:'',sub:'',cover:'',climate:'',media,nativeControls});
+ assert.deepEqual(result.errors,[],'Module errors in browser fixtures');
+ return result;
 }
 module.exports={setup,render,theme,nativeModes};

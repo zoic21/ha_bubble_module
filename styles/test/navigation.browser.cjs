@@ -1,8 +1,8 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {test, before, after} = require('node:test');
-const {chromium} = require('playwright');
+const {test} = require('node:test');
+const {fixture: browserFixture} = require('./browser.cjs');
 const YAML = require('yaml');
 const {theme, nativeModes} = require('./fixtures.cjs');
 const root = path.resolve(__dirname, '../..');
@@ -25,19 +25,8 @@ const native = `
   ha-ripple { display:block; position:absolute; inset:0; pointer-events:none; --ha-ripple-hover-opacity:.08; }
   .hidden,[hidden] { display:none!important; }
 `;
-let browser;
-before(async () => {
-  browser = await chromium.launch({headless:true,
-    ...(process.env.BUBBLE_STYLE_BROWSER_PATH ? {executablePath:process.env.BUBBLE_STYLE_BROWSER_PATH} : {}),
-    args:['--no-sandbox', '--disable-dev-shm-usage']});
-});
-after(async () => { await browser?.close(); });
-
 async function fixture(t, {width=1280, touch=false, mode='light', plain=false, options={}, sidebar=0}={}) {
-  const page = await browser.newPage({viewport:{width,height:240},hasTouch:touch});
-  const errors=[];
-  page.on('pageerror', error=>errors.push(error.message));
-  t.after(async()=>{await page.close();assert.deepEqual(errors,[]);});
+  const page = await browserFixture(t, {prepare:null,viewport:{width,height:240},hasTouch:touch});
   await page.route('http://navigation.test/**',route=>route.fulfill({contentType:'text/html',body:'<body style="margin:0"></body>'}));
   await page.goto('http://navigation.test/lovelace/summary-home');
   const vars={...nativeModes[mode],...(plain?{}:{...theme,...theme.modes[mode]}),

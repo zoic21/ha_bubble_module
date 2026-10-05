@@ -46,6 +46,8 @@ npm run test:styles
 
 `npm run build` est un alias du build complet. `build:signature` et `check:signature` restent disponibles pour les quatre présentations séparées. La CI régénère d'abord les distributions dans son checkout, puis vérifie leur correspondance aux sources et leurs comportements. Les tests de styles utilisent également les modules construits depuis les sources du commit testé, sans attendre le commit automatique. Les fixtures Chromium ne sont pas une exécution Home Assistant ou Safari/iOS.
 
+Les suites navigateur utilisent le même [socle de préparation et nettoyage](../styles/README.md), avec un contexte isolé par fixture. Les exceptions non gérées et les erreurs capturées au rendu font échouer le test dans toutes les suites. `test:styles:split` appelle la suite navigateur complète.
+
 ## Build automatique GitHub
 
 Le workflow [Build module distributions](../.github/workflows/build.yml) démarre après un push qui modifie un fichier `**/src/**`, un script de build, `package.json`, `package-lock.json` ou le workflow lui-même. Il fonctionne sur les branches du dépôt, y compris `main`, et peut aussi être lancé manuellement depuis l'onglet Actions.

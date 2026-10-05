@@ -1,15 +1,10 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {test,before,after} = require('node:test');
-const {chromium} = require('playwright');
+const {test} = require('node:test');
+const {fixture} = require('./browser.cjs');
 const YAML = require('yaml');
-const {setup,render} = require('./fixtures.cjs');
-let browser;
-before(async()=>{browser = await chromium.launch({headless:true,
-  ...(process.env.BUBBLE_STYLE_BROWSER_PATH ? {executablePath:process.env.BUBBLE_STYLE_BROWSER_PATH} : {}),
-  args:['--no-sandbox','--disable-dev-shm-usage']});});
-after(async()=>{await browser?.close();});
+const {render} = require('./fixtures.cjs');
 const codes = Object.fromEntries(['compact','square','header'].map(layout => [layout,
   YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-' + layout + '/dist/signature-' + layout + '.yaml'),'utf8'))['signature_' + layout].code]));
 const luminance = rgb => rgb.slice(0,3).map(channel=>{const v=channel/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
@@ -18,10 +13,9 @@ const expectedForeground = (preferred,background,minimum) => ratio(preferred,bac
   : ratio([0,0,0],background)>ratio([255,255,255],background)?[0,0,0,255]:[255,255,255,255];
 
 test('thresholds color icon squares and badges, preserve readable theme foregrounds and retain native geometry/actions',async t=>{
-  const page = await browser.newPage({viewport:{width:1400,height:1400}});
-  t.after(()=>page.close());await setup(page);
+  const page = await fixture(t);
   for (const mode of ['light','dark']) for (const plain of [false,true]) {
-    const rendered = await render(page,{mode,plain});assert.deepEqual(rendered.errors,[]);
+    await render(page,{mode,plain});
     const result = await page.evaluate(async codes=>{
       const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const drawing=canvas.getContext('2d',{willReadFrequently:true});
       const rgba=color=>{drawing.clearRect(0,0,1,1);drawing.fillStyle=color;drawing.fillRect(0,0,1,1);return [...drawing.getImageData(0,0,1,1).data];};
@@ -101,7 +95,7 @@ test('thresholds color icon squares and badges, preserve readable theme foregrou
 });
 
 test('contrast follows theme changes on the same nodes without rerender, including unusual and translucent theme colors',async t=>{
-  const page=await browser.newPage();t.after(()=>page.close());await setup(page);await render(page,{mode:'light'});
+  const page=await fixture(t,{viewport:{width:1280,height:720}});await render(page,{mode:'light'});
   const results=await page.evaluate(code=>{
     const root=document.querySelector('[data-id="compact"]').shadowRoot;
     const ctx=window.contexts.find(ctx=>ctx.card===root.querySelector('ha-card'));

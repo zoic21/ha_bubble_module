@@ -1,13 +1,10 @@
 const assert=require('node:assert/strict');
-const {test,before,after}=require('node:test');
-const {chromium}=require('playwright');
-const {setup,render}=require('./fixtures.cjs');
-let browser;
-before(async()=>{browser=await chromium.launch({headless:true,...(process.env.BUBBLE_STYLE_BROWSER_PATH?{executablePath:process.env.BUBBLE_STYLE_BROWSER_PATH}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});});
-after(async()=>{await browser?.close();});
+const {test}=require('node:test');
+const {fixture}=require('./browser.cjs');
+const {render}=require('./fixtures.cjs');
 test('standalone modules resolve live theme variables without a module execution',async t=>{
- const page=await browser.newPage({viewport:{width:1400,height:1400}});t.after(()=>page.close());await setup(page);
- const result=await render(page,{});assert.deepEqual(result.errors,[]);
+ const page=await fixture(t);
+ await render(page,{});
  const read=()=>page.evaluate(()=>Object.fromEntries(['compact','square','room','header','title','media'].map(id=>{
   const root=document.querySelector('[data-id="'+id+'"]').shadowRoot;
   const name=root.querySelector('.bubble-name'),box=root.querySelector('.bubble-container');

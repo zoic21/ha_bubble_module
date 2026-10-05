@@ -1,27 +1,8 @@
 const assert = require('node:assert/strict');
-const {test, before, after} = require('node:test');
-const {chromium} = require('playwright');
-const {setup, render, theme, nativeModes} = require('./fixtures.cjs');
-
-let browser;
-before(async () => {
-  browser = await chromium.launch({
-    headless: true,
-    ...(process.env.BUBBLE_STYLE_BROWSER_PATH ? {executablePath: process.env.BUBBLE_STYLE_BROWSER_PATH} : {}),
-    args: ['--no-sandbox', '--disable-dev-shm-usage']
-  });
-});
-after(async () => { await browser?.close(); });
-async function fixture(t, touch = false) {
-  const page = await browser.newPage({viewport: {width: 1400, height: 1400}, hasTouch: touch});
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  t.after(async () => { await page.close(); assert.deepEqual(errors, []); });
-  await setup(page);
-  return page;
-}
+const {test} = require('node:test');
+const {fixture} = require('./browser.cjs');
+const {render, theme, nativeModes} = require('./fixtures.cjs');
 const card = (result, id) => {
-  assert.deepEqual(result.errors, []);
   const found = result.cards.find(item => item.id === id);
   assert.ok(found, id);
   return found;
@@ -219,7 +200,7 @@ test('shared switch CSS preserves independent tracks, opacity, actions and live 
 
 test('light/dark surfaces agree across five widths and fine/coarse pointers', async t => {
   for (const touch of [false, true]) {
-    const page = await fixture(t, touch);
+    const page = await fixture(t, {hasTouch: touch});
     for (const mode of ['light', 'dark']) for (const width of [288, 328, 358, 382, 600]) {
       const result = await render(page, {mode, width});
       const reference = style(result, 'compact', '.bubble-container');

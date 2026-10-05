@@ -228,6 +228,8 @@ npm run test:styles
 
 Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les palettes de l'hôte sont des fixtures indépendantes du thème ; elles vérifient l'héritage et les changements de mode, sans figer les couleurs d'une version Home Assistant. Les contrôles couvrent aussi les titres transparents avec des surfaces Bubble globales et une surface extérieure en ligne. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
 
+Utiliser le [socle navigateur commun](styles/README.md) de `styles/test/browser.cjs` : lancement de Chromium, contexte isolé par fixture, contrôle des exceptions de toutes ses pages et nettoyage des cartes avant fermeture. Le rendu commun vérifie aussi les erreurs synchrones capturées pendant l’exécution des modules, même lorsqu’il sert seulement à préparer le test. Conserver les options de contexte et les fixtures propres aux rôles, notamment le footer de Navigation.
+
 | Dimension à contrôler | Cas requis |
 |---|---|
 | Largeur de carte | 288, 328, 358, 382 et 600 px |

@@ -1,19 +1,13 @@
 const assert=require('node:assert/strict');
-const {test,before,after}=require('node:test');
+const {test}=require('node:test');
 const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
-const {chromium}=require('playwright');
-const {setup,render}=require('./fixtures.cjs');
+const {fixture: browserFixture}=require('./browser.cjs');
+const {render}=require('./fixtures.cjs');
 const {readSource}=require('../../scripts/source-files.cjs');
 const names=['signature-compact','signature-flow','signature-wind-rose','alert_manager'];
 const codes=Object.fromEntries(names.map(name=>[name,Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0].code]));
-let browser;
-before(async()=>{browser=await chromium.launch({headless:true,...(process.env.BUBBLE_STYLE_BROWSER_PATH?{executablePath:process.env.BUBBLE_STYLE_BROWSER_PATH}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});});
-after(async()=>{await browser?.close();});
 async function fixture(t){
-  const page=await browser.newPage({viewport:{width:1400,height:1400}}),errors=[];
-  page.on('pageerror',error=>errors.push(error.message));
-  t.after(async()=>{await page.close();assert.deepEqual(errors,[]);});
-  await setup(page);await render(page,{mode:'dark',plain:true,width:600});
+  const page=await browserFixture(t);await render(page,{mode:'dark',plain:true,width:600});
   await page.evaluate(codes=>{
     window.auditContext=id=>window.contexts.find(ctx=>ctx.card.getRootNode().host.dataset.id===id);
     window.auditRun=(ctx,name)=>{

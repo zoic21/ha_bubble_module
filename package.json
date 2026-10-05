@@ -17,7 +17,7 @@
     "build:signature": "node scripts/build-signature.cjs",
     "check:signature": "node scripts/build-signature.cjs --check",
     "test:signature-split": "node --test signature-shared/test/*.test.cjs",
-    "test:styles:split": "node --test styles/test/coherence.browser.cjs"
+    "test:styles:split": "npm run test:styles"
   },
   "engines": {
     "node": ">=22"
