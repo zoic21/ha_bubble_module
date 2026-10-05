@@ -4,7 +4,7 @@ Module distributions are minified during the repository build. Theme variables r
 
 The eight Signature modules also assemble their common CSS declarations from [shared style fragments](../shared/src/styles/README.md). Theme values and CSS rules therefore have common sources, while module layouts remain independent. Every distribution embeds its applicable fragments and requires no extra stylesheet.
 
-The optional [signature.yaml](signature.yaml) theme provides light and dark modes for Home Assistant, native Bubble cards, and the Signature modules. It keeps Home Assistant's native colors, page backgrounds and card surfaces, while adding system fonts, 22 px card corners and subtle card shadows. The modules derive their borders and control tracks from those inherited colors. No card-mod, font download or extra JavaScript is required.
+The optional [signature.yaml](signature.yaml) theme provides light and dark modes for Home Assistant, native Bubble cards, and the Signature modules. It keeps Home Assistant's native palette, page backgrounds and card surfaces, while adding system fonts, 22 px card corners, a shared subtle 1 px border and card shadows. The border and control tracks derive from the inherited text color. No card-mod, font download or extra JavaScript is required.
 
 ## Installation
 
@@ -31,6 +31,8 @@ The theme can be used on its own. Older modules retain their hard-coded styles u
 ## Global variables and module variables
 
 Home Assistant variables such as `ha-card-border-radius` and `ha-font-family-body` affect compatible native components while this theme is active. The theme inherits native color variables such as `primary-text-color` instead of replacing them. Its `bubble-*` variables adjust corners only; it sets no global Bubble background, border or shadow that could turn a separator into a pill. Cover and media-player buttons explicitly use `signature-control-border-radius` (14 px by default), rather than falling back to the 22 px card radius.
+
+Compatible `ha-card` frames use `ha-card-border-color: var(--signature-card-border-color)` and `ha-card-border-width: 1px`, alongside the existing shared radius and shadow. In Statistics Graph Chart Card, use `card_border: true` (or omit the default-on option); `card_border: false` explicitly removes the border and takes precedence over the theme. Leave custom border color and width unset to inherit the theme. Existing explicit card backgrounds, radii and shadows remain valid overrides. Reload the theme and import the updated dashboards; no module reimport is needed for this theme-only change.
 
 The `signature-*` prefix is a namespace, not a CSS scope. These custom properties are inherited like other theme properties, but only modules that reference them use their values. You can define them in any other theme or in a card's `styles`. Do not include the leading `--` in Home Assistant theme YAML; include it in CSS.
 

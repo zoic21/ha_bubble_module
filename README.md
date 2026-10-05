@@ -70,7 +70,7 @@ Signature Navigation styles a native `sub-buttons` footer with a directional gla
 
 ## Signature theme
 
-The optional [Signature theme](themes/README.md) provides light and dark modes for Home Assistant and shared CSS variables for the Signature modules and Alert Manager. Download [signature.yaml](themes/signature.yaml) and follow the installation guide. No card-mod or additional JavaScript is required.
+The optional [Signature theme](themes/README.md) provides light and dark modes for Home Assistant and shared CSS variables for the Signature modules and Alert Manager. Compatible native cards share the same 1 px border, radius and shadow; Statistics Graph Chart Card must keep `card_border: true` to show that border. Download [signature.yaml](themes/signature.yaml) and follow the installation guide. No card-mod or additional JavaScript is required.
 
 ## Technical style rules
 

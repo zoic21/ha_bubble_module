@@ -211,6 +211,48 @@ test('light/dark surfaces agree across five widths and fine/coarse pointers', as
   }
 });
 
+test('native graph frames follow Signature borders and live theme changes', async t => {
+  const page = await fixture(t);
+  await render(page, {mode: 'light'});
+  const result = await page.evaluate(({theme, nativeModes}) => {
+    // Native HA ha-card frame; Statistics Graph only removes it for card_border: false.
+    const sheet = document.createElement('style');
+    sheet.textContent = '#native-graph-frame{background:var(--ha-card-background,var(--card-background-color,white));box-shadow:var(--ha-card-box-shadow,none);border-radius:var(--ha-card-border-radius,12px);border-width:var(--ha-card-border-width,1px);border-style:solid;border-color:var(--ha-card-border-color,var(--divider-color,#e0e0e0))}';
+    document.head.append(sheet);
+    const graph = document.createElement('ha-card');
+    graph.id = 'native-graph-frame';
+    document.body.append(graph);
+    const compact = window.contexts[0].card.querySelector('.bubble-container');
+    const properties = ['backgroundColor','borderRadius','borderTopWidth','borderTopColor','boxShadow'];
+    const read = node => {
+      const computed = getComputedStyle(node);
+      return Object.fromEntries(properties.map(key => [key, computed[key]]));
+    };
+    const snapshots = [];
+    for (const mode of ['light','dark','light']) {
+      for (const [key,value] of Object.entries({...nativeModes[mode],...theme.modes[mode]}))
+        document.body.style.setProperty('--'+key,value);
+      snapshots.push({graph:read(graph),compact:read(compact)});
+    }
+    document.body.style.setProperty('--signature-card-border-color','#445566');
+    document.body.style.setProperty('--signature-card-box-shadow','none');
+    snapshots.push({graph:read(graph),compact:read(compact)});
+    graph.style.border = 'none';
+    const disabled = read(graph);
+    return {snapshots,disabled,sameNodes:window.contexts[0].card.querySelector('.bubble-container')===compact};
+  }, {theme,nativeModes});
+  for (const snapshot of result.snapshots) {
+    assert.deepEqual(snapshot.graph,snapshot.compact);
+    assert.equal(snapshot.graph.borderTopWidth,'1px');
+  }
+  assert.notEqual(result.snapshots[0].graph.borderTopColor,result.snapshots[1].graph.borderTopColor);
+  assert.deepEqual(result.snapshots[0],result.snapshots[2]);
+  assert.equal(result.snapshots[3].graph.borderTopColor,'rgb(68, 85, 102)');
+  assert.equal(result.snapshots[3].graph.boxShadow,'none');
+  assert.equal(result.disabled.borderTopWidth,'0px');
+  assert.ok(result.sameNodes);
+});
+
 test('without Signature theme the same HA surface, border and shadow fallbacks apply', async t => {
   const page = await fixture(t);
   for (const overrides of [

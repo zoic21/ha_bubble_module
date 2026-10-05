@@ -28,10 +28,13 @@ test('both theme modes have complete, non-circular CSS variable references', () 
   }
 });
 
-test('the theme preserves native colors and does not add global Bubble borders or shadows', () => {
+test('the theme preserves the native palette and only maps the HA card border color', () => {
+  assert.equal(theme['ha-card-border-color'], 'var(--signature-card-border-color)');
+  assert.equal(theme['ha-card-border-width'], '1px');
   for (const variables of [theme, ...Object.values(theme.modes)]) {
     for (const key of Object.keys(variables)) {
       if (key.startsWith('signature-')) continue;
+      if (key === 'ha-card-border-color') continue;
       assert.doesNotMatch(key, /(?:^|-)(?:color|background)(?:-|$)/, key);
       assert.ok(!['bubble-border', 'bubble-box-shadow'].includes(key), key);
     }

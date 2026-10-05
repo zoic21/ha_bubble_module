@@ -39,7 +39,7 @@ Signature:
   signature-weather-warm-color: "#e9ac70"
   signature-wind-rose-color: "#4db6ac"
 
-  # Native Home Assistant typography and card shape; colors stay native.
+  # Native Home Assistant typography and card frame; palette stays native.
   ha-font-family-body: "var(--signature-font-family)"
   ha-font-family-heading: "var(--signature-font-family)"
   ha-font-family-longform: "var(--signature-font-family)"
@@ -51,6 +51,8 @@ Signature:
   mdc-typography-font-family: "var(--signature-font-family)"
   ha-card-header-font-family: "var(--signature-font-family)"
   ha-card-border-radius: "var(--signature-card-border-radius)"
+  ha-card-border-color: "var(--signature-card-border-color)"
+  ha-card-border-width: 1px
   ha-card-box-shadow: "var(--signature-card-box-shadow)"
 
   # Bubble shapes only. Keep native backgrounds, borders and separator shadows.
@@ -69,4 +71,3 @@ Signature:
     dark:
       signature-card-box-shadow: "0 2px 10px rgba(0, 0, 0, 0.20)"
       signature-control-box-shadow: "0 1px 4px rgba(0, 0, 0, 0.25)"
-
