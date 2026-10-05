@@ -1,5 +1,5 @@
 name: Signature Header
-version: 1.1.2
+version: 1.1.3
 creator: Loïc
 supported:
   - button
@@ -18,4 +18,4 @@ editor:
       sub_button_styles:
         $field: sub_button_styles
         visible_if: (!card || card.card_type === 'separator' || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
-        description: Objet YAML indexé par css_class ou numéro ; color_thresholds colore seulement l’icône, icon_color reste prioritaire. Les titres de section prennent en charge ces couleurs d’icône.
+        description: Objet YAML indexé par css_class ou numéro ; color_thresholds colore le fond du badge et protège le contraste de l’icône. Disponible aussi dans les titres de section.

@@ -21,27 +21,29 @@ function fixture(t,layout,options={},native={}) {
   t.after(() => ctx.teardown?.());
   return {ctx,hass,run};
 }
-test('main icon colors follow live numeric states without tinting values or surfaces',t => {
+test('main icon surfaces follow live numeric states without tinting values or card surfaces',t => {
   for (const layout of ['compact','square']) {
     const f = fixture(t,layout,{color_thresholds:scale});
     const config = JSON.stringify(f.ctx.config);
-    assert.match(f.run(),/\.bubble-main-icon\s*\{\s*color:rgb\(55,163,162\)\s*!important/);
+    assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:rgb\(55,163,162\)\s*!important/);
     const runtime = f.ctx['_signature' + layout[0].toUpperCase() + layout.slice(1) + 'Structure'];
     const cached = runtime.thresholdScale;
     f.hass.states['sensor.temperature'].state = '26';
     const css = f.run();
-    assert.match(css,/\.bubble-main-icon\s*\{\s*color:rgb\(166,164,40\)\s*!important/);
+    assert.match(css,/\.bubble-main-icon-container\s*\{[^}]*background:rgb\(166,164,40\)\s*!important/);
+    assert.match(css,/color:color\(from rgb\(from var\(--primary-text-color,#212121\)/);
     assert.equal(runtime.thresholdScale,cached);
     assert.doesNotMatch(css,/\.bubble-state\s*\{[^}]*rgb\(166,164,40\)/);
     assert.doesNotMatch(css,/--dp-accent:\s*rgb\(166,164,40\)/);
     assert.equal(JSON.stringify(f.ctx.config),config);
   }
 });
-test('manual colors, absent/disabled scales and native thermostat activity retain priority',t => {
+test('manual foregrounds retain contrast protection without blocking scales; disabled scales and thermostat activity remain native',t => {
   for (const layout of ['compact','square']) {
     const manual = fixture(t,layout,{color_thresholds:scale,icon_color:'#abcdef'});
     assert.match(manual.run(),/\.bubble-main-icon\s*\{\s*color:\s*#abcdef\s*!important/);
-    assert.doesNotMatch(manual.run(),/rgb\(55,163,162\)/);
+    assert.match(manual.run(),/background:rgb\(55,163,162\)/);
+    assert.match(manual.run(),/color:color\(from rgb\(from #abcdef/);
     const disabled = fixture(t,layout,{color_thresholds:{...scale,enabled:false}});
     assert.doesNotMatch(disabled.run(),/rgb\(55,163,162\)/);
   }
@@ -64,30 +66,33 @@ test('missing, unavailable and invalid data use neutral color; optional sources 
   for (const state of ['unknown','unavailable','']) {
     states['sensor.humidity'].state = state;
     if (state === '') delete states['sensor.humidity'].attributes.temperature;
-    assert.match(f.run(),/\.bubble-main-icon\s*\{\s*color:var\(--secondary-text-color\)/);
+    assert.match(f.run(),/background:color-mix\(in srgb,var\(--secondary-text-color\) 16%/);
+    assert.match(f.run(),/\.bubble-main-icon\s*\{\s*color:var\(--primary-text-color,#212121\)/);
   }
   delete states['sensor.humidity'];
-  assert.match(f.run(),/\.bubble-main-icon\s*\{\s*color:var\(--secondary-text-color\)/);
+  assert.match(f.run(),/background:color-mix\(in srgb,var\(--secondary-text-color\) 16%/);
 });
-test('sub-button thresholds target only icons in Compact, Square, headers and separators',t => {
+test('sub-button thresholds color badge surfaces in Compact, Square, headers and separators',t => {
   for (const [layout,card_type] of [['compact','button'],['square','button'],['header','button'],['header','separator']]) {
     const f = fixture(t,layout,{sub_button_styles:{temperature:{color_thresholds:scale},'2':{color_thresholds:scale}}},
       {card_type,sub_button:{main:[{group:[{entity:'sensor.temperature',css_class:'temperature'},
         {entity:'sensor.humidity',css_class:'humidity'}]}]}});
     const css = f.run();
-    assert.match(css,/ha-card \.temperature \.bubble-sub-button-icon\s*\{\s*color:rgb\(55,163,162\)/);
-    assert.match(css,/ha-card \.bubble-sub-button-2 \.bubble-sub-button-icon\s*\{\s*color:rgb\(166,164,40\)/);
-    assert.doesNotMatch(css,/ha-card \.temperature\s*\{[^}]*rgb\(55,163,162\)/);
+    assert.match(css,/ha-card \.temperature\.bubble-sub-button\s*\{\s*background:rgb\(55,163,162\)/);
+    assert.match(css,/ha-card \.bubble-sub-button-2\.bubble-sub-button\s*\{\s*background:rgb\(166,164,40\)/);
+    assert.match(css,/color:color\(from rgb\(from var\(--primary-text-color,#212121\)/);
     f.ctx.config['signature_' + layout] = {};
     assert.doesNotMatch(f.run(),/rgb\(55,163,162\)|rgb\(166,164,40\)/);
   }
 });
-test('sub-button manual overrides and visual switches do not inherit numeric threshold colors',t => {
+test('sub-button manual backgrounds and tints do not mask scales; visual switches keep their own track',t => {
   const f = fixture(t,'compact',{sub_button_styles:{temperature:{color:'#abcdef',color_thresholds:scale}}},
     {sub_button:[{entity:'sensor.temperature',css_class:'temperature'}]});
-  assert.doesNotMatch(f.run(),/rgb\(55,163,162\)/);
+  assert.match(f.run(),/background:rgb\(55,163,162\)/);
   f.ctx.config.signature_compact = {sub_button_styles:{temperature:{color:'#abcdef',icon_color:'#123456',color_thresholds:scale}}};
-  assert.match(f.run(),/\.temperature \.bubble-sub-button-icon\s*\{\s*color:#123456/);
+  assert.match(f.run(),/color:color\(from rgb\(from #123456/);
+  f.ctx.config.signature_compact = {sub_button_styles:{temperature:{background:'#f00',color_thresholds:scale}}};
+  assert.match(f.run(),/background:rgb\(55,163,162\)/);
   const toggle = fixture(t,'compact',{sub_button_styles:{toggle:{type:'switch',color_thresholds:scale}}},
     {sub_button:[{entity:'switch.demo',css_class:'toggle',tap_action:{action:'toggle'}}]});
   toggle.hass.states['switch.demo'] = {state:'on',attributes:{}};
@@ -96,7 +101,7 @@ test('sub-button manual overrides and visual switches do not inherit numeric thr
 test('configuration changes replace cached scales and editor visibility follows supported targets',t => {
   const f = fixture(t,'square',{color_thresholds:scale});f.run();
   f.ctx.config.signature_square.color_thresholds = {values:[{value:0,color:'#f00'}]};
-  assert.match(f.run(),/\.bubble-main-icon\s*\{\s*color:#f00/);
+  assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:#f00/);
   for (const layout of ['compact','square']) {
     const field = definitions[layout].editor[1].fields.color_thresholds;
     assert.deepEqual(JSON.parse(JSON.stringify(field.selector)),{object:{}});

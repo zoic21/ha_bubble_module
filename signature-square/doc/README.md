@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.1.2**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.1.3**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -34,9 +34,9 @@ Les valeurs conservent le format numérique Home Assistant et leur unité. `stat
 
 Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button_styles` est un objet indexé par classe CSS ou numéro natif. Les switches visuels sont disponibles en square/compact, avec des actions toggle compatibles ou des actions lock/unlock explicites ; ils ne créent pas de commande supplémentaire.
 
-## Couleurs d’icône selon la valeur
+## Couleurs du fond d’icône selon la valeur
 
-`color_thresholds.values` colore l’icône principale selon l’état numérique brut de son entité, avec la même interpolation RGB que Statistics Graph Chart Card. Chaque sous-bouton peut aussi avoir ses seuils dans `sub_button_styles`. Fonction activée uniquement par configuration ; `icon_color` explicite reste prioritaire. Voir le [guide commun, les couleurs acceptées et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
+`color_thresholds.values` colore le fond du carré de l’icône principale selon l’état numérique brut de son entité, avec la même interpolation RGB que Statistics Graph Chart Card. Chaque sous-bouton peut aussi colorer son badge via `sub_button_styles`. L’icône suit `primary-text-color` du thème et n’est adaptée que si son contraste est insuffisant. Une couleur `icon_color` explicite reste une préférence, elle aussi protégée ; elle ne désactive pas le fond numérique. Voir le [guide commun, les couleurs acceptées et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 ## Options
 
@@ -52,8 +52,8 @@ Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button
 | `auto_height` | `false` | Adapter la hauteur au contenu |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
-| `icon_color` | Aucun | Couleur personnalisée de l’icône, prioritaire sur les seuils |
-| `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône principale des cartes bouton. |
+| `icon_color` | Aucun | Couleur préférée de l’icône ; contraste protégé sur un fond à seuils |
+| `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Fond du carré de l’icône principale des cartes bouton. |
 | `icon_opacity` | Comportement natif / aucun | Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets. |
 | `border_color` | Aucun | Couleur de la bordure de la carte |
 | `icon_border_color` | Aucun | Couleur de la bordure du fond de l’icône |
@@ -75,6 +75,8 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+- **1.1.3** : Correction des seuils : fond du carré/badge, et non couleur de l’icône. Couleur du thème conservée si lisible, adaptation de contraste en CSS sans lecture de styles ni observateur ; mêmes seuils YAML et couleurs de graphes.
 
 ### 1.1.2 — 5 octobre 2026
 

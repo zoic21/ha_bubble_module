@@ -86,13 +86,13 @@ icon_color:
   group: Apparence avancée
   group_icon: mdi:palette-outline
 color_thresholds:
-  label: Seuils de couleur de l’icône (objet YAML)
+  label: Seuils de couleur du fond de l’icône (objet YAML)
   default: {}
   selector:
     object: {}
   group: Couleurs selon la valeur
   group_icon: mdi:palette-outline
-  description: "values : liste value/color en #RGB, #RRGGBB ou rgb(r,g,b). Transition smooth par défaut ; enabled: false désactive. icon_color reste prioritaire."
+  description: "values : liste value/color en #RGB, #RRGGBB ou rgb(r,g,b). Fond du carré ; icône du thème avec protection de contraste. Transition smooth par défaut ; enabled: false désactive."
 icon_opacity:
   label: Opacité de l’icône (nombre ou template YAML)
   default: null

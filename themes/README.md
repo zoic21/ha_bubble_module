@@ -125,9 +125,9 @@ Ces quatre variables sont utilisées par Signature Header, sans modifier les aut
 
 Toutes les distributions Bubble sont désormais générées depuis leurs sources et les [fonctions communes](../shared/README.md). Le thème reste un fichier YAML directement modifiable ; ses variables CSS sont conservées dans le code généré et résolues à l’exécution par le navigateur.
 
-## Numeric icon colors
+## Numeric icon backgrounds
 
-Compact 1.2.0, Square 1.1.0 and Header 1.1.0 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Explicit opaque RGB/hex colors are interpolated independently of the theme to match graph colors. Only icons change; text, surfaces and alert badges keep their own roles. Unavailable sources use the live `--secondary-text-color` token. Existing manual CSS/Jinja colors remain available and take priority; threshold points do not read theme variables in JavaScript.
+Compact 1.2.3, Square 1.1.3 and Header 1.1.3 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Explicit opaque RGB/hex colors color the main icon square or existing sub-button badge, matching the graph scale. The foreground prefers live `--primary-text-color`; CSS keeps it when contrast is sufficient, otherwise selects readable black/white. Badge text shares the contrast-protected foreground, while main values, card surfaces and alert badges retain their roles. Unknown sources get a neutral background. Relative colors follow theme changes without JavaScript style reads or observers; older CSS engines get a readable black/white fallback. Explicit `icon_color` is a preferred foreground, not a scale override. No theme YAML update or dashboard migration is required.
 
 ## Named colors
 

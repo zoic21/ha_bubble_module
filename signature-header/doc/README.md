@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.2**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.3**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -35,11 +35,11 @@ modules:
 
 Un `button` avec `button_type: name` donne un grand en-tête et des pilules. Un `separator` donne un titre de section de 32 px de haut, transparent et sans trait. Les autres types de carte ne sont pas habillés. Une configuration incompatible ne reçoit aucun style de ce module.
 
-Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_styles` permet maintenant d’appliquer des seuils ou `icon_color` à leurs icônes. Les autres options continuent à concerner le grand en-tête. Les pilules passent sous le titre selon la largeur. `sub_button_styles` accepte une classe CSS ou un numéro natif, avec `color`, `background`, `opacity` et `icon`, dont les valeurs peuvent utiliser Jinja.
+Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_styles` permet d’appliquer des seuils aux fonds des badges et une préférence `icon_color` à leurs icônes. Les autres options continuent à concerner le grand en-tête. Les pilules passent sous le titre selon la largeur. `sub_button_styles` accepte une classe CSS ou un numéro natif, avec `color`, `background`, `opacity` et `icon`, dont les valeurs peuvent utiliser Jinja.
 
-## Couleurs d’icône selon la valeur
+## Couleurs du fond d’icône selon la valeur
 
-Les sous-boutons du grand en-tête et des titres de section acceptent `color_thresholds` dans `sub_button_styles`. Seule l’icône suit l’échelle ; les valeurs et les fonds restent indépendants. `icon_color` explicite et `color` manuel gardent la priorité. Voir le [guide commun et ses exemples](../../signature-shared/doc/COLOR_THRESHOLDS.md).
+Les sous-boutons du grand en-tête et des titres de section acceptent `color_thresholds` dans `sub_button_styles`. Le fond du badge suit l’échelle ; icône et libellé gardent la couleur du thème tant que le contraste suffit. Un `icon_color` explicite reste une préférence protégée, sans bloquer le fond numérique. Les seuils actifs remplacent les fonds et teintes manuels du badge ; retirer les seuils restitue le style ordinaire. Voir le [guide commun et ses exemples](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 ## Options
 
@@ -65,6 +65,8 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+- **1.1.3** : Correction des seuils : fond du carré/badge, et non couleur de l’icône. Couleur du thème conservée si lisible, adaptation de contraste en CSS sans lecture de styles ni observateur ; mêmes seuils YAML et couleurs de graphes.
 
 ### 1.1.2 — 5 octobre 2026
 
