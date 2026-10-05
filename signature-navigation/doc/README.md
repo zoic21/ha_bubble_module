@@ -1,6 +1,6 @@
 # Signature Navigation
 
-Version **1.0.1**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+Version **1.0.2**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
 
 ## Installation
 
@@ -80,7 +80,8 @@ No `css_class`, fixed route list or entity is required. Selection uses Bubble's 
 - Outer radius: `signature-card-border-radius`, with a 22 px fallback.
 - Inner radius: outer radius minus the uniform 6 px inset, bounded at zero: **16 px by default**. The selection fills its route cell instead of using a fixed 44 px square. The first and last selections follow the bar's curve without the uneven horizontal/vertical inset of the earlier card CSS.
 - Selection, hover, keyboard focus and click ripple share that inner radius and route-cell dimensions. Ripple hover is disabled to prevent a second background; click feedback remains native.
-- Active icon: `blue-color`, falling back to `#2196f3`; inactive icons use `secondary-text-color`.
+- Active icon and keyboard focus: `primary-text-color`; inactive icons use `secondary-text-color`. With native neutral palettes, this gives an anthracite active icon in light mode and a near-white icon in dark mode.
+- Selection fill: 5% primary text in the inherited card surface, then 65% of that mix in transparent. It is slightly darker in light mode and slightly lighter in dark mode. The small shadow is `0 1px 2px rgb(0 0 0 / .025)`; the inset glass highlight is attenuated to 25%.
 
 The outer surface is intentionally different from a normal content card: a translucent fill, a single soft outer shadow and a 1 px directional rim. The rim is brightest at the top and right, fading at the bottom and left. A CSS mask keeps the gradients on the edge rather than across the whole surface. This technique was inspired by [Takagit's CSS explanation](https://zenn.dev/takagit/articles/css-liquid-glass-backdrop-filter?locale=en).
 
@@ -93,9 +94,15 @@ npm run test:signature-navigation
 npm run test:styles
 ```
 
-Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
+Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. They also check neutral selection/focus colors, translucency and stronger active-icon contrast in light and dark palettes, with and without the Signature theme, changing modes on the same nodes without rerendering. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
 
 ## Changelog
+
+### 1.0.2
+
+- Replaced the blue active icon with the theme's primary text color, including keyboard focus.
+- Added a subtly tinted translucent selection that adapts to light and dark palettes and reduced its shadow and inset highlight.
+- Preserved the 64 px height, native routes, glass surface and derived corners. Updating the imported module is sufficient for existing dashboards.
 
 ### 1.0.1
 

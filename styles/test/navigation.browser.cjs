@@ -74,7 +74,7 @@ async function computed(page) {
       const s=getComputedStyle(el,pseudo),r=el.getBoundingClientRect();
       return {x:r.x,y:r.y,width:parseFloat(s.width),height:parseFloat(s.height),radius:s.borderRadius,
         background:s.backgroundColor,color:s.color,shadow:s.boxShadow,border:s.borderTopWidth,
-        filter:s.backdropFilter,outline:s.outlineStyle,outlineWidth:s.outlineWidth,transition:s.transitionDuration,
+        filter:s.backdropFilter,outline:s.outlineStyle,outlineWidth:s.outlineWidth,outlineColor:s.outlineColor,transition:s.transitionDuration,
         hover:s.getPropertyValue('--ha-ripple-hover-opacity').trim(),mask:s.maskComposite,display:s.display};
     };
     const first=q('.bubble-sub-button-1');
@@ -97,15 +97,15 @@ test('navigation has concentric first/last selections and one glass surface',asy
   assert.equal(s.ripple.width,s.selection.width);assert.equal(s.ripple.height,52);assert.equal(s.ripple.radius,'16px');
   assert.equal(s.card.border,'0px');assert.equal(s.bar.border,'0px');assert.equal(s.bar.shadow,'none');
   assert.equal(s.oldLayer.display,'none');assert.equal(s.rim.mask,'exclude, exclude');
-  assert.equal(s.first.color,'rgb(33, 150, 243)');assert.equal(s.ripple.hover,'0');
+  assert.equal(s.first.color,'rgb(33, 33, 33)');assert.equal(s.ripple.hover,'0');
   await page.evaluate(()=>{history.pushState({},'','/dashboard-serveur/devices');window.nav.render();});
-  await page.waitForFunction(()=>getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-6')).color==='rgb(33, 150, 243)');
+  await page.waitForFunction(()=>getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-6')).color==='rgb(33, 33, 33)');
   const end=await page.evaluate(()=>{
     const bar=window.nav.shadow.querySelector('.bubble-container').getBoundingClientRect();
     const button=window.nav.shadow.querySelector('.bubble-sub-button-6'),rect=button.getBoundingClientRect();
     return {gap:bar.right-rect.right,color:getComputedStyle(button).color,radius:getComputedStyle(button,'::before').borderRadius};
   });
-  assert.ok(Math.abs(end.gap-6)<.01);assert.equal(end.radius,'16px');assert.equal(end.color,'rgb(33, 150, 243)');
+  assert.ok(Math.abs(end.gap-6)<.01);assert.equal(end.radius,'16px');assert.equal(end.color,'rgb(33, 33, 33)');
   await page.evaluate(()=>window.nav.shadow.querySelector('.bubble-sub-button-3').click());
   assert.deepEqual(await page.evaluate(()=>window.nativeClicks),['/dashboard-rdc/summary']);
 });
@@ -143,10 +143,12 @@ test('navigation theme fallbacks and concentric radius update on existing nodes'
       document.body.style.setProperty('--secondary-text-color','#9b9b9b');
       document.body.style.setProperty('--signature-card-border-radius','4px');
     });
-    await page.waitForFunction(()=>getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-2')).color==='rgb(155, 155, 155)');
+    await page.waitForFunction(()=>getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-2')).color==='rgb(155, 155, 155)'
+      &&getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-1')).color==='rgb(225, 225, 225)');
     const dark=await computed(page);
     assert.equal(dark.bar.radius,'4px');assert.equal(dark.selection.radius,'0px');
     assert.notEqual(dark.bar.background,light.bar.background);
+    assert.equal(dark.first.color,'rgb(225, 225, 225)');
     assert.equal(dark.secondButton.color,'rgb(155, 155, 155)');
   }
 });
@@ -158,7 +160,7 @@ test('navigation hover, keyboard focus, reduced motion and custom zero options s
   assert.match(s.bar.background,/\/ 0\)/);
   await page.evaluate(()=>window.nav.shadow.querySelector('.bubble-sub-button-2').focus());
   await page.keyboard.press('ArrowRight');
-  s=await computed(page);assert.equal(s.secondButton.outline,'solid');assert.equal(s.secondButton.outlineWidth,'2px');
+  s=await computed(page);assert.equal(s.secondButton.outline,'solid');assert.equal(s.secondButton.outlineWidth,'2px');assert.equal(s.secondButton.outlineColor,'rgb(33, 33, 33)');
   await page.emulateMedia({reducedMotion:'reduce'});
   s=await computed(page);assert.equal(s.selection.transition,'0s');assert.equal(s.second.transition,'0s');
   await page.locator('ha-card .bubble-sub-button-2').hover();
@@ -167,4 +169,48 @@ test('navigation hover, keyboard focus, reduced motion and custom zero options s
   await touch.emulateMedia({reducedMotion:'reduce'});
   await touch.locator('ha-card .bubble-sub-button-2').hover();
   const u=await computed(touch);assert.equal(u.second.background,'rgba(0, 0, 0, 0)');assert.equal(u.ripple.radius,'16px');
+});
+
+test('neutral selection and focus follow light/dark palettes without rerendering',async t=>{
+  const luminance=rgb=>rgb.map(value=>{
+    const c=value/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4;
+  }).reduce((sum,c,index)=>sum+c*[.2126,.7152,.0722][index],0);
+  const contrast=(a,b)=>{const values=[luminance(a),luminance(b)].sort((x,y)=>y-x);return(values[0]+.05)/(values[1]+.05);};
+  for(const plain of [false,true]){
+    const page=await fixture(t,{width:390,plain});
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.evaluate(()=>{window.nav.originalStyle=window.nav.style.textContent;window.nav.originalButton=window.nav.shadow.querySelector('.bubble-sub-button-1');});
+    for(const mode of ['light','dark','light']){
+      await page.evaluate(vars=>{
+        for(const [name,value] of Object.entries(vars))document.body.style.setProperty('--'+name,value);
+      },nativeModes[mode]);
+      await page.locator('ha-card .bubble-sub-button-1').focus();
+      await page.keyboard.press('ArrowRight');
+      const s=await computed(page);
+      const expected=mode==='dark'?'rgb(225, 225, 225)':'rgb(33, 33, 33)';
+      assert.equal(s.first.color,expected);assert.equal(s.first.outlineColor,expected);
+      assert.equal(s.first.outlineWidth,'2px');assert.equal(s.selection.radius,'16px');
+      const pixels=await page.evaluate(()=>{
+        const q=selector=>window.nav.shadow.querySelector(selector);
+        const color=(el,pseudo)=>getComputedStyle(el,pseudo).backgroundColor;
+        const context=document.createElement('canvas').getContext('2d');
+        context.canvas.width=context.canvas.height=1;
+        const pixel=(...fills)=>{
+          context.clearRect(0,0,1,1);
+          for(const fill of fills){context.fillStyle=fill;context.fillRect(0,0,1,1);}
+          return Array.from(context.getImageData(0,0,1,1).data);
+        };
+        const body=color(document.body),bar=color(q('.bubble-container')),selected=color(q('.bubble-sub-button-1'),'::before');
+        return {bar:pixel(body,bar),selected:pixel(body,bar,selected),fill:pixel(selected),
+          active:pixel(getComputedStyle(q('.bubble-sub-button-1')).color),inactive:pixel(getComputedStyle(q('.bubble-sub-button-2')).color),
+          sameStyle:window.nav.originalStyle===window.nav.style.textContent,sameButton:window.nav.originalButton===q('.bubble-sub-button-1')};
+      });
+      assert.ok(pixels.sameStyle&&pixels.sameButton,'theme changes use the same CSS and native button');
+      assert.ok(pixels.fill[3]>0&&pixels.fill[3]<255,'selection fill stays translucent');
+      assert.ok(Math.abs(pixels.selected[0]-pixels.bar[0])>2&&Math.abs(pixels.selected[0]-pixels.bar[0])<32,'selection tint stays subtle and visible');
+      assert.ok(mode==='dark'?pixels.selected[0]>pixels.bar[0]:pixels.selected[0]<pixels.bar[0],'selection is lighter in dark mode and darker in light mode');
+      assert.ok(Math.max(...pixels.selected.slice(0,3))-Math.min(...pixels.selected.slice(0,3))<=1,'native neutral palette stays neutral');
+      assert.ok(contrast(pixels.active.slice(0,3),pixels.selected.slice(0,3))>contrast(pixels.inactive.slice(0,3),pixels.bar.slice(0,3)),'selected icon has stronger contrast than inactive icons');
+    }
+  }
 });

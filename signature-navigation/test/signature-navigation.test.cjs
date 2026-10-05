@@ -18,7 +18,7 @@ function selected(css) {
 }
 
 test('distribution, native example and documentation are complete', () => {
-  assert.equal(definition.version, '1.0.1');
+  assert.equal(definition.version, '1.0.2');
   assert.deepEqual(definition.supported, ['sub-buttons']);
   assert.deepEqual(example.modules, ['signature_navigation']);
   assert.equal(example.card_type, 'sub-buttons');
@@ -96,7 +96,7 @@ test('visual options support zero, update on the same card and preserve native w
 
 test('theme variables remain live and editor defaults match the runtime', () => {
   const css = fixture().run();
-  for (const token of ['signature-card-background', 'signature-card-border-radius', 'signature-font-family', 'blue-color']) {
+  for (const token of ['signature-card-background', 'signature-card-border-radius', 'signature-font-family', 'primary-text-color', 'secondary-text-color']) {
     assert.ok(css.includes('var(--' + token), token);
   }
   assert.deepEqual(Object.fromEntries(definition.editor.filter(field => field.name).map(field => [field.name, field.default])),

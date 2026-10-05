@@ -20,7 +20,7 @@ When replacing an earlier Signature theme, replace the whole file rather than me
 
 Signature Wind Rose 1.1.2 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
 
-Signature Navigation 1.0.1 uses the shared surface, font and card radius for its floating footer. Import its [distribution](../signature-navigation/dist/signature-navigation.yaml) separately and follow its [guide](../signature-navigation/doc/README.md) to replace the inline navigation styles.
+Signature Navigation 1.0.2 uses the shared surface, font and card radius for its floating footer. Import its [distribution](../signature-navigation/dist/signature-navigation.yaml) separately and follow its [guide](../signature-navigation/doc/README.md) to replace the inline navigation styles.
 
 The theme can be used on its own. Older modules retain their hard-coded styles until their updated YAML distributions are imported. Custom cards only honor the theme variables they consume; a theme cannot replace a card's hard-coded CSS or canvas drawing styles. Some Home Assistant appearance variables are internal and can change between frontend versions.
 
@@ -76,7 +76,7 @@ Horizontal dividers in Signature room cards, Weather and Wind Rose share a 1 px 
 
 Period groups have 3 px padding and gaps; their inner button radius is the shared control radius minus 3 px, at least zero. Weather keeps an inline group and Wind Rose a full-width group. Ordinary secondary text uses its color at full opacity; inactive/disabled icons retain their native state opacity. Other layout dimensions, responsive value sizes, spacing and actions remain module-specific. Font overrides must be checked at narrow widths; fixed compact heights are not an unlimited text-zoom layout. Main and secondary text colors continue to use Home Assistant's `primary-text-color` and `secondary-text-color`. Explicit card accents and borders take precedence as before.
 
-Navigation has a 64 px bar with 52 px route cells and a uniform 6 px inner inset. Its selection and hover use the card radius minus 6 px, at least zero (16 px with this theme), so their corners follow the bar. They do not use the independent icon radius. Mobile margins, glass blur and opacity are configured in the module's editor.
+Navigation has a 64 px bar with 52 px route cells and a uniform 6 px inner inset. Its selection and hover use the card radius minus 6 px, at least zero (16 px with this theme), so their corners follow the bar. They do not use the independent icon radius. Its active icon and keyboard focus inherit `primary-text-color`; the inactive icons inherit `secondary-text-color`. The selection mixes 5% primary text into the card surface and uses that mix at 65% opacity, adapting to light and dark palettes with a subtle shadow. Mobile margins, glass blur and opacity are configured in the module's editor.
 
 Primary numeric displays use tabular figures. This is applied in the modules, including Weather's temperature and measurement buttons, so their font reset does not cancel it; the theme needs no additional typography variable.
 

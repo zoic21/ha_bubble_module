@@ -1,6 +1,6 @@
 signature_navigation:
   name: Signature Navigation
-  version: 1.0.1
+  version: 1.0.2
   creator: Loïc
   supported:
   - sub-buttons
@@ -167,7 +167,7 @@ signature_navigation:
       border-radius: var(--signature-nav-selection-radius);
     }
     .bubble-sub-button:focus-visible {
-      outline: 2px solid var(--blue-color, #2196f3);
+      outline: 2px solid var(--primary-text-color);
       outline-offset: -2px;
     }
     @media (max-width: 600px) {
@@ -190,13 +190,14 @@ signature_navigation:
     }
     ${active < 0 ? '' : `
       .bubble-sub-button.bubble-sub-button-${active + 1} {
-        color: var(--blue-color, #2196f3) !important;
+        color: var(--primary-text-color) !important;
       }
       .bubble-sub-button.bubble-sub-button-${active + 1}::before {
-        background: color-mix(in srgb, var(--signature-nav-surface) 70%, transparent);
+        background: color-mix(in srgb,
+          color-mix(in srgb, var(--primary-text-color) 5%, var(--signature-nav-surface)) 65%, transparent);
         box-shadow:
-          0 1px 4px rgb(0 0 0 / .07),
-          inset -1px 1px 1px color-mix(in srgb, var(--signature-nav-highlight) 60%, transparent);
+          0 1px 2px rgb(0 0 0 / .025),
+          inset -1px 1px 1px color-mix(in srgb, var(--signature-nav-highlight) 25%, transparent);
       }
     `}
     `;
