@@ -1,10 +1,11 @@
 name: Signature Compact
-version: 1.0.0
+version: 1.1.0
 creator: Loïc
 supported:
   - button
   - cover
   - climate
+  - media-player
 description: Module autonome compact ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte. Le module historique signature reste disponible.
 editor:
   - type: constant
@@ -47,7 +48,7 @@ editor:
                 value: purple
               - label: Gris
                 value: grey
-        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        visible_if: (!card || card.card_type === 'media-player' || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
         description: Couleur de la palette, couleur CSS ou template Jinja.
       secondary:
         label: Texte secondaire (entité, texte ou template)
@@ -142,7 +143,7 @@ editor:
           object: {}
         group: Apparence avancée
         group_icon: mdi:palette-outline
-        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        visible_if: (!card || card.card_type === 'media-player' || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
         description: false par défaut. Saisir true/false ou un template Jinja entre guillemets.
       icon_color:
         label: Couleur personnalisée de l’icône

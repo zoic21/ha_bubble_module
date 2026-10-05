@@ -6,7 +6,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 |---|---|---|---|
 | Signature — card design | 2.3.3 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
 | Signature Square — square tiles | 1.0.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information and control rows | 1.0.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.1.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Room — room summaries and controls | 1.0.0 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.0.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.5.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
@@ -41,7 +41,7 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 ## Standalone Signature presentations
 
-Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Use one presentation module per card, with optional Alert Manager. The legacy `signature` distribution remains unchanged and available, including its media-player styling. Existing dashboards are not migrated automatically. See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
+Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Compact also styles native media-player cards, preserving their artwork, controls and dimensions. Use one presentation module per card, with optional Alert Manager. The legacy `signature` distribution remains unchanged and available. Existing dashboards are not migrated automatically. See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
 
 The optional Signature theme supplies common CSS appearance variables; each module owns its layout and controls. Shared JavaScript and CSS source files are assembled at build time, so no base module or runtime import is needed.
 

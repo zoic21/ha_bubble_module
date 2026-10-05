@@ -103,7 +103,7 @@ styles: |
 
 ## Modules de présentation autonomes
 
-Signature Square, Compact, Room et Header 1.0.0 consomment les mêmes variables `signature-*`, sans changement des dashboards existants utilisant le module historique. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
+Signature Compact 1.1.0 et Square, Room et Header 1.0.0 consomment les mêmes variables `signature-*`, sans changement des dashboards existants utilisant le module historique. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
 
 | Variable supplémentaire | Défaut | Usage |
 |---|---|---|

@@ -94,8 +94,43 @@ test('Compact preserves native cover/climate/switch cards and number acknowledge
   await nc.minus.click();f.ctx.teardown();assert.equal(nc.disposed,true);assert.equal(f.ctx._signatureCompactNumber,undefined);
 });
 
+test('Compact media preserves legacy colors, templates, native nodes and actions without a tile runtime',async()=>{
+  const scenarios=[{}, {color:'teal',color_background:true}, {color:'{{ accent }}',color_background:'{{ tint }}'}, {color_background:false,compact_mode:'value',controls:'number',secondary:'Ignored',state:'Ignored',multiline:true}];
+  for(const options of scenarios){
+    const old=fixture('compact',options,{card_type:'media-player'}, {},true),fresh=fixture('compact',options,{card_type:'media-player'});
+    const button=new context.Element(),artwork=new context.Element();
+    button.className='bubble-media-button';artwork.className='bubble-media-player-picture';
+    artwork.setAttribute('src','native-artwork.jpg');fresh.ctx.elements.contentContainer.append(button,artwork);
+    let calls=0;button.addEventListener('click',()=>calls++);
+    const before=snapshot(fresh),children=[...fresh.ctx.elements.contentContainer.children];
+    const template=value=>value==='{{ accent }}'?'orange':value==='{{ tint }}'?'False':value;
+    const output=fresh.run(template);
+    assert.equal(css(output),css(old.run(template)));
+    assert.deepEqual(snapshot(fresh),before);assert.deepEqual(fresh.ctx.elements.contentContainer.children,children);
+    assert.equal(fresh.ctx._signatureCompactRuntime,undefined);assert.equal(fresh.ctx._signatureCompactNumber,undefined);
+    assert.equal(fresh.ctx._signatureCompactValueWatch,undefined);assert.equal(fresh.ctx._signatureCompactActions,undefined);
+    assert.doesNotMatch(output,/data-dp-layout|height: 56px|dp-number-control/);
+    await button.click();assert.equal(calls,1);assert.equal(artwork.getAttribute('src'),'native-artwork.jpg');
+    fresh.ctx.teardown();old.ctx.teardown();assert.deepEqual(snapshot(fresh),before);
+  }
+});
+
+test('switching Compact from a numeric tile to media releases controls, observers and secondary text',async()=>{
+  const f=fixture('compact',{controls:'number',compact_mode:'value',secondary:'sensor.humidity'},{entity:'input_number.target'}, {'input_number.target':{state:'2.5',attributes:{min:0,max:10,step:0.5}}});
+  f.run();const control=f.ctx._signatureCompactNumber,observer=f.ctx._signatureCompactValueWatch.observer;
+  assert.ok(f.ctx._signatureCompactRuntime);assert.ok(f.ctx.card.querySelector('.dp-secondary'));
+  await control.plus.click();assert.notEqual(control.timer,null);
+  f.ctx.config.card_type='media-player';
+  assert.match(f.run(),/bubble-media-player-main-background-color/);
+  assert.equal(control.disposed,true);assert.equal(f.ctx._signatureCompactNumber,undefined);
+  assert.equal(observer.disconnected,true);
+  assert.equal(f.ctx._signatureCompactRuntime,undefined);assert.equal(f.ctx._signatureCompactValueWatch,undefined);
+  assert.equal(f.ctx.card.querySelector('.dp-secondary'),null);assert.equal(f.ctx.card.getAttribute('data-dp-layout'),null);
+  f.ctx.teardown();
+});
+
 test('unsupported native types render nothing and clean up their previous presentation',()=>{
-  const invalid={square:[{card_type:'cover'},{button_type:'switch'}],room:[{card_type:'climate'},{button_type:'slider'}],compact:[{card_type:'media-player'},{button_type:'slider'}],header:[{button_type:'state'},{card_type:'cover'}]};
+  const invalid={square:[{card_type:'cover'},{button_type:'switch'}],room:[{card_type:'climate'},{button_type:'slider'}],compact:[{card_type:'pop-up'},{button_type:'slider'}],header:[{button_type:'state'},{card_type:'cover'}]};
   for(const layout of layouts)for(const config of invalid[layout]){
     const f=fixture(layout);f.run();Object.assign(f.ctx.config,config);
     assert.equal(f.run(),'');assert.equal(f.ctx.card.getAttribute('data-dp-layout'),null);f.ctx.teardown();
@@ -113,7 +148,8 @@ test('module forms expose only their useful fields and preserve mixed YAML types
       if(['color_background','icon_opacity','sub_button_styles','room_auto_colors'].includes(name))assert.deepEqual(field.selector,{object:{}});
       const visible=new Function('item','hass','card','return !!('+field.visible_if+');');
       assert.doesNotThrow(()=>visible({}, {},undefined));
-      for(const card_type of ['pop-up','media-player'])assert.equal(visible({}, {},{card_type}),false);
+      assert.equal(visible({}, {},{card_type:'pop-up'}),false);
+      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='compact'&&['color','color_background'].includes(name));
     }
   }
   assert.deepEqual(definitions.compact.editor[1].fields.controls.selector.select.options.map(o=>o.value),['native','number']);
@@ -150,6 +186,12 @@ test('each standalone distribution registers a working flat editor on its own',(
     const changes=[];form.addEventListener('value-changed',event=>changes.push(event.detail.value));
     form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,color:'teal'}}}));
     assert.equal(changes.length,1);assert.deepEqual(JSON.parse(JSON.stringify(changes[0])),{...original,color:'teal'});
+    if(layout==='compact'){
+      form.card={card_type:'media-player'};form._scheduleUpdate();while(queue.length)queue.shift()();
+      assert.deepEqual(JSON.parse(JSON.stringify(form._form.schema.map(field=>field.name))),['color','color_background']);
+      form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,color:'orange'}}}));
+      assert.deepEqual(JSON.parse(JSON.stringify(changes[1])),{...original,color:'orange'});
+    }
     const first=registry.get('ha-form-signature_options');register.call({config:{card_type:'pop-up'},card:null});assert.equal(registry.get('ha-form-signature_options'),first);
   }
 });

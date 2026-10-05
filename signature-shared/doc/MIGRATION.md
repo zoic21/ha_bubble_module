@@ -1,6 +1,6 @@
 # Migrer vers les modules Signature autonomes
 
-Les quatre nouveaux modules sont en version **1.0.0**. Le module historique **Signature 2.3.3** est conservé sans modification de sa distribution. Les dashboards existants continuent de l’utiliser jusqu’à leur migration volontaire.
+**Signature Compact 1.1.0** et **Square, Room et Header 1.0.0** sont autonomes. Le module historique **Signature 2.3.3** est conservé sans modification de sa distribution. Les dashboards existants continuent de l’utiliser jusqu’à leur migration volontaire.
 
 | Configuration actuelle | Nouveau module | Nouvelle clé des options |
 |---|---|---|
@@ -9,9 +9,11 @@ Les quatre nouveaux modules sont en version **1.0.0**. Le module historique **Si
 | `signature: layout: room` | `signature_room` | `signature_room` |
 | `signature: layout: header` sur bouton Nom | `signature_header` | `signature_header` |
 | `signature: layout: title` sur séparateur | `signature_header` | Aucune option obligatoire |
-| Carte `media-player` | Conserver `signature` | `signature` |
+| Carte `media-player` | `signature_compact` | `signature_compact` |
 
 Les cartes `cover`, `climate` et les boutons `switch` utilisent actuellement la présentation compacte même si un autre layout est demandé : migrer ces cartes vers **Signature Compact**. Un ancien header sur bouton État retombe aussi en compact. Les nouveaux modules refusent les types incompatibles au lieu de changer leur présentation.
+
+Pour un lecteur multimédia, renommer `signature` en `signature_compact` dans `modules` et dans la clé des options ; conserver `color` et `color_background`. Les réglages natifs Bubble, la pochette, les dimensions et les commandes restent identiques. Compact n’applique pas sa hauteur de 56 px au lecteur. Le module historique reste utilisable si la carte n’est pas encore migrée.
 
 1. Importer les nouvelles distributions depuis leurs dossiers `dist`.
 2. Sur chaque carte choisie, remplacer le module de présentation dans `modules`.

@@ -1,6 +1,6 @@
 # Sources communes des modules Signature
 
-Les modules autonomes **Square, Compact, Room et Header 1.0.0** partagent les helpers JavaScript, le pont d’éditeur et les règles CSS communes de `src`. Chaque module a sa propre définition et sa présentation dans `signature-*/src`. Les commandes numériques sont propres à Compact ; la géométrie et le formatage des températures sont propres à Room.
+Les modules autonomes **Compact 1.1.0** et **Square, Room et Header 1.0.0** partagent les helpers JavaScript, le pont d’éditeur et les règles CSS communes de `src`. Chaque module a sa propre définition et sa présentation dans `signature-*/src`. Les commandes numériques et l’habillage des lecteurs multimédias sont propres à Compact ; la géométrie et le formatage des températures sont propres à Room. La branche média retourne son CSS avant les transformations de tuiles et ne crée aucun runtime de tuile.
 
 Le [thème](../themes/signature.yaml) fournit les paramètres d’apparence, avec des valeurs de secours dans les modules. Le partage des sources concerne surtout les valeurs, les templates, les actions, le cache et le nettoyage. Il ne crée aucun module de base à activer sur les cartes.
 

@@ -47,7 +47,7 @@ async function setup(page){
 async function render(page,scenario={}){
  const split=scenario.split ?? process.env.BUBBLE_SIGNATURE_SPLIT === '1';
  const activeCases=cases.map(([id,module,options])=>{
-  if(!split || module!=='signature' || id.includes('media') || id.startsWith('native-'))return [id,module,options];
+  if(!split || module!=='signature' || id.startsWith('native-'))return [id,module,options];
   const layout=id.startsWith('square')?'square':id.startsWith('room')?'room':['header','title'].includes(id)?'header':'compact';
   const {layout:previousLayout,...settings}=options;
   return [id,'signature-'+layout,settings];

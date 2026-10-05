@@ -1,0 +1,8 @@
+type: custom:bubble-card
+card_type: media-player
+entity: media_player.living_room
+modules:
+  - signature_compact
+signature_compact:
+  color: blue
+  color_background: false

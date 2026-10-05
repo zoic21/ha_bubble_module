@@ -48,7 +48,7 @@ Le séparateur conserve ses sous-boutons, leurs couleurs et leurs actions natifs
 
 Le [thème Signature](../../themes/README.md) centralise l’apparence via les variables `--signature-*`. Le navigateur résout ces variables, y compris dans le CSS mis en cache, sans lecture JavaScript du thème. Les valeurs de secours reproduisent le rendu actuel en l’absence du thème. Les grilles, les placements et les comportements appartiennent au module. Aucune dépendance entre modules n’est à installer et aucun `card-mod` n’est nécessaire.
 
-Utiliser **un seul module de présentation par carte**. `alert_manager` peut être ajouté après celui-ci ; les alertes gardent leurs couleurs prioritaires. Les modules séparés et l’ancien `signature` peuvent coexister sur des cartes différentes. Le lecteur multimédia conserve son habillage dans `signature`.
+Utiliser **un seul module de présentation par carte**. `alert_manager` peut être ajouté après celui-ci ; les alertes gardent leurs couleurs prioritaires. Les modules séparés et l’ancien `signature` peuvent coexister sur des cartes différentes. Le lecteur multimédia utilise `signature_compact`, ou le module historique `signature` jusqu’à sa migration.
 
 Pour migrer : remplacer `signature` dans `modules` par `signature_header`, déplacer les options sous cette nouvelle clé et retirer `layout`. Conserver les entités, actions et sous-boutons natifs. Voir le [guide de migration](../../signature-shared/doc/MIGRATION.md). Importer un module ne migre pas les dashboards existants.
 

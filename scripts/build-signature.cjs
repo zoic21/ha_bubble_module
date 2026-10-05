@@ -24,7 +24,13 @@ async function build(layout) {
     const tileEnabled = root && (${supported});
   `, shared('lifecycle')];
   if (layout === 'header') chunks.push(specific(layout, 'title'));
-  chunks.push("if (!tileEnabled) return '';", shared('helpers'), shared('structure'));
+  // Media uses Compact's theme styling without creating a tile runtime or
+  // transforming Bubble's artwork, controls and native dimensions.
+  chunks.push(layout === 'compact'
+    ? "if (!tileEnabled && !(root && kind === 'media-player')) return '';"
+    : "if (!tileEnabled) return '';", shared('helpers'));
+  if (layout === 'compact') chunks.push(specific(layout, 'media'));
+  chunks.push(shared('structure'));
   if (layout !== 'header') {
     chunks.push(shared('value-config'));
     chunks.push(layout === 'compact' ? specific(layout, 'number') : 'const numberEnabled = false;');
