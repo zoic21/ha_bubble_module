@@ -1,0 +1,4 @@
+/* @defaults {"BACKGROUND":"var(--signature-card-background)"} */
+color: var(--primary-text-color);
+background: @@BACKGROUND@@;
+box-shadow: var(--signature-control-box-shadow, 0 1px 4px rgb(0 0 0 / .06));

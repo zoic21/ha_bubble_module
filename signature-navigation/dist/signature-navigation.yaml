@@ -1,6 +1,6 @@
 signature_navigation:
  name: Signature Navigation
- version: 1.0.6
+ version: 1.0.7
  creator: Loïc
  supported: [sub-buttons]
  description: Floating navigation footer with Signature corners, directional glass highlights and automatic active-dashboard selection. Native sub-buttons keep their icons, visibility and actions. Requires Bubble Card 3.4.1 or later.

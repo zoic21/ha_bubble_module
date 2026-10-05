@@ -2,6 +2,8 @@
 
 Module distributions are minified during the repository build. Theme variables remain in the shipped CSS and continue to follow live theme changes; their names and fallback values are preserved. See the [build guide](../shared/README.md#distributions-minifiées).
 
+The eight Signature modules also assemble their common CSS declarations from [shared style fragments](../shared/src/styles/README.md). Theme values and CSS rules therefore have common sources, while module layouts remain independent. Every distribution embeds its applicable fragments and requires no extra stylesheet.
+
 The optional [signature.yaml](signature.yaml) theme provides light and dark modes for Home Assistant, native Bubble cards, and the Signature modules. It keeps Home Assistant's native colors, page backgrounds and card surfaces, while adding system fonts, 22 px card corners and subtle card shadows. The modules derive their borders and control tracks from those inherited colors. No card-mod, font download or extra JavaScript is required.
 
 ## Installation
@@ -16,7 +18,7 @@ The optional [signature.yaml](signature.yaml) theme provides light and dark mode
 
 3. Restart Home Assistant if you have just enabled themes. If theme loading was already configured, run `frontend.reload_themes` from Developer tools > Actions.
 4. Select **Signature** in your Home Assistant profile and choose light, dark or automatic mode. A view-level or card-level theme override takes precedence for that view or card.
-5. Import the updated modules to enable their shared styling variables: Signature 2.2.4, Signature Flow 3.4.1, Signature Weather 1.2.1, Signature Wind Rose 1.1.2, and Alert Manager 3.5.0. Signature 2.2.4 also keeps section titles transparent, without a border or shadow.
+5. Import the current distributions listed in the [module table](../README.md) to enable their shared styling variables. The former combined Signature module has been replaced by Square, Compact, Room and Header. Header keeps section titles transparent, without a border or shadow.
 
 When replacing an earlier Signature theme, replace the whole file rather than merging the old palette keys into this version, then run `frontend.reload_themes`. If the old appearance remains visible, select the theme again or refresh the frontend.
 

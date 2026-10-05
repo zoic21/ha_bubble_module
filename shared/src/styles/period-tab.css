@@ -1,0 +1,6 @@
+/* @defaults {"IMPORTANT":""} */
+padding: 0 10px@@IMPORTANT@@;
+min-height: var(--signature-control-height, 40px);
+font-size: var(--signature-secondary-font-size, 13px)@@IMPORTANT@@;
+border-radius: max(0px, calc(var(--signature-control-border-radius, 14px) - 3px));
+color: var(--secondary-text-color);

@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.2.2** · Module ID: `signature_wind_rose`
+**Version: 1.2.3** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage and recorded duration. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -113,6 +113,11 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 
 ## Release notes
 
+### 1.2.3 — 5 October 2026
+
+- Builds shared CSS roles from `shared/src/styles` while preserving selectors, theme fallbacks, priorities and layout-specific geometry.
+- Keeps standalone, minified distributions and existing configuration/actions.
+
 ### 1.2.2 — 5 October 2026
 
 - Compact generated distribution: local JavaScript names and expressions, embedded CSS whitespace and YAML metadata. Configuration keys, CSS variables and runtime behavior are preserved.
@@ -145,5 +150,7 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 - Period selectors match Weather. Tooltip corners and shadow follow the theme; caption sizes remain adjustable.
 
 ## Maintenance des sources
+
+Les styles communs sont définis dans [shared/src/styles](../../shared/src/styles/README.md) et inclus au build. Les dispositions restent propres au module ; la distribution demeure autonome et minifiée.
 
 Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

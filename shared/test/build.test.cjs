@@ -52,6 +52,36 @@ test('missing, cyclic and out-of-repository includes fail instead of generating 
     assert.throws(() => readSource(outside), /Source outside repository/);
 });
 
+test('parameterized CSS includes keep defaults local and pass overrides through nested fragments', t => {
+  const {file, write} = fixture(t);
+  write('leaf.css', '/* @defaults {"PROPERTY":"border-radius","IMPORTANT":""} */\n@@PROPERTY@@: var(--signature-card-border-radius, 22px)@@IMPORTANT@@;\n');
+  write('middle.css', '/* @defaults {"PROPERTY":"--bubble-border-radius"} */\n/* @include ' + file('leaf.css') + ' {"PROPERTY":"@@PROPERTY@@","IMPORTANT":" !important"} */\n');
+  write('root.css', '.a {\n  /* @include ' + file('middle.css') + ' */\n}\n.b {\n  /* @include ' + file('leaf.css') + ' */\n}\n');
+  assert.equal(readSource(file('root.css')), '.a {\n  --bubble-border-radius: var(--signature-card-border-radius, 22px) !important;\n}\n.b {\n  border-radius: var(--signature-card-border-radius, 22px);\n}\n');
+  // A common CSS edit reaches each use without changing its selector or priority.
+  write('leaf.css', '/* @defaults {"PROPERTY":"border-radius","IMPORTANT":""} */\n@@PROPERTY@@: var(--signature-card-border-radius, 24px)@@IMPORTANT@@;\n');
+  assert.equal((readSource(file('root.css')).match(/24px/g) || []).length, 2);
+});
+
+test('bad CSS fragment arguments and unresolved required parameters stop the build', t => {
+  const {file, write} = fixture(t);
+  write('fragment.css', '/* @defaults {"IMPORTANT":""} */\ncolor: @@COLOR@@@@IMPORTANT@@;\n');
+  for (const [argumentsJSON, message] of [
+    ['{}', /Missing include parameter COLOR/],
+    ['{"COLOR":"red","TYPO":""}', /Unused include parameter TYPO/],
+    ['{"COLOR":3}', /single-line strings/],
+    ['{"COLOR":"red\\nblue"}', /single-line strings/],
+    ['{invalid}', /Invalid include parameters/]
+  ]) {
+    write('root.css', '/* @include ' + file('fragment.css') + ' ' + argumentsJSON + ' */\n');
+    assert.throws(() => readSource(file('root.css')), message);
+  }
+  write('root.css', '/* @include ' + file('fragment.css') + ' {"COLOR":"var(--primary-text-color)","IMPORTANT":" !important"} */\n');
+  assert.equal(readSource(file('root.css')), 'color: var(--primary-text-color) !important;\n');
+  write('root.css', '.a { /* @include ' + file('fragment.css') + ' */ }\n');
+  assert.throws(() => readSource(file('root.css')), /Malformed source directive/);
+});
+
 test('the shared formatter keeps Home Assistant preferences and explicit ungrouped numbers', () => {
   const {formatterFor} = new Function(readSource('shared/src/number-format.js') + '\nreturn {formatterFor};')();
   for (const [preference, locale] of Object.entries({comma_decimal: 'en-US', decimal_comma: 'de', space_comma: 'fr', quote_decimal: 'de-CH', none: 'en-US'})) {

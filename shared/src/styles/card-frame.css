@@ -1,0 +1,4 @@
+/* @defaults {"RADIUS_PROPERTY":"border-radius","BORDER_PROPERTY":"border","SHADOW_PROPERTY":"box-shadow","IMPORTANT":"","SHADOW_IMPORTANT":""} */
+/* @include shared/src/styles/card-radius.css {"PROPERTY":"@@RADIUS_PROPERTY@@","IMPORTANT":"@@IMPORTANT@@"} */
+@@BORDER_PROPERTY@@: 1px solid var(--signature-card-border-color, color-mix(in srgb, var(--primary-text-color) 5%, transparent))@@IMPORTANT@@;
+@@SHADOW_PROPERTY@@: var(--signature-card-box-shadow, var(--ha-card-box-shadow, 0 2px 10px rgb(0 0 0 / .035)))@@SHADOW_IMPORTANT@@;

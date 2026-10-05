@@ -1,0 +1,7 @@
+/* @defaults {"COLOR":"var(--signature-divider-color, color-mix(in srgb, var(--primary-text-color) 8%, transparent))"} */
+content: '';
+position: absolute;
+inset-inline: var(--signature-divider-inset, 16px);
+height: 1px;
+background: @@COLOR@@;
+pointer-events: none;

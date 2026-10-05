@@ -1,6 +1,6 @@
 # Signature Navigation
 
-Version **1.0.6**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+Version **1.0.7**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
 
 ## Installation
 
@@ -104,6 +104,11 @@ Unit tests exercise the actual distribution and example, native configuration pr
 
 ## Changelog
 
+### 1.0.7 — 5 October 2026
+
+- Builds shared CSS roles from `shared/src/styles` while preserving selectors, theme fallbacks, priorities and layout-specific geometry.
+- Keeps standalone, minified distributions and existing configuration/actions.
+
 ### 1.0.6 — 5 October 2026
 
 - Compact generated distribution: local JavaScript names and expressions, embedded CSS whitespace and YAML metadata. Configuration keys, CSS variables and runtime behavior are preserved.
@@ -145,5 +150,7 @@ Unit tests exercise the actual distribution and example, native configuration pr
 - Corrected the selection corners with a uniform 6 px inset and a radius derived from the bar.
 
 ## Maintenance des sources
+
+Les styles communs sont définis dans [shared/src/styles](../../shared/src/styles/README.md) et inclus au build. Les dispositions restent propres au module ; la distribution demeure autonome et minifiée.
 
 Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

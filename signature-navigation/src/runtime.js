@@ -20,16 +20,16 @@ ha-card {
   --bubble-footer-width: ${config.footer_width ?? 420}px !important;
   --signature-nav-margin: ${margin}px;
   --signature-nav-selection-radius: max(0px, calc(var(--signature-card-border-radius, 22px) - 6px));
-  --signature-nav-surface: var(--signature-card-background, var(--ha-card-background, var(--card-background-color, #fff)));
+  /* @include shared/src/styles/card-surface.css {"PROPERTY":"--signature-nav-surface"} */
   --signature-nav-highlight: color-mix(in srgb, var(--signature-nav-surface) 30%, #fff);
   --bubble-footer-box-shadow: none;
   background: transparent !important;
   border: none !important;
-  border-radius: var(--signature-card-border-radius, 22px) !important;
+  /* @include shared/src/styles/card-radius.css {"IMPORTANT":" !important"} */
   backdrop-filter: blur(${blur}px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(${blur}px) saturate(180%) !important;
   box-shadow: 0 4px 16px rgb(0 0 0 / .10) !important;
-  font-family: var(--signature-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  /* @include shared/src/styles/font-family.css */
 }
 /* Below Bubble's backdrop (4) and popup (5), above dashboard content. */
 ha-card.footer-mode:not(.editor) {
@@ -42,7 +42,7 @@ ha-card.footer-mode:not(.editor) {
   padding: 6px;
   background: color-mix(in srgb, var(--signature-nav-surface) ${opacity}%, transparent) !important;
   border: none !important;
-  border-radius: var(--signature-card-border-radius, 22px) !important;
+  /* @include shared/src/styles/card-radius.css {"IMPORTANT":" !important"} */
   box-shadow: none !important;
 }
 .bubble-container::before {
@@ -127,8 +127,7 @@ ha-card.footer-mode:not(.editor) {
   border-radius: var(--signature-nav-selection-radius);
 }
 .bubble-sub-button:focus-visible {
-  outline: 2px solid var(--primary-text-color);
-  outline-offset: -2px;
+  /* @include shared/src/styles/focus-ring.css */
 }
 @media (max-width: 600px) {
   ha-card.footer-mode:not(.editor) {

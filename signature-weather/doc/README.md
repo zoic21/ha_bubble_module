@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.3.2** · Module ID: `signature_weather`
+**Version: 1.3.3** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -211,6 +211,11 @@ From version 1.1.1, horizontal dividers share a 16 px inset from each card edge 
 
 ## Release notes
 
+### 1.3.3 — 5 October 2026
+
+- Builds shared CSS roles from `shared/src/styles` while preserving selectors, theme fallbacks, priorities and layout-specific geometry.
+- Keeps standalone, minified distributions and existing configuration/actions.
+
 ### 1.3.2 — 5 October 2026
 
 - Compact generated distribution: local JavaScript names and expressions, embedded CSS whitespace and YAML metadata. Configuration keys, CSS variables and runtime behavior are preserved.
@@ -237,5 +242,7 @@ From version 1.1.1, horizontal dividers share a 16 px inset from each card edge 
 - Period selectors use the same font, colors, derived corners and 40 px desktop / 44 px touch height as Wind Rose, including keyboard focus.
 
 ## Maintenance des sources
+
+Les styles communs sont définis dans [shared/src/styles](../../shared/src/styles/README.md) et inclus au build. Les dispositions restent propres au module ; la distribution demeure autonome et minifiée.
 
 Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

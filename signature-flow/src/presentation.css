@@ -1,0 +1,215 @@
+[data-signature-flow] .bubble-container {
+  height:${height}px!important;
+  padding:14px;
+  box-sizing:border-box;
+  /* @include shared/src/styles/card-frame.css {"IMPORTANT":" !important"} */
+  /* @include shared/src/styles/card-surface.css {"IMPORTANT":" !important"} */
+}
+[data-signature-flow="compact"] .bubble-container {
+  padding-inline:10px
+}
+[data-signature-flow="compact"] .sf-node {
+  gap:8px
+}
+[data-signature-flow] .bubble-container>.bubble-wrapper {
+  display:none!important
+}
+.sf-canvas {
+  position:relative;
+  width:100%;
+  height:100%;
+  /* @include shared/src/styles/font-family.css */
+  color:var(--primary-text-color);
+  font-weight:var(--signature-font-weight-normal,400);
+  /* @include shared/src/styles/card-surface.css {"PROPERTY":"--sf-surface"} */
+}
+.sf-canvas * {
+  box-sizing:border-box
+}
+.sf-wires {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  overflow:visible
+}
+.sf-line,.sf-arrow {
+  fill:none;
+  stroke:var(--sf-color);
+  stroke-width:1.7;
+  stroke-linejoin:round;
+  stroke-linecap:round
+}
+.sf-line {
+  opacity:.35
+}
+.sf-flow {
+  offset-distance:0%;
+  offset-rotate:auto 0deg;
+  offset-anchor:0px 0px;
+  transition:offset-rotate .18s ease
+}
+.sf-edge[data-direction="-1"] .sf-flow {
+  offset-rotate:auto 180deg
+}
+.sf-edge[data-direction="0"] .sf-flow {
+  display:none
+}
+.sf-junction {
+  fill:var(--secondary-text-color)
+}
+.sf-node {
+  position:absolute;
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  min-height:76px;
+  padding:2px 0;
+  border-radius:16px;
+  background:var(--sf-surface);
+  text-align:left;
+  line-height:1.2;
+  cursor:pointer
+}
+.sf-node[hidden] {
+  display:none
+}
+.sf-content {
+  display:grid;
+  grid-template-rows:max(17px,calc(var(--signature-name-font-size,14px)*1.2)) max(34px,calc(var(--signature-value-font-size,28px)*1.2)) max(16px,calc(var(--signature-secondary-font-size,13px)*1.2));
+  gap:2px;
+  min-width:0;
+  align-items:start
+}
+.sf-label {
+  /* @include shared/src/styles/name.css */
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.sf-icon {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  border-radius:var(--signature-icon-border-radius,12px);
+  color:var(--sf-color);
+  background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))
+}
+.sf-icon ha-icon {
+  --mdc-icon-size:22px
+}
+.sf-value {
+  /* @include shared/src/styles/value.css */
+  white-space:nowrap;
+  line-height:max(34px,calc(var(--signature-value-font-size,28px)*1.2));
+  font-variant-numeric:tabular-nums;
+  border-radius:6px
+}
+.sf-unit {
+  /* @include shared/src/styles/unit.css */
+  letter-spacing:0;
+  color:var(--secondary-text-color)
+}
+.sf-secondary {
+  /* @include shared/src/styles/secondary.css */
+  white-space:nowrap;
+  pointer-events:none
+}
+.sf-secondary.sf-detail {
+  pointer-events:auto;
+  cursor:pointer;
+  border-radius:4px
+}
+.sf-node:focus,.sf-value:focus,.sf-detail:focus {
+  outline:none
+}
+.sf-canvas[data-sf-keyboard] .sf-node:focus-visible,.sf-canvas[data-sf-keyboard] .sf-value:focus-visible,.sf-canvas[data-sf-keyboard] .sf-detail:focus-visible {
+  /* @include shared/src/styles/focus-ring.css {"COLOR":"var(--sf-color)","OFFSET":"3px"} */
+}
+.sf-slot-1 {
+  width:180px;
+  top:0;
+  left:calc(50% - 90px)
+}
+.sf-slot-2 {
+  background:transparent;
+  width:min(170px,calc(50% - 20px));
+  top:calc(50% - 42px);
+  left:0
+}
+.sf-slot-5 {
+  width:140px;
+  top:calc(50% - 42px);
+  right:0
+}
+.sf-slot-3 {
+  width:180px;
+  bottom:0;
+  left:calc(50% - 90px)
+}
+.sf-slot-4,.sf-slot-6 {
+  width:140px;
+  right:0
+}
+.sf-slot-4 {
+  top:0
+}
+.sf-slot-6 {
+  bottom:0
+}
+.sf-slot-4 .sf-value,.sf-slot-6 .sf-value {
+  font-size:max(16px,calc(var(--signature-value-font-size,28px) - 4px))
+}
+.sf-slot-4 .sf-unit,.sf-slot-6 .sf-unit {
+  font-size:var(--signature-secondary-font-size,13px)
+}
+.sf-narrow .sf-slot-1,.sf-narrow .sf-slot-3 {
+  background:transparent;
+  left:0;
+  width:min(170px,calc(50% - 20px))
+}
+.sf-has-4 .sf-slot-1 {
+  left:0
+}
+.sf-small .sf-node {
+  grid-template-columns:28px minmax(0,1fr);
+  gap:8px
+}
+.sf-small .sf-icon {
+  width:28px;
+  height:28px;
+  border-radius:var(--signature-icon-small-border-radius,max(0px,calc(var(--signature-icon-border-radius,12px) - 2px)))
+}
+.sf-small .sf-icon ha-icon {
+  --mdc-icon-size:20px
+}
+.sf-small .sf-slot-5 {
+  width:112px
+}
+.sf-small .sf-slot-3,.sf-small .sf-slot-1 {
+  width:min(140px,calc(50% - 20px))
+}
+.sf-small .sf-slot-3 .sf-secondary {
+  margin-left:-36px
+}
+.sf-small .sf-value {
+  font-size:max(18px,calc(var(--signature-value-font-size,28px) - 2px))
+}
+.sf-small .sf-slot-4,.sf-small .sf-slot-6 {
+  width:112px
+}
+.sf-small .sf-slot-4 .sf-value,.sf-small .sf-slot-6 .sf-value {
+  font-size:max(16px,calc(var(--signature-value-font-size,28px) - 8px))
+}
+.sf-small .sf-slot-4 .sf-unit,.sf-small .sf-slot-6 .sf-unit {
+  font-size:var(--signature-caption-font-size,12px)
+}
+@media(prefers-reduced-motion:reduce) {
+  .sf-flow {
+    transition:none
+  }
+}

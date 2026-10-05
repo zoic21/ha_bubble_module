@@ -1,0 +1,2 @@
+/* @defaults {"PROPERTY":"--signature-track","SURFACE":"var(--signature-card-background)"} */
+@@PROPERTY@@: var(--signature-control-background, color-mix(in srgb, var(--primary-text-color) 5%, @@SURFACE@@));

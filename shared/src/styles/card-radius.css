@@ -1,0 +1,2 @@
+/* @defaults {"PROPERTY":"border-radius","IMPORTANT":""} */
+@@PROPERTY@@: var(--signature-card-border-radius, 22px)@@IMPORTANT@@;

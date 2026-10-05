@@ -1,0 +1,2 @@
+/* @defaults {"PROPERTY":"background","IMPORTANT":""} */
+@@PROPERTY@@: var(--signature-card-background, var(--ha-card-background, var(--card-background-color, #fff)))@@IMPORTANT@@;

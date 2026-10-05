@@ -7,8 +7,12 @@
     ha-card[data-dp-layout="compact"] .bubble-main-icon { --mdc-icon-size: 22px; color: var(--dp-accent); }
     ha-card[data-dp-layout="compact"] .bubble-name-container { margin: 0 !important; min-width: 0; }
     /* Keep glyphs inside Bubble's clipped name; max-height still measures the two content lines. */
-    ha-card[data-dp-layout="compact"] .bubble-name { color: var(--primary-text-color); font-size: var(--signature-name-font-size, 14px); font-weight: var(--signature-font-weight-semibold, 600); letter-spacing: -0.2px; line-height: max(16px, calc(var(--signature-name-font-size,14px) * 1.1)); padding-block: 2px; box-sizing: content-box; white-space: normal; }
-    ha-card[data-dp-layout="compact"] .bubble-state { color: var(--secondary-text-color); font-size: var(--signature-secondary-font-size,13px); line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); white-space: normal; }
+    ha-card[data-dp-layout="compact"] .bubble-name { color: var(--primary-text-color);
+      /* @include shared/src/styles/name.css */
+      line-height: max(16px, calc(var(--signature-name-font-size,14px) * 1.1)); padding-block: 2px; box-sizing: content-box; white-space: normal; }
+    ha-card[data-dp-layout="compact"] .bubble-state {
+      /* @include shared/src/styles/secondary.css */
+      line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); white-space: normal; }
     ${!compactValue ? `/* Two name lines and one state line fit the 56px tile; multiline remains an explicit opt-in. */
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: calc(2 * max(16px, calc(var(--signature-name-font-size,14px) * 1.1))); overflow: hidden; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-state { display: block; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -35,7 +39,9 @@
     ha-card .dp-number-control .bubble-climate-temp-display { height: 44px; white-space: nowrap; }
     ha-card .dp-number-control ha-icon { --mdc-icon-size: 16px; }
     ha-card .dp-number-control button:disabled { opacity: 0.35; cursor: default; }
-    ha-card .dp-number-control button:focus-visible { outline: 2px solid var(--dp-accent); outline-offset: -2px; }
+    ha-card .dp-number-control button:focus-visible {
+      /* @include shared/src/styles/focus-ring.css {"COLOR":"var(--dp-accent)"} */
+     }
 
     ` : '') + (compactValue ? `/* A value is the native main state, placed beside the title in the compact tile. */
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-name-container {
@@ -71,7 +77,9 @@ opacity: 1;
     /* Text values need room for accents and descenders inside Bubble's clipped native state. */
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"] .bubble-state { font-size: 16px; font-weight: var(--signature-font-weight-normal, 400); color: var(--secondary-text-color); line-height: 1.3; padding-block: 2px; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"][data-dp-color-background="yes"] .bubble-state { color: var(--dp-accent); }
-    ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-unit { font-size: var(--signature-secondary-font-size, 13px); font-weight: var(--signature-font-weight-normal, 400); }
+    ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-unit {
+      /* @include shared/src/styles/unit.css {"SIZE":"var(--signature-secondary-font-size, 13px)"} */
+     }
     ${secondary ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-secondary { grid-area: 2 / 1; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 1; }` : ''}
     ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep the native state node, formatting and action bindings. */

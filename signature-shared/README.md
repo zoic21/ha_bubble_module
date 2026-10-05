@@ -1,8 +1,8 @@
 # Sources communes des modules Signature
 
-Les modules autonomes **Compact 1.1.3** et **Square, Room et Header 1.0.3** partagent les helpers JavaScript, le pont d’éditeur et les règles CSS communes de `src`. Chaque module a sa propre définition et sa présentation dans `signature-*/src`. Les commandes numériques et l’habillage des lecteurs multimédias sont définis dans Compact ; la géométrie et le formatage des températures sont définis dans Room. La branche média retourne son CSS avant les transformations de tuiles et ne crée aucun runtime de tuile.
+Les modules autonomes **Compact 1.1.4** et **Square, Room et Header 1.0.4** partagent les helpers JavaScript, le pont d’éditeur et les règles CSS communes de `src`. Chaque module a sa propre définition et sa présentation dans `signature-*/src`. Les commandes numériques et l’habillage des lecteurs multimédias sont définis dans Compact ; la géométrie et le formatage des températures sont définis dans Room. La branche média retourne son CSS avant les transformations de tuiles et ne crée aucun runtime de tuile.
 
-Le [thème](../themes/signature.yaml) fournit les paramètres d’apparence, avec des valeurs de secours dans les modules. Le partage des sources concerne surtout les valeurs, les templates, les actions, le cache et le nettoyage. Il ne crée aucun module de base à activer sur les cartes.
+Le [thème](../themes/signature.yaml) fournit les paramètres d’apparence, avec des valeurs de secours dans les modules. Les [fragments CSS communs](../shared/src/styles/README.md) centralisent les règles et les replis utilisés également par Flow, Weather, Wind Rose et Navigation. `base.css.js` et les présentations incluent les fragments nécessaires ; `visibility.css.js` conserve les règles de visibilité des tuiles. Le partage concerne aussi les valeurs, templates, actions, cache et nettoyage. Il ne crée aucun module de base à activer sur les cartes.
 
 ```sh
 npm ci --ignore-scripts

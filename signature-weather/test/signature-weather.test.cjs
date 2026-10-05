@@ -73,7 +73,7 @@ const daily=[
 const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
 
 test('distribution compiles and all examples use the same standalone module',()=>{
-  assert.equal(definition.name,'Signature Weather');assert.equal(definition.version,'1.3.2');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Weather');assert.equal(definition.version,'1.3.3');assert.deepEqual(definition.supported,['button']);
   const layouts=[];
   for(const file of fs.readdirSync(path.join(base,'examples'))) {
     const card=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));

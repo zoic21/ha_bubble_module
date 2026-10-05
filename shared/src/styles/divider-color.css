@@ -1,0 +1,2 @@
+/* @defaults {"PROPERTY":"--signature-divider"} */
+@@PROPERTY@@: var(--signature-divider-color, color-mix(in srgb, var(--primary-text-color) 8%, transparent));

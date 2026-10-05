@@ -1,0 +1,3 @@
+/* @defaults {"SIZE":"var(--signature-value-unit-font-size, 16px)"} */
+font-size: @@SIZE@@;
+font-weight: var(--signature-font-weight-normal, 400);

@@ -7,7 +7,7 @@ if (c.card_type === 'separator') {
       box-shadow: none !important;
     }
     ha-card {
-      font-family: var(--signature-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+      /* @include shared/src/styles/font-family.css */
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;

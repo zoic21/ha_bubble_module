@@ -1,0 +1,5 @@
+/* @defaults {"BACKGROUND":"var(--signature-control-background)"} */
+gap: 3px;
+border-radius: var(--signature-control-border-radius, 14px);
+background: @@BACKGROUND@@;
+padding: 3px;

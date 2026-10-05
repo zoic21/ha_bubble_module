@@ -11,7 +11,8 @@ Les neuf modules du dépôt sont générés à partir de sources. Chaque YAML da
 | `shared/src/number-locales.js` | Correspondance des préférences numériques Home Assistant |
 | `shared/src/number-format.js` | Formatage localisé des présentations Signature |
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
-| [signature-shared/src](../signature-shared/src) | Éditeur et comportements des présentations Signature |
+| [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des huit modules Signature |
+| [signature-shared/src](../signature-shared/src) | Éditeur, comportements et composition CSS des quatre présentations Signature |
 | `signature-*/src` et `alert_manager/src` | Métadonnées, formulaires et code propres à chaque module |
 | [scripts/build-modules.cjs](../scripts/build-modules.cjs) | Build et vérification de toutes les distributions |
 
@@ -55,6 +56,8 @@ Les fichiers sont inclus par un commentaire placé sur sa propre ligne, avec un 
 ```
 
 L'assembleur développe récursivement les inclusions et conserve leur indentation. Les chemins absents, extérieurs au dépôt ou les cycles interrompent le build. Les cinq autres modules utilisent `src/code.css` comme enveloppe Bubble, avec `runtime.js`, un éditeur et une feuille `presentation.css` lorsque nécessaire. Le champ `code` conserve le mélange CSS/templates JavaScript attendu par Bubble.
+
+Les fragments CSS de [src/styles](src/styles/README.md) sont inclus dans les sélecteurs propres aux modules. Une inclusion peut transmettre un objet JSON de paramètres textuels ; la première ligne `/* @defaults {...} */` du fragment fournit ses défauts, remplacés via les marqueurs `@@NOM@@`. Les paramètres restent locaux à l'inclusion et les erreurs interrompent le build. Les priorités CSS, propriétés natives Bubble et accents sont explicites ; les dispositions restent dans chaque module. Flow possède également sa feuille `src/presentation.css`, incluse dans le template mis en cache du runtime. Ces assemblages n'ajoutent ni import CSS ni calcul de style à l'exécution.
 
 Flow, Weather et Wind Rose utilisent `@@MODULE_VERSION@@` dans leur source de runtime ; le build y injecte la version déclarée dans `module.yaml`. Les caches, abonnements et fonctions de nettoyage restent propres à chaque carte. Les variables du thème restent dans le CSS pour suivre les changements de thème sans reconstruction.
 

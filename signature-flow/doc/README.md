@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.4**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.5**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -236,6 +236,11 @@ This module supports the optional [Signature light/dark theme](../../themes/READ
 
 ## Release notes
 
+### 3.5.5 — 5 October 2026
+
+- Builds shared CSS roles from `shared/src/styles` while preserving selectors, theme fallbacks, priorities and layout-specific geometry.
+- Keeps standalone, minified distributions and existing configuration/actions.
+
 ### 3.5.4 — 5 October 2026
 
 - Compact generated distribution: local JavaScript names and expressions, embedded CSS whitespace and YAML metadata. Configuration keys, CSS variables and runtime behavior are preserved.
@@ -273,5 +278,7 @@ This module supports the optional [Signature light/dark theme](../../themes/READ
 - Small icon corners derive from the shared icon radius. Slot 3 secondary text follows the shared secondary size on mobile; numeric rows follow their font sizes.
 
 ## Maintenance des sources
+
+Les styles communs sont définis dans [shared/src/styles](../../shared/src/styles/README.md) et inclus au build. Les dispositions restent propres au module ; la distribution demeure autonome et minifiée.
 
 Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.

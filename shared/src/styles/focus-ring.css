@@ -1,0 +1,3 @@
+/* @defaults {"COLOR":"var(--primary-text-color)","OFFSET":"-2px"} */
+outline: 2px solid @@COLOR@@;
+outline-offset: @@OFFSET@@;
