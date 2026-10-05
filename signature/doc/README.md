@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.3.1**. [Complete file to import](../dist/signature.yaml).
+Version **2.3.2**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -31,9 +31,9 @@ Place `signature` at the card's root, at the same level as `entity` and `modules
 
 ## Visual configuration
 
-The form uses French labels. Open the object panel under **Réglages adaptés à la carte** to edit the settings. Presentation, accent color and secondary text appear when applicable; the other settings are grouped in collapsible sections for values/text, controls/sub-buttons, square tiles, rooms and advanced appearance. The main entity and native sub-buttons/actions are still configured in Bubble's own editor.
+The form uses French labels. Settings appear directly under **Modules → Signature**, with a single presentation dropdown and no object-item header or root-object delete button. Presentation, accent color and secondary text appear when applicable; the other settings are grouped in collapsible sections for values/text, controls/sub-buttons, square tiles, rooms and advanced appearance. The main entity and native sub-buttons/actions are still configured in Bubble's own editor.
 
-The anonymous object selector (`name: ''`) edits the existing keys directly under `signature`, without introducing a nested object or list. Bubble's `group` metadata creates collapsible sections and removes sections whose fields are all hidden. Its `visible_if` expressions inspect both the current module settings (`item`) and the native card configuration (`card`). This data path is validated against Bubble Card 3.4.1; older versions without its object-selector visibility support may show every field. Hidden settings stay in the configuration, so switching layouts does not delete previous room/square settings. No extra calculation is added to displayed cards.
+The anonymous form (`name: ''`, `type: signature_options`) edits the existing keys directly under `signature`, without introducing a nested object or list. A small component registered by the module renders a native `ha-form` and delegates schema generation, defaults and value changes to a detached Bubble object selector. Its redundant outer panel is never mounted. Bubble's `group` metadata creates collapsible sections and removes sections whose fields are all hidden. Its `visible_if` expressions inspect both the current module settings (`item`) and the native card configuration (`card`). The bridge relies on Bubble's object-selector helpers, validated against 3.4.1; versions without those helpers are unsupported. Hidden settings stay in the configuration, so switching layouts does not delete previous room/square settings. Reload the page after importing this update if an editor is already open.
 
 The form follows the same effective-layout rules as the renderer: square and room are button layouts, cover/climate/switch cards stay compact, and header falls back to compact unless the button type is name. Section titles expose the layout control; media players expose only color/background. Numeric controls are offered only for compact state buttons linked to number/input_number entities. The square detail-row reservation appears only with measure controls, and room header-measure positioning appears only when main/secondary text leaves that space available. Incompatible layout or control choices show a warning instead of rewriting the card.
 
@@ -48,7 +48,7 @@ Four advanced fields intentionally use native YAML inputs inside the form:
 - `sub_button_styles`: the existing object keyed by `css_class` or sub-button number; arbitrary keys and templates remain supported.
 - `room_auto_colors`: `true` by default or `false` to disable automatic room colors. A YAML scalar keeps that default explicit because Bubble's object selector currently injects select defaults only.
 
-For example, enter `"{{ is_state('light.living_room', 'on') }}"` in the background field. The YAML input preserves an existing boolean or template when another setting is edited. It does not convert style objects to lists or introduce new template override keys. No extra JavaScript, polling or subscription is added to displayed cards.
+For example, enter `"{{ is_state('light.living_room', 'on') }}"` in the background field. The YAML input preserves an existing boolean or template when another setting is edited. It does not convert style objects to lists or introduce new template override keys. The editor component is registered once; no observer, polling or subscription is added to displayed cards.
 
 ## Layouts and compatibility
 
@@ -318,6 +318,12 @@ The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.3.2 — 5 October 2026
+
+- Displays settings directly with one presentation dropdown, removing the redundant object-item header and its ineffective root-object delete button.
+- Reuses Bubble's native fields, conditional groups, defaults and value-change logic through an inline editor bridge; existing keys and hidden settings are preserved.
+- Registers the editor component once without changing card rendering or adding observers, polling or subscriptions.
 
 ### 2.3.1 — 5 October 2026
 

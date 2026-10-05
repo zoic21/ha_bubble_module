@@ -628,8 +628,8 @@ test('a service failure received after teardown does not dispatch a notification
 });
 
 function editorFields(schema=definition.editor) {
-  return schema.flatMap(field=>field.selector?.object?.fields
-    ? Object.entries(field.selector.object.fields).map(([name,options])=>({name,...options}))
+  return schema.flatMap(field=>field.fields
+    ? Object.entries(field.fields).map(([name,options])=>({name,...options}))
     : field.schema ? editorFields(field.schema) : field.selector ? [field] : []);
 }
 
@@ -639,8 +639,10 @@ test('visual editor covers the existing option keys without nesting or narrowing
   const runtimeNames=[...new Set([...code.matchAll(/\bo\.([a-z_]+)/g)].map(match=>match[1]))];
   assert.equal(new Set(names).size,names.length,'Each option has a single input');
   assert.deepEqual([...names].sort(),runtimeNames.sort(),'The form exposes the runtime options directly');
-  const container=definition.editor.find(field=>field.selector?.object?.fields);
-  assert.equal(container.name,'','The object form must edit the module root without nesting it');
+  const container=definition.editor.find(field=>field.fields);
+  assert.equal(container.name,'','The inline form must edit the module root without nesting it');
+  assert.equal(container.type,'signature_options');
+  assert.equal(container.selector,undefined,'No structured object selector should create an item panel');
   for (const field of fields) {
     assert.ok(Object.hasOwn(field,'default'),field.name);
     assert.ok(field.label,field.name);

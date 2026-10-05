@@ -26,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 2.3.1
+  version: 2.3.2
   creator: Loïc
   supported:
     - button
@@ -40,249 +40,318 @@ signature:
     label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.
   - name: ''
     label: Réglages adaptés à la carte
-    selector:
-      object:
-        label_field: layout
-        fields:
-          layout:
-            label: Présentation
-            default: compact
-            selector:
-              select:
-                mode: dropdown
-                options:
-                - label: Compacte
-                  value: compact
-                - label: Carrée
-                  value: square
-                - label: Pièce
-                  value: room
-                - label: En-tête
-                  value: header
-                - label: Titre de section
-                  value: title
-            visible_if: '!card || (card.card_type === ''separator'') || ((card.card_type || ''button'') === ''button'' && ![''switch'',''slider''].includes(card.button_type)) || [''title'',''heading''].includes(item.layout)'
-            warn_if: card && item.layout && ((!['compact','square','room','header','title'].includes(item.layout)) || (item.layout === 'title' && card.card_type !== 'separator') || (card.card_type === 'separator' && item.layout !== 'title') || (item.layout === 'header' && ((card.card_type || 'button') !== 'button' || card.button_type !== 'name')) || (['square','room'].includes(item.layout) && ((card.card_type || 'button') !== 'button' || ['switch','slider'].includes(card.button_type))))
-            warn_text: 'Cette présentation est incompatible avec le type de carte : titre pour un séparateur, en-tête pour un bouton de nom ; les volets, thermostats et interrupteurs restent compacts.'
-          color:
-            label: Couleur de l’icône
-            default: blue
-            selector:
-              select:
-                mode: dropdown
-                custom_value: true
-                options:
-                - label: Bleu
-                  value: blue
-                - label: Bleu clair
-                  value: light-blue
-                - label: Turquoise
-                  value: teal
-                - label: Cyan
-                  value: cyan
-                - label: Vert
-                  value: green
-                - label: Orange
-                  value: orange
-                - label: Ambre
-                  value: amber
-                - label: Jaune
-                  value: yellow
-                - label: Rouge
-                  value: red
-                - label: Rose
-                  value: pink
-                - label: Indigo
-                  value: indigo
-                - label: Violet
-                  value: purple
-                - label: Gris
-                  value: grey
-            visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate'',''media-player''].includes(card.card_type || ''button'')))'
-            description: Couleur de la palette, couleur CSS ou template Jinja.
-          secondary:
-            label: Texte secondaire (entité, texte ou template)
-            default: ''
-            selector:
-              text:
-                multiline: true
-            visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
-          compact_mode:
-            label: Valeur compacte
-            default: default
-            selector:
-              select:
-                mode: dropdown
-                options:
-                - label: Affichage standard
-                  value: default
-                - label: Valeur à droite
-                  value: value
-            group: Valeurs et textes
-            group_icon: mdi:format-text
-            visible_if: ((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))) && (!card || (card.card_type || 'button') === 'button') && (!card || card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))
-          state:
-            label: Valeur principale personnalisée (texte ou template)
-            default: ''
-            selector:
-              text:
-                multiline: true
-            group: Valeurs et textes
-            group_icon: mdi:format-text
-            visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
-          secondary_bold:
-            label: Interpréter **texte** en gras dans le texte secondaire
-            default: false
-            selector:
-              boolean: {}
-            group: Valeurs et textes
-            group_icon: mdi:format-text
-            visible_if: ((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))) && String(item.secondary || '').trim() !== ''
-          multiline:
-            label: Autoriser les textes sur plusieurs lignes
-            default: false
-            selector:
-              boolean: {}
-            group: Valeurs et textes
-            group_icon: mdi:format-text
-            visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
-          controls:
-            label: Commandes
-            default: native
-            selector:
-              select:
-                mode: dropdown
-                options:
-                - label: Commandes natives
-                  value: native
-                - label: Numériques (− / valeur / +)
-                  value: number
-                - label: Mesure (commande et détail)
-                  value: measure
-            group: Commandes et sous-boutons
-            group_icon: mdi:gesture-tap-button
-            visible_if: (item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))) || (((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))) && (!card || (card.card_type || 'button') === 'button') && (!card || (card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0]))))
-            warn_if: (item.controls === 'number' && !(((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))) && (!card || (card.card_type || 'button') === 'button') && (!card || (card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0]))))) || (item.controls === 'measure' && !(item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))))
-            warn_text: 'Numériques : bouton number/input_number en compacte. Mesure : tuile carrée avec les sous-boutons natifs.'
-          sub_buttons_position:
-            label: Position des sous-boutons en compacte
-            default: default
-            selector:
-              select:
-                mode: dropdown
-                options:
-                - label: Position standard
-                  value: default
-                - label: Après les commandes natives
-                  value: end
-            group: Commandes et sous-boutons
-            group_icon: mdi:gesture-tap-button
-            visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))
-          sub_button_styles:
-            label: Styles des sous-boutons (objet YAML)
-            default: {}
-            selector:
-              object: {}
-            group: Commandes et sous-boutons
-            group_icon: mdi:gesture-tap-button
-            visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
-            description: Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles.
-          auto_height:
-            label: Adapter la hauteur au contenu
-            default: false
-            selector:
-              boolean: {}
-            group: Tuile carrée
-            group_icon: mdi:card-outline
-            visible_if: item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-          reserve_measure_detail:
-            label: Réserver la ligne de détail avec les commandes de mesure
-            default: false
-            selector:
-              boolean: {}
-            group: Tuile carrée
-            group_icon: mdi:card-outline
-            visible_if: (item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))) && item.controls === 'measure'
-          room_auto_colors:
-            label: Coloration automatique des commandes (booléen YAML)
-            default: true
-            selector:
-              object: {}
-            group: Pièce
-            group_icon: mdi:sofa-outline
-            visible_if: item.layout === 'room' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-            description: true par défaut ; false désactive les couleurs automatiques.
-          room_control_columns:
-            label: Colonnes de commandes
-            default: 4
-            selector:
-              number:
-                mode: box
-                min: 1
-                max: 6
-                step: 1
-            group: Pièce
-            group_icon: mdi:sofa-outline
-            visible_if: item.layout === 'room' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-            description: 4 colonnes par défaut, de 1 à 6.
-          room_measures_position:
-            label: Position des mesures
-            default: content
-            selector:
-              select:
-                mode: dropdown
-                options:
-                - label: Dans le contenu
-                  value: content
-                - label: Dans l’en-tête
-                  value: header
-            group: Pièce
-            group_icon: mdi:sofa-outline
-            visible_if: (item.layout === 'room' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))) && String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true && card.button_type === 'name' && String(item.state || '').trim() === ''))
-          color_background:
-            label: Colorer aussi le fond (booléen ou template YAML)
-            default: false
-            selector:
-              object: {}
-            group: Apparence avancée
-            group_icon: mdi:palette-outline
-            visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate','media-player'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
-            description: false par défaut. Saisir true/false ou un template Jinja entre guillemets.
-          icon_color:
-            label: Couleur personnalisée de l’icône
-            default: ''
-            selector:
-              text: {}
-            group: Apparence avancée
-            group_icon: mdi:palette-outline
-            visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
-          icon_opacity:
-            label: Opacité de l’icône (nombre ou template YAML)
-            default: null
-            selector:
-              object: {}
-            group: Apparence avancée
-            group_icon: mdi:palette-outline
-            visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
-            description: Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets.
-          border_color:
-            label: Couleur de la bordure de la carte
-            default: ''
-            selector:
-              text: {}
-            group: Apparence avancée
-            group_icon: mdi:palette-outline
-            visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
-          icon_border_color:
-            label: Couleur de la bordure du fond de l’icône
-            default: ''
-            selector:
-              text: {}
-            group: Apparence avancée
-            group_icon: mdi:palette-outline
-            visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
+    type: signature_options
+    fields:
+      layout:
+        label: Présentation
+        default: compact
+        selector:
+          select:
+            mode: dropdown
+            options:
+            - label: Compacte
+              value: compact
+            - label: Carrée
+              value: square
+            - label: Pièce
+              value: room
+            - label: En-tête
+              value: header
+            - label: Titre de section
+              value: title
+        visible_if: '!card || (card.card_type === ''separator'') || ((card.card_type || ''button'') === ''button'' && ![''switch'',''slider''].includes(card.button_type)) || [''title'',''heading''].includes(item.layout)'
+        warn_if: card && item.layout && ((!['compact','square','room','header','title'].includes(item.layout)) || (item.layout === 'title' && card.card_type !== 'separator') || (card.card_type === 'separator' && item.layout !== 'title') || (item.layout === 'header' && ((card.card_type || 'button') !== 'button' || card.button_type !== 'name')) || (['square','room'].includes(item.layout) && ((card.card_type || 'button') !== 'button' || ['switch','slider'].includes(card.button_type))))
+        warn_text: 'Cette présentation est incompatible avec le type de carte : titre pour un séparateur, en-tête pour un bouton de nom ; les volets, thermostats et interrupteurs restent compacts.'
+      color:
+        label: Couleur de l’icône
+        default: blue
+        selector:
+          select:
+            mode: dropdown
+            custom_value: true
+            options:
+            - label: Bleu
+              value: blue
+            - label: Bleu clair
+              value: light-blue
+            - label: Turquoise
+              value: teal
+            - label: Cyan
+              value: cyan
+            - label: Vert
+              value: green
+            - label: Orange
+              value: orange
+            - label: Ambre
+              value: amber
+            - label: Jaune
+              value: yellow
+            - label: Rouge
+              value: red
+            - label: Rose
+              value: pink
+            - label: Indigo
+              value: indigo
+            - label: Violet
+              value: purple
+            - label: Gris
+              value: grey
+        visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate'',''media-player''].includes(card.card_type || ''button'')))'
+        description: Couleur de la palette, couleur CSS ou template Jinja.
+      secondary:
+        label: Texte secondaire (entité, texte ou template)
+        default: ''
+        selector:
+          text:
+            multiline: true
+        visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
+      compact_mode:
+        label: Valeur compacte
+        default: default
+        selector:
+          select:
+            mode: dropdown
+            options:
+            - label: Affichage standard
+              value: default
+            - label: Valeur à droite
+              value: value
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: ((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))) && (!card || (card.card_type || 'button') === 'button') && (!card || card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))
+      state:
+        label: Valeur principale personnalisée (texte ou template)
+        default: ''
+        selector:
+          text:
+            multiline: true
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
+      secondary_bold:
+        label: Interpréter **texte** en gras dans le texte secondaire
+        default: false
+        selector:
+          boolean: {}
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: ((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))) && String(item.secondary || '').trim() !== ''
+      multiline:
+        label: Autoriser les textes sur plusieurs lignes
+        default: false
+        selector:
+          boolean: {}
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
+      controls:
+        label: Commandes
+        default: native
+        selector:
+          select:
+            mode: dropdown
+            options:
+            - label: Commandes natives
+              value: native
+            - label: Numériques (− / valeur / +)
+              value: number
+            - label: Mesure (commande et détail)
+              value: measure
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: (item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))) || (((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))) && (!card || (card.card_type || 'button') === 'button') && (!card || (card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0]))))
+        warn_if: (item.controls === 'number' && !(((!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))) && (!card || (card.card_type || 'button') === 'button') && (!card || (card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0]))))) || (item.controls === 'measure' && !(item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))))
+        warn_text: 'Numériques : bouton number/input_number en compacte. Mesure : tuile carrée avec les sous-boutons natifs.'
+      sub_buttons_position:
+        label: Position des sous-boutons en compacte
+        default: default
+        selector:
+          select:
+            mode: dropdown
+            options:
+            - label: Position standard
+              value: default
+            - label: Après les commandes natives
+              value: end
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate'].includes(card.card_type || 'button')))) && (!['square','room','header'].includes(item.layout) || (card && (['cover','climate'].includes(card.card_type) || card.button_type === 'switch' || (item.layout === 'header' && card.button_type !== 'name'))))
+      sub_button_styles:
+        label: Styles des sous-boutons (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
+        description: Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles.
+      auto_height:
+        label: Adapter la hauteur au contenu
+        default: false
+        selector:
+          boolean: {}
+        group: Tuile carrée
+        group_icon: mdi:card-outline
+        visible_if: item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      reserve_measure_detail:
+        label: Réserver la ligne de détail avec les commandes de mesure
+        default: false
+        selector:
+          boolean: {}
+        group: Tuile carrée
+        group_icon: mdi:card-outline
+        visible_if: (item.layout === 'square' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))) && item.controls === 'measure'
+      room_auto_colors:
+        label: Coloration automatique des commandes (booléen YAML)
+        default: true
+        selector:
+          object: {}
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: item.layout === 'room' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: true par défaut ; false désactive les couleurs automatiques.
+      room_control_columns:
+        label: Colonnes de commandes
+        default: 4
+        selector:
+          number:
+            mode: box
+            min: 1
+            max: 6
+            step: 1
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: item.layout === 'room' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: 4 colonnes par défaut, de 1 à 6.
+      room_measures_position:
+        label: Position des mesures
+        default: content
+        selector:
+          select:
+            mode: dropdown
+            options:
+            - label: Dans le contenu
+              value: content
+            - label: Dans l’en-tête
+              value: header
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (item.layout === 'room' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))) && String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true && card.button_type === 'name' && String(item.state || '').trim() === ''))
+      color_background:
+        label: Colorer aussi le fond (booléen ou template YAML)
+        default: false
+        selector:
+          object: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: (!['title','heading'].includes(item.layout) && (!card || (card.button_type !== 'slider' && ['button','cover','climate','media-player'].includes(card.card_type || 'button')))) && !(item.layout === 'header' && (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (!card || card.button_type === 'name'))
+        description: false par défaut. Saisir true/false ou un template Jinja entre guillemets.
+      icon_color:
+        label: Couleur personnalisée de l’icône
+        default: ''
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
+      icon_opacity:
+        label: Opacité de l’icône (nombre ou template YAML)
+        default: null
+        selector:
+          object: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
+        description: Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets.
+      border_color:
+        label: Couleur de la bordure de la carte
+        default: ''
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
+      icon_border_color:
+        label: Couleur de la bordure du fond de l’icône
+        default: ''
+        selector:
+          text: {}
+        group: Apparence avancée
+        group_icon: mdi:palette-outline
+        visible_if: '![''title'',''heading''].includes(item.layout) && (!card || (card.button_type !== ''slider'' && [''button'',''cover'',''climate''].includes(card.card_type || ''button'')))'
   code: |2-
         ${(() => {
+          // Signature editor bridge: native fields without an object item panel.
+          if (typeof customElements !== 'undefined' && !customElements.get('ha-form-signature_options')) {
+            class SignatureOptionsForm extends HTMLElement {
+              constructor() {
+                super();
+                const shadow = this.attachShadow({mode:'open'});
+                const style = document.createElement('style');
+                style.textContent = ':host{display:block}label{display:block;font-weight:500;margin-bottom:8px}';
+                this._labelEl = document.createElement('label');
+                this._form = document.createElement('ha-form');
+                shadow.append(style,this._labelEl,this._form);
+                this._form.addEventListener('value-changed',event => {
+                  event.stopPropagation();
+                  this._engine?._itemChanged(event,0);
+                });
+              }
+              connectedCallback() { this._scheduleUpdate(); }
+              _scheduleUpdate() {
+                if (this._pending) return;
+                this._pending = true;
+                queueMicrotask(() => {
+                  this._pending = false;
+                  if (this.isConnected) this._updateForm();
+                });
+              }
+              _updateForm() {
+                if (!this.schema?.fields) return;
+                if (!customElements.get('ha-selector-bc_object')) {
+                  if (!this._waiting) {
+                    this._waiting = true;
+                    customElements.whenDefined('ha-selector-bc_object').then(() => this._scheduleUpdate());
+                  }
+                  return;
+                }
+                if (!this._engine) {
+                  // Use Bubble's schema/default/event logic, without mounting its item UI.
+                  this._engine = document.createElement('ha-selector-bc_object');
+                  this._engine.getRootNode = () => this.getRootNode();
+                  this._engine.addEventListener('value-changed',event => {
+                    this.dispatchEvent(new CustomEvent('value-changed',{
+                      detail:event.detail,bubbles:true,composed:true
+                    }));
+                  });
+                }
+                const engine = this._engine;
+                engine.hass = this.hass;
+                engine.value = this.data || {};
+                engine.selector = {bc_object:{fields:this.schema.fields}};
+                engine.localizeValue = this.localizeValue;
+                const data = engine._itemFormData(engine.value,0);
+                this._labelEl.textContent = this.label || '';
+                Object.assign(this._form,{
+                  hass:this.hass,data,
+                  schema:engine._generateSchema(this.schema.fields,data,0),
+                  warning:engine._warnTop?.[0] || {},computeWarning:warning => warning,
+                  disabled:this.disabled,
+                  computeLabel:schema => engine._computeLabel(schema,0),
+                  computeHelper:schema => engine._computeHelper(schema,0),
+                  localizeValue:this.localizeValue
+                });
+              }
+            }
+            for (const key of ['hass','data','schema','disabled','label','localizeValue']) {
+              Object.defineProperty(SignatureOptionsForm.prototype,key,{
+                get() { return this['_'+key]; },
+                set(value) { this['_'+key] = value;this._scheduleUpdate(); }
+              });
+            }
+            customElements.define('ha-form-signature_options',SignatureOptionsForm);
+          }
+          // End Signature editor bridge.
           const c = this.config;
           const o = c.signature || {};
           const root = this.card;
