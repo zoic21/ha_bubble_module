@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.6**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.7**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -37,6 +37,8 @@ Un `button` avec `button_type: name` donne un grand en-tête et des pilules. Un 
 
 Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_styles` permet d’appliquer des seuils aux fonds des badges et une préférence `icon_color` à leurs icônes. Les autres options continuent à concerner le grand en-tête. Les pilules passent sous le titre selon la largeur. `sub_button_styles` accepte une classe CSS ou un numéro natif, avec `color`, `background`, `opacity` et `icon`, dont les valeurs peuvent utiliser Jinja.
 
+Sur mobile (fenêtre de 600 px ou moins), les sous-boutons du grand en-tête sont justifiés sur chaque ligne : le premier et le dernier s’alignent aux bords, les espaces intermédiaires se répartissent et les pilules gardent leur largeur. Un bouton seul sur une ligne reste à gauche. Ce comportement dépend de la fenêtre, pas d’une carte étroite sur ordinateur ; les titres de section restent inchangés.
+
 ## Couleurs du fond d’icône selon la valeur
 
 Les sous-boutons du grand en-tête et des titres de section acceptent `color_thresholds` dans `sub_button_styles`. Le fond du badge utilise une teinte douce à 16 % dans la surface du thème ; l’icône porte l’accent du graphe. Le texte garde simplement la couleur du thème ; aucune gestion du contraste. Les seuils actifs remplacent `background`, `color` et `icon_color` de l’indicateur ; retirer les seuils restitue le style ordinaire. Voir le [guide commun et ses exemples](../../signature-shared/doc/COLOR_THRESHOLDS.md).
@@ -65,6 +67,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.7 — 5 octobre 2026
+
+- Justification des sous-boutons sur chaque ligne du grand en-tête, uniquement sur une fenêtre mobile de 600 px ou moins.
+- Largeur des pilules, ordre, masquages et actions natifs conservés ; aucun changement de disposition sur ordinateur ou pour les titres de section.
+- Rendu vérifié sur fixtures Chromium en clair/sombre, avec/sans thème, y compris au seuil mobile et avec des groupes natifs.
 
 ### 1.1.6 — 5 octobre 2026
 

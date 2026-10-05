@@ -41,4 +41,8 @@ ha-card[data-dp-layout="header"] .bubble-sub-button-container { justify-content:
 ha-card[data-dp-layout="header"] .bubble-name { font-size: var(--signature-header-small-font-size, 32px) !important; letter-spacing: -0.8px; }
 ha-card[data-dp-layout="header"] .bubble-sub-button { padding: 0 10px !important; }
     }
+    /* Mobile viewport only: distribute each wrapped row without stretching pills. */
+    @media (max-width: 600px) {
+ha-card[data-dp-layout="header"] .bubble-sub-button-container { justify-content: space-between !important; }
+    }
     `
