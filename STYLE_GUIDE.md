@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature 2.3.2**, **Signature Flow 3.5.0**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.2**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature 2.3.2**, **Signature Flow 3.5.0**, **Signature Weather 1.2.1**, **Signature Wind Rose 1.1.2** et **Signature Navigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -29,6 +29,8 @@ border-radius: var(--signature-card-border-radius, 22px);
 Signature transmet ces valeurs aux variables natives `bubble-*`, et `bubble-media-player-*` pour le lecteur. Flow, Weather et Wind Rose les appliquent au conteneur visible. Le `ha-card` extérieur ne doit pas créer une seconde bordure ou une seconde ombre. Vérifier son style réellement appliqué : Bubble initialise certaines propriétés en ligne.
 
 Les titres de section `layout: title` sont une exception aux surfaces de carte : leur `ha-card` et leur `.bubble-container` restent transparents, sans bordure ni ombre, même si un thème fournit des surfaces Bubble globales. Conserver la hauteur de 32 px, le texte de 18 px et les fonds des sous-boutons natifs.
+
+Signature Navigation est une autre surface intentionnelle : footer flottant de 56 px, fond de carte hérité mélangé à 45 % avec transparent, flou de 18 px saturé à 180 %, une seule ombre extérieure `0 4px 16px rgb(0 0 0 / .10)` et un reflet masqué sur le contour. Le reflet est lumineux en haut et à droite et s’efface en bas et à gauche ; ne pas ajouter un cadre lumineux uniforme ou un second fond au survol. Les marges mobiles valent 24 px par côté au plus jusqu’à 600 px ; largeur desktop native de 420 px par défaut. Les options documentées peuvent modifier les marges, le flou et l’opacité.
 
 Un `none` explicite pour l'ombre est une valeur valide et doit être conservé. Tester la cascade sans thème Signature, notamment lorsque `ha-card-background` et `card-background-color` diffèrent. Un thème qui fournit toutes les variables peut masquer une divergence de repli.
 
@@ -127,6 +129,7 @@ Le fond d'icône Signature et Flow mélange 16 % de l'accent dans la surface neu
 | Groupe de périodes | `signature-control-border-radius` | 14 px |
 | Bouton de période intérieur | `max(0px, rayon contrôle - 3px)` | 11 px |
 | Infobulle Wind Rose | `signature-tooltip-border-radius`, sinon rayon d'icône | 12 px |
+| Sélection Navigation, survol, focus et ripple | `max(0px, rayon carte - 6px)` ; retrait uniforme de 6 px et largeur de la case native | 16 px |
 | Ombre d'infobulle | `signature-tooltip-box-shadow`, sinon `signature-control-box-shadow`, sinon ombre de contrôle claire | Dépend du mode |
 
 Weather et Wind Rose partagent les métriques suivantes : padding du groupe 3 px, écart entre boutons 3 px, padding horizontal d'un bouton 10 px, police secondaire 13 px, hauteur minimale `signature-control-height` de 40 px. Avec `pointer: coarse`, utiliser `signature-control-touch-height` de 44 px. Le groupe Weather est inline ; le groupe Wind Rose occupe sa largeur disponible. Cette différence de placement est intentionnelle.
@@ -160,6 +163,8 @@ Conserver les densités existantes : 10 px pour le contenu compact/square, 12 px
 
 Une correction de style doit conserver les entités, le formatage localisé, les unités, les actions natives, les cibles `more-info`, les conditions d'affichage et les contrôles numériques. Ne pas réactiver `.hidden` ou `[hidden]`. Conserver les nœuds auxquels Bubble attache ses événements ; séparer visuellement une unité sans remplacer une commande par du texte inerte.
 
+Navigation s’utilise seule sur un footer natif `sub-buttons`, avec une rangée plate en bas et aucune commande principale. Elle conserve les nœuds, actions et masquages natifs. L’icône active utilise `blue-color` (repli `#2196f3`), les autres utilisent la couleur secondaire. Le fond de sélection remplit sa case pour que le premier et le dernier bouton suivent la courbe extérieure. Ne pas réintroduire le carré fixe de 44 px ni le rayon d’icône de 12 px : le retrait vertical et horizontal doit rester uniforme. La hauteur des commandes est de 44 px ; leur largeur dépend du nombre de routes et de l’espace disponible. La sélection compare le segment dashboard des actions `navigate`, sans liste de routes codée dans le module ni listener supplémentaire.
+
 Les modules autonomes Flow, Weather et Wind Rose remplacent leur contenu natif et s'utilisent sans le module de design Signature sur la même carte. Aucun besoin de `card-mod`, de police externe ou d'une dépendance npm dans Home Assistant. Les dépendances du dépôt servent uniquement au développement.
 
 Une variation de thème ne doit déclencher ni abonnement, ni requête d'historique, ni timer supplémentaire. Les abonnements, observateurs, animations et listeners existants doivent être libérés au teardown. Respecter `prefers-reduced-motion` dans Flow. Ne pas ajouter une boucle permanente de lecture des styles pour maintenir l'harmonie ; conserver les mesures de géométrie déjà nécessaires au diagramme.
@@ -175,7 +180,7 @@ npx playwright install chromium
 npm run test:styles
 ```
 
-Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 18 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les palettes de l'hôte sont des fixtures indépendantes du thème ; elles vérifient l'héritage et les changements de mode, sans figer les couleurs d'une version Home Assistant. Les contrôles couvrent aussi les titres transparents avec des surfaces Bubble globales et une surface extérieure en ligne. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
+Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les palettes de l'hôte sont des fixtures indépendantes du thème ; elles vérifient l'héritage et les changements de mode, sans figer les couleurs d'une version Home Assistant. Les contrôles couvrent aussi les titres transparents avec des surfaces Bubble globales et une surface extérieure en ligne. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
 
 | Dimension à contrôler | Cas requis |
 |---|---|

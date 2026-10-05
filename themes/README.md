@@ -20,6 +20,8 @@ When replacing an earlier Signature theme, replace the whole file rather than me
 
 Signature Wind Rose 1.1.2 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
 
+Signature Navigation 1.0.0 uses the shared surface, font and card radius for its floating footer. Import its [distribution](../signature-navigation/dist/signature-navigation.yaml) separately and follow its [guide](../signature-navigation/doc/README.md) to replace the inline navigation styles.
+
 The theme can be used on its own. Older modules retain their hard-coded styles until their updated YAML distributions are imported. Custom cards only honor the theme variables they consume; a theme cannot replace a card's hard-coded CSS or canvas drawing styles. Some Home Assistant appearance variables are internal and can change between frontend versions.
 
 ## Global variables and module variables
@@ -28,7 +30,7 @@ Home Assistant variables such as `ha-card-border-radius` and `ha-font-family-bod
 
 The `signature-*` prefix is a namespace, not a CSS scope. These custom properties are inherited like other theme properties, but only modules that reference them use their values. You can define them in any other theme or in a card's `styles`. Do not include the leading `--` in Home Assistant theme YAML; include it in CSS.
 
-The four Signature modules share the same neutral surface, border, shadow and system-font fallbacks, including without this theme. Role-based value sizes and layout density remain distinct. Alert Manager remains usable with native Bubble cards and without Signature. Its neutral badge inherits the native text color and card surface; alert colors and explicit card options retain precedence.
+Signature, Flow, Weather and Wind Rose share the same neutral surface, border, shadow and system-font fallbacks, including without this theme. Role-based value sizes and layout density remain distinct. Navigation derives its translucent glass from the shared surface and keeps a directional rim and its own floating shadow. Alert Manager remains usable with native Bubble cards and without Signature. Its neutral badge inherits the native text color and card surface; alert colors and explicit card options retain precedence.
 
 The browser resolves the variables directly. Changing the theme or its mode does not require entity changes, JavaScript style lookups, a new subscription, or rebuilding cached module CSS.
 
@@ -36,7 +38,7 @@ The browser resolves the variables directly. Changing the theme or its mode does
 
 | Theme key | Purpose | Signature theme value |
 |---|---|---|
-| `signature-font-family` | Font stack for Signature, Flow, Weather and Wind Rose | System fonts, Apple first |
+| `signature-font-family` | Font stack for Signature, Flow, Weather, Wind Rose and Navigation | System fonts, Apple first |
 | `signature-font-weight-normal` | Ordinary text and units | `400` |
 | `signature-font-weight-medium` | Main numeric values | `500` |
 | `signature-font-weight-semibold` | Names and emphasized text | `600` |
@@ -49,8 +51,8 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-temperature-font-size` | Room and current-weather temperatures | `30px`; responsive layouts may reduce it |
 | `signature-value-unit-font-size` | Square and primary Flow units | `16px` |
 | `signature-temperature-unit-font-size` | Room and current-weather temperature units | `13px` |
-| `signature-card-background` | Neutral card surfaces | `var(--ha-card-background, var(--card-background-color))` |
-| `signature-card-border-radius` | Main card corners | `22px` |
+| `signature-card-background` | Neutral card surfaces and Navigation glass base | `var(--ha-card-background, var(--card-background-color))` |
+| `signature-card-border-radius` | Main card corners and Navigation outline | `22px` |
 | `signature-card-border-color` | Subtle main card border | 5% primary text in transparent |
 | `signature-card-box-shadow` | Main card shadow | Mode-specific |
 | `signature-divider-color` | Room, Weather and Wind Rose dividers | 8% primary text in transparent |
@@ -74,6 +76,8 @@ Horizontal dividers in Signature room cards, Weather and Wind Rose share a 1 px 
 
 Period groups have 3 px padding and gaps; their inner button radius is the shared control radius minus 3 px, at least zero. Weather keeps an inline group and Wind Rose a full-width group. Ordinary secondary text uses its color at full opacity; inactive/disabled icons retain their native state opacity. Other layout dimensions, responsive value sizes, spacing and actions remain module-specific. Font overrides must be checked at narrow widths; fixed compact heights are not an unlimited text-zoom layout. Main and secondary text colors continue to use Home Assistant's `primary-text-color` and `secondary-text-color`. Explicit card accents and borders take precedence as before.
 
+Navigation has a 56 px bar with a uniform 6 px inner inset. Its selection and hover use the card radius minus 6 px, at least zero (16 px with this theme), so their corners follow the bar. They do not use the independent icon radius. Mobile margins, glass blur and opacity are configured in the module's editor.
+
 Primary numeric displays use tabular figures. This is applied in the modules, including Weather's temperature and measurement buttons, so their font reset does not cancel it; the theme needs no additional typography variable.
 
 For lighter names across the compatible modules, change `signature-font-weight-semibold` to `500`. For a shadow-free interface, set `signature-card-box-shadow` to `none` in both modes. To affect only one card:
@@ -93,4 +97,5 @@ styles: |
 - [Signature Flow](../signature-flow/doc/README.md)
 - [Signature Weather](../signature-weather/doc/README.md)
 - [Signature Wind Rose](../signature-wind-rose/doc/README.md)
+- [Signature Navigation](../signature-navigation/doc/README.md)
 - [Alert Manager](../alert_manager/doc/README.md)

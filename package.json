@@ -8,6 +8,7 @@
     "test:signature-flow": "node --test signature-flow/test/*.test.cjs",
     "test:signature-weather": "node --test signature-weather/test/*.test.cjs",
     "test:signature-wind-rose": "node --test signature-wind-rose/test/*.test.cjs",
+    "test:signature-navigation": "node --test signature-navigation/test/*.test.cjs",
     "test:styles": "node --test styles/test/*.browser.cjs"
   },
   "engines": {

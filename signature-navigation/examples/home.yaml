@@ -1,0 +1,56 @@
+type: custom:bubble-card
+card_type: sub-buttons
+card_layout: large
+rows: 1
+footer_mode: true
+footer_full_width: false
+footer_width: 420
+footer_bottom_offset: 16
+hide_main_background: false
+sub_button:
+  main: []
+  bottom:
+  - name: Accueil
+    icon: mdi:home
+    show_name: false
+    show_background: false
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace/summary-home
+  - name: Étage
+    icon: mdi:home-floor-1
+    show_name: false
+    show_background: false
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-etage/summary
+  - name: RDC
+    icon: mdi:home-floor-0
+    show_name: false
+    show_background: false
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-rdc/summary
+  - name: Jardin
+    icon: mdi:tree
+    show_name: false
+    show_background: false
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-exterieure/summary
+  - name: Sécurité
+    icon: mdi:security
+    show_name: false
+    show_background: false
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-securite/summary
+  - name: Informatique
+    icon: mdi:server
+    show_name: false
+    show_background: false
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-serveur/summary
+modules:
+- signature_navigation

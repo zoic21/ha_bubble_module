@@ -8,6 +8,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Flow — six configurable flow slots | 3.5.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.2.1 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.1.2 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
+| Signature Navigation — floating glass footer | 1.0.0 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.5.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Each module has its own folder: `dist` contains the complete YAML file to import, `doc` contains its documentation, and `test` contains its tests.
@@ -24,7 +25,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature`, `signature_flow`, `signature_weather`, `signature_wind_rose` and `alert_manager`. The Signature Flow, Signature Weather and Signature Wind Rose folders are named `signature-flow`, `signature-weather` and `signature-wind-rose`.
+The YAML IDs are `signature`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation` and `alert_manager`. The standalone Signature module folders use hyphens: `signature-flow`, `signature-weather`, `signature-wind-rose` and `signature-navigation`.
 
 ## Updates and Module Store
 
@@ -38,13 +39,15 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 Signature declares an `editor` schema: open **Modules → Signature** in the card editor to configure its options directly with French labels and collapsible sections. The form follows the effective layout and native card type: square hides room settings, cover/climate/switch cards use compact settings, and media players expose their two color options. An inline editor bridge reuses Bubble Card's object-field logic and `visible_if` support without its redundant item header or delete button; it is validated against 3.4.1. Existing YAML configurations remain valid and hidden values are retained. Sub-button style objects, background/opacity scalars and the default-on room color setting use small YAML fields inside the form to preserve their types. Standard controls, entities, and actions remain those provided by Bubble Card.
 
-Signature Flow uses the same inline form under **Modules → Signature Flow**, with common settings and six collapsible slot sections. Values, appearance, formatting, flow entities, global/per-slot animation and native actions are configurable there. Disabled slots, empty secondary text and template values hide irrelevant settings; existing YAML keys and animation inheritance are preserved. It replaces the native button content with a configurable flow diagram; see its [home example](signature-flow/examples/home.yaml). The other modules still use YAML for their custom options. Signature Weather replaces the button content with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
+Signature Flow uses the same inline form under **Modules → Signature Flow**, with common settings and six collapsible slot sections. Values, appearance, formatting, flow entities, global/per-slot animation and native actions are configurable there. Disabled slots, empty secondary text and template values hide irrelevant settings; existing YAML keys and animation inheritance are preserved. It replaces the native button content with a configurable flow diagram; see its [home example](signature-flow/examples/home.yaml). Weather, Wind Rose and Alert Manager use YAML for their custom options. Signature Weather replaces the button content with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
 
 Signature Wind Rose replaces the button content with a time-weighted, 16-direction wind rose and period selector; see its [Ecowitt example](signature-wind-rose/examples/ecowitt.yaml). It uses recorded direction and optional speed history without duplicating current values from a graph above it.
 
+Signature Navigation styles a native `sub-buttons` footer with a directional glass rim and automatic active-dashboard selection. Icons and navigation actions remain in Bubble's native editor; mobile margins, blur and opacity have their own French module form. It uses a 56 px bar with concentric selection corners. See the [six-route example](signature-navigation/examples/home.yaml) and remove the former navigation `styles` block when adopting it.
+
 ## Signature theme
 
-The optional [Signature theme](themes/README.md) provides light and dark modes for Home Assistant and shared CSS variables for all five modules. Download [signature.yaml](themes/signature.yaml) and follow the installation guide. No card-mod or additional JavaScript is required.
+The optional [Signature theme](themes/README.md) provides light and dark modes for Home Assistant and shared CSS variables for the Signature modules and Alert Manager. Download [signature.yaml](themes/signature.yaml) and follow the installation guide. No card-mod or additional JavaScript is required.
 
 ## Technical style rules
 
@@ -59,7 +62,7 @@ npm ci --ignore-scripts
 npm test
 ```
 
-Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose` or `npm run test:alert-manager` to test a single module. Tests are stored in each module's `test` folder and read the actual YAML distributions. YAML and Playwright are development dependencies; neither is needed in Home Assistant.
+Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose`, `npm run test:signature-navigation` or `npm run test:alert-manager` to test a single module. Tests are stored in each module's `test` folder and read the actual YAML distributions. YAML and Playwright are development dependencies; neither is needed in Home Assistant.
 
 For browser style checks, run `npx playwright install chromium` once, then `npm run test:styles`. These tests load the actual module distributions in a minimal Bubble-shaped DOM and check computed styles, theme switching, keyboard focus, dividers and touch targets. They do not run Home Assistant itself.
 

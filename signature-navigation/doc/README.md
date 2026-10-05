@@ -1,0 +1,105 @@
+# Signature Navigation
+
+Version **1.0.0**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+
+## Installation
+
+1. Install Bubble Card and Bubble Card Tools.
+2. Import the complete [distribution](../dist/signature-navigation.yaml) in **Modules**. The module ID is `signature_navigation`.
+3. Add `signature_navigation` to the footer card's `modules` list.
+4. Remove the previous navigation `styles` block. Keep the native icons, names, visibility and navigation actions.
+
+Use this module on its own, without the card-design `signature` module on the same card. The Signature theme is optional. Importing this file does not update existing dashboard cards automatically.
+
+## Card configuration
+
+Use `card_type: sub-buttons`, `footer_mode: true`, an empty `sub_button.main` list and one flat `sub_button.bottom` list. Nested groups and footers with main buttons are outside this module's layout; the module returns no CSS for them. Set `show_name: false` and `show_background: false` on each route to obtain the icon-only design.
+
+```yaml
+type: custom:bubble-card
+card_type: sub-buttons
+card_layout: large
+rows: 1
+footer_mode: true
+footer_full_width: false
+footer_width: 420
+footer_bottom_offset: 16
+hide_main_background: false
+modules:
+  - signature_navigation
+sub_button:
+  main: []
+  bottom:
+    - name: Accueil
+      icon: mdi:home
+      show_name: false
+      show_background: false
+      tap_action:
+        action: navigate
+        navigation_path: /lovelace/summary-home
+    - name: Étage
+      icon: mdi:home-floor-1
+      show_name: false
+      show_background: false
+      tap_action:
+        action: navigate
+        navigation_path: /dashboard-etage/summary
+```
+
+The [complete six-route example](../examples/home.yaml) includes Accueil, Étage, RDC, Jardin, Sécurité and Informatique. Adapt the destinations to your own dashboards. The example preserves the native footer position, including Bubble's desktop sidebar offset. The module defaults the desktop width to 420 px when `footer_width` is omitted; the native `footer_bottom_offset` defaults to 16 px.
+
+## Visual configuration
+
+Open **Modules → Signature Navigation** for the French settings form. These options are also available in YAML:
+
+```yaml
+signature_navigation:
+  mobile_margin: 24
+  blur: 18
+  opacity: 45
+```
+
+| Option | Default | Range | Meaning |
+|---|---:|---:|---|
+| `mobile_margin` | 24 px | 0–48 | Margin on each side of the viewport at widths up to 600 px |
+| `blur` | 18 px | 0–32 | Backdrop blur; saturation stays at 180% |
+| `opacity` | 45% | 0–100 | Theme card-surface contribution to the glass background |
+
+Zero is a valid value. Out-of-range values are bounded to the documented limits. Height remains 56 px; the native footer fields control desktop width and bottom offset.
+
+## Active route
+
+The first native `navigate` action whose destination has the same dashboard segment as `window.location.pathname` is highlighted. `/dashboard-etage/summary` stays selected on the room views of `/dashboard-etage`. Dashboard names are compared as complete segments, so `/dashboard-etage-bis` does not select `/dashboard-etage`. A destination with a query or fragment keeps the same dashboard segment. Other actions keep their native behavior and are not selected automatically.
+
+No `css_class`, fixed route list or entity is required. Selection uses Bubble's numbered sub-button classes for the flat bottom row. The module does not rewrite configuration, replace buttons or install click handlers. When a route changes, Bubble evaluates the module again as part of the card lifecycle; there is no extra route listener, entity subscription, polling or timer.
+
+## Shared appearance and corners
+
+- Surface: `signature-card-background`, then `ha-card-background`, then `card-background-color`, then white.
+- Font: `signature-font-family`, then the shared system font stack.
+- Outer radius: `signature-card-border-radius`, with a 22 px fallback.
+- Inner radius: outer radius minus the uniform 6 px inset, bounded at zero: **16 px by default**. The selection fills its route cell instead of using a fixed 44 px square. The first and last selections follow the bar's curve without the uneven horizontal/vertical inset of the earlier card CSS.
+- Selection, hover, keyboard focus and click ripple share that inner radius and route-cell dimensions. Ripple hover is disabled to prevent a second background; click feedback remains native.
+- Active icon: `blue-color`, falling back to `#2196f3`; inactive icons use `secondary-text-color`.
+
+The outer surface is intentionally different from a normal content card: a translucent fill, a single soft outer shadow and a 1 px directional rim. The rim is brightest at the top and right, fading at the bottom and left. A CSS mask keeps the gradients on the edge rather than across the whole surface. This technique was inspired by [Takagit's CSS explanation](https://zenn.dev/takagit/articles/css-liquid-glass-backdrop-filter?locale=en).
+
+Theme variables remain in CSS so live theme changes update the same nodes. Reduced motion disables the short hover/selection transitions. The CSS approximates the glass appearance; it does not implement Apple's background refraction. No card-mod, extra frontend resource or runtime dependency is required.
+
+## Verification
+
+```sh
+npm run test:signature-navigation
+npm run test:styles
+```
+
+Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
+
+## Changelog
+
+### 1.0.0
+
+- Extracted the user-approved glass navigation into its own module.
+- Added a French settings form for mobile margins, blur and background opacity.
+- Preserved native sub-button actions and automatic dashboard selection without required CSS classes.
+- Corrected the selection corners with a uniform 6 px inset and a radius derived from the bar.
