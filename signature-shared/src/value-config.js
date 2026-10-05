@@ -9,7 +9,7 @@ const displayState = (state, id, slot) => {
     return {value:typeof hass.formatEntityState === 'function' ? hass.formatEntityState(state) : raw,unit:''};
   }
   // Share native precision and locale rules; cache one formatter per displayed value.
-  const precision = hass.entities?.[id]?.display_precision ?? state.attributes?.suggested_display_precision;
+  const precision = precisionFor(hass,id,state);
   const [mantissa,exponent = '0'] = String(raw).toLowerCase().split('e');
   const inferredDigits = Math.max(0,(mantissa.split('.')[1] || '').length - Number(exponent));
   const digits = precision == null ? Math.min(20,inferredDigits) : number(precision,2,0,20);
@@ -20,10 +20,7 @@ const displayState = (state, id, slot) => {
 };
 const secondaryInput = String(o.secondary ?? '').trim();
 if (runtime.secondarySource?.input !== secondaryInput) {
-  const template = /\{[\{%#]/.test(secondaryInput);
-  const direct = !template && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(secondaryInput);
-  const match = template ? secondaryInput.match(/(['"])([a-z_][a-z0-9_]*\.[a-z0-9_]+)\1|\bstates\.([a-z_][a-z0-9_]*\.[a-z0-9_]+)\b|\b(?:states|state_attr|is_state|is_state_attr|has_value)\s*\(\s*(entity)\s*[,)]/) : null;
-  runtime.secondarySource = {input:secondaryInput,direct,entity:direct ? secondaryInput : match?.[2] || match?.[3],main:!!match?.[4]};
+  runtime.secondarySource = sourceFor(secondaryInput);
 }
 const source = runtime.secondarySource;
 const secondaryEntity = source.main ? c.entity : source.entity;

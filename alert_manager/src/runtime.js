@@ -7,9 +7,11 @@
         clearBadge();
         return '';
       }
+      /* @include shared/src/number-format.js */
       const options = c.alert_manager || {};
       let watched = this._amConfig;
       if (!watched || !watched.icons || watched.config !== c || watched.options !== c.alert_manager) {
+        /* @include shared/src/color.js */
         const ids = new Set();
         const entityId = /^[a-z0-9_]+\.[a-z0-9_]+$/;
         const add = id => { if (typeof id === 'string' && entityId.test(id)) ids.add(id); };
@@ -33,9 +35,8 @@
         const exceptions = options.entities || {};
         Object.keys(exceptions).forEach(add);
         const list = value => Array.isArray(value) ? value.filter(id => typeof id === 'string') : [];
-        const color = (value,fallback) => typeof value === 'string' && CSS.supports('color',value) ? value : fallback;
         const readColors = (values,fallback = {}) => Object.fromEntries(
-          ['active','pending'].map(state => [state,color(values?.[state],fallback[state] ?? null)]));
+          ['active','pending'].map(state => [state,colorFor(values?.[state],fallback[state] ?? null)]));
         const readIcons = (values,fallback = {}) => Object.fromEntries(
           ['active','pending'].map(state => [state,
             typeof values?.[state] === 'string' && /^[a-z][a-z0-9_-]*:[a-z0-9_-]+$/i.test(values[state])
@@ -161,11 +162,11 @@
       }
       if (badge.firstElementChild.getAttribute('icon') !== icon) badge.firstElementChild.setAttribute('icon',icon);
       badge.setAttribute('data-am-state',state);
-      const french = (hass.locale?.language || hass.language || '').startsWith('fr');
+      const french = localeFor(hass).toLowerCase().startsWith('fr');
       const label = state === 'active' ? (french ? 'Alerte active' : 'Active alert') : (french ? 'Alerte en attente' : 'Pending alert');
       badge.setAttribute('aria-label',label);
       badge.setAttribute('title',label);
-      const badgeAccent = options.color_badge === false ? 'var(--signature-alert-badge-neutral-color, #000)' : accent;
+      const badgeAccent = options.color_badge === false ? 'var(--signature-alert-badge-neutral-color, var(--primary-text-color, #000))' : accent;
       return styles + `
         ha-card .bubble-main-icon-container { overflow: visible !important; }
         ha-card .bubble-main-icon-container > .am-alert-badge {
@@ -180,7 +181,7 @@
           justify-content: center;
           border: 1.5px solid ${badgeAccent};
           border-radius: 50%;
-          background: var(--signature-alert-badge-background, #fff);
+          background: var(--signature-alert-badge-background, ${surface});
           box-shadow: 0 0 0 2px ${surface};
           color: ${badgeAccent};
           pointer-events: none;

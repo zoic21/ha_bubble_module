@@ -15,14 +15,10 @@
   const ids = [1,2,3,4,5,6];
   const slots = options.slots || {};
   const shown = id => Boolean(slots[id] && slots[id].enabled !== false);
-  const ns = 'http://www.w3.org/2000/svg';
-  const create = (tag, cls, svg = false) => {
-    const el = svg ? document.createElementNS(ns, tag) : document.createElement(tag);
-    if (cls) el.setAttribute('class', cls);
-    return el;
-  };
-  const text = (el, value) => { if (el.textContent !== value) el.textContent = value; };
-  const attr = (el, key, value) => { value = String(value); if (el.getAttribute(key) !== value) el.setAttribute(key, value); };
+  /* @include shared/src/dom.js */
+  /* @include shared/src/color.js */
+  /* @include shared/src/number-format.js */
+  /* @include shared/src/number-precision.js */
   if (!runtime) {
     const canvas = create('div', 'sf-canvas');
     canvas.setAttribute('role', 'group');
@@ -236,39 +232,32 @@
       current.observer = new ResizeObserver(current.draw); current.observer.observe(canvas);
     }
   }
-  const language = hass.locale?.language || hass.language || globalThis.navigator?.language || 'en';
+  const language = localeFor(hass);
   const french = language.toLowerCase().startsWith('fr');
   const labels = french ? {slot:'Emplacement',unavailable:'Indisponible',details:'Ouvrir les détails'} :
     {slot:'Slot',unavailable:'Unavailable',details:'Show details'};
   attr(runtime.canvas, 'aria-label', options.name || (french ? 'Flux' : 'Flows'));
-  const render = (value, id) => {
-    const s = String(value ?? '');
-    return /\{[\{%#]/.test(s) ? (typeof renderTemplate === 'function' ? String(renderTemplate(s,id) ?? '') : '') : s;
-  };
+  const render = (value,id = config.entity) => renderValue(value,id);
   /* @include shared/src/numeric-value.js */
   const read = id => id ? hass.states[id] : undefined;
   const source = value => {
     const input = String(value ?? '').trim();
     if (!runtime.sources.has(input)) {
-      const template = /\{[\{%#]/.test(input);
-      const direct = !template && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(input);
-      const match = template ? input.match(/(['"])([a-z_][a-z0-9_]*\.[a-z0-9_]+)\1|\bstates\.([a-z_][a-z0-9_]*\.[a-z0-9_]+)\b/) : null;
       if (runtime.sources.size >= 32) runtime.sources.clear();
-      runtime.sources.set(input, {input, direct, entity:direct ? input : match?.[2] || match?.[3]});
+      runtime.sources.set(input,sourceFor(input));
     }
-    return runtime.sources.get(input);
+    const parsed = runtime.sources.get(input);
+    return parsed.main ? {...parsed,entity:config.entity} : parsed;
   };
   const numberFormat = hass.locale?.number_format;
-  /* @include shared/src/number-locales.js */
-  const locale = numberFormat === 'system' ? undefined : locales[numberFormat] || language;
+  const locale = numberLocaleFor(hass);
   const format = (value, digits) => {
     digits = Math.max(0, Math.min(6, numeric(digits) ?? 0));
     digits = Math.floor(digits);
     const key = [locale,numberFormat,digits].join('|');
     if (!runtime.formatters.has(key)) {
       if (runtime.formatters.size > 20) runtime.formatters.clear();
-      runtime.formatters.set(key, new Intl.NumberFormat(locale, {minimumFractionDigits:digits,
-        maximumFractionDigits:digits, useGrouping:numberFormat !== 'none'}));
+      runtime.formatters.set(key, formatterFor(hass,{minimumFractionDigits:digits,maximumFractionDigits:digits}));
     }
     return runtime.formatters.get(key).format(Object.is(value,-0) ? 0 : value);
   };
@@ -281,7 +270,7 @@
       const raw = numeric(state?.state);
       const n = raw === null ? null : numeric(raw*(numeric(cfg[prefix+'_scale']) ?? 1));
       if (n !== null) {
-        value = format(n,cfg[prefix+'_precision'] ?? state?.attributes?.display_precision ?? 0);
+        value = format(n,cfg[prefix+'_precision'] ?? precisionFor(hass,parsed.entity,state) ?? 0);
         suffix = String(unit ?? state?.attributes?.unit_of_measurement ?? '');
       } else {
         const unavailable = !state || ['','unknown','unavailable','NaN','Infinity','-Infinity'].includes(state.state);
@@ -335,7 +324,7 @@
     const value = primary.value, unit = primary.unit;
     const name = render(cfg.name ?? primary.state?.attributes?.friendly_name ?? labels.slot+' '+key, primary.entity);
     const configuredColor = render(cfg.color ?? 'var(--secondary-text-color, #676767)', primary.entity).trim();
-    const color = globalThis.CSS?.supports('color',configuredColor) ? configuredColor : 'var(--secondary-text-color, #676767)';
+    const color = colorFor(configuredColor,'var(--secondary-text-color, #676767)');
     if (node.el.style.getPropertyValue('--sf-color') !== color) node.el.style.setProperty('--sf-color',color);
     if (edge.group.style.getPropertyValue('--sf-color') !== color) edge.group.style.setProperty('--sf-color',color);
     if (node.number.textContent !== value || node.unit.textContent !== (unit ? ' '+unit : '')) runtime.fitValues(key);

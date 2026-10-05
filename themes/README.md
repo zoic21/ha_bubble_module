@@ -22,9 +22,9 @@ The optional [signature.yaml](signature.yaml) theme provides light and dark mode
 
 When replacing an earlier Signature theme, replace the whole file rather than merging the old palette keys into this version, then run `frontend.reload_themes`. If the old appearance remains visible, select the theme again or refresh the frontend.
 
-Signature Wind Rose 1.1.2 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
+Signature Wind Rose 1.3.0 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
 
-Signature Navigation 1.0.3 uses the shared surface, font and card radius for its floating footer. Import its [distribution](../signature-navigation/dist/signature-navigation.yaml) separately and follow its [guide](../signature-navigation/doc/README.md) to replace the inline navigation styles.
+Signature Navigation 1.0.7 uses the shared surface, font and card radius for its floating footer. Import its [distribution](../signature-navigation/dist/signature-navigation.yaml) separately and follow its [guide](../signature-navigation/doc/README.md) to replace the inline navigation styles.
 
 The theme can be used on its own. Older modules retain their hard-coded styles until their updated YAML distributions are imported. Custom cards only honor the theme variables they consume; a theme cannot replace a card's hard-coded CSS or canvas drawing styles. Some Home Assistant appearance variables are internal and can change between frontend versions.
 
@@ -34,7 +34,7 @@ Home Assistant variables such as `ha-card-border-radius` and `ha-font-family-bod
 
 The `signature-*` prefix is a namespace, not a CSS scope. These custom properties are inherited like other theme properties, but only modules that reference them use their values. You can define them in any other theme or in a card's `styles`. Do not include the leading `--` in Home Assistant theme YAML; include it in CSS.
 
-Signature, Flow, Weather and Wind Rose share the same neutral surface, border, shadow and system-font fallbacks, including without this theme. Role-based value sizes and layout density remain distinct. Navigation derives its translucent glass from the shared surface and keeps a directional rim and its own floating shadow. Alert Manager remains usable with native Bubble cards and without Signature. Its neutral badge inherits the native text color and card surface; alert colors and explicit card options retain precedence.
+Signature, Flow, Weather and Wind Rose share the same neutral surface, border, shadow and system-font fallbacks, including without this theme. Role-based value sizes and layout density remain distinct. Navigation derives its translucent glass from the shared surface and keeps a directional rim and its own floating shadow. Alert Manager remains usable with native Bubble cards and without Signature. Its neutral badge inherits the native text color and card surface even without this theme; alert colors and explicit card options retain precedence.
 
 The browser resolves the variables directly. Changing the theme or its mode does not require entity changes, JavaScript style lookups, a new subscription, or rebuilding cached module CSS.
 
@@ -110,7 +110,7 @@ styles: |
 
 ## Modules de présentation autonomes
 
-Signature Compact 1.1.2 et Square, Room et Header 1.0.2 consomment les mêmes variables `signature-*`. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
+Signature Compact 1.2.1, Square et Header 1.1.1 et Room 1.0.5 consomment les mêmes variables `signature-*`. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
 
 | Variable supplémentaire | Défaut | Usage |
 |---|---|---|
@@ -119,7 +119,7 @@ Signature Compact 1.1.2 et Square, Room et Header 1.0.2 consomment les mêmes va
 | `signature-title-font-size` | 18 px | Titre de section natif separator |
 | `signature-header-button-border-radius` | 24 px | Pilules du grand en-tête |
 
-Ces quatre variables sont utilisées par Signature Header, sans modifier l’ancien module Signature. Le navigateur les résout à chaque changement de thème.
+Ces quatre variables sont utilisées par Signature Header, sans modifier les autres présentations. Le navigateur les résout à chaque changement de thème.
 
 ## Maintenance des modules
 
@@ -128,3 +128,7 @@ Toutes les distributions Bubble sont désormais générées depuis leurs sources
 ## Numeric icon colors
 
 Compact 1.2.0, Square 1.1.0 and Header 1.1.0 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Explicit opaque RGB/hex colors are interpolated independently of the theme to match graph colors. Only icons change; text, surfaces and alert badges keep their own roles. Unavailable sources use the live `--secondary-text-color` token. Existing manual CSS/Jinja colors remain available and take priority; threshold points do not read theme variables in JavaScript.
+
+## Named colors
+
+Signature, Flow, Wind Rose and Alert Manager resolve named palette colors through the same native theme variables. For example `blue` uses `blue-color` with fallback `#2196f3`. Flow 3.6.0, Wind Rose 1.3.0 and Alert Manager 3.7.0 replace their former literal CSS-name overrides; use `#0000ff` for literal CSS blue. Explicit CSS colors and semantic defaults remain available. Invalid Wind Rose colors restore its default wind accent.

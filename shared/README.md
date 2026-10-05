@@ -6,10 +6,15 @@ Les neuf modules du dépôt sont générés à partir de sources. Chaque YAML da
 
 | Sources | Rôle |
 |---|---|
+| `shared/src/editor-base.js` | Cycle commun des formulaires natifs ; adaptateurs Signature, Flow et modules avec listes/héritage |
 | `shared/src/editor-options.js` | Formulaire natif commun à Weather, Wind Rose et Alert Manager |
 | `shared/src/editor-group.js` | Groupes de formulaire et arrondis natifs pour tous les éditeurs concernés |
 | `shared/src/number-locales.js` | Correspondance des préférences numériques Home Assistant |
-| `shared/src/number-format.js` | Formatage localisé des présentations Signature |
+| `shared/src/number-format.js` | Locale et formatage localisé des présentations Signature, Flow, Weather et Wind Rose |
+| `shared/src/number-precision.js` | Précision native commune à Signature et Flow ; limites et défauts propres au rôle |
+| `shared/src/template-source.js` | Rendu Jinja et identification des sources/entités pour Signature, Flow et couleurs Wind Rose |
+| `shared/src/color.js` | Palette du thème et validation CSS pour Signature, Flow, Wind Rose et Alert Manager |
+| `shared/src/dom.js` | Création HTML/SVG et écritures conditionnelles de texte/attributs pour Flow, Weather et Wind Rose |
 | `shared/src/color-thresholds.js` | Échelles numériques et interpolation RGB communes à Compact, Square et Header |
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
 | [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des huit modules Signature |
@@ -75,3 +80,7 @@ Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux neuf dis
 Les sources restent dans `src` ; les fichiers `dist` sont destinés à l'installation. Les tests d'éditeur exécutent les distributions complètes sur une carte détachée, sans dépendre de commentaires de repérage ou des noms de variables générés. Les vérifications de schéma utilisent les clés des sources, les tests de rendu et d'actions utilisent le code livré.
 
 Mesure du 5 octobre 2026 sur les neuf distributions, comparées au commit `1e041ce` : **385 797 → 250 046 octets UTF-8**, soit **35,2 % de réduction**. Cette mesure porte sur les fichiers YAML bruts, pas sur le temps de chargement de Home Assistant. La comparaison des styles calculés couvre 152 rendus sur fixtures Chromium, en clair/sombre, avec/sans thème et à 328/600 px.
+
+## Contrats des helpers
+
+Les couleurs nommées de la palette suivent les variables natives du thème ; les valeurs CSS explicites restent littérales. Les sources Jinja partagent une heuristique de cible, pas un parseur complet. La précision du registre des entités précède les suggestions puis les anciens attributs, sans uniformiser les bornes métier. Les adaptateurs d’éditeur conservent leurs scopes et conversions YAML. Voir [STYLE_GUIDE.md](../STYLE_GUIDE.md) pour les priorités et la migration des noms de couleur.

@@ -1,4 +1,4 @@
-# Bubble Alert Manager module 3.6.2
+# Bubble Alert Manager module 3.7.0
 
 [Module to import](../dist/alert_manager.yaml), independent of the Signature presentation modules. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
@@ -41,7 +41,7 @@ Les valeurs masquées sont conservées et l’ouverture du formulaire ne crée a
 | `ignore_pending` | Hides pending alerts | `false` |
 | `show_badge` | Shows a badge for the selected alert; `false` hides it independently of card tint | `true` |
 | `color_card` | Tints the card with the selected alert color at 16% | `false` |
-| `color_badge` | Uses the selected alert color for the badge icon and outline; `false` uses the neutral badge color (black without a theme override) | `true` |
+| `color_badge` | Uses the selected alert color for the badge icon and outline; `false` uses the neutral badge color (native primary text without a badge override) | `true` |
 | `icons.active` | Active badge icon | `mdi:exclamation` |
 | `icons.pending` | Pending badge icon | `mdi:clock-outline` |
 | `colors.active` | Active alert color | Theme red |
@@ -61,7 +61,7 @@ Badges are enabled by default and follow the selected alert:
 - **Pending:** a small clock, orange by default, unless that pending alert is ignored.
 - **No matching alert:** no badge or alert tint; the card returns to its normal appearance.
 
-The badge icon and outline use the selected alert color by default, on a white surface with an outer ring matching the theme. Set `color_badge: false` to use the neutral badge color, black by default. The optional Signature theme adapts the badge fill and neutral color to the selected light or dark mode. It overlays the main icon without changing the card's layout or intercepting its actions. The device icon and its own background remain unchanged.
+The badge icon and outline use the selected alert color by default, on the native card surface with an outer ring matching that surface. Set `color_badge: false` to use the native primary text color. Both follow light/dark changes even without the Signature theme. `signature-alert-badge-background` and `signature-alert-badge-neutral-color` override these defaults. It overlays the main icon without changing the card's layout or intercepting its actions. The device icon and its own background remain unchanged.
 
 To hide badges for all monitored entities and packs on a card, use the general option. An explicitly enabled card tint remains active:
 
@@ -74,6 +74,8 @@ This option belongs directly under `alert_manager`, alongside `ignore_pending` a
 
 Exclusions, pack activation, source sensor settings, and pending policies apply equally to colors and badges. Acknowledged alerts remain outside this module's monitored sources, and missing or truncated source data does not create an uncertainty badge.
 
+Named color overrides share the Signature palette: `blue` resolves to `var(--blue-color, #2196f3)`, and red/orange names follow their native theme variables. Earlier releases used literal CSS names for overrides; use hexadecimal/RGB values to preserve those exact colors. Invalid values inherit the next applicable override/default. Severity defaults remain red for active and orange for pending.
+
 ## Card and badge colors
 
 These switches are independent: badge coloring is enabled by default, while card tint is disabled. To also tint the card, enable `color_card`:
@@ -84,9 +86,9 @@ alert_manager:
   color_badge: true
 ```
 
-`color_card: true` tints the card background using the selected alert color at 16%, mixed with the theme's surface. Only the YAML boolean `true` enables it. Badge coloring uses that same alert color for the symbol and outline, keeping its white surface. Omit `color_badge` or set it to `true` to retain this default. Only the YAML boolean `false` disables badge coloring; strings such as `'false'` do not disable it.
+`color_card: true` tints the card background using the selected alert color at 16%, mixed with the theme's surface. Only the YAML boolean `true` enables it. Badge coloring uses that same alert color for the symbol and outline, keeping its neutral card surface. Omit `color_badge` or set it to `true` to retain this default. Only the YAML boolean `false` disables badge coloring; strings such as `'false'` do not disable it.
 
-To use neutral badges (black without a theme override) while leaving the card's appearance unchanged:
+To use neutral badges (native primary text without a badge override) while leaving the card's appearance unchanged:
 
 ```yaml
 alert_manager:
@@ -276,8 +278,8 @@ Values accept a valid CSS color: hexadecimal, a name (`red`, `teal`…), `rgb(..
 
 | Situation | Display |
 |---|---|
-| Matching active alert | `!` badge using `active`, red by default; neutral with `color_badge: false` (black without a theme override) |
-| Matching pending alert, with no active alert | Clock badge using `pending`, orange by default; neutral with `color_badge: false` (black without a theme override) |
+| Matching active alert | `!` badge using `active`, red by default; neutral with `color_badge: false` (native primary text without a badge override) |
+| Matching pending alert, with no active alert | Clock badge using `pending`, orange by default; neutral with `color_badge: false` (native primary text without a badge override) |
 | No matching alert | The card's own colors, with no badge or added styling |
 
 An active alert takes precedence over a pending alert, regardless of its custom color. At equal severity, the first entity encountered in the card configuration wins; for multiple alerts on that entity, the lexically smallest alert ID determines the color and badge. Reordering data received from the manager therefore does not change the winning color.
@@ -321,6 +323,12 @@ On a test entity, check active and pending custom alerts, an exclusion, and then
 YAML/JavaScript syntax checks do not validate rendering or data in a real Home Assistant instance. Check that the compact sensors work and cards respond correctly in your installation.
 
 ## Release notes
+
+### 3.7.0 — 5 October 2026
+
+- Neutral badge fill and text inherit the native card surface and primary text even without the Signature theme; badge-specific variables retain priority.
+- Named colors share the Signature theme palette, while active/pending severity defaults remain red/orange. Explicit hexadecimal/RGB colors stay literal.
+- Shares native editor lifecycle and locale helpers; pack/entity policies and indexed YAML mappings are preserved.
 
 ### 3.6.2 — 5 October 2026
 

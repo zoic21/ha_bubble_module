@@ -9,13 +9,10 @@
   if (typeof onTeardown === 'function') onTeardown(() => this._signatureWindRose?.dispose());
   if (!enabled) return '';
   const numeric = value => value != null && typeof value !== 'boolean' && String(value).trim() !== '' && Number.isFinite(Number(value)) ? Number(value) : null;
-  const attr = (el,key,value) => { value = String(value); if (el.getAttribute(key) !== value) el.setAttribute(key,value); };
-  const text = (el,value) => { value = String(value); if (el.textContent !== value) el.textContent = value; };
-  const create = (tag,cls,svg = false) => {
-    const el = svg ? document.createElementNS('http://www.w3.org/2000/svg',tag) : document.createElement(tag);
-    if (cls) attr(el,'class',cls);
-    return el;
-  };
+  /* @include shared/src/dom.js */
+  /* @include shared/src/number-format.js */
+  /* @include shared/src/color.js */
+  /* @include shared/src/template-source.js */
   if (!r) {
     const canvas = create('div','swr-card'), toolbar = create('div','swr-toolbar'), tabs = create('div','swr-tabs');
     attr(tabs,'role','group'); toolbar.append(tabs);
@@ -206,13 +203,12 @@
   r.directionEntity = directionEntity; r.speedEntity = speedEntity; r.offset = offset; r.calmThreshold = calmThreshold; r.refresh = refresh;
   if (!r.period || r.defaultPeriod !== defaultPeriod) { r.period = defaultPeriod; r.selected = null; r.hovered = null; r.generation++; r.inFlight = false; r.retryAt = 0; }
   r.defaultPeriod = defaultPeriod;
-  const language = hass.locale?.language || hass.language || 'en';
+  const language = localeFor(hass);
   const french = language.toLowerCase().startsWith('fr');
   const numberFormat = hass.locale?.number_format;
   const formatKey = language+'|'+numberFormat;
   if (r.formatKey !== formatKey) {
-    /* @include shared/src/number-locales.js */
-    r.number = new Intl.NumberFormat(numberFormat === 'system' ? undefined : locales[numberFormat] || language,{maximumFractionDigits:1,useGrouping:numberFormat !== 'none'});
+    r.number = formatterFor(hass,{maximumFractionDigits:1});
     r.formatKey = formatKey;
   }
   if (!r.labels || r.french !== french) {
@@ -231,9 +227,12 @@
     error:'History unavailable',configuration:'Configure a wind direction entity'
   };
   }
-  if (r.color !== options.color) {
-    r.color = options.color;
-    if (options.color) r.canvas.style.setProperty('--swr-accent',options.color); else r.canvas.style.removeProperty('--swr-accent');
+  // Template reads stay live; validate and write only when their result changes.
+  const colorInput = renderValue(options.color,config.entity);
+  if (r.colorInput !== colorInput) {
+    r.colorInput = colorInput;
+    const color = colorFor(colorInput,null);
+    if (color) r.canvas.style.setProperty('--swr-accent',color); else r.canvas.style.removeProperty('--swr-accent');
   }
   const loadKey = key+'|'+defaultPeriod+'|'+refresh;
   if (!r.active()) r.clearTimer();

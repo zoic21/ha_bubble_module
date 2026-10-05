@@ -1,4 +1,4 @@
-/* @defaults {"BACKGROUND":"var(--signature-control-background)"} */
+/* @defaults {"BACKGROUND":"var(--signature-control-background, color-mix(in srgb, var(--primary-text-color) 5%, var(--signature-card-background, var(--ha-card-background, var(--card-background-color, #fff)))))"} */
 gap: 3px;
 border-radius: var(--signature-control-border-radius, 14px);
 background: @@BACKGROUND@@;

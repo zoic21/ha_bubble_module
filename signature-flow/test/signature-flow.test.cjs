@@ -77,7 +77,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.5.5');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.0');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -646,4 +646,31 @@ test('the documented examples use valid YAML and match the published version',()
   const doc=fs.readFileSync(path.join(base,'doc/README.md'),'utf8');
   assert.ok(doc.includes('Version: **'+definition.version+'**'));
   for(const match of doc.matchAll(/```yaml\n([\s\S]*?)```/g)) assert.ok(YAML.parse(match[1]));
+});
+
+test('main-entity templates retain default actions and follow entity changes on cached sources',t=>{
+  const {ctx,hass,r}=fixture(t,{1:{primary:'{{ states(entity) }}',secondary:"{{ state_attr(entity, 'friendly_name') }}"}});
+  ctx.config.entity='sensor.solar';
+  const renderer=(value,id)=>value.includes('state_attr') ? 'Name '+id : hass.states[id]?.state;
+  run(ctx,hass,renderer);
+  assert.equal(r.nodes[1].value.dataset.entity,'sensor.solar');
+  assert.equal(JSON.parse(r.nodes[1].value.dataset.tapAction).action,'more-info');
+  assert.equal(r.nodes[1].secondary.dataset.entity,'sensor.solar');
+  ctx.config.entity='sensor.grid';run(ctx,hass,renderer);
+  assert.equal(r.nodes[1].value.dataset.entity,'sensor.grid');
+  assert.equal(r.nodes[1].number.textContent,'-11');
+  ctx.config.signature_flow.slots[1].primary_tap_action={action:'none'};run(ctx,hass,renderer);
+  assert.equal(JSON.parse(r.nodes[1].value.dataset.tapAction).action,'none');
+});
+
+test('direct measurements share native precision while explicit zero and legacy metadata retain precedence',t=>{
+  const {ctx,hass,r}=fixture(t,{1:{primary:'sensor.solar'}},{'sensor.solar':state(22.567,'°C')});
+  hass.entities={'sensor.solar':{display_precision:2}};
+  hass.states['sensor.solar'].attributes.suggested_display_precision=3;
+  run(ctx,hass);assert.equal(r.nodes[1].number.textContent,'22,57');
+  ctx.config.signature_flow.slots[1].primary_precision=0;run(ctx,hass);assert.equal(r.nodes[1].number.textContent,'23');
+  delete ctx.config.signature_flow.slots[1].primary_precision;
+  delete hass.entities['sensor.solar'];run(ctx,hass);assert.equal(r.nodes[1].number.textContent,'22,567');
+  delete hass.states['sensor.solar'].attributes.suggested_display_precision;
+  hass.states['sensor.solar'].attributes.display_precision=1;run(ctx,hass);assert.equal(r.nodes[1].number.textContent,'22,6');
 });

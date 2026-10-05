@@ -141,7 +141,7 @@ test('editing a slot retains hidden settings, numeric zeros, Jinja and action ob
 
 test('native action defaults match detected entities for direct values, Jinja and fixed text',()=>{
   const env=environment(),schema={...slots[1],slot:true};
-  for(const [primary,action] of [['sensor.power','more-info'],["{{ states('sensor.power') }}",'more-info'],['{{ states.sensor.power.state }}','more-info'],['{{ states(dynamic) }}','none'],['Fixed text','none']]){
+  for(const [primary,action] of [['sensor.power','more-info'],["{{ states('sensor.power') }}",'more-info'],['{{ states.sensor.power.state }}','more-info'],['{{ states(entity) }}','more-info'],["{{ state_attr(entity, 'friendly_name') }}",'more-info'],['{{ states(dynamic) }}','none'],['Fixed text','none']]){
     const form=env.create(schema,{primary,secondary:primary}),inputs=flatten(form._form.schema);
     for(const key of ['tap_action','hold_action','primary_tap_action','primary_hold_action','secondary_tap_action','secondary_hold_action'])assert.equal(inputs.find(field=>field.name===key).selector.ui_action.default_action,action,key+' '+primary);
     for(const key of ['double_tap_action','primary_double_tap_action','secondary_double_tap_action'])assert.equal(inputs.find(field=>field.name===key).selector.ui_action.default_action,'none');

@@ -1,5 +1,5 @@
 name: Signature Wind Rose
-version: 1.2.3
+version: 1.3.0
 creator: Loïc
 supported:
   - button
@@ -78,7 +78,7 @@ editor:
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
       color:
         label: Couleur des secteurs
-        description: "Vide : couleur du thème. Accepte une couleur CSS, par exemple #4db6ac ou var(--teal-color)."
+        description: "Vide : couleur du thème. Accepte la palette du thème (blue, teal…), une couleur CSS (#4db6ac, var(--teal-color)) ou un template Jinja. Une couleur invalide reprend le défaut du vent."
         selector:
           text: {}
         group: Apparence

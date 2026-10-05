@@ -1,12 +1,12 @@
 name: Alert Manager
-version: 3.6.2
+version: 3.7.0
 creator: Loïc
 supported:
   - button
   - cover
   - climate
   - media-player
-description: "Affiche une pastille rouge pour une alerte active ou orange en attente, avec priorité aux couleurs personnalisées. color_badge: false utilise une pastille neutre (noire sans thème). La couleur de la carte reste inchangée par défaut ; color_card: true active sa coloration. L’icône principale et son fond restent inchangés. icons.active/pending et colors.active/pending suivent la priorité pack de l’entité, entité, pack, général. Capteurs sources, packs, exclusions et ignore_pending restent configurables. show_badge: false masque les pastilles pour toute la carte."
+description: "Affiche une pastille rouge pour une alerte active ou orange en attente, avec priorité aux couleurs personnalisées. color_badge: false utilise une pastille neutre suivant la couleur du texte natif, même sans thème Signature. La couleur de la carte reste inchangée par défaut ; color_card: true active sa coloration. L’icône principale et son fond restent inchangés. icons.active/pending et colors.active/pending suivent la priorité pack de l’entité, entité, pack, général. Capteurs sources, packs, exclusions et ignore_pending restent configurables. show_badge: false masque les pastilles pour toute la carte."
 editor:
   - type: constant
     label: Réglages de cette carte uniquement. Les seuils et délais restent dans l’intégration Alert Manager. Les règles personnalisées sont suivies automatiquement ; les packs s’activent ci-dessous.

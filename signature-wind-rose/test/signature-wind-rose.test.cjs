@@ -33,8 +33,8 @@ function fixture(t,options={}) {
   class Clock extends Date {static now(){return now;}}
   const document={hidden:false,createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),
     addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);}};
-  const render=vm.runInNewContext('(function(hass,onTeardown){return `'+definition.code+'`;})',{
-    document,Date:Clock,Intl,setTimeout:(fn,delay)=>{const id=++timerId;timers.set(id,{fn,at:now+delay,delay});return id;},clearTimeout:id=>timers.delete(id)
+  const render=vm.runInNewContext('(function(hass,onTeardown,renderTemplate){return `'+definition.code+'`;})',{
+    document,Date:Clock,Intl,CSS:{supports:(_,value)=>/^(#[a-f0-9]{6}|var\(--[a-z-]+, #[a-f0-9]{6}\))$/i.test(value)},setTimeout:(fn,delay)=>{const id=++timerId;timers.set(id,{fn,at:now+delay,delay});return id;},clearTimeout:id=>timers.delete(id)
   });
   const root=new Element('ha-card'),host=new Element('div');root.append(host);
   const ctx={card:root,elements:{mainContainer:host},config:{card_type:'button',button_type:'state',entity:'sensor.direction',signature_wind_rose:options}};
@@ -42,7 +42,7 @@ function fixture(t,options={}) {
   const hass={connection:{},states:{},locale:{language:'fr',number_format:'space_comma'},callWS(message){
     return new Promise((resolve,reject)=>requests.push({message,resolve,reject}));
   }};
-  const run=()=>render.call(ctx,hass,fn=>{ctx.teardown=fn;});const css=run();
+  const run=template=>render.call(ctx,hass,fn=>{ctx.teardown=fn;},template);const css=run();
   t.after(()=>ctx.teardown?.());
   const resolve=async(history,index=requests.length-1)=>{requests[index].resolve(history);await flush();};
   const reject=async(index=requests.length-1)=>{requests[index].reject(new Error('history failed'));await flush();};
@@ -57,7 +57,7 @@ function history(f,direction=135,speed=3) {
 const result=f=>f.r.cache.get(f.r.period).data;
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.2.3');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.3.0');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');
@@ -206,4 +206,23 @@ test('hover previews duration and percentage without requests and preserves tap 
   east.click();assert.equal(f.r.tooltip.hidden,false);
   east.click();assert.equal(f.r.tooltip.hidden,true);
   assert.equal(f.requests.length,1);
+});
+
+test('named wind colors use live theme variables and invalid colors restore the default',t=>{
+  const f=fixture(t,{color:'blue'});
+  assert.equal(f.r.canvas.style['--swr-accent'],'var(--blue-color, #2196f3)');
+  f.ctx.config.signature_wind_rose.color='not-a-color';f.run();
+  assert.equal(f.r.canvas.style['--swr-accent'],undefined);
+  f.ctx.config.signature_wind_rose.color='#123456';f.run();
+  assert.equal(f.r.canvas.style['--swr-accent'],'#123456');
+});
+
+test('wind template colors keep reading dependencies when the rendered color is cached',t=>{
+  const f=fixture(t,{color:'{{ states(entity) }}'});
+  let value='blue',reads=0;
+  const template=(input,id)=>{assert.equal(input,'{{ states(entity) }}');assert.equal(id,'sensor.direction');reads++;return value;};
+  f.run(template);assert.equal(f.r.canvas.style['--swr-accent'],'var(--blue-color, #2196f3)');
+  f.run(template);assert.equal(reads,2);
+  value='#123456';f.run(template);assert.equal(f.r.canvas.style['--swr-accent'],'#123456');
+  value='invalid';f.run(template);assert.equal(f.r.canvas.style['--swr-accent'],undefined);
 });

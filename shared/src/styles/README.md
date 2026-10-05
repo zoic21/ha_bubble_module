@@ -11,6 +11,8 @@ Les huit modules Signature consomment les fragments utiles à leurs rôles visue
 | `control-surface.css`, `period-tabs.css`, `period-tab.css`, `period-tab-selected.css` | Surfaces et états des onglets Weather/Wind Rose ; répartition et disposition locales |
 | `focus-ring.css` | Anneaux de focus Compact, Flow, Weather, Wind Rose et Navigation ; accent et retrait adaptés au contrôle |
 
+Les défauts des fragments de contrôle et d’onglets comprennent la cascade complète des surfaces natives ; une inclusion sans paramètre reste utilisable sans thème Signature.
+
 Les sélecteurs restent dans les modules. Header conserve sa transparence ; Navigation conserve son verre et son ombre flottante. Les grilles, hauteurs, seuils responsive, accents, états natifs et actions restent locaux. Alert Manager hérite du style de la carte et conserve son badge et ses couleurs d'alerte ; il n'impose pas de surface Signature.
 
 ## Utilisation au build

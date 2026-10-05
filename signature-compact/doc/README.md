@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.2.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.2.1**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -108,3 +108,10 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 ### 1.1.2 — 5 octobre 2026
 
 - Retrait du module historique `signature` ; métadonnées et guides actualisés, rendu et options inchangés.
+
+## Notes de version
+
+### 1.2.1 — 5 October 2026
+
+- Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
+- Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.

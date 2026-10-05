@@ -10,13 +10,8 @@
   }
   if (typeof onTeardown === 'function') onTeardown(() => this._signatureWeather?.dispose());
   if (!enabled) return '';
-  const create = (tag, cls) => {
-    const el = document.createElement(tag);
-    if (cls) el.setAttribute('class', cls);
-    return el;
-  };
-  const text = (el, value) => { value = String(value); if (el.textContent !== value) el.textContent = value; };
-  const attr = (el, key, value) => { value = String(value); if (el.getAttribute(key) !== value) el.setAttribute(key, value); };
+  /* @include shared/src/dom.js */
+  /* @include shared/src/number-format.js */
   /* @include shared/src/numeric-value.js */
   const available = state => state && !['unknown','unavailable'].includes(state.state);
   if (!runtime) {
@@ -98,8 +93,7 @@
       if (value === null) return '—';
       digits = Math.floor(Math.max(0,Math.min(2,numeric(digits) ?? 0)));
       const key = 'number|'+digits;
-      if (!r.formatters.has(key)) r.formatters.set(key,new Intl.NumberFormat(r.numberLocale,
-        {minimumFractionDigits:digits,maximumFractionDigits:digits,useGrouping:r.numberFormat !== 'none'}));
+      if (!r.formatters.has(key)) r.formatters.set(key,formatterFor(r.hass,{minimumFractionDigits:digits,maximumFractionDigits:digits}));
       return r.formatters.get(key).format(Object.is(value,-0) ? 0 : value);
     };
     r.date = (value, kind) => {
@@ -257,14 +251,12 @@
   runtime.layout = ['ribbon','ranges','summary'].includes(runtime.options.layout) ? runtime.options.layout : 'ribbon';
   runtime.count = Math.floor(Math.max(1,Math.min(12,numeric(runtime.options.count) ?? 6)));
   runtime.precision = Math.floor(Math.max(0,Math.min(1,numeric(runtime.options.precision) ?? 0)));
-  const language = hass.locale?.language || hass.language || 'en';
+  const language = localeFor(hass);
   const numberFormat = hass.locale?.number_format;
   const timeZone = hass.config?.time_zone || 'UTC';
   const formatKey = [language,numberFormat,timeZone,hass.locale?.time_format].join('|');
   if (runtime.formatKey !== formatKey) { runtime.formatters.clear(); runtime.formatKey = formatKey; }
   runtime.language = language; runtime.numberFormat = numberFormat; runtime.timeZone = timeZone;
-  /* @include shared/src/number-locales.js */
-  runtime.numberLocale = numberFormat === 'system' ? undefined : locales[numberFormat] || language;
   const french = language.toLowerCase().startsWith('fr');
   if (!runtime.labels || runtime.french !== french) {
     runtime.french = french;

@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.1.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.1.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -87,3 +87,10 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 ### 1.0.2 — 5 octobre 2026
 
 - Retrait du module historique `signature` ; métadonnées et guides actualisés, rendu et options inchangés.
+
+## Notes de version
+
+### 1.1.1 — 5 October 2026
+
+- Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
+- Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.

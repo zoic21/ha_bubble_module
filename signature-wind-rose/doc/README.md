@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.2.3** · Module ID: `signature_wind_rose`
+**Version: 1.3.0** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage and recorded duration. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -111,7 +111,15 @@ styles: |
 
 Run `npm run test:signature-wind-rose` or `npm test` from the repository root. Tests exercise the actual imported YAML code, including duration weighting, asynchronous history responses, missing/calm data, localization, cache, refresh and teardown. Verify the installed card with your recorded station data in Home Assistant after importing.
 
+Named colors such as `blue` use the same theme palette as Signature and Flow. Use `#0000ff` to keep literal CSS blue from earlier releases. Explicit CSS and Jinja colors are supported; Jinja uses the card entity. Empty or invalid colors restore `signature-wind-rose-color` (default `#4db6ac`) rather than producing black sectors.
+
 ## Release notes
+
+### 1.3.0 — 5 October 2026
+
+- Shares named theme colors with Signature and Flow, validates CSS colors and restores the semantic wind color for invalid/empty options.
+- Evaluates optional Jinja colors against the card entity on each pass. Literal hexadecimal/RGB values retain their meaning.
+- Shares locale, DOM helpers and native editor lifecycle; history, selection and numeric policies are preserved.
 
 ### 1.2.3 — 5 October 2026
 

@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.5**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -90,7 +90,7 @@ signature_flow:
 | `primary`, `secondary` | An entity ID, Jinja template or fixed text. Primary appears as the large value; secondary appears below it. Empty secondary text hides it while preserving alignment. |
 | `primary_unit`, `secondary_unit` | Override the displayed unit. Direct entity values use their entity unit by default. Templates and fixed text have no automatic unit; an explicit unit is appended. |
 | `primary_scale`, `secondary_scale` | Multiply direct numeric entity values. Both default to `1`. Templates supply their own calculation. |
-| `primary_precision`, `secondary_precision` | Fixed decimal places, 0–6, for direct numeric entity values. Both default to the entity's `display_precision`, then `0`. Templates supply their own formatting. |
+| `primary_precision`, `secondary_precision` | Fixed decimal places, 0–6, for direct numeric entity values. Both default to entity-registry `display_precision`, then `suggested_display_precision`, then legacy state `display_precision`, then `0`. Templates supply their own formatting. |
 | `name` | Label; accepts Jinja. Defaults to the primary entity's friendly name, then `Slot N` / `Emplacement N`. |
 | `icon`, `color` | MDI icon and icon/connection color; accept Jinja. Icon defaults to the primary entity's `icon` attribute, then `mdi:flash`; color defaults to the theme secondary text color. Invalid colors use that neutral default. |
 | `flow_entity` | Entity controlling arrow direction and count. Defaults to `primary` only when it is a direct entity ID. Templates and fixed text require an explicit flow entity to animate. |
@@ -234,7 +234,17 @@ Run `npm run test:signature-flow` or `npm test` from the repository root. Tests 
 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
 
+Named colors such as `blue` use the shared native theme palette (`var(--blue-color, #2196f3)`). This changes the former CSS-name behavior; use `#0000ff` for literal CSS blue. Explicit CSS values and Jinja colors remain supported. Invalid colors use the neutral secondary-text fallback.
+
+Main-entity templates such as `{{ states(entity) }}` and `{{ state_attr(entity, 'friendly_name') }}` retain the card entity for default more-info actions. Explicit actions still take priority; templates with dynamic, unidentified entities have no inferred target.
+
 ## Release notes
+
+### 3.6.0 — 5 October 2026
+
+- Resolves main-entity Jinja references such as `states(entity)` in rendering, action targets and editor defaults.
+- Uses entity-registry display precision before suggestions and legacy attributes; explicit per-slot precision, including zero, remains first.
+- Shares the named theme palette, color validation, locale, DOM helpers and native editor lifecycle with other modules.
 
 ### 3.5.5 — 5 October 2026
 

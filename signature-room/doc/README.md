@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.0.4**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.0.5**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -93,3 +93,10 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 ### 1.0.2 — 5 octobre 2026
 
 - Retrait du module historique `signature` ; métadonnées et guides actualisés, rendu et options inchangés.
+
+## Notes de version
+
+### 1.0.5 — 5 October 2026
+
+- Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
+- Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.
