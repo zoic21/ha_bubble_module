@@ -20,7 +20,7 @@ test('all nine modules have reproducible, autonomous distributions built from so
     assert.doesNotMatch(definition.code, /@include|@@MODULE_VERSION@@/);
     new Function('hass', 'onTeardown', 'renderTemplate', 'return `' + definition.code + '`;');
     if (['signature-flow', 'signature-weather', 'signature-wind-rose'].includes(folder))
-      assert.ok(definition.code.includes("const version = '" + source.version + "';"), folder + ' runtime version differs');
+      assert.match(definition.code, new RegExp('[\'"]' + source.version.replaceAll('.', '\\.') + '[\'"]'), folder + ' runtime version differs');
   }
 });
 

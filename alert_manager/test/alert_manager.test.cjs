@@ -43,7 +43,7 @@ const plainContext = (options,extra={}) => {
 // Color/filter tests opt into card tint; plainContext exercises the actual default behavior.
 const context = (options,extra={}) => plainContext({color_card:true,...options},extra);
 const run = (ctx,hass) => render.call(ctx,hass,fn=>ctx.teardown=fn).trim();
-const accent = css => /background-color: color-mix\(in srgb, (.*?) 16%,/.exec(css)?.[1] || '';
+const accent = css => /background-color:\s*color-mix\(in srgb,\s*(.*?) 16%,/.exec(css)?.[1] || '';
 const red = 'var(--red-color, #f44336)';
 const orange = 'var(--orange-color, #ff9800)';
 const withAlerts = (alerts,partition=0) => {const hass=normal();hass.states[ids[partition]]=manager(alerts);return hass;};
@@ -61,17 +61,17 @@ test('defaults show red active and orange pending badges without recoloring the 
   for(const [partition,icon] of [[0,'mdi:exclamation'],[1,'mdi:clock-outline']]) {
     const css=run(ctx,withAlerts([custom()],partition));
     assert.equal(accent(css),'');
-    assert.ok(!/bubble-main-icon \{|--bubble-icon-background-color|background-color: color-mix/.test(css));
-    assert.ok(css.includes('color: '+(partition === 1 ? orange : red)));
-    assert.ok(css.includes('border: 1.5px solid '+(partition === 1 ? orange : red)));
-    assert.ok(css.includes('background: var(--signature-alert-badge-background, #fff)'));
+    assert.ok(!/bubble-main-icon\s*\{|--bubble-icon-background-color|background-color:\s*color-mix/.test(css));
+    assert.ok(css.includes('color:'+(partition === 1 ? orange : red)));
+    assert.ok(css.includes('border:1.5px solid '+(partition === 1 ? orange : red)));
+    assert.ok(css.includes('background:var(--signature-alert-badge-background,#fff)'));
     assert.equal(ctx._amBadge.firstElementChild.getAttribute('icon'),icon);
     assert.equal(ctx._amBadge.getAttribute('data-am-state'),partition === 1 ? 'pending' : 'active');
     assert.equal(ctx._amBadge.style.display,'none','A leftover node is hidden when module CSS is removed');
     assert.equal(ctx._amBadge.style.pointerEvents,'none');
   }
   const simultaneous=withAlerts([custom()]);simultaneous.states[ids[1]]=manager([custom()]);
-  assert.ok(run(ctx,simultaneous).includes('color: '+red));
+  assert.ok(run(ctx,simultaneous).includes('color:'+red));
   assert.equal(ctx._amBadge.firstElementChild.getAttribute('icon'),'mdi:exclamation');
   assert.equal(run(ctx,normal()),'','Resolving alerts removes all module styling');
   assert.equal(ctx._amBadge,undefined);assert.equal(ctx.card.querySelector('.am-alert-badge'),null);
@@ -99,14 +99,14 @@ test('badge colors apply by default, independently of card tint, and follow the 
   const options={colors:{active:'#112233',pending:'#223344'},
     entities:{[primary]:{packs:{battery:{colors:{active:'#334455',pending:'#445566'}}}}}};
   const uncolored=plainContext({...options,color_badge:false});
-  assert.ok(run(uncolored,withAlerts([pack()])).includes('color: var(--signature-alert-badge-neutral-color, #000)'));
+  assert.ok(run(uncolored,withAlerts([pack()])).includes('color:var(--signature-alert-badge-neutral-color, #000)'));
   const ctx=plainContext(options);
   for (const partition of [0,1]) {
     const css=run(ctx,withAlerts([pack()],partition));
     const expected=partition === 1 ? '#445566' : '#334455';
     assert.equal(accent(css),'','Badge color never opts into card tint');
-    assert.ok(css.includes('border: 1.5px solid '+expected));
-    assert.ok(css.includes('color: '+expected));
+    assert.ok(css.includes('border:1.5px solid '+expected));
+    assert.ok(css.includes('color:'+expected));
   }
 });
 
@@ -115,16 +115,16 @@ test('card tint requires YAML true, badge coloring requires YAML false to disabl
     assert.equal(accent(run(plainContext({color_card}),withAlerts([custom()]))),'');
   }
   for(const color_badge of [undefined,true,'true','false',1,0,null]) {
-    assert.ok(run(plainContext({color_badge}),withAlerts([custom()])).includes('color: '+red));
+    assert.ok(run(plainContext({color_badge}),withAlerts([custom()])).includes('color:'+red));
   }
-  assert.ok(run(plainContext({color_badge:false}),withAlerts([custom()])).includes('color: var(--signature-alert-badge-neutral-color, #000)'));
+  assert.ok(run(plainContext({color_badge:false}),withAlerts([custom()])).includes('color:var(--signature-alert-badge-neutral-color, #000)'));
   for(const color_card of [false,true]) for(const color_badge of [false,true]) for(const show_badge of [false,true]) {
     const ctx=plainContext({color_card,color_badge,show_badge});
     const css=run(ctx,withAlerts([custom()]));
     assert.equal(accent(css),color_card ? red : '');
     assert.equal(!!ctx._amBadge,show_badge);
-    assert.ok(!/bubble-main-icon \{|--bubble-icon-background-color/.test(css));
-    if(show_badge)assert.ok(css.includes('color: '+(color_badge ? red : 'var(--signature-alert-badge-neutral-color, #000)')));
+    assert.ok(!/bubble-main-icon\s*\{|--bubble-icon-background-color/.test(css));
+    if(show_badge)assert.ok(css.includes('color:'+(color_badge ? red : 'var(--signature-alert-badge-neutral-color, #000)')));
   }
 });
 
@@ -205,10 +205,10 @@ test('badge preferences retain the index and dependencies without new sensor dat
   const tracked={...hass,states:new Proxy(hass.states,{get(states,id){reads.add(id);return states[id];}})};
   const ctx=plainContext();run(ctx,tracked);const first=ctx._amBadge;
   ctx.config.alert_manager={icons:{active:'mdi:flash'},color_badge:false};
-  assert.ok(run(ctx,tracked).includes('color: var(--signature-alert-badge-neutral-color, #000)'));
+  assert.ok(run(ctx,tracked).includes('color:var(--signature-alert-badge-neutral-color, #000)'));
   assert.equal(ctx._amBadge,first);assert.equal(first.firstElementChild.getAttribute('icon'),'mdi:flash');
   ctx.config.alert_manager={icons:{active:'mdi:flash'}};
-  assert.ok(run(ctx,tracked).includes('color: '+red));assert.equal(ctx._amBadge,first);
+  assert.ok(run(ctx,tracked).includes('color:'+red));assert.equal(ctx._amBadge,first);
   ctx.config.alert_manager={show_badge:false};assert.equal(run(ctx,tracked),'');assert.equal(ctx._amBadge,undefined);
   ctx.config.alert_manager={show_badge:true};run(ctx,tracked);assert.ok(ctx._amBadge);
   assert.equal(visits,1);assert.deepEqual([...reads],ids);
@@ -234,7 +234,7 @@ test('card tint can remain enabled while badge coloring is explicitly disabled',
     const css=run(ctx,withAlerts([pack()],partition));
     const expected=partition === 1 ? '#445566' : '#334455';
     assert.equal(accent(css),expected);
-    assert.ok(css.includes('border: 1.5px solid var(--signature-alert-badge-neutral-color, #000)'));
+    assert.ok(css.includes('border:1.5px solid var(--signature-alert-badge-neutral-color, #000)'));
   }
 });
 
@@ -513,7 +513,7 @@ test('valid CSS colors work; invalid colors fall back without emitting CSS injec
   for (const value of ['#123456','teal','rgb(1, 2, 3)','var(--my-color)']) {
     const css=run(context({colors:{active:value}}),withAlerts([custom()]));
     assert.equal(accent(css),value);
-    assert.ok(css.includes(`color-mix(in srgb, ${value} 16%`));
+    assert.ok(css.includes(`color-mix(in srgb,${value} 16%`));
   }
   const options={packs:{battery:{colors:{active:'#123456'}}},colors:{active:'not-a-color'},entities:{[primary]:{colors:{active:'red; } body {display:none'}}}};
   const css=run(context(options),withAlerts([pack()]));
@@ -663,7 +663,7 @@ test('card tint and badges preserve commands and never recolor the main icon',()
     const ctx=context(undefined,{card_type,tap_action:{action:'more-info'},sub_button:[{entity:target,tap_action:{action:'toggle'}}]});
     const before=JSON.stringify(ctx.config);const css=run(ctx,withAlerts([custom()]));
     assert.equal(accent(css),red);assert.equal(JSON.stringify(ctx.config),before);
-    assert.ok(!/bubble-state|bubble-sub-button|ha-card \{|bubble-main-icon \{|--bubble-icon-background-color/.test(css));
+    assert.ok(!/bubble-state|bubble-sub-button|ha-card \{|bubble-main-icon\s*\{|--bubble-icon-background-color/.test(css));
   }
 });
 
@@ -841,10 +841,10 @@ test('documented icon and color examples match the badge defaults, opt-out and c
   run(ctx,withAlerts([custom(entity)],1));assert.equal(ctx._amBadge.firstElementChild.getAttribute('icon'),'mdi:clock-outline');
   const switches=examples.find(options=>options.color_card === true&&options.color_badge === true);
   assert.ok(switches);const enabled=plainContext(switches);const css=run(enabled,withAlerts([custom()]));
-  assert.equal(accent(css),red);assert.ok(css.includes('border: 1.5px solid '+red));
+  assert.equal(accent(css),red);assert.ok(css.includes('border:1.5px solid '+red));
   const monochrome=examples.find(options=>options.color_badge === false);
   assert.ok(monochrome);const black=run(plainContext(monochrome),withAlerts([custom()]));
-  assert.equal(accent(black),'');assert.ok(black.includes('border: 1.5px solid var(--signature-alert-badge-neutral-color, #000)'));
+  assert.equal(accent(black),'');assert.ok(black.includes('border:1.5px solid var(--signature-alert-badge-neutral-color, #000)'));
 });
 
 test('documented pack examples activate declared packs for active alerts',()=>{

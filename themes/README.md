@@ -1,5 +1,7 @@
 # Signature theme
 
+Module distributions are minified during the repository build. Theme variables remain in the shipped CSS and continue to follow live theme changes; their names and fallback values are preserved. See the [build guide](../shared/README.md#distributions-minifiées).
+
 The optional [signature.yaml](signature.yaml) theme provides light and dark modes for Home Assistant, native Bubble cards, and the Signature modules. It keeps Home Assistant's native colors, page backgrounds and card surfaces, while adding system fonts, 22 px card corners and subtle card shadows. The modules derive their borders and control tracks from those inherited colors. No card-mod, font download or extra JavaScript is required.
 
 ## Installation

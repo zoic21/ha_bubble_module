@@ -23,6 +23,7 @@
     "node": ">=22"
   },
   "devDependencies": {
+    "clean-css": "5.3.3",
     "playwright": "1.62.1",
     "terser": "5.51.2",
     "yaml": "2.9.1"

@@ -58,4 +58,16 @@ L'assembleur développe récursivement les inclusions et conserve leur indentati
 
 Flow, Weather et Wind Rose utilisent `@@MODULE_VERSION@@` dans leur source de runtime ; le build y injecte la version déclarée dans `module.yaml`. Les caches, abonnements et fonctions de nettoyage restent propres à chaque carte. Les variables du thème restent dans le CSS pour suivre les changements de thème sans reconstruction.
 
-Square, Compact, Room et Header conservent leur assembleur spécialisé : il choisit leurs fragments JavaScript/CSS puis élimine les branches constantes avec Terser, sans renommage de variables ni optimisation unsafe. Le build complet appelle cet assembleur et génère les cinq autres modules sans transformation de leur logique.
+Square, Compact, Room et Header conservent leur assembleur spécialisé : il choisit leurs fragments JavaScript/CSS puis élimine les branches constantes avec Terser. Le build complet appelle cet assembleur et génère les cinq autres modules.
+
+## Distributions minifiées
+
+Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux neuf distributions, y compris dans le workflow automatique GitHub :
+
+- Terser raccourcit les identifiants locaux, simplifie les expressions et retire les commentaires JavaScript. Les noms des propriétés, options, composants et espaces d'état restent inchangés. Les transformations `unsafe` et les hypothèses de getters purs sont désactivées pour préserver les lectures suivies par Home Assistant.
+- clean-css réduit les espaces et commentaires des feuilles CSS embarquées complètes. Les expressions JavaScript sont remplacées temporairement par des marqueurs de syntaxe valide puis rétablies dans leur ordre initial, sans être exécutées. Les fragments incomplets et les templates taggés ne sont pas transformés. L'ordre des règles, leurs valeurs, leurs unités et les variables CSS restent conservés.
+- Les métadonnées structurées et le formulaire sont écrits en YAML flow, avec une indentation réduite et un champ `code` littéral. Le résultat reste un YAML autonome à importer. Aucun minificateur ni dépendance n'est chargé dans Home Assistant.
+
+Les sources restent dans `src` ; les fichiers `dist` sont destinés à l'installation. Les tests d'éditeur exécutent les distributions complètes sur une carte détachée, sans dépendre de commentaires de repérage ou des noms de variables générés. Les vérifications de schéma utilisent les clés des sources, les tests de rendu et d'actions utilisent le code livré.
+
+Mesure du 5 octobre 2026 sur les neuf distributions, comparées au commit `1e041ce` : **385 797 → 250 046 octets UTF-8**, soit **35,2 % de réduction**. Cette mesure porte sur les fichiers YAML bruts, pas sur le temps de chargement de Home Assistant. La comparaison des styles calculés couvre 152 rendus sur fixtures Chromium, en clair/sombre, avec/sans thème et à 328/600 px.

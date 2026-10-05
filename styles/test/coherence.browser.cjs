@@ -36,11 +36,9 @@ const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key]
 
 test('Module editor sections follow native expansion-panel radii across live theme changes',async t => {
   const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
+  const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
   const definitions=['signature-square','signature-compact','signature-room','signature-header','signature-flow','signature-weather','signature-wind-rose','alert_manager'].map(name=>Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0]);
-  const modules=definitions.map(definition=>{
-    const start=definition.code.indexOf('// Signature'),end=definition.code.indexOf('// End Signature');
-    return {bootstrap:start === -1 ? definition.code : definition.code.slice(start,end),schema:definition.editor.find(field=>field.fields)};
-  });
+  const modules=definitions.map(definition=>({bootstrap:editorBootstrap(definition),schema:definition.editor.find(field=>field.fields)}));
   const page=await fixture(t);
   const result=await page.evaluate(async modules=>{
     // Audited CSS roles from Bubble 3.4.1's bc_group and HA's expansion panel.
@@ -64,7 +62,7 @@ test('Module editor sections follow native expansion-panel radii across live the
       _computeLabel(){return '';}_computeHelper(){return '';}
     });
     const container=document.createElement('div');document.body.append(container);
-    for(const module of modules){if(module.bootstrap.startsWith('${'))new Function('return `'+module.bootstrap+'`;').call({config:{card_type:'pop-up'}});else new Function(module.bootstrap)();const form=document.createElement('ha-form-'+module.schema.type);Object.assign(form,{schema:module.schema,data:{},hass:{states:{}}});container.append(form);}
+    for(const module of modules){new Function(module.bootstrap)();const form=document.createElement('ha-form-'+module.schema.type);Object.assign(form,{schema:module.schema,data:{},hass:{states:{}}});container.append(form);}
     await Promise.resolve();
     const editors=[...container.children].map(form=>form._form.schema[0].type);
     const native=document.createElement('ha-expansion-panel');native.setAttribute('outlined','');container.append(native);
@@ -97,7 +95,8 @@ test('Module editor sections follow native expansion-panel radii across live the
 test('Flow inline editor keeps one root label and hides nested labels in the browser',async t => {
   const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
   const definition=YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-flow/dist/signature-flow.yaml'),'utf8')).signature_flow;
-  const bootstrap=definition.code.slice(definition.code.indexOf('// Signature Flow editor bridge:'),definition.code.indexOf('// End Signature Flow editor bridge.'));
+  const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
+  const bootstrap=editorBootstrap(definition);
   const schema=definition.editor.find(field=>field.type==='signature_flow_options');
   const page=await fixture(t);
   const result=await page.evaluate(async ({bootstrap,schema})=>{

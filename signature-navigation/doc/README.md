@@ -1,6 +1,6 @@
 # Signature Navigation
 
-Version **1.0.5**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+Version **1.0.6**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
 
 ## Installation
 
@@ -103,6 +103,11 @@ npm run test:styles
 Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, 26 px icon bounds, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. They also check neutral selection/focus colors, translucency, a visible composed selection fill and stronger active-icon contrast in light and dark palettes, with and without the Signature theme, changing modes on the same nodes without rerendering. Popup/backdrop fixtures in independent shadow roots check real pointer clicks in mobile/desktop widths and light/dark modes: popup content and the backdrop receive clicks above the footer, and native navigation clicks work before opening and after removing the popup. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
 
 ## Changelog
+
+### 1.0.6 — 5 October 2026
+
+- Compact generated distribution: local JavaScript names and expressions, embedded CSS whitespace and YAML metadata. Configuration keys, CSS variables and runtime behavior are preserved.
+- Minification runs during the build, including the automatic GitHub workflow. Editable sources remain in `src`.
 
 ### 1.0.5
 

@@ -4,11 +4,13 @@ const path=require('node:path');
 const vm=require('node:vm');
 const {test}=require('node:test');
 const YAML=require('yaml');
+const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
+const {readSource}=require('../../scripts/source-files.cjs');
 const definition=YAML.parse(fs.readFileSync(path.resolve(__dirname,'../dist/signature-flow.yaml'),'utf8')).signature_flow;
 const schema=definition.editor.find(field=>field.type==='signature_flow_options');
 const slots=schema.fields.slots.fields;
 const fields=slots[1].fields;
-const bootstrap=definition.code.slice(definition.code.indexOf('// Signature Flow editor bridge:'),definition.code.indexOf('// End Signature Flow editor bridge.'));
+const bootstrap=editorBootstrap(definition);
 const flatten=schema=>schema.flatMap(field=>field.schema?flatten(field.schema):[field]);
 
 // Native-shaped form fixtures exercise the bridge; they are not a Home Assistant runtime.
@@ -60,7 +62,7 @@ test('Flow editor keeps the module, six slot mappings and per-slot animation key
   assert.equal(schema.name,'');assert.equal(schema.selector,undefined);
   assert.deepEqual(Object.keys(schema.fields).sort(),['animation','deadband','height','name','slots']);
   assert.deepEqual(Object.keys(slots),['1','2','3','4','5','6']);
-  const runtime=[...new Set([...definition.code.matchAll(/\bcfg\.([a-z_]+)/g)].map(match=>match[1]))];
+  const runtime=[...new Set([...readSource('signature-flow/src/runtime.js').matchAll(/\bcfg\.([a-z_]+)/g)].map(match=>match[1]))];
   for(const prefix of ['primary','secondary'])for(const suffix of ['unit','scale','precision','tap_action','hold_action','double_tap_action'])runtime.push(prefix+'_'+suffix);
   runtime.push('enabled','primary','secondary');
   assert.deepEqual(Object.keys(fields).sort(),[...new Set(runtime)].sort());

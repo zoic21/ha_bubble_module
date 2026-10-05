@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.3.1** · Module ID: `signature_weather`
+**Version: 1.3.2** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -210,6 +210,11 @@ This module supports the optional [Signature light/dark theme](../../themes/READ
 From version 1.1.1, horizontal dividers share a 16 px inset from each card edge with Signature room cards. Set `signature-divider-inset` in the theme (without `--`) or card CSS (with `--`) to change this margin. `0px` spans the card's inner width; larger values shorten the line. Forecast-row padding is accounted for on desktop and mobile, without shifting content or changing row heights. Divider colors still use `signature-divider-color`.
 
 ## Release notes
+
+### 1.3.2 — 5 October 2026
+
+- Compact generated distribution: local JavaScript names and expressions, embedded CSS whitespace and YAML metadata. Configuration keys, CSS variables and runtime behavior are preserved.
+- Minification runs during the build, including the automatic GitHub workflow. Editable sources remain in `src`.
 
 ### 1.3.1 — 5 October 2026
 

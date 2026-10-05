@@ -1,4 +1,4 @@
-# Bubble Alert Manager module 3.6.1
+# Bubble Alert Manager module 3.6.2
 
 [Module to import](../dist/alert_manager.yaml), independent of the Signature presentation modules. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
@@ -321,6 +321,11 @@ On a test entity, check active and pending custom alerts, an exclusion, and then
 YAML/JavaScript syntax checks do not validate rendering or data in a real Home Assistant instance. Check that the compact sensors work and cards respond correctly in your installation.
 
 ## Release notes
+
+### 3.6.2 — 5 October 2026
+
+- Compact generated distribution: local JavaScript names and expressions, embedded CSS whitespace and YAML metadata. Configuration keys, CSS variables and runtime behavior are preserved.
+- Minification runs during the build, including the automatic GitHub workflow. Editable sources remain in `src`.
 
 ### 3.6.1 — 5 October 2026
 

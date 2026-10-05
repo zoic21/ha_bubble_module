@@ -166,12 +166,12 @@ test('room overrides do not reactivate automatic colors when room_auto_colors is
   const options={layout:'room',room_auto_colors:false,sub_button_styles:{'room-control-1':{column:2,icon:'mdi:lightbulb'}}};
   const {ctx,hass}=fixture(t,{states:{'light.room':{state:'on',attributes:{}}}},options,{button_type:'name',sub_button:[button]});
   const css=run(ctx,hass);
-  assert.doesNotMatch(css,/ha-card \.room-control-1 \.bubble-sub-button-icon \{(?:color|background|opacity):/);
-  assert.match(css,/ha-card \.room-control-1 \{ --room-control-column:1;/);
+  assert.doesNotMatch(css,/ha-card \.room-control-1 \.bubble-sub-button-icon\s*\{(?:color|background|opacity):/);
+  assert.match(css,/ha-card \.room-control-1\s*\{\s*--room-control-column:1;/);
   ctx.config.presentation={...options,sub_button_styles:{'room-control-1':{color:'teal',background:'#ff0000'}}};
-  assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon \{color:var\(--teal-color, #009688\) !important;background:#ff0000 !important;/);
+  assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon\s*\{color:var\(--teal-color, #009688\)\s*!important;?background:#ff0000\s*!important;?/);
   ctx.config.presentation={...options,room_auto_colors:true};
-  assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon \{color:var\(--warning-color/);
+  assert.match(run(ctx,hass),/ha-card \.room-control-1 \.bubble-sub-button-icon\s*\{color:var\(--warning-color/);
 });
 
 test('visual switches combine custom opacity with availability without changing their actions',t => {
@@ -180,7 +180,7 @@ test('visual switches combine custom opacity with availability without changing 
     const options={sub_button_styles:{ventilation:{type:'switch',...(opacity == null ? {} : {opacity})}}};
     const {ctx,hass}=fixture(t,{states:{[button.entity]:{state:raw,attributes:{}}}},options,{button_type:'name',sub_button:[button]});
     const before=JSON.stringify(ctx.config);
-    assert.match(run(ctx,hass),new RegExp('background: transparent !important; opacity: '+expected+' !important;'));
+    assert.match(run(ctx,hass),new RegExp('background:\\s*transparent\\s*!important;?\\s*opacity:\\s*'+expected+'\\s*!important;?'));
     assert.equal(JSON.stringify(ctx.config),before);
   }
 });
@@ -190,9 +190,9 @@ test('visual switch opacity templates refresh without being evaluated twice',t =
   const {ctx,hass}=fixture(t,{states:{[button.entity]:{state:'on',attributes:{}}}},
     {sub_button_styles:{ventilation:{type:'switch',opacity:'{{ opacity }}'}}},{button_type:'name',sub_button:[button]});
   let calls=0;
-  assert.match(run(ctx,hass,()=>{calls++;return '0.3';}),/background: transparent !important; opacity: 0.3 !important;/);
+  assert.match(run(ctx,hass,()=>{calls++;return '0.3';}),/background:\s*transparent\s*!important;?\s*opacity:\s*0.3\s*!important;?/);
   assert.equal(calls,1);
-  assert.match(run(ctx,hass,()=> '0.6'),/background: transparent !important; opacity: 0.6 !important;/);
+  assert.match(run(ctx,hass,()=> '0.6'),/background:\s*transparent\s*!important;?\s*opacity:\s*0.6\s*!important;?/);
 });
 
 test('room controls paint automatic defaults once when explicit styles are present',t => {
@@ -201,10 +201,10 @@ test('room controls paint automatic defaults once when explicit styles are prese
     {layout:'room',sub_button_styles:{'room-control-1':{color:'teal'}}},
     {button_type:'name',sub_button:[button]});
   const css=run(ctx,hass);
-  assert.equal((css.match(/ha-card \.room-control-1 \.bubble-sub-button-icon \{/g)||[]).length,1);
-  assert.match(css,/color:var\(--teal-color, #009688\) !important;background:color-mix/);
+  assert.equal((css.match(/ha-card \.room-control-1 \.bubble-sub-button-icon\s*\{/g)||[]).length,1);
+  assert.match(css,/color:var\(--teal-color, #009688\)\s*!important;?background:color-mix/);
   const changed=run(ctx,{...hass,states:{'light.room':{state:'unavailable',attributes:{}}}});
-  assert.match(changed,/opacity:0.4 !important/);
+  assert.match(changed,/opacity:0.4\s*!important/);
 });
 
 test('multiple visual switches share cached geometry while retaining independent states',t => {
@@ -212,14 +212,14 @@ test('multiple visual switches share cached geometry while retaining independent
   const options={sub_button_styles:Object.fromEntries(buttons.map(b=>[b.css_class,{type:'switch'}]))};
   const {ctx,hass}=fixture(t,{states:Object.fromEntries(buttons.map((b,i)=>[b.entity,{state:i%2?'off':'on',attributes:{}}]))},options,{sub_button:buttons});
   const css=run(ctx,hass),structure=runtimeField(ctx, 'Structure');
-  assert.equal((css.match(/width: 48px; height: 28px/g)||[]).length,1);
-  assert.equal((css.match(/--dp-switch-offset: 20px/g)||[]).length,2);
-  assert.equal((css.match(/--dp-switch-offset: 0px/g)||[]).length,2);
+  assert.equal((css.match(/width:\s*48px;\s*height:\s*28px/g)||[]).length,1);
+  assert.equal((css.match(/--dp-switch-offset:\s*20px/g)||[]).length,2);
+  assert.equal((css.match(/--dp-switch-offset:\s*0px/g)||[]).length,2);
   let writes=0,cached=structure.switchCSS;
   Object.defineProperty(structure,'switchCSS',{get:()=>cached,set:value=>{writes++;cached=value;}});
   const changed=run(ctx,{...hass,states:{...hass.states,[buttons[1].entity]:{state:'on',attributes:{}}}});
   assert.equal(writes,0);
-  assert.equal((changed.match(/--dp-switch-offset: 20px/g)||[]).length,3);
+  assert.equal((changed.match(/--dp-switch-offset:\s*20px/g)||[]).length,3);
   assert.ok(changed.includes('--signature-card-background'));
   ctx.config={...ctx.config,presentation:{sub_button_styles:{'control-0':{type:'switch'}}}};
   run(ctx,hass);
@@ -239,7 +239,7 @@ test('reusing layout CSS still updates numeric values, Jinja colors and observed
   const states=new Proxy({[id]:{...state,state:'3.5'}},{get(states,key){dependencies.add(key);return states[key];}});
   const css=run(ctx,{...hass,states},()=> '#123456');
   assert.equal(ctx.elements.state.querySelector('.dp-value').textContent,'3.5');
-  assert.match(css,/ha-card \{ --dp-accent: #123456; \}/);
+  assert.match(css,/ha-card\s*\{\s*--dp-accent:\s*#123456;\s*\}/);
   assert.ok(dependencies.has(id));
   assert.equal(writes,0,'A value or accent change reuses layout CSS');
   assert.equal(queries,0,'A card with no secondary text does not search for a secondary node');
@@ -282,8 +282,8 @@ test('a standard compact tile stays below its CSS budget and preserves native vi
   const css=run(ctx,hass);
   assert.ok(Buffer.byteLength(css) < 7000,'A simple compact tile must not include every optional layout');
   assert.doesNotMatch(css,/data-dp-compact-mode="value"|data-dp-value-trailing|bubble-cover-button|bubble-climate|dp-secondary|pre-line/);
-  assert.match(css,/\.hidden, ha-card\[data-dp-layout\] \[hidden\] \{ display: none !important; \}/);
-  assert.match(css,/data-dp-has-state="no"\] \.bubble-state.hidden \{ display: none !important; \}/);
+  assert.match(css,/\.hidden,\s*ha-card\[data-dp-layout\] \[hidden\]\s*\{\s*display:\s*none\s*!important;?\s*\}/);
+  assert.match(css,/data-dp-has-state="no"\] \.bubble-state.hidden\s*\{\s*display:\s*none\s*!important;?\s*\}/);
 });
 
 test('cover, climate and numeric controls retain their geometry when a card changes type',t => {
@@ -294,12 +294,12 @@ test('cover, climate and numeric controls retain their geometry when a card chan
     const fresh=fixture(t,{},options,{card_type:kind});
     assert.equal(css,run(fresh.ctx,fresh.hass),kind);
     if (kind === 'cover') {
-      assert.match(css,/bubble-cover-button \{[^}]*width: 38px; min-width: 38px; height: 44px;/);
-      assert.match(css,/data-dp-kind="cover"\] \.bubble-buttons-container \{ width: 128px;/);
+      assert.match(css,/bubble-cover-button\s*\{[^}]*width:\s*38px;\s*min-width:\s*38px;\s*height:\s*44px;/);
+      assert.match(css,/data-dp-kind="cover"\] \.bubble-buttons-container\s*\{\s*width:\s*128px;/);
       assert.doesNotMatch(css,/bubble-climate|bubble-temperature-container/);
     } else if (kind === 'climate' || options.controls === 'number') {
-      assert.match(css,/bubble-climate-minus-button,.bubble-climate-plus-button\) \{ width: 38px; min-width: 38px; height: 44px;/);
-      assert.match(css,/bubble-high-temp-container\) \{ width: 128px; height: 44px;/);
+      assert.match(css,/bubble-climate-minus-button,.bubble-climate-plus-button\)\s*\{\s*width:\s*38px;\s*min-width:\s*38px;\s*height:\s*44px;/);
+      assert.match(css,/bubble-high-temp-container\)\s*\{\s*width:\s*128px;\s*height:\s*44px;/);
       assert.match(css,/--bubble-climate-button-background-color:/);
       assert.doesNotMatch(css,/bubble-cover/);
     } else assert.doesNotMatch(css,/bubble-cover|bubble-climate/);
@@ -322,7 +322,7 @@ test('trailing value CSS follows sub-buttons, state visibility and numeric contr
     assert.equal(ctx.card.getAttribute('data-dp-value-trailing'),trailing ? 'yes' : 'no');
     assert.equal(css.includes('ha-card[data-dp-value-trailing="yes"] .bubble-wrapper'),trailing);
     assert.match(css,/data-dp-compact-mode="value"\] \.bubble-name-container/);
-    assert.match(css,/data-dp-has-state="no"\] \.bubble-state.hidden \{ display: none !important; \}/);
+    assert.match(css,/data-dp-has-state="no"\] \.bubble-state.hidden\s*\{\s*display:\s*none\s*!important;?\s*\}/);
   }
 });
 
@@ -355,7 +355,7 @@ test('multiline changes restore the correct wrapping rules in cached standard an
     for (const multiline of [true,false,true]) {
       ctx.config.presentation={compact_mode,multiline};
       const css=run(ctx,hass);
-      assert.equal(css.includes('white-space: pre-line !important;'),multiline);
+      assert.equal(/white-space:\s*pre-line\s*!important(?:;|})/.test(css),multiline);
       assert.equal(css.includes('data-dp-multiline="no"'),!multiline);
       const fresh=fixture(t,{},ctx.config.presentation);
       assert.equal(css,run(fresh.ctx,fresh.hass));

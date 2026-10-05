@@ -14,11 +14,11 @@ function fixture(config = structuredClone(example), pathname = '/lovelace/summar
   return {config, location, run: () => render.call({config})};
 }
 function selected(css) {
-  return [...css.matchAll(/\.bubble-sub-button\.bubble-sub-button-(\d+) \{/g)].map(match => Number(match[1]));
+  return [...css.matchAll(/\.bubble-sub-button\.bubble-sub-button-(\d+)\s*\{/g)].map(match => Number(match[1]));
 }
 
 test('distribution, native example and documentation are complete', () => {
-  assert.equal(definition.version, '1.0.5');
+  assert.equal(definition.version, '1.0.6');
   assert.deepEqual(definition.supported, ['sub-buttons']);
   assert.deepEqual(example.modules, ['signature_navigation']);
   assert.equal(example.card_type, 'sub-buttons');
@@ -77,19 +77,19 @@ test('does not restyle unsupported card types, inline menus or grouped layouts',
 test('visual options support zero, update on the same card and preserve native width', () => {
   const f = fixture();
   let css = f.run();
-  assert.match(css, /--signature-nav-margin: 24px/);
+  assert.match(css, /--signature-nav-margin:\s*24px/);
   assert.match(css, /blur\(18px\) saturate\(180%\)/);
   assert.match(css, /--signature-nav-surface\) 45%/);
   f.config.signature_navigation = {mobile_margin: 0, blur: 0, opacity: 0};
   f.config.footer_width = 480;
   css = f.run();
-  assert.match(css, /--signature-nav-margin: 0px/);
+  assert.match(css, /--signature-nav-margin:\s*0px/);
   assert.match(css, /blur\(0px\)/);
   assert.match(css, /--signature-nav-surface\) 0%/);
-  assert.match(css, /--bubble-footer-width: 480px/);
+  assert.match(css, /--bubble-footer-width:\s*480px/);
   f.config.signature_navigation = {mobile_margin: 100, blur: -1, opacity: 150};
   css = f.run();
-  assert.match(css, /--signature-nav-margin: 48px/);
+  assert.match(css, /--signature-nav-margin:\s*48px/);
   assert.match(css, /blur\(0px\)/);
   assert.match(css, /--signature-nav-surface\) 100%/);
 });

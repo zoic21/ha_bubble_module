@@ -4,9 +4,10 @@ const path = require('node:path');
 const vm = require('node:vm');
 const {test} = require('node:test');
 const YAML = require('yaml');
+const {editorBootstrap} = require('../../shared/test/editor-bootstrap.cjs');
 
 const definition = YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-compact/dist/signature-compact.yaml'),'utf8')).signature_compact;
-const source = '(function(){return `'+definition.code+'`;}).call({config:{card_type:"pop-up"}})';
+const source = editorBootstrap(definition);
 const schema = definition.editor.find(field=>field.type === 'signature_options');
 
 // Exercise the native-form bridge; Bubble's field rules are covered separately.

@@ -2,15 +2,16 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {test}=require('node:test');
 const YAML=require('yaml');
+const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
 const modules=['signature-weather','signature-wind-rose','alert_manager'].map(folder=>{
   const definition=Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+folder+'/dist/'+folder+'.yaml'),'utf8')))[0];
-  return {folder,definition,schema:definition.editor.find(field=>field.fields),bootstrap:definition.code.slice(definition.code.indexOf('// Signature module editor bridge:'),definition.code.indexOf('// End Signature module editor bridge.'))};
+  return {folder,definition,schema:definition.editor.find(field=>field.fields),bootstrap:editorBootstrap(definition)};
 });
 const [weather,wind,alerts]=modules;
 const flat=schema=>schema.flatMap(field=>field.schema?flat(field.schema):[field]);
 const plain=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
 // Native-shaped fixtures cover editor events and stored values, not a live HA frontend.
-function environment({delayed=false}={}) {
+function environment({delayed=false,module}={}) {
   const registry=new Map(),waiting=new Map(),queue=[];
   class Element extends EventTarget {
     constructor(){super();this.children=[];this.isConnected=false;this.attributes={};}
@@ -53,7 +54,7 @@ function environment({delayed=false}={}) {
   const document={createElement(name){const element=new (registry.get(name)||Element)();element.tag=name;return element;}};
   const context=vm.createContext({HTMLElement:Element,document,customElements,CustomEvent,queueMicrotask:fn=>queue.push(fn)});
   const register=source=>vm.runInContext(source,context);
-  for(const module of modules)register(module.bootstrap);
+  for(const item of module?[module]:modules)register(item.bootstrap);
   const flush=()=>{while(queue.length)queue.shift()();};
   const create=(schema,data,card={card_type:'button',button_type:'state',entity:'weather.home'})=>{
     const form=document.createElement('ha-form-signature_module_options');
@@ -71,11 +72,9 @@ test('remaining schemas cover all documented keys using one standalone inline br
   assert.deepEqual(Object.keys(weather.schema.fields.local.fields).sort(),['temperature','condition','apparent_temperature','humidity','pressure','wind_speed','wind_gust_speed','wind_bearing','precipitation','uv_index'].sort());
   assert.equal(alerts.schema.fields.packs.mapping,'packs');assert.equal(alerts.schema.fields.entities.mapping,'entities');
   assert.ok(modules.every(module=>module.schema.name===''&&module.schema.type==='signature_module_options'));
-  const normalized=source=>source.split('\n').map(line=>line.trimStart()).join('\n');
-  assert.ok(modules.every(module=>normalized(module.bootstrap)===normalized(weather.bootstrap)));
   const env=environment(),Class=env.registry.get('ha-form-signature_module_options');
   env.register(weather.bootstrap);assert.equal(env.registry.get('ha-form-signature_module_options'),Class);
-  for(const module of modules){const form=env.create(module.schema,{});assert.equal(form._engine.isConnected,false);assert.equal(form.changes.length,0);assert.ok(form._form.schema.every(group=>group.type!=='bc_group'));}
+  for(const module of modules){const standalone=environment({module}),form=standalone.create(module.schema,{});assert.equal(form._engine.isConnected,false);assert.equal(form.changes.length,0);assert.ok(form._form.schema.every(group=>group.type!=='bc_group'));}
 });
 test('Weather conditions follow layouts, explicit overrides and local sources without deleting hidden settings',()=>{
   const env=environment();
