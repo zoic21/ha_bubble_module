@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.1.2** · Module ID: `signature_wind_rose`
+**Version: 1.2.0** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage and recorded duration. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -8,11 +8,17 @@ The card shows where the wind comes **from**: north is at the top and west at th
 
 ## Installation
 
-1. Install Bubble Card 3.3 or later and Bubble Card Tools.
+1. Install Bubble Card 3.4.1 or later and Bubble Card Tools.
 2. Import the complete [signature-wind-rose.yaml](../dist/signature-wind-rose.yaml) file from the Bubble Card module editor.
-3. Use `signature_wind_rose` in the card's `modules` list. Configure options in YAML; there is no custom editor schema.
+3. Use `signature_wind_rose` in the card's `modules` list. Configure options under **Modules → Signature Wind Rose**, or keep using YAML.
 
 This standalone module replaces the native button content. Use a button/state card and `grid_options.rows: auto`; do not combine it with another module that replaces the card content, such as Signature Flow or Signature Weather. The Signature design module is not required. No card-mod, graph library, helper or backend integration is needed.
+
+## Visual configuration
+
+The French module form offers direction/speed entity pickers, initial period, direction offset, calm threshold, history refresh and sector color. The calm threshold appears only when a speed entity is configured. A blank direction source inherits the card entity; the initial period remains a numeric YAML value. History sources use entity states rather than attributes or templates.
+
+Les valeurs masquées sont conservées et l’ouverture du formulaire ne crée aucune option. Les sections suivent les arrondis natifs du thème. Le pont utilise les helpers de Bubble Card 3.4.1 ; les versions sans ces helpers ne prennent pas en charge ce formulaire. Réimporter le fichier complet puis recharger la page après la mise à jour.
 
 ## Ecowitt example
 
@@ -106,6 +112,12 @@ styles: |
 Run `npm run test:signature-wind-rose` or `npm test` from the repository root. Tests exercise the actual imported YAML code, including duration weighting, asynchronous history responses, missing/calm data, localization, cache, refresh and teardown. Verify the installed card with your recorded station data in Home Assistant after importing.
 
 ## Release notes
+
+### 1.2.0 — 5 October 2026
+
+- Adds a French visual form for all wind sources, history and appearance options.
+- Hides the calm threshold without a speed source and preserves inherited defaults, numeric periods and existing history/rendering behavior.
+
 
 ### 1.1.2 — 5 October 2026
 

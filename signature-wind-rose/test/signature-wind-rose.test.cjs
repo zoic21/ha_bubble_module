@@ -57,7 +57,7 @@ function history(f,direction=135,speed=3) {
 const result=f=>f.r.cache.get(f.r.period).data;
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.1.2');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.2.0');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');

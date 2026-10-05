@@ -1,12 +1,12 @@
 # Signature Weather
 
-**Version: 1.2.1** · Module ID: `signature_weather`
+**Version: 1.3.0** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
 ## Requirements and installation
 
-- Bubble Card **3.3.0 or later**, with its module teardown hook.
+- Bubble Card **3.4.1 or later**, with its module teardown hook.
 - Bubble Card Tools, or an existing working Bubble Card module installation.
 - A Home Assistant `weather` entity that provides at least one forecast type.
 
@@ -15,6 +15,14 @@ Import the complete [distribution](../dist/signature-weather.yaml) through the B
 Use a Bubble **button** card with `button_type: state`. This module replaces its native content. Do not apply `signature` or `signature_flow` to the same card. Native sub-buttons are hidden with the native content; use the weather module's own measurements and period buttons.
 
 Use `grid_options.rows: auto` so the dashboard follows the content height. There is no fixed height to adjust when changing layouts or the number of days.
+
+## Visual configuration
+
+Open **Modules → Signature Weather** to configure presentation, forecast entity/type/count, temperature precision, current conditions and local measurements with French labels.
+
+The automatic current-conditions choice retains the runtime default: summary or configured local sources show the header. Measurement selection distinguishes automatic choices from an explicit empty list. Each local source has an entity picker and optional attribute, unit, multiplier and precision; existing entity-string sources remain strings until advanced options are edited. Changing a unit label does not convert values. Clearing the last local source restores provider and automatic-header defaults.
+
+Les valeurs masquées sont conservées et l’ouverture du formulaire ne crée aucune option. Les sections suivent les arrondis natifs du thème. Le pont utilise les helpers de Bubble Card 3.4.1 ; les versions sans ces helpers ne prennent pas en charge ce formulaire. Réimporter le fichier complet puis recharger la page après la mise à jour.
 
 ## Three layouts
 
@@ -202,6 +210,12 @@ This module supports the optional [Signature light/dark theme](../../themes/READ
 From version 1.1.1, horizontal dividers share a 16 px inset from each card edge with Signature room cards. Set `signature-divider-inset` in the theme (without `--`) or card CSS (with `--`) to change this margin. `0px` spans the card's inner width; larger values shorten the line. Forecast-row padding is accounted for on desktop and mobile, without shifting content or changing row heights. Divider colors still use `signature-divider-color`.
 
 ## Release notes
+
+### 1.3.0 — 5 October 2026
+
+- Adds a French visual form for every forecast/current option and all ten local sources, with native entity and attribute pickers.
+- Preserves automatic defaults, explicit empty measurement lists, source strings/objects, hidden values and existing card rendering.
+
 
 ### 1.2.1 — 4 October 2026
 

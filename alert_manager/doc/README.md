@@ -1,4 +1,4 @@
-# Bubble Alert Manager module 3.5.0
+# Bubble Alert Manager module 3.6.0
 
 [Module to import](../dist/alert_manager.yaml), independent of `signature`. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
@@ -23,6 +23,16 @@ signature:
 Place options under **`alert_manager`, at the card's root**.
 
 The module can also be used on its own with native Bubble cards. With `signature`, either order works; placing `alert_manager` last is still recommended when using other modules.
+
+## Visual configuration
+
+Open **Modules → Alert Manager** to adjust this card’s badge, card tint, pending policy, general colors/icons and source sensors. The form uses native controls and supports button, cover, climate and media-player cards; slider buttons remain excluded. Bubble Card 3.4.1 or later is required for the visual form.
+
+**Packs activated** and **Entity exceptions** use native add/remove/reorder lists in the interface. They are converted back to the existing ID-keyed `packs` and `entities` mappings; no dashboard migration is needed. Adding a pack enables it; deleting its entry disables that override. An entity entry can add an external entity or override automatically discovered entities. Deleting it restores automatic discovery. Incomplete new rows stay in the editor until they have an identifier; duplicate IDs are rejected.
+
+Each entity/pack has an **Inherit** choice for pending alerts, and optional per-state colors/icons. Exclusion controls distinguish a complete entity exclusion from lists of rule/pack IDs. An empty list remains an empty list. Existing extra settings and legacy pack values survive unrelated edits. Thresholds and delays stay in the Alert Manager integration.
+
+Les valeurs masquées sont conservées et l’ouverture du formulaire ne crée aucune option. Les sections suivent les arrondis natifs du thème. Le pont utilise les helpers de Bubble Card 3.4.1 ; les versions sans ces helpers ne prennent pas en charge ce formulaire. Réimporter le fichier complet puis recharger la page après la mise à jour.
 
 ## Options
 
@@ -298,7 +308,7 @@ Buttons, covers, thermostats, and media players are supported; separators, popup
 
 ## Installation
 
-Install Bubble Card and [Bubble Card Tools](https://github.com/Clooos/Bubble-Card-Tools), then import the complete YAML file from the Modules section of a card's editor. Add `alert_manager` to the `modules` list of each relevant card. Options in this version are configured in YAML: the file does not yet declare an `editor` schema.
+Install Bubble Card and [Bubble Card Tools](https://github.com/Clooos/Bubble-Card-Tools), then import the complete YAML file from the Modules section of a card's editor. Add `alert_manager` to the `modules` list of each relevant card. Options are available in the French visual form or in YAML; both use the existing `alert_manager` structure.
 
 The [Home Assistant Alert Manager integration](https://github.com/zoic21/ha_alert_manager) is required. Check that the two sensors listed above exist under the IDs you use and expose the compact `alerts` attributes. Adjust `sensors` if their IDs have been renamed. A missing sensor supplies no alerts to the module.
 
@@ -313,6 +323,12 @@ On a test entity, check active and pending custom alerts, an exclusion, and then
 YAML/JavaScript syntax checks do not validate rendering or data in a real Home Assistant instance. Check that the compact sensors work and cards respond correctly in your installation.
 
 ## Release notes
+
+### 3.6.0 — 5 October 2026
+
+- Adds a French visual form for general display/filtering, sensors, colors/icons, packs and entity exceptions.
+- Uses native repeated entries for ID-keyed mappings and preserves per-level inheritance, exclusions, unknown settings and all existing alert behavior.
+
 
 ### 3.5.0 — 4 October 2026
 

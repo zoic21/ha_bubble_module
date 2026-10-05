@@ -34,9 +34,9 @@ const style = (result, id, selector) => {
 const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
 
-test('Signature editor sections follow native expansion-panel radii across live theme changes',async t => {
+test('Module editor sections follow native expansion-panel radii across live theme changes',async t => {
   const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
-  const definitions=['signature','signature-flow'].map(name=>Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0]);
+  const definitions=['signature','signature-flow','signature-weather','signature-wind-rose','alert_manager'].map(name=>Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0]);
   const modules=definitions.map(definition=>{
     const start=definition.code.indexOf('// Signature'),end=definition.code.indexOf('// End Signature');
     return {bootstrap:definition.code.slice(start,end),schema:definition.editor.find(field=>field.fields)};
@@ -83,7 +83,7 @@ test('Signature editor sections follow native expansion-panel radii across live 
     }
     return {editors,snapshots,renderInherited:Object.getPrototypeOf(customElements.get('ha-form-signature_group').prototype)===customElements.get('ha-form-bc_group').prototype};
   },modules);
-  assert.deepEqual(result.editors,['signature_group','signature_group']);
+  assert.deepEqual(result.editors,Array(5).fill('signature_group'));
   assert.equal(result.renderInherited,true);
   for(const snapshot of result.snapshots){
     assert.deepEqual(snapshot.styled,snapshot.native);

@@ -1,10 +1,585 @@
 signature_weather:
   name: Signature Weather
-  version: 1.2.1
+  version: 1.3.0
   creator: Loïc
   supported:
     - button
-  description: Weather forecasts in three Signature layouts, with optional local measurements. Requires Bubble Card 3.3 or later.
+  description: Weather forecasts in three Signature layouts, with optional local measurements. Requires Bubble Card 3.4.1 or later.
+  editor:
+    - type: constant
+      label: Réglages pour une carte Bubble de type bouton. Les entités et options masquées restent conservées.
+    - name: ""
+      type: signature_module_options
+      label: Réglages du module
+      fields:
+        layout:
+          label: Présentation
+          default: ribbon
+          selector:
+            select:
+              options:
+                - value: ribbon
+                  label: Ruban de prévisions
+                - value: ranges
+                  label: Plages de température
+                - value: summary
+                  label: Résumé météo
+              mode: dropdown
+          visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        entity:
+          label: Entité météo
+          description: "Vide : utiliser l’entité de la carte."
+          selector:
+            entity:
+              filter:
+                domain: weather
+          group: Prévisions
+          group_icon: mdi:weather-partly-cloudy
+          visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        forecast_type:
+          label: Type de prévision
+          default: auto
+          selector:
+            select:
+              options:
+                - value: auto
+                  label: Automatique
+                - value: daily
+                  label: Journalière
+                - value: hourly
+                  label: Horaire
+                - value: twice_daily
+                  label: Jour / nuit
+              mode: dropdown
+          auto_choice: true
+          description: "Automatique : premier type pris en charge. Un choix explicite reste conservé même si le fournisseur ne le
+            propose pas."
+          group: Prévisions
+          group_icon: mdi:weather-partly-cloudy
+          visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        count:
+          label: Nombre de prévisions
+          description: "Par défaut : 6."
+          selector:
+            number:
+              min: 1
+              max: 12
+              step: 1
+              mode: box
+          group: Prévisions
+          group_icon: mdi:weather-partly-cloudy
+          visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        precision:
+          label: Décimales des prévisions
+          description: "Par défaut : 0."
+          selector:
+            number:
+              min: 0
+              max: 1
+              step: 1
+              mode: box
+          group: Prévisions
+          group_icon: mdi:weather-partly-cloudy
+          visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        show_details:
+          label: Afficher le détail de la prévision sélectionnée
+          default: true
+          selector:
+            boolean: {}
+          group: Prévisions
+          group_icon: mdi:weather-partly-cloudy
+          visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        show_current:
+          label: Afficher les conditions actuelles
+          default: auto
+          selector:
+            select:
+              options:
+                - value: auto
+                  label: Automatique selon la présentation et les mesures locales
+                - value: "false"
+                  label: Non
+                - value: "true"
+                  label: Oui
+              mode: dropdown
+          boolean_choice: true
+          group: Conditions actuelles
+          group_icon: mdi:thermometer
+          visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        name:
+          label: Nom affiché
+          description: "Vide : nom de la carte, puis de l’entité météo."
+          selector:
+            text: {}
+          visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) &&
+            (item.show_current !== 'false' && (item.show_current === 'true' || item.layout === 'summary' ||
+            Object.keys(item.local || {}).length > 0))
+          group: Conditions actuelles
+          group_icon: mdi:thermometer
+        current_precision:
+          label: Décimales de la température actuelle
+          description: "Par défaut : 1. Une précision locale peut la remplacer."
+          selector:
+            number:
+              min: 0
+              max: 2
+              step: 1
+              mode: box
+          visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) &&
+            (item.show_current !== 'false' && (item.show_current === 'true' || item.layout === 'summary' ||
+            Object.keys(item.local || {}).length > 0))
+          group: Conditions actuelles
+          group_icon: mdi:thermometer
+        current_metrics:
+          label: Mesures actuelles affichées
+          fields:
+            mode:
+              label: Choix des mesures
+              default: auto
+              selector:
+                select:
+                  options:
+                    - value: auto
+                      label: Automatique
+                    - value: custom
+                      label: Choisir les mesures
+                  mode: dropdown
+            values:
+              label: Mesures et ordre d’affichage
+              description: Une sélection vide masque toutes les mesures. L’ordre de sélection est conservé.
+              selector:
+                select:
+                  options:
+                    - value: apparent_temperature
+                      label: Ressenti
+                    - value: humidity
+                      label: Humidité
+                    - value: pressure
+                      label: Pression
+                    - value: wind_speed
+                      label: Vent
+                    - value: wind_gust_speed
+                      label: Rafales
+                    - value: wind_bearing
+                      label: Direction du vent
+                    - value: precipitation
+                      label: Pluie
+                    - value: uv_index
+                      label: UV
+                  multiple: true
+                  custom_value: true
+              visible_if: item.mode === 'custom'
+          empty_undefined: true
+          choice_list: true
+          visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) &&
+            (item.show_current !== 'false' && (item.show_current === 'true' || item.layout === 'summary' ||
+            Object.keys(item.local || {}).length > 0))
+          group: Conditions actuelles
+          group_icon: mdi:thermometer
+        local:
+          label: Mesures locales
+          fields:
+            temperature:
+              label: Température
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Vide : précision de la température actuelle."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Température
+              group_icon: mdi:weather-partly-cloudy
+            condition:
+              label: Condition météo
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Condition météo
+              group_icon: mdi:weather-partly-cloudy
+            apparent_temperature:
+              label: Ressenti
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 0."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Ressenti
+              group_icon: mdi:weather-partly-cloudy
+            humidity:
+              label: Humidité
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 0."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Humidité
+              group_icon: mdi:weather-partly-cloudy
+            pressure:
+              label: Pression
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 0."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Pression
+              group_icon: mdi:weather-partly-cloudy
+            wind_speed:
+              label: Vent
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 0."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Vent
+              group_icon: mdi:weather-partly-cloudy
+            wind_gust_speed:
+              label: Rafales
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 0."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Rafales
+              group_icon: mdi:weather-partly-cloudy
+            wind_bearing:
+              label: Direction du vent
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 0."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Direction du vent
+              group_icon: mdi:weather-partly-cloudy
+            precipitation:
+              label: Pluie
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 1."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: Pluie
+              group_icon: mdi:weather-partly-cloudy
+            uv_index:
+              label: UV
+              fields:
+                entity:
+                  label: Entité locale
+                  description: "Vide : mesure du fournisseur météo."
+                  selector:
+                    entity: {}
+                attribute:
+                  label: Attribut
+                  description: "Vide : état de l’entité."
+                  selector:
+                    attribute: {}
+                  visible_if: "!!item.entity"
+                unit:
+                  label: Unité affichée
+                  description: "Vide : unité de l’entité ou du fournisseur. Changer l’unité ne convertit pas la valeur."
+                  selector:
+                    text: {}
+                  visible_if: "!!item.entity"
+                scale:
+                  label: Multiplicateur
+                  description: "Par défaut : 1. La valeur 0 est valide."
+                  selector:
+                    number:
+                      step: any
+                      mode: box
+                  visible_if: "!!item.entity"
+                precision:
+                  label: Décimales
+                  description: "Par défaut : 0."
+                  selector:
+                    number:
+                      min: 0
+                      max: 2
+                      step: 1
+                      mode: box
+                  visible_if: "!!item.entity"
+              empty_undefined: true
+              source: true
+              group: UV
+              group_icon: mdi:weather-partly-cloudy
+          empty_undefined: true
+          group: Mesures locales
+          group_icon: mdi:home-thermometer-outline
+          visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) &&
+            (item.show_current !== 'false')
   code: |-
     [data-signature-weather] {
       --sw-surface: var(--signature-card-background,var(--ha-card-background,var(--card-background-color,#fff)));
@@ -104,11 +679,174 @@ signature_weather:
       [data-signature-weather] .sw-canvas .sw-tab,[data-signature-weather] .sw-metric { min-height: var(--signature-control-touch-height,44px); }
     }
     ${(() => {
+      // Signature module editor bridge: shared native forms and indexed settings.
+      if (typeof customElements !== 'undefined' && !customElements.get('ha-form-signature_module_options')) {
+        class SignatureModuleOptionsForm extends HTMLElement {
+          constructor() {
+            super();
+            const shadow = this.attachShadow({mode:'open'});
+            const style = document.createElement('style');
+            style.textContent = ':host{display:block}label{display:block;font-weight:500;margin-bottom:8px}[hidden]{display:none!important}';
+            this._labelEl = document.createElement('label');
+            this._form = document.createElement('ha-form');
+            this._errorEl = document.createElement('ha-alert');
+            this._errorEl.setAttribute('alert-type','error');
+            this._errorEl.hidden = true;
+            shadow.append(style,this._labelEl,this._form,this._errorEl);
+            this._form.addEventListener('value-changed',event => {
+              event.stopPropagation();
+              this._engine?._itemChanged(event,0);
+            });
+          }
+          connectedCallback() { this._scheduleUpdate(); }
+          _scheduleUpdate() {
+            if (this._pending) return;
+            this._pending = true;
+            queueMicrotask(() => {
+              this._pending = false;
+              if (this.isConnected) this._updateForm();
+            });
+          }
+          _emit(value) {
+            this.dispatchEvent(new CustomEvent('value-changed',{detail:{value},bubbles:true,composed:true}));
+          }
+          _display() {
+            if (this.schema.exclusion) return {mode:this.data === true ? 'all' : Array.isArray(this.data) ? 'rules' : 'none',rules:Array.isArray(this.data) ? this.data : []};
+            if (this.schema.choice_list) return {mode:Array.isArray(this.data) ? 'custom' : 'auto',values:Array.isArray(this.data) ? this.data : []};
+            const value = this.schema.source && typeof this.data === 'string' ? {entity:this.data} : this.data;
+            const data = value && typeof value === 'object' && !Array.isArray(value) ? {...value} : {};
+            for (const [key,field] of Object.entries(this.schema.fields)) {
+              if (field.boolean_choice) data[key] = typeof data[key] === 'boolean' ? String(data[key]) : data[key] ?? 'auto';
+              if (field.number_choice && data[key] !== undefined) data[key] = String(data[key]);
+              if (field.selector?.boolean && data[key] === undefined && field.default !== undefined) data[key] = field.default;
+            }
+            return data;
+          }
+          _clean(value) {
+            if (this.schema.exclusion) return value.mode === 'all' ? true : value.mode === 'rules' ? value.rules || [] : undefined;
+            if (this.schema.choice_list) return value.mode === 'custom' ? value.values || [] : undefined;
+            const clean = {...value};
+            for (const [key,field] of Object.entries(this.schema.fields)) {
+              if (field.boolean_choice) {
+                if (clean[key] === 'auto' || clean[key] === '' || clean[key] == null) delete clean[key];
+                else if (clean[key] === 'true' || clean[key] === 'false') clean[key] = clean[key] === 'true';
+              }
+              if (field.auto_choice && (clean[key] === 'auto' || clean[key] === '' || clean[key] == null)) delete clean[key];
+              if (field.number_choice && (clean[key] === '' || clean[key] == null)) delete clean[key];
+              if (field.number_choice && clean[key] !== undefined) {
+                clean[key] = String(this.data?.[key]) === clean[key] ? this.data[key] : Number(clean[key]);
+              }
+              if (field.selector?.boolean && this.data?.[key] === undefined && clean[key] === field.default) delete clean[key];
+              if (clean[key] === undefined) delete clean[key];
+            }
+            if (this.schema.source) {
+              if (!clean.entity) delete clean.entity;
+              if (!Object.keys(clean).length) return undefined;
+              if (typeof this.data === 'string' && Object.keys(clean).every(key => key === 'entity')) return clean.entity;
+            }
+            if (this.schema.empty_undefined && !Object.keys(clean).length) return undefined;
+            return clean;
+          }
+          _expand(entries,fields) {
+            const groupType = customElements.get('ha-form-signature_group') ? 'signature_group' : 'bc_group';
+            return entries.map(field => {
+              if (field.schema) return {...field,type:field.type === 'bc_group' ? groupType : field.type,schema:this._expand(field.schema,fields)};
+              const spec = fields[field.name];
+              if (!spec?.fields) return field;
+              const {selector,...native} = field;
+              return {...native,type:'signature_module_options',...spec,show_label:false};
+            });
+          }
+          _updateMapping() {
+            if (!this._list) {
+              this._list = document.createElement('ha-selector-bc_object');
+              const generate = this._list._generateSchema.bind(this._list);
+              this._list._generateSchema = (fields,data,index) => this._expand(generate(fields,data,index),fields);
+              this._list.addEventListener('value-changed',event => {
+                event.stopPropagation();
+                this._rows = event.detail.value || [];
+                this._list.value = this._rows;
+                const value = {},ids = new Set();
+                let invalid = false;
+                for (const row of this._rows) {
+                  if (!row.id) continue;
+                  if (ids.has(row.id) || (this.schema.mapping === 'entities' && !/^[a-z0-9_]+\.[a-z0-9_]+$/.test(row.id))) { invalid = true;break; }
+                  ids.add(row.id);
+                  Object.defineProperty(value,row.id,{value:row.value ?? {},enumerable:true,configurable:true,writable:true});
+                }
+                this._errorEl.hidden = !invalid;
+                this._errorEl.textContent = invalid ? 'Chaque entrée doit avoir un identifiant valide et unique.' : '';
+                if (invalid) return;
+                const changed = JSON.stringify(value) !== JSON.stringify(this._mappingData || {});
+                if (changed) { this._mappingData = value;this._emit(value); }
+              });
+              this.shadowRoot.append(this._list);
+            }
+            if (this._mappingData !== this.data) {
+              this._mappingData = this.data;
+              this._rows = Object.entries(this.data || {}).map(([id,value]) => ({id,value}));
+              this._errorEl.hidden = true;
+            }
+            const fields = {id:this.schema.key_field,value:{label:'Réglages',fields:this.schema.fields}};
+            Object.assign(this._list,{hass:this.hass,disabled:this.disabled,value:this._rows,
+              selector:{bc_object:{multiple:true,label_field:'id',fields}},localizeValue:this.localizeValue});
+          }
+          _updateForm() {
+            if (!this.schema?.fields) return;
+            if (!customElements.get('ha-selector-bc_object')) {
+              if (!this._waiting) {
+                this._waiting = true;
+                customElements.whenDefined('ha-selector-bc_object').then(() => this._scheduleUpdate());
+              }
+              return;
+            }
+            const Group = customElements.get('ha-form-bc_group');
+            if (Group && !customElements.get('ha-form-signature_group')) {
+              customElements.define('ha-form-signature_group',class extends Group {
+                createRenderRoot() {
+                  const root = super.createRenderRoot();
+                  const style = document.createElement('style');
+                  style.textContent = ':host ha-expansion-panel{--ha-card-border-radius:inherit;border-radius:var(--ha-card-border-radius,var(--ha-border-radius-lg))}';
+                  root.append(style);
+                  return root;
+                }
+              });
+            }
+            this._labelEl.textContent = this.label || '';
+            this._labelEl.hidden = this.schema.show_label === false || !this.label;
+            this._form.hidden = !!this.schema.mapping;
+            if (this.schema.mapping) { this._updateMapping();return; }
+            if (!this._engine) {
+              this._engine = document.createElement('ha-selector-bc_object');
+              this._engine.getRootNode = () => this.getRootNode();
+              this._engine.addEventListener('value-changed',event => {
+                event.stopPropagation();
+                this._emit(this._clean(event.detail.value || {}));
+              });
+            }
+            const engine = this._engine;
+            Object.assign(engine,{hass:this.hass,value:this._display(),selector:{bc_object:{fields:this.schema.fields}},localizeValue:this.localizeValue});
+            const data = engine._itemFormData(engine.value,0);
+            Object.assign(this._form,{hass:this.hass,data,
+              schema:this._expand(engine._generateSchema(this.schema.fields,data,0),this.schema.fields),
+              warning:engine._warnTop?.[0] || {},computeWarning:warning => warning,disabled:this.disabled,
+              computeLabel:schema => engine._computeLabel(schema,0),computeHelper:schema => engine._computeHelper(schema,0),localizeValue:this.localizeValue});
+          }
+        }
+        for (const key of ['hass','data','schema','disabled','label','localizeValue']) {
+          Object.defineProperty(SignatureModuleOptionsForm.prototype,key,{
+            get() { return this['_'+key]; },
+            set(value) { this['_'+key] = value;this._scheduleUpdate(); }
+          });
+        }
+        customElements.define('ha-form-signature_module_options',SignatureModuleOptionsForm);
+      }
+      // End Signature module editor bridge.
       const config = this.config || {};
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
-      const version = '1.2.1';
+      const version = '1.3.0';
       let runtime = this._signatureWeather;
       if (runtime && (runtime.version !== version || runtime.root !== root || runtime.host !== host || !enabled)) {
         runtime.dispose(); runtime = null;
