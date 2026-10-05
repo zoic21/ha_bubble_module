@@ -28,7 +28,12 @@ const cases=[
   ['weather-summary','signature-weather',{layout:'summary'}],
   ['wind','signature-wind-rose',{}]
 ];
-const common={'primary-text-color':'#1c1c1e','secondary-text-color':'#6e6e73','card-background-color':'#fff','ha-card-background':'var(--card-background-color)','secondary-background-color':'#f2f2f7','primary-background-color':'#f2f2f7','divider-color':'#e5e5ea','blue-color':'#2196f3','row-size':2,'row-height':'56px','row-gap':'8px'};
+// Representative host palettes, independent of the Signature theme.
+const nativeModes={
+ light:{'primary-text-color':'#212121','secondary-text-color':'#727272','card-background-color':'#fff','secondary-background-color':'#e5e5e5','primary-background-color':'#fafafa','divider-color':'#e0e0e0'},
+ dark:{'primary-text-color':'#e1e1e1','secondary-text-color':'#9b9b9b','card-background-color':'#1c1c1c','secondary-background-color':'#202020','primary-background-color':'#111111','divider-color':'#303030'}
+};
+const common={'ha-card-background':'var(--card-background-color)','blue-color':'#2196f3','row-size':2,'row-height':'56px','row-gap':'8px'};
 const base="ha-card{display:block;position:relative;font:14px/1.3 Roboto,sans-serif}.card-content{padding:0}.bubble-container{display:flex;position:relative;width:100%;height:calc(var(--row-size,2)*var(--row-height,56px) + var(--row-gap,8px));box-sizing:border-box;border-radius:var(--bubble-border-radius,16px);background:var(--bubble-main-background-color,var(--ha-card-background,var(--card-background-color,#fff)));border:var(--bubble-border,0);box-shadow:var(--bubble-box-shadow,none)}.bubble-wrapper{position:relative;width:100%;height:100%;display:flex;align-items:center}.bubble-content-container{display:flex;gap:10px;flex:1;min-width:0;padding:10px}.bubble-name-container{min-width:0}.bubble-name{font-size:14px;font-weight:600}.bubble-state{font-size:12px;font-weight:normal;opacity:.7}.bubble-icon-container{display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;border-radius:var(--bubble-icon-border-radius,50%)}.bubble-sub-button{display:flex;align-items:center;justify-content:center}.bubble-sub-button-container{display:flex}.hidden,[hidden]{display:none!important}";
 const nativeControls='.bubble-cover-button{border-radius:var(--bubble-cover-buttons-border-radius,var(--bubble-border-radius,28px))}.bubble-media-button{border-radius:var(--bubble-media-player-buttons-border-radius,var(--bubble-border-radius,28px))}.bubble-media-info-container{display:flex;flex-direction:column;font-size:12px;line-height:14px}.bubble-title{font-weight:600}.bubble-title,.bubble-artist{margin:2px 0}';
 const media=".bubble-container{background:var(--bubble-media-player-main-background-color,var(--ha-card-background,var(--card-background-color,#fff)));border-radius:var(--bubble-media-player-border-radius,16px);box-shadow:var(--bubble-media-player-box-shadow,none);border:var(--bubble-media-player-border,0)}";
@@ -40,7 +45,8 @@ async function setup(page){
  });
 }
 async function render(page,scenario={}){
- const vars={...common,...(scenario.plain?{}:{...theme,...theme.modes[scenario.mode||'light']}),...scenario.overrides};delete vars.modes;
+ const mode=scenario.mode||'light';
+ const vars={...common,...nativeModes[mode],...scenario.nativePalette,...(scenario.plain?{}:{...theme,...theme.modes[mode]}),...scenario.overrides};delete vars.modes;
  return page.evaluate(async ({cases,modules,vars,scenario,base,button,sub,cover,climate,media,nativeControls})=>{
     window.contexts?.forEach(ctx=>ctx.teardown?.());window.contexts=[];
     const container=document.getElementById('cards');container.innerHTML='';
@@ -53,6 +59,7 @@ async function render(page,scenario={}){
      const shell=document.createElement('div');shell.className='fixture';shell.style.width=scenario.width+'px';shell.dataset.id=id;container.append(shell);
      const shadow=shell.attachShadow({mode:'open'});shadow.innerHTML='<style>'+base.replace(/card-type/g,id.includes('media')?'media-player':id.includes('cover')?'cover':id==='climate'?'climate':'button')+nativeControls+(id.includes('media')?media:id==='cover'?cover:id==='climate'?climate:button)+sub+'</style>';
      const root=document.createElement('ha-card');root.className='large';root.style.cssText='background:none;border:none;box-shadow:none;border-radius:16px';shadow.append(root);
+     if(id==='title'&&scenario.titleSurface)root.style.cssText='background:var(--ha-card-background);border:1px solid red;box-shadow:0 2px 10px black;border-radius:22px';
      const content=document.createElement('div');content.className='card-content';content.style.padding='0';root.append(content);
      content.innerHTML='<div class="bubble-button-card-container bubble-container"><div class="bubble-button-card bubble-wrapper"><div class="bubble-background bubble-button-background"></div><div class="bubble-content-container"><div class="bubble-main-icon-container bubble-icon-container"><ha-icon class="bubble-main-icon bubble-icon"></ha-icon></div><div class="bubble-name-container"><div class="bubble-name">Maison</div><div class="bubble-state">22,5 °C</div></div></div><div class="bubble-sub-button-container"></div><div class="bubble-buttons-container"></div></div></div>';
      const query=s=>root.querySelector(s);if(scenario.nameText)query('.bubble-name').textContent=scenario.nameText;const host=query('.bubble-container');
@@ -82,7 +89,7 @@ async function render(page,scenario={}){
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     window.contexts.forEach(ctx=>ctx._signatureFlow?.draw());
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    const selectors=['.bubble-container','.bubble-name','.bubble-state','.bubble-title','.bubble-artist','.bubble-cover-button','.bubble-media-button','.dp-secondary','.bubble-icon-container','.room-temperature','.dp-room-unit','.sf-label','.sf-value','.sf-unit','.sf-secondary','.sf-slot-3 .sf-secondary','.sf-icon','.sf-slot-4 .sf-value','.sw-name','.sw-condition','.sw-current-temperature','.sw-current-unit','.sw-tab','.sw-tab[aria-pressed="true"]','.sw-tab[aria-pressed="false"]','.sw-tabs','.sw-entry-label','.sw-high','.sw-low','.sw-metric','.sw-detail','.swr-tab','.swr-tab[aria-pressed="true"]','.swr-tab[aria-pressed="false"]','.swr-tabs','.swr-label','.swr-value','.swr-cardinal','.swr-tooltip'];
+    const selectors=['ha-card','.bubble-container','.bubble-name','.bubble-state','.bubble-title','.bubble-artist','.bubble-cover-button','.bubble-media-button','.dp-secondary','.bubble-icon-container','.room-temperature','.dp-room-unit','.sf-label','.sf-value','.sf-unit','.sf-secondary','.sf-slot-3 .sf-secondary','.sf-icon','.sf-slot-4 .sf-value','.sw-name','.sw-condition','.sw-current-temperature','.sw-current-unit','.sw-tab','.sw-tab[aria-pressed="true"]','.sw-tab[aria-pressed="false"]','.sw-tabs','.sw-entry-label','.sw-high','.sw-low','.sw-metric','.sw-detail','.swr-tab','.swr-tab[aria-pressed="true"]','.swr-tab[aria-pressed="false"]','.swr-tabs','.swr-label','.swr-value','.swr-cardinal','.swr-tooltip'];
     const props=['fontFamily','fontSize','fontWeight','fontVariantNumeric','lineHeight','letterSpacing','color','backgroundColor','boxShadow','borderRadius','borderTopWidth','borderTopColor','paddingLeft','paddingRight','opacity','display','minHeight','gridTemplateRows','outlineWidth','outlineStyle','strokeWidth'];
     return {errors:fixtureErrors,cards:[...container.children].map(shell=>{
      const root=shell.shadowRoot;let styles={};for(const selector of selectors){const el=root.querySelector(selector);if(!el)continue;const s=getComputedStyle(el);styles[selector]={text:el.textContent,...Object.fromEntries(props.map(p=>[p,s[p]])),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height};}
@@ -97,4 +104,4 @@ async function render(page,scenario={}){
     })};
    },{cases,modules,vars,scenario:{width:328,...scenario},base,button:'',sub:'',cover:'',climate:'',media,nativeControls});
 }
-module.exports={setup,render,theme};
+module.exports={setup,render,theme,nativeModes};

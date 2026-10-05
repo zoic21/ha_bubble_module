@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature 2.2.3**, **Signature Flow 3.4.1**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.2**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature 2.2.4**, **Signature Flow 3.4.1**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.2**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -23,6 +23,8 @@ border-radius: var(--signature-card-border-radius, 22px);
 ```
 
 Signature transmet ces valeurs aux variables natives `bubble-*`, et `bubble-media-player-*` pour le lecteur. Flow, Weather et Wind Rose les appliquent au conteneur visible. Le `ha-card` extérieur ne doit pas créer une seconde bordure ou une seconde ombre. Vérifier son style réellement appliqué : Bubble initialise certaines propriétés en ligne.
+
+Les titres de section `layout: title` sont une exception aux surfaces de carte : leur `ha-card` et leur `.bubble-container` restent transparents, sans bordure ni ombre, même si un thème fournit des surfaces Bubble globales. Conserver la hauteur de 32 px, le texte de 18 px et les fonds des sous-boutons natifs.
 
 Un `none` explicite pour l'ombre est une valeur valide et doit être conservé. Tester la cascade sans thème Signature, notamment lorsque `ha-card-background` et `card-background-color` diffèrent. Un thème qui fournit toutes les variables peut masquer une divergence de repli.
 
@@ -62,7 +64,7 @@ Le texte secondaire ordinaire utilise `secondary-text-color` avec **`opacity: 1`
 
 Conserver les opacités qui expriment un état fonctionnel : icône désactivée, indisponibilité, interrupteur ou option explicite de l'utilisateur. Une règle destinée au texte ne doit pas réactiver un élément masqué ni rendre une commande indisponible active.
 
-Dans le thème livré, le texte secondaire sur la surface de carte a un contraste d'environ 5,07:1 en clair et 6,61:1 en sombre à pleine opacité. Ces résultats ne valent pas pour toutes les surfaces teintées ni pour un thème personnalisé ; contrôler la couleur finalement composée dans ces cas.
+Le thème livré hérite des couleurs de texte et des surfaces Home Assistant. Le contraste dépend donc de la palette native ou personnalisée active ; contrôler la couleur finalement composée, particulièrement sur les surfaces teintées.
 
 ### Adaptations intentionnelles
 
@@ -96,17 +98,17 @@ Ne pas modifier une taille sans vérifier la hauteur de ligne, la ligne de grill
 
 | Élément | Clair | Sombre |
 |---|---|---|
-| Surface de carte | `#ffffff` | `#1c1c1e` |
-| Fond principal | `#f2f2f7` | `#0f0f10` |
-| Texte primaire | `#1c1c1e` | `#f5f5f7` |
-| Texte secondaire | `#6e6e73` | `#a1a1a6` |
-| Bordure de carte | `rgba(28,28,30,.05)` | `rgba(245,245,247,.08)` |
-| Séparateur | `rgba(28,28,30,.08)` | `rgba(245,245,247,.10)` |
+| Surface de carte | `ha-card-background`, sinon `card-background-color` natif | Même cascade native |
+| Fond principal | Home Assistant natif | Home Assistant natif |
+| Texte primaire | `primary-text-color` natif | `primary-text-color` natif |
+| Texte secondaire | `secondary-text-color` natif | `secondary-text-color` natif |
+| Bordure de carte | 5 % du texte primaire dans transparent | Même mélange |
+| Séparateur | 8 % du texte primaire dans transparent | Même mélange |
 | Ombre de carte | `0 2px 10px rgba(0,0,0,.035)` | `0 2px 10px rgba(0,0,0,.20)` |
-| Fond de contrôle | `#f2f2f7` | `#2c2c2e` |
+| Fond de contrôle | 5 % du texte primaire dans la surface de carte | Même mélange |
 | Ombre de contrôle | `0 1px 4px rgba(0,0,0,.06)` | `0 1px 4px rgba(0,0,0,.25)` |
 
-Ces valeurs sont celles du thème Signature, pas des couleurs à recopier dans chaque module. Hors thème, conserver les replis de la section 1. Le fond des groupes de période utilise `signature-control-background`, puis un mélange de 5 % de texte primaire dans la surface neutre. Leur onglet sélectionné reprend la surface de carte.
+Le thème Signature ne remplace aucune couleur globale de Home Assistant : conserver les fonds de page, surfaces, textes, accents, en-tête et barre latérale natifs. Il ajuste la typographie, les arrondis et l'ombre des cartes natives. Ses variables Bubble globales ajustent seulement les arrondis ; ne pas y ajouter un fond, une bordure ou une ombre qui s'appliquerait aussi aux séparateurs. Hors thème, conserver les replis de la section 1. Le fond des groupes de période utilise `signature-control-background`, puis un mélange de 5 % de texte primaire dans la surface neutre. Leur onglet sélectionné reprend la surface de carte.
 
 Le fond d'icône Signature et Flow mélange 16 % de l'accent dans la surface neutre. Les options explicites de couleur et de teinte restent fonctionnelles. Les valeurs météo froides/chaudes utilisent `signature-weather-cool-color` (`#8bc3d2`) et `signature-weather-warm-color` (`#e9ac70`). La rose utilise `signature-wind-rose-color` (`#4db6ac`). Les couleurs des conditions météo et les alertes portent une information ; ne pas les remplacer uniformément par une couleur décorative.
 
@@ -169,7 +171,7 @@ npx playwright install chromium
 npm run test:styles
 ```
 
-Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 16 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
+Sur une machine qui possède déjà un Chromium compatible, `BUBBLE_STYLE_BROWSER_PATH` peut fournir son chemin. Les 18 tests navigateur lisent les distributions réelles et exécutent leur code dans un DOM minimal reproduisant les points de cascade natifs concernés. Les palettes de l'hôte sont des fixtures indépendantes du thème ; elles vérifient l'héritage et les changements de mode, sans figer les couleurs d'une version Home Assistant. Les contrôles couvrent aussi les titres transparents avec des surfaces Bubble globales et une surface extérieure en ligne. Les tests fonctionnels vérifient séparément les entités, actions, caches, abonnements et métadonnées.
 
 | Dimension à contrôler | Cas requis |
 |---|---|

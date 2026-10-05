@@ -1,6 +1,6 @@
 # Signature theme
 
-The optional [signature.yaml](signature.yaml) theme provides light and dark modes for Home Assistant, native Bubble cards, and the Signature modules. It uses system fonts, 22 px card corners, subtle borders and shadows, white surfaces in light mode, and charcoal surfaces in dark mode. No card-mod, font download or extra JavaScript is required.
+The optional [signature.yaml](signature.yaml) theme provides light and dark modes for Home Assistant, native Bubble cards, and the Signature modules. It keeps Home Assistant's native colors, page backgrounds and card surfaces, while adding system fonts, 22 px card corners and subtle card shadows. The modules derive their borders and control tracks from those inherited colors. No card-mod, font download or extra JavaScript is required.
 
 ## Installation
 
@@ -14,7 +14,9 @@ The optional [signature.yaml](signature.yaml) theme provides light and dark mode
 
 3. Restart Home Assistant if you have just enabled themes. If theme loading was already configured, run `frontend.reload_themes` from Developer tools > Actions.
 4. Select **Signature** in your Home Assistant profile and choose light, dark or automatic mode. A view-level or card-level theme override takes precedence for that view or card.
-5. Import the updated modules to enable their shared styling variables: Signature 2.2.2, Signature Flow 3.4.0, Signature Weather 1.2.1, Signature Wind Rose 1.1.2, and Alert Manager 3.5.0.
+5. Import the updated modules to enable their shared styling variables: Signature 2.2.4, Signature Flow 3.4.1, Signature Weather 1.2.1, Signature Wind Rose 1.1.2, and Alert Manager 3.5.0. Signature 2.2.4 also keeps section titles transparent, without a border or shadow.
+
+When replacing an earlier Signature theme, replace the whole file rather than merging the old palette keys into this version, then run `frontend.reload_themes`. If the old appearance remains visible, select the theme again or refresh the frontend.
 
 Signature Wind Rose 1.1.2 also uses these variables; import its [distribution](../signature-wind-rose/dist/signature-wind-rose.yaml) when using the wind rose card.
 
@@ -22,11 +24,11 @@ The theme can be used on its own. Older modules retain their hard-coded styles u
 
 ## Global variables and module variables
 
-Home Assistant variables such as `primary-text-color`, `ha-card-border-radius` and `ha-font-family-body` affect compatible native components while this theme is active. `bubble-*` variables also style compatible native Bubble components. Cover and media-player buttons explicitly use `signature-control-border-radius` (14 px by default), rather than falling back to the 22 px card radius.
+Home Assistant variables such as `ha-card-border-radius` and `ha-font-family-body` affect compatible native components while this theme is active. The theme inherits native color variables such as `primary-text-color` instead of replacing them. Its `bubble-*` variables adjust corners only; it sets no global Bubble background, border or shadow that could turn a separator into a pill. Cover and media-player buttons explicitly use `signature-control-border-radius` (14 px by default), rather than falling back to the 22 px card radius.
 
 The `signature-*` prefix is a namespace, not a CSS scope. These custom properties are inherited like other theme properties, but only modules that reference them use their values. You can define them in any other theme or in a card's `styles`. Do not include the leading `--` in Home Assistant theme YAML; include it in CSS.
 
-The four Signature modules share the same neutral surface, border, shadow and system-font fallbacks, including without this theme. Role-based value sizes and layout density remain distinct. Alert Manager remains usable with native Bubble cards and without Signature. The theme adjusts its neutral badge color and background for dark mode; alert colors and explicit card options retain precedence.
+The four Signature modules share the same neutral surface, border, shadow and system-font fallbacks, including without this theme. Role-based value sizes and layout density remain distinct. Alert Manager remains usable with native Bubble cards and without Signature. Its neutral badge inherits the native text color and card surface; alert colors and explicit card options retain precedence.
 
 The browser resolves the variables directly. Changing the theme or its mode does not require entity changes, JavaScript style lookups, a new subscription, or rebuilding cached module CSS.
 
@@ -47,11 +49,11 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-temperature-font-size` | Room and current-weather temperatures | `30px`; responsive layouts may reduce it |
 | `signature-value-unit-font-size` | Square and primary Flow units | `16px` |
 | `signature-temperature-unit-font-size` | Room and current-weather temperature units | `13px` |
-| `signature-card-background` | Neutral card surfaces | `var(--card-background-color)` |
+| `signature-card-background` | Neutral card surfaces | `var(--ha-card-background, var(--card-background-color))` |
 | `signature-card-border-radius` | Main card corners | `22px` |
-| `signature-card-border-color` | Subtle main card border | Mode-specific |
+| `signature-card-border-color` | Subtle main card border | 5% primary text in transparent |
 | `signature-card-box-shadow` | Main card shadow | Mode-specific |
-| `signature-divider-color` | Room, Weather and Wind Rose dividers | Mode-specific |
+| `signature-divider-color` | Room, Weather and Wind Rose dividers | 8% primary text in transparent |
 | `signature-divider-inset` | Horizontal divider margin from each card edge | `16px` |
 | `signature-icon-border-radius` | Main icon corners | `12px` |
 | `signature-icon-small-border-radius` | Small Flow icon corners | Main icon radius minus `2px`, at least zero |
@@ -60,7 +62,7 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-control-touch-height` | Period buttons with a coarse pointer | `44px` |
 | `signature-tooltip-border-radius` | Wind Rose tooltip corners | Shared icon radius |
 | `signature-tooltip-box-shadow` | Wind Rose tooltip shadow | Shared control shadow |
-| `signature-control-background` | Weather and Wind Rose period-control tracks | Mode-specific |
+| `signature-control-background` | Weather and Wind Rose period-control tracks | 5% primary text in the native card surface |
 | `signature-control-box-shadow` | Weather and Wind Rose selected-tab shadow | Mode-specific |
 | `signature-alert-badge-background` | Alert Manager badge fill | Card surface |
 | `signature-alert-badge-neutral-color` | Alert badge when `color_badge: false` | Primary text color |
