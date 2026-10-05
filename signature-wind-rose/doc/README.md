@@ -1,8 +1,8 @@
 # Signature Wind Rose
 
-**Version: 1.1.1** · Module ID: `signature_wind_rose`
+**Version: 1.1.2** · Module ID: `signature_wind_rose`
 
-A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Tap a sector to see its percentage and recorded duration; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
+A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage and recorded duration. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
 The card shows where the wind comes **from**: north is at the top and west at the left. It deliberately omits current speed, gust values, a vertical speed legend and a large center percentage, so it can sit below an existing wind graph.
 
@@ -106,6 +106,11 @@ styles: |
 Run `npm run test:signature-wind-rose` or `npm test` from the repository root. Tests exercise the actual imported YAML code, including duration weighting, asynchronous history responses, missing/calm data, localization, cache, refresh and teardown. Verify the installed card with your recorded station data in Home Assistant after importing.
 
 ## Release notes
+
+### 1.1.2 — 5 October 2026
+
+- Shows sector percentage and duration on pointer hover, using cached data.
+- Preserves tap and keyboard selection; leaving a sector restores any pinned selection.
 
 ### 1.1.1 — 5 October 2026
 

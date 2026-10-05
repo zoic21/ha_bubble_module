@@ -57,7 +57,7 @@ function history(f,direction=135,speed=3) {
 const result=f=>f.r.cache.get(f.r.period).data;
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.1.1');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.1.2');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');
@@ -189,4 +189,21 @@ test('custom color is removable and incompatible slider cards dispose the runtim
   const f=fixture(t,{color:'#32b5ad'});assert.equal(f.r.canvas.style['--swr-accent'],'#32b5ad');
   delete f.ctx.config.signature_wind_rose.color;f.run();assert.equal(f.r.canvas.style['--swr-accent'],undefined);
   f.ctx.config.button_type='slider';f.run();assert.equal(f.ctx._signatureWindRose,undefined);assert.equal(f.listeners.size,0);
+});
+
+test('hover previews duration and percentage without requests and preserves tap selection',async t=>{
+  const f=fixture(t);const start=Date.parse(f.requests[0].message.start_time),h=3600000;
+  await f.resolve({'sensor.direction':[compressed(start,0),compressed(start+6*h,90)]});
+  const north=f.r.sectors[0],east=f.r.sectors[4];
+  north.event('pointerenter',{pointerType:'mouse'});
+  assert.equal(f.r.tooltip.hidden,false);assert.match(f.r.tooltip.textContent,/N · 25 % · 6 h/);
+  north.event('pointerleave');assert.equal(f.r.tooltip.hidden,true);
+  north.click();east.event('pointerenter',{pointerType:'mouse'});
+  assert.match(f.r.tooltip.textContent,/E · 75 % · 18 h/);
+  east.event('pointerleave');assert.match(f.r.tooltip.textContent,/N · 25 % · 6 h/);
+  north.click();assert.equal(f.r.tooltip.hidden,true);
+  east.event('pointerenter',{pointerType:'touch'});assert.equal(f.r.tooltip.hidden,true);
+  east.click();assert.equal(f.r.tooltip.hidden,false);
+  east.click();assert.equal(f.r.tooltip.hidden,true);
+  assert.equal(f.requests.length,1);
 });

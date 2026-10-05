@@ -1,6 +1,6 @@
 signature_wind_rose:
   name: Signature Wind Rose
-  version: 1.1.1
+  version: 1.1.2
   creator: Loïc
   supported:
     - button
@@ -63,7 +63,7 @@ signature_wind_rose:
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
-      const version = '1.1.1';
+      const version = '1.1.2';
       let r = this._signatureWindRose;
       if (r && (r.version !== version || r.root !== root || r.host !== host || !enabled)) { r.dispose(); r = null; }
       if (typeof onTeardown === 'function') onTeardown(() => this._signatureWindRose?.dispose());
@@ -99,7 +99,7 @@ signature_wind_rose:
         const frequencyLabel = create('div','swr-label'), frequencyValue = create('div','swr-value'); frequency.append(frequencyLabel,frequencyValue);
         footer.append(dominant,frequency); canvas.append(toolbar,chart,status,footer); host.append(canvas); attr(root,'data-signature-wind-rose','');
         r = this._signatureWindRose = {version,root,host,canvas,tabs,chart,svg,sectors,cardinals,tooltip,status,footer,
-          dominantLabel,dominantValue,frequencyLabel,frequencyValue,cache:new Map(),tabNodes:[],selected:null,generation:0};
+          dominantLabel,dominantValue,frequencyLabel,frequencyValue,cache:new Map(),tabNodes:[],selected:null,hovered:null,generation:0};
         const runtime = r;
         r.clearTimer = () => { clearTimeout(r.timer); r.timer = null; };
         r.active = () => !r.disposed && host.isConnected && !document.hidden;
@@ -121,14 +121,19 @@ signature_wind_rose:
         document.addEventListener('visibilitychange',r.visibility);
         canvas.addEventListener('click',event => { event.stopPropagation(); });
         chart.addEventListener('click',event => {
-          if (!sectors.includes(event.target)) { r.selected = null; r.render(); }
+          if (!sectors.includes(event.target)) { r.selected = null; r.hovered = null; r.render(); }
         });
         sectors.forEach((el,index) => {
-          const select = () => { r.selected = r.selected === index ? null : index; r.render(); };
+          const select = () => { r.hovered = null; r.selected = r.selected === index ? null : index; r.render(); };
+          el.addEventListener('pointerenter',event => {
+            if (event.pointerType === 'touch') return;
+            r.hovered = index; r.render();
+          });
+          el.addEventListener('pointerleave',() => { r.hovered = null; r.render(); });
           el.addEventListener('click',event => { event.stopPropagation(); select(); });
           el.addEventListener('keydown',event => {
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); select(); }
-            else if (event.key === 'Escape') { r.selected = null; r.render(); }
+            else if (event.key === 'Escape') { r.selected = null; r.hovered = null; r.render(); }
           });
         });
         r.direction = value => {
@@ -207,7 +212,7 @@ signature_wind_rose:
         };
         r.render = () => {
           if (r.disposed) return;
-          const renderKey = [r.phase,r.period,r.cache.get(r.period)?.loadedAt,r.selected,r.formatKey,r.inFlight].join('|');
+          const renderKey = [r.phase,r.period,r.cache.get(r.period)?.loadedAt,r.selected,r.hovered,r.formatKey,r.inFlight].join('|');
           if (r.renderKey === renderKey) return;
           r.renderKey = renderKey;
           text(dominantLabel,r.labels.dominant); text(frequencyLabel,r.labels.frequency);
@@ -218,7 +223,7 @@ signature_wind_rose:
               node = create('button','swr-tab'); node.type = 'button'; tabs.append(node); r.tabNodes[index] = node;
               node.addEventListener('click',event => {
                 event.stopPropagation(); if (r.period === hours) return;
-                r.period = hours; r.selected = null; r.generation++; r.inFlight = false; r.retryAt = 0; r.load();
+                r.period = hours; r.selected = null; r.hovered = null; r.generation++; r.inFlight = false; r.retryAt = 0; r.load();
               });
             }
             text(node,r.labels.tabs[index]); attr(node,'aria-pressed',r.period === hours);
@@ -241,7 +246,7 @@ signature_wind_rose:
             attr(el,'d',duration ? r.sectorPath(index,Math.sqrt(36+(118*118-36)*duration/maximum)) : '');
             attr(el,'tabindex',duration ? 0 : -1); attr(el,'aria-hidden',!duration);
             attr(el,'aria-label',description); attr(el,'aria-pressed',r.selected === index);
-            if (r.selected === index && duration) { text(tooltip,description); tooltip.hidden = false; }
+            if ((r.hovered ?? r.selected) === index && duration) { text(tooltip,description); tooltip.hidden = false; }
           });
         };
       }
@@ -255,11 +260,11 @@ signature_wind_rose:
       const defaultPeriod = [1,24,168].includes(Number(options.hours)) ? Number(options.hours) : 24;
       const key = [directionEntity,speedEntity,offset,calmThreshold].join('|');
       if (r.dataKey !== key || r.connection !== hass.connection) {
-        r.generation++; r.inFlight = false; r.retryAt = 0; r.cache.clear(); r.selected = null; r.renderKey = null;
+        r.generation++; r.inFlight = false; r.retryAt = 0; r.cache.clear(); r.selected = null; r.hovered = null; r.renderKey = null;
         r.dataKey = key; r.connection = hass.connection; r.loadKey = null;
       }
       r.directionEntity = directionEntity; r.speedEntity = speedEntity; r.offset = offset; r.calmThreshold = calmThreshold; r.refresh = refresh;
-      if (!r.period || r.defaultPeriod !== defaultPeriod) { r.period = defaultPeriod; r.selected = null; r.generation++; r.inFlight = false; r.retryAt = 0; }
+      if (!r.period || r.defaultPeriod !== defaultPeriod) { r.period = defaultPeriod; r.selected = null; r.hovered = null; r.generation++; r.inFlight = false; r.retryAt = 0; }
       r.defaultPeriod = defaultPeriod;
       const language = hass.locale?.language || hass.language || 'en';
       const french = language.toLowerCase().startsWith('fr');
