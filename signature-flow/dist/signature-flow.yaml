@@ -1,15 +1,492 @@
 signature_flow:
   name: Signature Flow
-  version: 3.4.1
+  version: 3.5.0
   creator: Loïc
   supported:
     - button
-  description: Six configurable flow slots in the Signature style, with independent display, secondary values, flow entities and actions.
+  description: Six emplacements de flux configurables dans l’éditeur Bubble en français ou en YAML, avec valeurs, entités du flux, animations et actions indépendantes.
+  editor:
+  - type: constant
+    label: Flow remplace le contenu d’un bouton Bubble. Les entités, templates et actions se règlent par emplacement ci-dessous.
+  - name: ''
+    label: Réglages du diagramme
+    type: signature_flow_options
+    fields:
+      height:
+        label: Hauteur de la carte (px)
+        selector:
+          number:
+            mode: box
+            min: 280
+            max: 600
+            step: 1
+        default: 310
+        description: 'Défaut : 310 px. Adapter aussi la réservation des lignes du dashboard.'
+        visible_if: '!card || ((card.card_type || ''button'') === ''button'' && card.button_type !== ''slider'')'
+      name:
+        label: Libellé accessible du diagramme
+        selector:
+          text: {}
+        description: 'Vide : Flux / Flows selon la langue de Home Assistant.'
+        visible_if: '!card || ((card.card_type || ''button'') === ''button'' && card.button_type !== ''slider'')'
+      deadband:
+        label: Seuil commun d’arrêt des flèches
+        selector:
+          number:
+            mode: box
+            min: 0
+            step: 0.001
+        default: 0
+        description: 'Défaut : 0. Chaque emplacement peut remplacer ce seuil.'
+        visible_if: '!card || ((card.card_type || ''button'') === ''button'' && card.button_type !== ''slider'')'
+      animation:
+        label: Réglages communs
+        group: Animation par défaut
+        visible_if: '!card || ((card.card_type || ''button'') === ''button'' && card.button_type !== ''slider'')'
+        fields:
+          speed:
+            label: Vitesse des flèches (px/s)
+            selector:
+              number:
+                mode: box
+                min: 1
+                step: 1
+            default: 24
+            description: 'Défaut : 24 px/s. La vitesse reste fixe ; la mesure détermine le nombre de flèches.'
+          max_arrows:
+            label: Nombre maximal de flèches
+            selector:
+              number:
+                mode: box
+                min: 1
+                max: 12
+                step: 1
+            default: 5
+            description: 'Défaut : 5. De 1 à 12 flèches, selon la place disponible sur la connexion.'
+          reference:
+            label: Référence pour le maximum de flèches
+            selector:
+              number:
+                mode: box
+                min: 1
+                step: 1
+            default: 10000
+            description: 'Défaut : 10 000 W pour W/kW/MW ; sinon dans l’unité du flux après multiplication.'
+      slots:
+        label: Emplacements
+        visible_if: '!card || ((card.card_type || ''button'') === ''button'' && card.button_type !== ''slider'')'
+        fields:
+          '1':
+            label: Réglages de l’emplacement 1
+            group: Emplacement 1 · haut, centre / gauche
+            fields: &id002
+              enabled:
+                label: Afficher cet emplacement
+                selector:
+                  boolean: {}
+                default: true
+                description: Active ou masque le bloc et sa connexion ; les réglages sont conservés.
+              primary:
+                label: Valeur principale
+                selector: &id001
+                  text:
+                    multiline: true
+                description: ID d’entité, template Jinja ou texte fixe.
+                visible_if: item.enabled !== false
+              secondary:
+                label: Texte secondaire
+                selector: *id001
+                description: ID d’entité, template Jinja ou texte fixe ; vide pour le masquer.
+                visible_if: item.enabled !== false
+              name:
+                label: Nom
+                selector: *id001
+                description: 'Vide : nom de l’entité principale, puis Emplacement N. Accepte Jinja.'
+                group: Apparence
+                visible_if: item.enabled !== false
+              icon:
+                label: Icône
+                selector:
+                  text: {}
+                description: 'Icône mdi:… ou template Jinja. Vide : icône de l’entité, puis mdi:flash.'
+                group: Apparence
+                visible_if: item.enabled !== false
+              color:
+                label: Couleur de l’icône et du flux
+                selector:
+                  select:
+                    mode: dropdown
+                    custom_value: true
+                    options:
+                    - label: Neutre
+                      value: 'var(--secondary-text-color, #676767)'
+                    - label: Bleu
+                      value: '#2196f3'
+                    - label: Turquoise
+                      value: '#009688'
+                    - label: Cyan
+                      value: '#00b8cf'
+                    - label: Vert
+                      value: '#4caf50'
+                    - label: Orange
+                      value: '#ff9800'
+                    - label: Ambre
+                      value: '#ffc107'
+                    - label: Jaune
+                      value: '#ffeb3b'
+                    - label: Rouge
+                      value: '#f44336'
+                    - label: Rose
+                      value: '#e91e63'
+                    - label: Indigo
+                      value: '#7986cb'
+                    - label: Gris
+                      value: '#9e9e9e'
+                default: 'var(--secondary-text-color, #676767)'
+                description: Couleur CSS ou template Jinja. Le choix neutre suit le thème.
+                group: Apparence
+                visible_if: item.enabled !== false
+              primary_unit:
+                label: Unité principale
+                selector:
+                  text: {}
+                description: 'Vide : unité de l’entité. Pour un template, ajouter l’unité ici ou dans son texte.'
+                group: Format de la valeur principale
+                visible_if: item.enabled !== false
+              primary_scale:
+                label: Multiplicateur principal
+                selector:
+                  number:
+                    mode: box
+                    step: 0.001
+                default: 1
+                description: 'Défaut : 1. Appliqué uniquement aux valeurs numériques d’une entité directe.'
+                group: Format de la valeur principale
+                visible_if: item.enabled !== false && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.primary || '').trim())
+              primary_precision:
+                label: Décimales principales
+                selector:
+                  number:
+                    mode: box
+                    min: 0
+                    max: 6
+                    step: 1
+                description: 'Vide : précision de l’entité, puis 0. Les templates gèrent leur propre format.'
+                group: Format de la valeur principale
+                visible_if: item.enabled !== false && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.primary || '').trim())
+              secondary_unit:
+                label: Unité secondaire
+                selector:
+                  text: {}
+                description: 'Vide : unité de l’entité. Pour un template, ajouter l’unité ici ou dans son texte.'
+                group: Format du secondaire
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== ''
+              secondary_scale:
+                label: Multiplicateur secondaire
+                selector:
+                  number:
+                    mode: box
+                    step: 0.001
+                default: 1
+                description: 'Défaut : 1. Appliqué uniquement aux valeurs numériques d’une entité directe.'
+                group: Format du secondaire
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== '' && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.secondary || '').trim())
+              secondary_precision:
+                label: Décimales secondaires
+                selector:
+                  number:
+                    mode: box
+                    min: 0
+                    max: 6
+                    step: 1
+                description: 'Vide : précision de l’entité, puis 0. Les templates gèrent leur propre format.'
+                group: Format du secondaire
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== '' && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.secondary || '').trim())
+              animate:
+                label: Animer la connexion
+                selector:
+                  boolean: {}
+                default: true
+                description: 'Désactivé : conserver la ligne sans flèches.'
+                group: Flux
+                visible_if: item.enabled !== false
+              flow_entity:
+                label: Entité du flux
+                selector:
+                  entity: {}
+                description: 'Vide : entité principale si elle est directe. Un template ou texte fixe nécessite une entité du flux explicite.'
+                group: Flux
+                visible_if: item.enabled !== false && item.animate !== false
+                warn_if: item.animate !== false && !item.flow_entity && !/^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.primary || '').trim())
+                warn_text: Sans entité directe principale ni entité du flux, la connexion ne peut pas être animée.
+              flow_scale:
+                label: Multiplicateur du flux
+                selector:
+                  number:
+                    mode: box
+                    step: 0.001
+                description: 'Vide : 1 avec une entité du flux explicite ; sinon multiplicateur principal.'
+                group: Flux
+                visible_if: item.enabled !== false && item.animate !== false
+              flow_unit:
+                label: Unité du flux
+                selector:
+                  text: {}
+                description: 'Vide : unité de l’entité du flux, ou unité principale. kW/MW sont normalisés en watts pour la référence.'
+                group: Flux
+                visible_if: item.enabled !== false && item.animate !== false
+              invert_flow:
+                label: Inverser le sens du flux
+                selector:
+                  boolean: {}
+                default: false
+                description: Inverse les flèches sans modifier les valeurs affichées.
+                group: Flux
+                visible_if: item.enabled !== false && item.animate !== false
+              deadband:
+                label: Seuil d’arrêt des flèches
+                selector:
+                  number:
+                    mode: box
+                    min: 0
+                    step: 0.001
+                description: 'Vide : seuil commun, puis 0. Seuil absolu après application du multiplicateur.'
+                group: Flux
+                visible_if: item.enabled !== false && item.animate !== false
+              animation:
+                label: Animation de cet emplacement
+                group: Animation de cet emplacement
+                visible_if: item.enabled !== false && item.animate !== false
+                fields:
+                  speed:
+                    label: Vitesse des flèches (px/s)
+                    selector:
+                      number:
+                        mode: box
+                        min: 1
+                        step: 1
+                    description: 'Vide : vitesse commune, puis 24 px/s.'
+                  max_arrows:
+                    label: Nombre maximal de flèches
+                    selector:
+                      number:
+                        mode: box
+                        min: 1
+                        max: 12
+                        step: 1
+                    description: 'Vide : maximum commun, puis 5.'
+                  reference:
+                    label: Référence pour le maximum de flèches
+                    selector:
+                      number:
+                        mode: box
+                        min: 1
+                        step: 1
+                    description: 'Vide : référence commune, puis 10 000. Toujours en W pour W/kW/MW ; sinon dans l’unité du flux après multiplication.'
+              tap_action:
+                label: Appui
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions du bloc
+                visible_if: item.enabled !== false
+                action_source: primary
+              hold_action:
+                label: Appui long
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions du bloc
+                visible_if: item.enabled !== false
+                action_source: primary
+              double_tap_action:
+                label: Double appui
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions du bloc
+                visible_if: item.enabled !== false
+              primary_tap_action:
+                label: Appui
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions de la valeur principale
+                visible_if: item.enabled !== false
+                action_source: primary
+              primary_hold_action:
+                label: Appui long
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions de la valeur principale
+                visible_if: item.enabled !== false
+                action_source: primary
+              primary_double_tap_action:
+                label: Double appui
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions de la valeur principale
+                visible_if: item.enabled !== false
+              secondary_tap_action:
+                label: Appui
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions du secondaire
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== ''
+                action_source: secondary
+              secondary_hold_action:
+                label: Appui long
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions du secondaire
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== ''
+                action_source: secondary
+              secondary_double_tap_action:
+                label: Double appui
+                selector:
+                  ui_action:
+                    default_action: none
+                description: 'Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui.'
+                group: Actions du secondaire
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== ''
+            slot: true
+          '2':
+            label: Réglages de l’emplacement 2
+            group: Emplacement 2 · milieu, gauche
+            fields: *id002
+            slot: true
+          '3':
+            label: Réglages de l’emplacement 3
+            group: Emplacement 3 · bas, centre / gauche
+            fields: *id002
+            slot: true
+          '4':
+            label: Réglages de l’emplacement 4
+            group: Emplacement 4 · haut, droite
+            fields: *id002
+            slot: true
+          '5':
+            label: Réglages de l’emplacement 5
+            group: Emplacement 5 · milieu, droite
+            fields: *id002
+            slot: true
+          '6':
+            label: Réglages de l’emplacement 6
+            group: Emplacement 6 · bas, droite
+            fields: *id002
+            slot: true
   code: |-
     ${(() => {
+      // Signature Flow editor bridge: native fields without an object item panel.
+      if (typeof customElements !== 'undefined' && !customElements.get('ha-form-signature_flow_options')) {
+        class SignatureFlowOptionsForm extends HTMLElement {
+          constructor() {
+            super();
+            const shadow = this.attachShadow({mode:'open'});
+            const style = document.createElement('style');
+            style.textContent = ':host{display:block}label{display:block;font-weight:500;margin-bottom:8px}label[hidden]{display:none}';
+            this._labelEl = document.createElement('label');
+            this._form = document.createElement('ha-form');
+            shadow.append(style,this._labelEl,this._form);
+            this._form.addEventListener('value-changed',event => {
+              event.stopPropagation();
+              this._engine?._itemChanged(event,0);
+            });
+          }
+          connectedCallback() { this._scheduleUpdate(); }
+          _scheduleUpdate() {
+            if (this._pending) return;
+            this._pending = true;
+            queueMicrotask(() => {
+              this._pending = false;
+              if (this.isConnected) this._updateForm();
+            });
+          }
+          _updateForm() {
+            if (!this.schema?.fields) return;
+            if (!customElements.get('ha-selector-bc_object')) {
+              if (!this._waiting) {
+                this._waiting = true;
+                customElements.whenDefined('ha-selector-bc_object').then(() => this._scheduleUpdate());
+              }
+              return;
+            }
+            if (!this._engine) {
+              // Use Bubble's schema/default/event logic, without mounting its item UI.
+              this._engine = document.createElement('ha-selector-bc_object');
+              this._engine.getRootNode = () => this.getRootNode();
+              this._engine.addEventListener('value-changed',event => {
+                this.dispatchEvent(new CustomEvent('value-changed',{
+                  detail:event.detail,bubbles:true,composed:true
+                }));
+              });
+            }
+            const engine = this._engine;
+            engine.hass = this.hass;
+            engine.value = this.data || {};
+            engine.selector = {bc_object:{fields:this.schema.fields}};
+            engine.localizeValue = this.localizeValue;
+            const data = engine._itemFormData(engine.value,0);
+            for (const [key,field] of Object.entries(this.schema.fields)) {
+              if (field.selector?.boolean && data[key] === undefined && field.default !== undefined)
+                data[key] = field.default;
+            }
+            // Missing slots stay absent until explicitly enabled; existing slots default on.
+            if (this.schema.slot) data.enabled = Boolean(this.data && this.data.enabled !== false);
+            const expand = entries => entries.map(field => {
+              if (field.schema) return {...field,schema:expand(field.schema)};
+              const meta = this.schema.fields[field.name];
+              if (meta?.fields) {
+                const {selector,...rest} = field;
+                return {...rest,type:'signature_flow_options',fields:meta.fields,slot:meta.slot,show_label:false};
+              }
+              if (meta?.action_source) {
+                const input = String(data[meta.action_source] ?? '').trim();
+                const template = /\{[\{%#]/.test(input);
+                const entity = !template && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(input)
+                  || template && /(['"])([a-z_][a-z0-9_]*\.[a-z0-9_]+)\1|\bstates\.([a-z_][a-z0-9_]*\.[a-z0-9_]+)\b/.test(input);
+                return {...field,selector:{ui_action:{...field.selector.ui_action,default_action:entity ? 'more-info' : 'none'}}};
+              }
+              return field;
+            });
+            this._labelEl.textContent = this.label || '';
+            this._labelEl.hidden = this.schema.show_label === false || !this.label;
+            Object.assign(this._form,{
+              hass:this.hass,data,
+              schema:expand(engine._generateSchema(this.schema.fields,data,0)),
+              warning:engine._warnTop?.[0] || {},computeWarning:warning => warning,
+              disabled:this.disabled,
+              computeLabel:schema => engine._computeLabel(schema,0),
+              computeHelper:schema => engine._computeHelper(schema,0),
+              localizeValue:this.localizeValue
+            });
+          }
+        }
+        for (const key of ['hass','data','schema','disabled','label','localizeValue']) {
+          Object.defineProperty(SignatureFlowOptionsForm.prototype,key,{
+            get() { return this['_'+key]; },
+            set(value) { this['_'+key] = value;this._scheduleUpdate(); }
+          });
+        }
+        customElements.define('ha-form-signature_flow_options',SignatureFlowOptionsForm);
+      }
+      
+      // End Signature Flow editor bridge.
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '3.4.1';
+      const version = '3.5.0';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';

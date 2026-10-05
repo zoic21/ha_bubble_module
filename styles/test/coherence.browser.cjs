@@ -34,6 +34,46 @@ const style = (result, id, selector) => {
 const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
 
+test('Flow inline editor keeps one root label and hides nested labels in the browser',async t => {
+  const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
+  const definition=YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-flow/dist/signature-flow.yaml'),'utf8')).signature_flow;
+  const bootstrap=definition.code.slice(definition.code.indexOf('// Signature Flow editor bridge:'),definition.code.indexOf('// End Signature Flow editor bridge.'));
+  const schema=definition.editor.find(field=>field.type==='signature_flow_options');
+  const page=await fixture(t);
+  const result=await page.evaluate(async ({bootstrap,schema})=>{
+    // Browser DOM fixture for the bridge; not a Home Assistant form runtime.
+    customElements.define('ha-selector-bc_object',class extends HTMLElement {
+      _itemFormData(value){return {...value};}
+      _generateSchema(fields){return Object.entries(fields).map(([name,field])=>({name,selector:field.selector}));}
+      _computeLabel(field){return this.selector.bc_object.fields[field.name].label;}
+      _computeHelper(){return '';}
+      _itemChanged(event){event.stopPropagation();this.dispatchEvent(new CustomEvent('value-changed',{detail:event.detail}));}
+    });
+    new Function(bootstrap)();
+    const root=document.createElement('ha-form-signature_flow_options');
+    Object.assign(root,{schema,data:{},hass:{states:{}},label:schema.label});document.body.append(root);
+    const nested=document.createElement('ha-form-signature_flow_options');
+    Object.assign(nested,{schema:{...schema.fields.slots.fields[1],slot:true,show_label:false},data:{primary:'sensor.power'},hass:{states:{}},label:'Réglages de l’emplacement 1'});document.body.append(nested);
+    await Promise.resolve();
+    const events=[];root.addEventListener('value-changed',event=>events.push({value:event.detail.value,target:event.target===root}));
+    root._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{height:400}},bubbles:true,composed:true}));
+    return {
+      rootDisplay:getComputedStyle(root._labelEl).display,
+      nestedDisplay:getComputedStyle(nested._labelEl).display,
+      rootChildren:[...root.shadowRoot.children].map(child=>child.localName),
+      nestedChildren:[...nested.shadowRoot.children].map(child=>child.localName),
+      engineConnected:root._engine.isConnected,
+      enabled:nested._form.data.enabled,animate:nested._form.data.animate,events
+    };
+  },{bootstrap,schema});
+  assert.equal(result.rootDisplay,'block');assert.equal(result.nestedDisplay,'none');
+  assert.deepEqual(result.rootChildren,['style','label','ha-form']);
+  assert.deepEqual(result.nestedChildren,['style','label','ha-form']);
+  assert.equal(result.engineConnected,false);
+  assert.equal(result.enabled,true);assert.equal(result.animate,true);
+  assert.deepEqual(result.events,[{value:{height:400},target:true}]);
+});
+
 test('Signature preserves the host page palette and uses its native card surface', async t => {
   const page = await fixture(t);
   const bodyColors = () => page.evaluate(() => {

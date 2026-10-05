@@ -6,11 +6,23 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 
 1. Import the complete [distribution](../dist/signature-flow.yaml) through Bubble Card Tools.
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
-3. Configure the numbered blocks under `signature_flow.slots`.
+3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.4.1**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in YAML; there is no editor schema. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
+
+## Visual configuration
+
+The form appears directly under **Modules → Signature Flow**, using the same inline approach as Signature, without an outer object-item panel or delete button. Height, accessible label and the common deadband appear first. The common animation settings and the six numbered slots have collapsible sections. Each slot shows its position and an **Afficher cet emplacement** switch. An absent slot remains absent when the form is opened; enabling it creates that slot. Disabling an existing slot retains its values for later use.
+
+Within an enabled slot, the form exposes primary/secondary values, appearance, formatting, flow settings, per-slot animation and the nine native Lovelace actions. Primary/secondary/name/icon fields accept text and Jinja; enter a direct entity ID as text for a measurement, and use the entity picker for the explicit flow entity. Colors accept the suggested palette, arbitrary CSS colors and Jinja. All existing keys and the mapping with slot keys `1`–`6` remain unchanged; existing configurations require no migration.
+
+Conditional groups follow the actual renderer. Disabled slots show only their enable switch. Scaling and decimal controls appear only for direct entity values, since templates supply their own calculation/formatting. Secondary formatting/actions disappear when secondary text is empty. Turning animation off hides its flow/animation settings while preserving them. The whole form hides its fields on unsupported card types and sliders. An explicit-flow warning explains why a template or fixed-text primary value cannot animate by itself.
+
+Blank per-slot animation values inherit each global setting separately; they do not get replaced by module defaults. A slot with only `animation.reference: 20` keeps its global speed and maximum arrow count. Other defaults and inheritance are described next to their fields. Switches display the effective defaults; opening the form writes nothing. Editing a slot can store equivalent default booleans (`enabled: true`, `animate: true`, `invert_flow: false`). False values, numeric zero, hidden settings, templates and explicit action objects are retained.
+
+The module registers its editor component once and reuses Bubble Card's object-field schema, condition/group and value-change helpers in native `ha-form` elements. Nested forms edit `slots` and `animation` in their existing scopes; object-item shells are never mounted. This path is validated against Bubble Card 3.4.1 and relies on those helpers. No observer, polling or subscription is added to displayed cards for the editor. Reimport the complete distribution and reload the page when updating an already open editor.
 
 ## Slots and layout
 
@@ -214,13 +226,19 @@ Teardown cancels animations and pending text fitting, then removes the observer,
 
 This module replaces native button content. Alert Manager's native main-icon badge is not exposed on custom slots; no per-slot alert integration is included.
 
-Run `npm run test:signature-flow` or `npm test` from the repository root. Tests read the actual distribution and check generic slots, symmetric entity/template/text values, inferred targets, independent flow entities, formatting, visibility, explicit actions, tracked reads, fixed speed, power-dependent counts, hysteresis, short-path caps, arrow reuse, reversals, pause/resume, layout and teardown. Browser checks use the real Bubble bundle with simulated Home Assistant data to verify responsive layouts, text clearance, actions, restored focus, keyboard navigation, native motion and cleanup. A live Home Assistant installation remains the final check for its popup definitions, sensor conventions and templates.
+Run `npm run test:signature-flow` or `npm test` from the repository root. Tests read the actual distribution and check generic slots, symmetric entity/template/text values, inferred targets, independent flow entities, formatting, visibility, explicit actions, tracked reads, fixed speed, power-dependent counts, hysteresis, short-path caps, arrow reuse, reversals, pause/resume, layout and teardown. Editor fixtures check nested scopes, absent slots, conditional fields, default actions and preservation of hidden settings; the inline bridge is also checked against Bubble Card 3.4.1's actual object-selector helpers. Repository browser checks use native-shaped fixtures with simulated Home Assistant data, including the inline editor's DOM, labels and events. They do not run a live Home Assistant instance. Its popup definitions, sensor conventions and templates still need checking in the installation.
 
 ## Signature theme
 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
 
 ## Release notes
+
+### 3.5.0 — 5 October 2026
+
+- Adds a French visual configuration form with direct general settings and six collapsible slot sections, using the inline approach introduced for Signature.
+- Exposes existing values, formatting, flow entities, global/per-slot animation and all nine native action objects without changing the YAML keys or the card renderer.
+- Filters irrelevant fields, keeps hidden values, preserves absent slots until enabled and retains per-setting animation inheritance, false values, zero and Jinja.
 
 ### 3.4.1 — 4 October 2026
 
