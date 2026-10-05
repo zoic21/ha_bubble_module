@@ -56,5 +56,10 @@ ha-card[data-dp-layout="header"] .bubble-sub-button-container {
 flex: 1 0 auto; width: max-content !important; max-width: 100%;
 justify-content: space-between !important;
 }
+ha-card[data-dp-layout="header"] .bubble-sub-button {
+/* Share each row equally while preserving the width required by long labels. */
+flex: 1 0 0 !important; min-width: max-content !important; max-width: 100%;
+justify-content: center !important;
+}
     }
     `

@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.8**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.9**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -37,7 +37,7 @@ Un `button` avec `button_type: name` donne un grand en-tête et des pilules. Un 
 
 Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_styles` permet d’appliquer des seuils aux fonds des badges et une préférence `icon_color` à leurs icônes. Les autres options continuent à concerner le grand en-tête. Les pilules passent sous le titre selon la largeur. `sub_button_styles` accepte une classe CSS ou un numéro natif, avec `color`, `background`, `opacity` et `icon`, dont les valeurs peuvent utiliser Jinja.
 
-Sur mobile (fenêtre de 600 px ou moins), tous les sous-boutons restent à droite du titre si l’ensemble tient avec au moins 24 px de dégagement. Sinon, **tout le groupe passe sous le titre** : aucun bouton ne reste à droite. Le conteneur occupe alors toute la largeur et justifie chaque ligne ; les pilules gardent leur largeur et les espaces se répartissent, avec 8 px d’écart minimal. Un bouton seul sur une ligne inférieure reste à gauche. Le navigateur ajuste ce placement en CSS lorsque la largeur ou les libellés changent, sans mesure JavaScript ni observateur supplémentaire. La disposition sur ordinateur et les titres de section restent inchangés.
+Sur mobile (fenêtre de 600 px ou moins), tous les sous-boutons restent à droite du titre si l’ensemble tient avec au moins 24 px de dégagement. Sinon, **tout le groupe passe sous le titre** : aucun bouton ne reste à droite. Le conteneur occupe alors toute la largeur et les pilules s’agrandissent automatiquement pour remplir chaque ligne, avec leur contenu centré et 8 px d’écart fixe. Elles ont la même largeur lorsque leurs contenus tiennent dans ces parts ; un libellé plus long conserve sa largeur minimale et peut entraîner une ligne supplémentaire. Un bouton seul remplit sa ligne. Aucune largeur n’est à régler bouton par bouton. Le navigateur ajuste ce placement en CSS lorsque la largeur ou les libellés changent, sans mesure JavaScript ni observateur supplémentaire. La disposition sur ordinateur et les titres de section restent inchangés.
 
 ## Couleurs du fond d’icône selon la valeur
 
@@ -67,6 +67,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.9 — 5 octobre 2026
+
+- Sur mobile, agrandissement automatique des pilules pour remplir chaque ligne, avec contenu centré et écart fixe de 8 px.
+- Largeurs égales lorsque les contenus tiennent ; largeur minimale des libellés longs préservée et retour à la ligne si nécessaire. Une pilule seule remplit sa ligne.
+- Placement du groupe entier à droite ou sous le titre conservé, avec 24 px de dégagement. Aucun calcul JavaScript supplémentaire ; ordinateur et titres de section inchangés.
+- Fixtures Chromium en clair/sombre, avec/sans thème, sur cinq largeurs mobiles : groupes natifs, boutons masqués, trois pilules égales et changements de libellé sans réexécution du module.
 
 ### 1.1.8 — 5 octobre 2026
 

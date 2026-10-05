@@ -53,7 +53,9 @@ async function headerButtons(page, scenario, grouped = false) {
    button.className = 'bubble-sub-button bubble-sub-button-'+(i+1);
    button.style.width = width+'px';
    if (i<2) button.style.whiteSpace = 'pre-line';
-   button.textContent = labels[i];
+   const content = document.createElement('span');
+   content.style.width = (width-20)+'px';content.style.display = 'block';
+   content.textContent = labels[i];button.append(content);
    button.dataset.index = i;
    return button;
   });
@@ -90,7 +92,7 @@ async function headerGeometry(page) {
  });
 }
 
-test('mobile header justifies each wrapped row without stretching buttons or showing hidden controls', async t => {
+test('mobile header fills each wrapped row with growing buttons, fixed gaps and hidden controls excluded', async t => {
  const page = await fixture(t, {hasTouch:true});
  for (const mode of ['light','dark']) for (const plain of [false,true]) {
   for (const width of [288,328,358,382,600]) for (const grouped of [false,true]) {
@@ -99,18 +101,62 @@ test('mobile header justifies each wrapped row without stretching buttons or sho
    const geometry = await headerGeometry(page);
    assert.equal(geometry.justification,'space-between');
    assert.equal(geometry.hidden,0);
-   assert.deepEqual(geometry.buttons.map(button=>button.width),[66,68,110,126,134,48]);
+   const minimumWidths = [66,68,110,126,134,48];
+   assert.ok(geometry.buttons.every((button,i)=>button.width>=minimumWidths[i]-0.1),'button contents must retain their minimum width');
+   assert.ok(geometry.buttons.some((button,i)=>button.width>minimumWidths[i]+1),'available width must enlarge buttons');
    const rows = Map.groupBy(geometry.buttons,button=>button.top);
    for (const row of rows.values()) {
     assert.ok(Math.abs(row[0].left-geometry.container.left)<1,'first button must align to the left edge');
+    assert.ok(Math.abs(row.at(-1).right-geometry.container.right)<1,'every row, including a singleton, must fill the available width');
     if (row.length>1) {
-     assert.ok(Math.abs(row.at(-1).right-geometry.container.right)<1,'last button must align to the right edge');
      const gaps = row.slice(1).map((button,i)=>button.left-row[i].right);
-     assert.ok(gaps.every(gap=>gap>=8-0.1 && Math.abs(gap-gaps[0])<1),'spaces must be equal and retain the minimum gap');
+     assert.ok(gaps.every(gap=>Math.abs(gap-8)<0.1),'growing buttons must leave only the fixed 8px gap');
     }
    }
    assert.ok(geometry.title.top<geometry.buttons[0].top,'buttons must stay below the title');
   }
+ }
+});
+
+test('mobile room header gives three short pills equal widths and adapts to longer labels without rerendering', async t => {
+ const page = await fixture(t, {hasTouch:true});
+ for (const mode of ['light','dark']) for (const plain of [false,true]) for (const grouped of [false,true]) {
+  await page.setViewportSize({width:402,height:1400});
+  await headerButtons(page,{mode,plain,width:382,nameText:'Chambre principale'},grouped);
+  await page.evaluate(() => {
+   const root = document.querySelector('[data-id="header"]').shadowRoot;
+   const buttons = [...root.querySelectorAll('.bubble-sub-button:not(.hidden)')];
+   buttons.slice(3).forEach(button=>button.remove());
+   const labels = ['26,6 °C','55 %','Scénarios'];
+   const widths = [72,62,90];
+   buttons.slice(0,3).forEach((button,i)=>{
+    button.style.width = '';
+    button.style.whiteSpace = 'nowrap';
+    const content = button.firstElementChild;
+    content.style.width = widths[i]+'px';content.textContent = labels[i];
+   });
+  });
+  const original = await headerGeometry(page);
+  assert.ok(original.buttons.every(button=>button.top>=original.title.top+original.title.height+12-0.1),'the full group must be below the long title');
+  assert.ok(original.buttons.every(button=>Math.abs(button.width-122)<0.1),'three short pills must share the 382px row equally');
+  const centered = await page.locator('[data-id="header"] .bubble-sub-button:not(.hidden)').evaluateAll(buttons=>buttons.every(button=>{
+   const box=button.getBoundingClientRect(),content=button.firstElementChild.getBoundingClientRect();
+   return Math.abs((content.left+content.right)/2-(box.left+box.right)/2)<0.1;
+  }));
+  assert.ok(centered,'each pill must center its content');
+  await page.locator('[data-id="header"] .bubble-sub-button-3 span').evaluate(content=>{
+   content.style.width='';content.textContent='Scénarios de la chambre principale et du soir';
+  });
+  const longer = await headerGeometry(page);
+  assert.ok(new Set(longer.buttons.map(button=>button.top)).size>1,'a longer label must create another button row');
+  assert.ok(longer.buttons.every(button=>button.left>=-0.1 && button.right<=longer.container.width+0.1),'all pills must stay within the available width');
+  assert.ok(longer.buttons.every(button=>button.top>=longer.title.top+longer.title.height+12-0.1),'all pills must remain below the title');
+  const unclipped = await page.locator('[data-id="header"] .bubble-sub-button-3').evaluate(button=>button.scrollWidth<=button.clientWidth+1);
+  assert.ok(unclipped,'the long label must fit without squeezing its content');
+  await page.locator('[data-id="header"] .bubble-sub-button-3 span').evaluate(content=>{
+   content.style.width='90px';content.textContent='Scénarios';
+  });
+  assert.deepEqual(await headerGeometry(page),original,'shortening the label must restore equal widths on the same nodes');
  }
 });
 
