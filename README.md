@@ -4,10 +4,10 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 1.1.4 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information, control rows and media players | 1.2.4 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Square — square tiles | 1.1.5 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.2.5 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Room — room summaries and controls | 1.0.7 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
-| Signature Header — page headers and section titles | 1.1.4 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
+| Signature Header — page headers and section titles | 1.1.5 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.3.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
@@ -46,7 +46,7 @@ Square, Compact, Room and Header are separate, autonomous modules with French fo
 
 The optional Signature theme supplies common CSS appearance variables; each module owns its layout and controls. Shared JavaScript and CSS source files are assembled at build time, so no base module or runtime import is needed.
 
-Compact and Square can color the square around their main icons from numeric `color_thresholds.values`; all three modules also support independent sub-button badge backgrounds, including Header section titles. Foregrounds retain the live theme color when readable and use a contrast fallback only when needed. The scale uses the same RGB interpolation and threshold format as Statistics Graph Chart Card. See the [shared threshold guide](signature-shared/doc/COLOR_THRESHOLDS.md) for configuration, priorities and graph matching. Room and thermostat activity colors retain their existing behavior.
+Compact and Square support numeric `color_thresholds.values` on their main icons; all three modules also support existing sub-button badges, including Header section titles. Surfaces mix only 16% of the threshold color into the live theme surface, just like ordinary Signature icons. Icons match the graph's RGB accent without any contrast adaptation; badge labels keep theme text. See the [shared threshold guide](signature-shared/doc/COLOR_THRESHOLDS.md). Room, native controls and Alert Manager retain their behavior.
 
 ## Source maintenance
 

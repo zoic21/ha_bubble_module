@@ -25,25 +25,26 @@ test('main icon surfaces follow live numeric states without tinting values or ca
   for (const layout of ['compact','square']) {
     const f = fixture(t,layout,{color_thresholds:scale});
     const config = JSON.stringify(f.ctx.config);
-    assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:rgb\(55,163,162\)\s*!important/);
+    assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:color-mix\(in srgb,rgb\(55,163,162\) 16%/);
     const runtime = f.ctx['_signature' + layout[0].toUpperCase() + layout.slice(1) + 'Structure'];
     const cached = runtime.thresholdScale;
     f.hass.states['sensor.temperature'].state = '26';
     const css = f.run();
-    assert.match(css,/\.bubble-main-icon-container\s*\{[^}]*background:rgb\(166,164,40\)\s*!important/);
-    assert.match(css,/color:color\(from rgb\(from var\(--primary-text-color,#212121\)/);
+    assert.match(css,/\.bubble-main-icon-container\s*\{[^}]*background:color-mix\(in srgb,rgb\(166,164,40\) 16%/);
+    assert.match(css,/\.bubble-main-icon\s*\{\s*color:rgb\(166,164,40\)/);
+    assert.doesNotMatch(css,/dp-contrast|xyz-d65|@supports/);
     assert.equal(runtime.thresholdScale,cached);
     assert.doesNotMatch(css,/\.bubble-state\s*\{[^}]*rgb\(166,164,40\)/);
     assert.doesNotMatch(css,/--dp-accent:\s*rgb\(166,164,40\)/);
     assert.equal(JSON.stringify(f.ctx.config),config);
   }
 });
-test('manual foregrounds retain contrast protection without blocking scales; disabled scales and thermostat activity remain native',t => {
+test('active scales override manual icon colors; disabled scales and thermostat activity remain native',t => {
   for (const layout of ['compact','square']) {
     const manual = fixture(t,layout,{color_thresholds:scale,icon_color:'#abcdef'});
     assert.match(manual.run(),/\.bubble-main-icon\s*\{\s*color:\s*#abcdef\s*!important/);
-    assert.match(manual.run(),/background:rgb\(55,163,162\)/);
-    assert.match(manual.run(),/color:color\(from rgb\(from #abcdef/);
+    assert.match(manual.run(),/background:color-mix\(in srgb,rgb\(55,163,162\) 16%/);
+    assert.match(manual.run(),/\.bubble-main-icon\s*\{\s*color:rgb\(55,163,162\)/);
     const disabled = fixture(t,layout,{color_thresholds:{...scale,enabled:false}});
     assert.doesNotMatch(disabled.run(),/rgb\(55,163,162\)/);
   }
@@ -78,9 +79,9 @@ test('sub-button thresholds color badge surfaces in Compact, Square, headers and
       {card_type,sub_button:{main:[{group:[{entity:'sensor.temperature',css_class:'temperature'},
         {entity:'sensor.humidity',css_class:'humidity'}]}]}});
     const css = f.run();
-    assert.match(css,/ha-card \.temperature\.bubble-sub-button\s*\{\s*background:rgb\(55,163,162\)/);
-    assert.match(css,/ha-card \.bubble-sub-button-2\.bubble-sub-button\s*\{\s*background:rgb\(166,164,40\)/);
-    assert.match(css,/color:color\(from rgb\(from var\(--primary-text-color,#212121\)/);
+    assert.match(css,/ha-card \.temperature\.bubble-sub-button\s*\{\s*background:color-mix\(in srgb,rgb\(55,163,162\) 16%/);
+    assert.match(css,/ha-card \.bubble-sub-button-2\.bubble-sub-button\s*\{\s*background:color-mix\(in srgb,rgb\(166,164,40\) 16%/);
+    assert.match(css,/\.temperature \.bubble-sub-button-icon\s*\{\s*color:rgb\(55,163,162\)/);
     f.ctx.config['signature_' + layout] = {};
     assert.doesNotMatch(f.run(),/rgb\(55,163,162\)|rgb\(166,164,40\)/);
   }
@@ -88,11 +89,11 @@ test('sub-button thresholds color badge surfaces in Compact, Square, headers and
 test('sub-button manual backgrounds and tints do not mask scales; visual switches keep their own track',t => {
   const f = fixture(t,'compact',{sub_button_styles:{temperature:{color:'#abcdef',color_thresholds:scale}}},
     {sub_button:[{entity:'sensor.temperature',css_class:'temperature'}]});
-  assert.match(f.run(),/background:rgb\(55,163,162\)/);
+  assert.match(f.run(),/background:color-mix\(in srgb,rgb\(55,163,162\) 16%/);
   f.ctx.config.signature_compact = {sub_button_styles:{temperature:{color:'#abcdef',icon_color:'#123456',color_thresholds:scale}}};
-  assert.match(f.run(),/color:color\(from rgb\(from #123456/);
+  assert.match(f.run(),/\.temperature \.bubble-sub-button-icon\s*\{\s*color:rgb\(55,163,162\)/);
   f.ctx.config.signature_compact = {sub_button_styles:{temperature:{background:'#f00',color_thresholds:scale}}};
-  assert.match(f.run(),/background:rgb\(55,163,162\)/);
+  assert.match(f.run(),/background:color-mix\(in srgb,rgb\(55,163,162\) 16%/);
   const toggle = fixture(t,'compact',{sub_button_styles:{toggle:{type:'switch',color_thresholds:scale}}},
     {sub_button:[{entity:'switch.demo',css_class:'toggle',tap_action:{action:'toggle'}}]});
   toggle.hass.states['switch.demo'] = {state:'on',attributes:{}};
@@ -101,7 +102,7 @@ test('sub-button manual backgrounds and tints do not mask scales; visual switche
 test('configuration changes replace cached scales and editor visibility follows supported targets',t => {
   const f = fixture(t,'square',{color_thresholds:scale});f.run();
   f.ctx.config.signature_square.color_thresholds = {values:[{value:0,color:'#f00'}]};
-  assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:#f00/);
+  assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:color-mix\(in srgb,#f00 16%/);
   for (const layout of ['compact','square']) {
     const field = definitions[layout].editor[1].fields.color_thresholds;
     assert.deepEqual(JSON.parse(JSON.stringify(field.selector)),{object:{}});

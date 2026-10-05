@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.4**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.5**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -39,7 +39,7 @@ Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_s
 
 ## Couleurs du fond d’icône selon la valeur
 
-Les sous-boutons du grand en-tête et des titres de section acceptent `color_thresholds` dans `sub_button_styles`. Le fond du badge suit l’échelle ; icône et libellé gardent la couleur du thème tant que le contraste suffit. Un `icon_color` explicite reste une préférence protégée, sans bloquer le fond numérique. Les seuils actifs remplacent les fonds et teintes manuels du badge ; retirer les seuils restitue le style ordinaire. Voir le [guide commun et ses exemples](../../signature-shared/doc/COLOR_THRESHOLDS.md).
+Les sous-boutons du grand en-tête et des titres de section acceptent `color_thresholds` dans `sub_button_styles`. Le fond du badge utilise une teinte douce à 16 % dans la surface du thème ; l’icône porte l’accent du graphe. Le texte garde simplement la couleur du thème ; aucune gestion du contraste. Les seuils actifs remplacent `background`, `color` et `icon_color` de l’indicateur ; retirer les seuils restitue le style ordinaire. Voir le [guide commun et ses exemples](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 ## Options
 
@@ -65,6 +65,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.5 — 5 octobre 2026
+
+- Fonds à seuils adoucis : mélange 16 % dans la surface du thème, comme Pluie/Vent, au lieu d’une couleur pleine.
+- Icônes exactement accordées au RGB du graphe, sans gestion du contraste ; libellés du thème. Les seuils actifs remplacent aussi `icon_color`.
+- Clair/sombre et changements de thème suivis en CSS sans observateur. Même configuration des seuils, mêmes dimensions et actions.
 
 ### 1.1.4 — 5 octobre 2026
 

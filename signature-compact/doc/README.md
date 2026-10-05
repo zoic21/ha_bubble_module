@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.2.4**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.2.5**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -54,7 +54,7 @@ Voir aussi l’[exemple média](../examples/media.yaml).
 
 ## Couleurs du fond d’icône selon la valeur
 
-`color_thresholds.values` colore le fond du carré de l’icône principale selon l’état numérique brut de son entité, avec la même interpolation RGB que Statistics Graph Chart Card. Chaque sous-bouton peut aussi colorer son badge via `sub_button_styles`. L’icône suit `primary-text-color` du thème et n’est adaptée que si son contraste est insuffisant. Une couleur `icon_color` explicite reste une préférence, elle aussi protégée ; elle ne désactive pas le fond numérique. Voir le [guide commun, les couleurs acceptées et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
+`color_thresholds.values` applique une teinte discrète à 16 % au fond du carré et la couleur interpolée du graphe à l’icône. Le même principe s’applique aux badges via `sub_button_styles`. Les fonds suivent la surface claire/sombre du thème ; l’icône conserve toujours la couleur exacte du graphe, sans gestion du contraste. Le texte des badges garde le thème. Avec des seuils actifs, `icon_color` n’écrase pas la couleur numérique ; hors seuils, son comportement reste inchangé. Voir le [guide commun et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 ## Options
 
@@ -70,8 +70,8 @@ Voir aussi l’[exemple média](../examples/media.yaml).
 | `sub_buttons_position` | `default` | Position des sous-boutons en compacte Valeurs : `default`, `end`. |
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
-| `icon_color` | Aucun | Couleur préférée de l’icône ; contraste protégé sur un fond à seuils |
-| `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Fond du carré de l’icône principale des cartes bouton. |
+| `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
+| `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
 | `icon_opacity` | Comportement natif / aucun | Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets. |
 | `border_color` | Aucun | Couleur de la bordure de la carte |
 | `icon_border_color` | Aucun | Couleur de la bordure du fond de l’icône |
@@ -93,6 +93,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.2.5 — 5 octobre 2026
+
+- Fonds à seuils adoucis : mélange 16 % dans la surface du thème, comme Pluie/Vent, au lieu d’une couleur pleine.
+- Icônes exactement accordées au RGB du graphe, sans gestion du contraste ; libellés du thème. Les seuils actifs remplacent aussi `icon_color`.
+- Clair/sombre et changements de thème suivis en CSS sans observateur. Même configuration des seuils, mêmes dimensions et actions.
 
 ### 1.2.4 — 5 octobre 2026
 

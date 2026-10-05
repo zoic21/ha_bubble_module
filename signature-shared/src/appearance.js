@@ -12,7 +12,7 @@ const iconOverride = String(o.icon_color ?? '').trim();
 const iconTint = iconOverride ? color(o.icon_color,accent) : accent;
 if (iconOverride || layout === 'square') css += 'ha-card .bubble-main-icon { color: '+iconTint+' !important; }';
 if (kind === 'button' && (layout === 'compact' || layout === 'square'))
-  css += mainThresholdCSS(structure.thresholdScale,c.entity,iconOverride ? iconTint : 'var(--primary-text-color,#212121)');
+  css += mainThresholdCSS(structure.thresholdScale,c.entity);
 const iconOpacity = o.icon_opacity == null ? null : number(render(o.icon_opacity),null,0,1);
 if (iconOpacity !== null) css += 'ha-card[data-dp-layout] .bubble-main-icon { opacity: '+iconOpacity+' !important; }';
 if (String(o.border_color ?? '').trim()) css += 'ha-card .bubble-container { box-shadow: inset 0 0 0 2px '+color(o.border_color,'transparent')+' !important; }';
