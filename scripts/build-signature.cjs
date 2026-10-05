@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const YAML = require('yaml');
+const {readModuleDefinition} = require('./module-definition.cjs');
 const {minify} = require('terser');
 const {readSource} = require('./source-files.cjs');
 const {minifyModule, serializeModule} = require('./minify-module.cjs');
@@ -91,7 +91,7 @@ async function build(layout) {
     compress: {global_defs: constants, unsafe: false, passes: 3},
     format: {beautify: true, comments: false, keep_quoted_props: true}
   });
-  const definition = YAML.parse(read('signature-' + layout + '/src/module.yaml'));
+  const definition = readModuleDefinition('signature-' + layout + '/src/module.yaml');
   definition.code = '${(' + result.code.replace(/\u0001/g, '\\u0001').replace(/[ \t]+$/gm, '') + ').call(this)}';
   definition.code = await minifyModule(definition.code);
   const content = serializeModule(id, definition);

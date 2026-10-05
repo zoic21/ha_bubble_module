@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.0.5**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.0.6**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -83,6 +83,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.0.6 — 5 octobre 2026
+
+- Définitions des champs communs assemblées au build depuis `shared/src/editor-fields/presentation.yaml`.
+- Libellés, choix, groupes, valeurs par défaut, ordre et conditions de visibilité conservés ; les descriptions particulières restent locales. Aucun changement de configuration ni de code exécuté dans les cartes.
 
 - **1.0.4** : Règles CSS communes assemblées au build depuis `shared/src/styles` ; styles calculés, configuration et actions conservés.
 

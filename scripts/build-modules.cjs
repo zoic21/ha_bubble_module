@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const YAML = require('yaml');
+const {readModuleDefinition} = require('./module-definition.cjs');
 const {root, readSource} = require('./source-files.cjs');
 const {build: buildPresentation, layouts} = require('./build-signature.cjs');
 const {minifyModule, serializeModule} = require('./minify-module.cjs');
@@ -17,7 +17,7 @@ function modules() {
 async function build(folder) {
   const layout = folder.replace(/^signature-/, '');
   if (layouts.includes(layout)) return buildPresentation(layout);
-  const definition = YAML.parse(readSource(folder + '/src/module.yaml'));
+  const definition = readModuleDefinition(folder + '/src/module.yaml');
   if (!definition || typeof definition !== 'object' || typeof definition.version !== 'string' || Object.hasOwn(definition, 'code'))
     throw new Error(folder + '/src/module.yaml must declare metadata with a string version, without code');
   definition.code = readSource(folder + '/src/code.css').replaceAll('@@MODULE_VERSION@@', definition.version);

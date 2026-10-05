@@ -1,5 +1,5 @@
 name: Signature Room
-version: 1.0.5
+version: 1.0.6
 creator: Loïc
 supported:
   - button
@@ -12,82 +12,23 @@ editor:
     type: signature_options
     fields:
       color:
-        label: Couleur de l’icône
-        default: blue
-        selector:
-          select:
-            mode: dropdown
-            custom_value: true
-            options:
-              - label: Bleu
-                value: blue
-              - label: Bleu clair
-                value: light-blue
-              - label: Turquoise
-                value: teal
-              - label: Cyan
-                value: cyan
-              - label: Vert
-                value: green
-              - label: Orange
-                value: orange
-              - label: Ambre
-                value: amber
-              - label: Jaune
-                value: yellow
-              - label: Rouge
-                value: red
-              - label: Rose
-                value: pink
-              - label: Indigo
-                value: indigo
-              - label: Violet
-                value: purple
-              - label: Gris
-                value: grey
+        $field: color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-        description: Couleur de la palette, couleur CSS ou template Jinja.
       secondary:
-        label: Texte secondaire (entité, texte ou template)
-        default: ""
-        selector:
-          text:
-            multiline: true
+        $field: secondary
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       state:
-        label: Valeur principale personnalisée (texte ou template)
-        default: ""
-        selector:
-          text:
-            multiline: true
-        group: Valeurs et textes
-        group_icon: mdi:format-text
+        $field: state
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       secondary_bold:
-        label: Interpréter **texte** en gras dans le texte secondaire
-        default: false
-        selector:
-          boolean: {}
-        group: Valeurs et textes
-        group_icon: mdi:format-text
+        $field: secondary_bold
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() !== '')
       multiline:
-        label: Autoriser les textes sur plusieurs lignes
-        default: false
-        selector:
-          boolean: {}
-        group: Valeurs et textes
-        group_icon: mdi:format-text
+        $field: multiline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       sub_button_styles:
-        label: Styles des sous-boutons (objet YAML)
-        default: {}
-        selector:
-          object: {}
-        group: Commandes et sous-boutons
-        group_icon: mdi:gesture-tap-button
+        $field: sub_button_styles
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-        description: Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles.
       room_auto_colors:
         label: Coloration automatique des commandes (booléen YAML)
         default: true
@@ -125,44 +66,17 @@ editor:
         group_icon: mdi:sofa-outline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true && card.button_type === 'name' && String(item.state || '').trim() === '')))
       color_background:
-        label: Colorer aussi le fond (booléen ou template YAML)
-        default: false
-        selector:
-          object: {}
-        group: Apparence avancée
-        group_icon: mdi:palette-outline
+        $field: color_background
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-        description: false par défaut. Saisir true/false ou un template Jinja entre guillemets.
       icon_color:
-        label: Couleur personnalisée de l’icône
-        default: ""
-        selector:
-          text: {}
-        group: Apparence avancée
-        group_icon: mdi:palette-outline
+        $field: icon_color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       icon_opacity:
-        label: Opacité de l’icône (nombre ou template YAML)
-        default: null
-        selector:
-          object: {}
-        group: Apparence avancée
-        group_icon: mdi:palette-outline
+        $field: icon_opacity
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-        description: Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets.
       border_color:
-        label: Couleur de la bordure de la carte
-        default: ""
-        selector:
-          text: {}
-        group: Apparence avancée
-        group_icon: mdi:palette-outline
+        $field: border_color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       icon_border_color:
-        label: Couleur de la bordure du fond de l’icône
-        default: ""
-        selector:
-          text: {}
-        group: Apparence avancée
-        group_icon: mdi:palette-outline
+        $field: icon_border_color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

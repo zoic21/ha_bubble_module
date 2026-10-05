@@ -6,6 +6,8 @@ Les neuf modules du dépôt sont générés à partir de sources. Chaque YAML da
 
 | Sources | Rôle |
 |---|---|
+| `shared/src/editor-fields/presentation.yaml` | Douze définitions communes des champs Compact, Square, Room et Header, résolues au build |
+| `scripts/module-definition.cjs` | Résolution des références de champs et des propriétés locales, avec conservation des alias YAML |
 | `shared/src/editor-base.js` | Cycle commun des formulaires natifs ; adaptateurs Signature, Flow et modules avec listes/héritage |
 | `shared/src/editor-options.js` | Formulaire natif commun à Weather, Wind Rose et Alert Manager |
 | `shared/src/editor-group.js` | Groupes de formulaire et arrondis natifs pour tous les éditeurs concernés |
@@ -68,6 +70,22 @@ Les fragments CSS de [src/styles](src/styles/README.md) sont inclus dans les sé
 Flow, Weather et Wind Rose utilisent `@@MODULE_VERSION@@` dans leur source de runtime ; le build y injecte la version déclarée dans `module.yaml`. Les caches, abonnements et fonctions de nettoyage restent propres à chaque carte. Les variables du thème restent dans le CSS pour suivre les changements de thème sans reconstruction.
 
 Square, Compact, Room et Header conservent leur assembleur spécialisé : il choisit leurs fragments JavaScript/CSS puis élimine les branches constantes avec Terser. Le build complet appelle cet assembleur et génère les cinq autres modules.
+
+## Définitions des champs d’éditeur
+
+Les champs réellement communs de Compact, Square, Room et Header sont définis dans [src/editor-fields/presentation.yaml](src/editor-fields/presentation.yaml). Leur position et visibilité restent dans `src/module.yaml` :
+
+```yaml
+color:
+  $field: color
+  visible_if: (!card || card.card_type === 'button')
+```
+
+Le build remplace `$field` par la définition complète puis applique les propriétés locales. Une propriété locale remplace la propriété entière : aucun merge implicite des sous-objets. Les valeurs `false`, `0`, `null`, chaînes vides et listes vides restent explicites. Les champs propres à une disposition restent dans leur module ; Header conserve sa description particulière des sous-boutons.
+
+Les références inconnues, définitions non objet et cycles interrompent le build. Les alias YAML restent partagés pour conserver les formulaires Flow/Alert Manager compacts. Le YAML livré ne contient aucune référence `$field` et ne demande aucun fichier commun dans Home Assistant. Le workflow existant suit déjà les sources et scripts concernés.
+
+Une modification du catalogue doit actualiser tous ses consommateurs affectés et leurs versions. Les tests couvrent les formulaires générés, leurs conditions et conversions ; la comparaison avant/après de cette extraction conserve les neuf définitions, l’ordre des champs et le JavaScript/CSS livré.
 
 ## Distributions minifiées
 

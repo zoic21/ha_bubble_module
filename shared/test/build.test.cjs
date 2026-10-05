@@ -5,6 +5,7 @@ const {test} = require('node:test');
 const YAML = require('yaml');
 const {build, modules} = require('../../scripts/build-modules.cjs');
 const {root, readSource} = require('../../scripts/source-files.cjs');
+const {readModuleDefinition} = require('../../scripts/module-definition.cjs');
 
 test('all nine modules have reproducible, autonomous distributions built from sources', async () => {
   assert.deepEqual(modules(), ['alert_manager', 'signature-compact', 'signature-flow', 'signature-header',
@@ -15,7 +16,7 @@ test('all nine modules have reproducible, autonomous distributions built from so
     assert.equal(first.content, fs.readFileSync(path.join(root, first.file), 'utf8'), folder + ' has a stale distribution');
     const id = folder.replaceAll('-', '_');
     const definition = YAML.parse(first.content)[id];
-    const source = YAML.parse(readSource(folder + '/src/module.yaml'));
+    const source = readModuleDefinition(folder + '/src/module.yaml');
     assert.deepEqual({...definition, code: undefined}, {...source, code: undefined}, folder + ' changed metadata or editor fields');
     assert.doesNotMatch(definition.code, /@include|@@MODULE_VERSION@@/);
     new Function('hass', 'onTeardown', 'renderTemplate', 'return `' + definition.code + '`;');

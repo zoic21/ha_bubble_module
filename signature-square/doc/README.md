@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.1.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.1.2**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -75,6 +75,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.2 — 5 octobre 2026
+
+- Définitions des champs communs assemblées au build depuis `shared/src/editor-fields/presentation.yaml`.
+- Libellés, choix, groupes, valeurs par défaut, ordre et conditions de visibilité conservés ; les descriptions particulières restent locales. Aucun changement de configuration ni de code exécuté dans les cartes.
 
 - **1.1.0** : Seuils numériques génériques, interpolation RGB compatible avec le graphique et coloration indépendante des icônes de sous-boutons ; configuration et exemples dans le guide commun.
 
