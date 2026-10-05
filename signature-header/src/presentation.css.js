@@ -23,11 +23,12 @@ width: 100% !important; height: auto !important; box-sizing: border-box;
     /* Bubble's non-scrolling line clamp clips large glyphs, including the descender in Étage. */
     ha-card[data-dp-layout="header"] .bubble-name { display: block !important; overflow: visible !important; font-size: var(--signature-header-font-size, 38px) !important; line-height: 1.15 !important; font-weight: var(--signature-font-weight-bold, 700) !important; letter-spacing: -1.2px; white-space: normal; }
     ha-card[data-dp-layout="header"] .bubble-sub-button-container {
-position: static !important; display: flex !important;
+position: static !important;
 flex-wrap: wrap !important; justify-content: flex-end !important;
 width: auto !important; min-width: 0; margin: 0 !important; gap: 8px !important;
     }
-    ha-card[data-dp-layout="header"] .bubble-sub-button-group { display: contents !important; }
+    ha-card[data-dp-layout="header"] .bubble-sub-button-container:not(.hidden):not([hidden]) { display: flex !important; }
+    ha-card[data-dp-layout="header"] .bubble-sub-button-group:not(.hidden):not([hidden]) { display: contents !important; }
     ha-card[data-dp-layout="header"] .bubble-sub-button {
 transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease !important;
 height: 44px !important; min-width: 0 !important; padding: 0 14px !important;
@@ -41,8 +42,19 @@ ha-card[data-dp-layout="header"] .bubble-sub-button-container { justify-content:
 ha-card[data-dp-layout="header"] .bubble-name { font-size: var(--signature-header-small-font-size, 32px) !important; letter-spacing: -0.8px; }
 ha-card[data-dp-layout="header"] .bubble-sub-button { padding: 0 10px !important; }
     }
-    /* Mobile viewport only: distribute each wrapped row without stretching pills. */
+    /* Treat all sub-buttons as one flex item. Its max-content basis either fits
+       beside the title or wraps the whole group onto the full-width next row. */
     @media (max-width: 600px) {
-ha-card[data-dp-layout="header"] .bubble-sub-button-container { justify-content: space-between !important; }
+ha-card[data-dp-layout="header"] .bubble-wrapper {
+display: flex !important; flex-wrap: wrap; column-gap: 24px; row-gap: 12px;
+}
+ha-card[data-dp-layout="header"] .bubble-content-container:not(.hidden):not([hidden]) {
+display: flex !important; align-items: center; flex: 0 0 auto;
+width: max-content; max-width: 100%; padding: 0 !important; margin: 0 !important;
+}
+ha-card[data-dp-layout="header"] .bubble-sub-button-container {
+flex: 1 0 auto; width: max-content !important; max-width: 100%;
+justify-content: space-between !important;
+}
     }
     `

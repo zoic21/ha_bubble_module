@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.7**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.8**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -37,7 +37,7 @@ Un `button` avec `button_type: name` donne un grand en-tête et des pilules. Un 
 
 Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_styles` permet d’appliquer des seuils aux fonds des badges et une préférence `icon_color` à leurs icônes. Les autres options continuent à concerner le grand en-tête. Les pilules passent sous le titre selon la largeur. `sub_button_styles` accepte une classe CSS ou un numéro natif, avec `color`, `background`, `opacity` et `icon`, dont les valeurs peuvent utiliser Jinja.
 
-Sur mobile (fenêtre de 600 px ou moins), les sous-boutons du grand en-tête sont justifiés sur chaque ligne : le premier et le dernier s’alignent aux bords, les espaces intermédiaires se répartissent et les pilules gardent leur largeur. Un bouton seul sur une ligne reste à gauche. Ce comportement dépend de la fenêtre, pas d’une carte étroite sur ordinateur ; les titres de section restent inchangés.
+Sur mobile (fenêtre de 600 px ou moins), tous les sous-boutons restent à droite du titre si l’ensemble tient avec au moins 24 px de dégagement. Sinon, **tout le groupe passe sous le titre** : aucun bouton ne reste à droite. Le conteneur occupe alors toute la largeur et justifie chaque ligne ; les pilules gardent leur largeur et les espaces se répartissent, avec 8 px d’écart minimal. Un bouton seul sur une ligne inférieure reste à gauche. Le navigateur ajuste ce placement en CSS lorsque la largeur ou les libellés changent, sans mesure JavaScript ni observateur supplémentaire. La disposition sur ordinateur et les titres de section restent inchangés.
 
 ## Couleurs du fond d’icône selon la valeur
 
@@ -67,6 +67,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.8 — 5 octobre 2026
+
+- Sur mobile, placement automatique de tous les sous-boutons à droite du titre quand ils tiennent avec au moins 24 px de marge.
+- Retour du groupe entier sous le titre lorsque l’espace manque, avec justification conservée sur chaque ligne et sans étirer les pilules.
+- Adaptation CSS aux largeurs, titres et états longs ; aucun calcul JavaScript, observateur ou polling ajouté. Les groupes masqués restent hors de la disposition.
+- Vérification sur fixtures Chromium en clair/sombre, avec/sans thème, au seuil exact de retour à la ligne et après changement de libellés sur les mêmes nœuds.
 
 ### 1.1.7 — 5 octobre 2026
 

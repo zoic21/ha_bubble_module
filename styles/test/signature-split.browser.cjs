@@ -37,9 +37,11 @@ async function headerButtons(page, scenario, grouped = false) {
   const root = document.querySelector('[data-id="header"]').shadowRoot;
   root.querySelector('style').textContent += `
    .bubble-background { position:absolute; }
+   .bubble-content-container { display:contents; }
+   .bubble-name-container { display:flex; flex-direction:column; flex-grow:1; }
    .bubble-sub-button-container { align-items:center; }
    .bubble-sub-button-group { display:flex; gap:8px; align-items:center; }
-   .bubble-sub-button { box-sizing:border-box; flex:0 0 auto; width:max-content; white-space:nowrap; }
+   .bubble-sub-button { box-sizing:border-box; flex:0 0 auto; width:max-content; white-space:nowrap; font-size:12px; }
   `;
   root.querySelector('.bubble-icon-container').classList.add('hidden');
   root.querySelector('.bubble-buttons-container').remove();
@@ -78,9 +80,10 @@ async function headerGeometry(page) {
    return {left:box.left-rect.left,right:box.right-rect.left,top:box.top-rect.top,width:box.width,height:box.height};
   };
   return {
+   cardWidth:root.querySelector('ha-card').getBoundingClientRect().width,
    container:read(container),title:read(root.querySelector('.bubble-name')),
    justification:getComputedStyle(container).justifyContent,
-   buttons:[...container.querySelectorAll('.bubble-sub-button:not(.hidden)')].map(read),
+   buttons:[...container.querySelectorAll('.bubble-sub-button:not(.hidden)')].filter(element=>element.getClientRects().length).map(read),
    hidden:container.querySelector('.hidden').getBoundingClientRect().width,
    sectionJustification:getComputedStyle(document.querySelector('[data-id="title"]').shadowRoot.querySelector('.bubble-sub-button-container')).justifyContent
   };
@@ -108,6 +111,67 @@ test('mobile header justifies each wrapped row without stretching buttons or sho
    }
    assert.ok(geometry.title.top<geometry.buttons[0].top,'buttons must stay below the title');
   }
+ }
+});
+
+test('mobile header moves the entire button group below the title before losing its 24px clearance', async t => {
+ const page = await fixture(t, {hasTouch:true});
+ for (const mode of ['light','dark']) for (const plain of [false,true]) for (const grouped of [false,true]) {
+  await page.setViewportSize({width:600,height:1400});
+  await headerButtons(page,{mode,plain,width:382,nameText:'Étage'},grouped);
+  await page.evaluate(() => {
+   const root = document.querySelector('[data-id="header"]').shadowRoot;
+   const buttons = [...root.querySelectorAll('.bubble-sub-button:not(.hidden)')];
+   buttons.slice(2).forEach(button=>button.remove());
+   buttons[0].style.width = '72px';buttons[0].textContent = 'Éteint';
+   buttons[1].style.width = '158px';buttons[1].textContent = "À la station d'accueil";
+   buttons.forEach(button=>button.style.whiteSpace='nowrap');
+  });
+  const sameRow = geometry => geometry.buttons.every(button=>button.top<geometry.title.top+geometry.title.height && geometry.title.top<button.top+button.height);
+  const below = geometry => {
+   assert.ok(geometry.buttons.every(button=>button.top>=geometry.title.top+geometry.title.height+12-0.1),'all buttons must move below the title together');
+   assert.ok(Math.abs(geometry.container.width-geometry.cardWidth)<1,'wrapped group must fill the card width');
+   for (const row of Map.groupBy(geometry.buttons,button=>button.top).values()) {
+    assert.ok(Math.abs(row[0].left)<1,'wrapped row must start at the left edge');
+    if (row.length>1) assert.ok(Math.abs(row.at(-1).right-geometry.container.width)<1,'wrapped row must retain justification');
+   }
+  };
+  const original = await headerGeometry(page);
+  assert.ok(sameRow(original),'short title and two status pills must fit on one row');
+  assert.ok(original.container.left-original.title.right>=24-0.1,'title needs at least 24px clearance');
+  assert.ok(Math.abs(original.buttons.at(-1).right-original.container.right)<1,'group must align to the right edge');
+
+  // Cross the exact fit boundary on the same DOM: no module execution or JS measurement in the module.
+  const required = original.title.width+24+72+8+158;
+  const setWidth = width => page.locator('[data-id="header"]').evaluate((shell,width)=>shell.style.width=width+'px',width);
+  await setWidth(required-0.5);
+  below(await headerGeometry(page));
+  await setWidth(required+0.5);
+  const borderline = await headerGeometry(page);
+  assert.ok(sameRow(borderline));
+  assert.ok(borderline.container.left-borderline.title.right>=24-0.1);
+
+  await setWidth(382);
+  await page.locator('[data-id="header"] .bubble-name').evaluate(element=>element.textContent='Étage et chambres');
+  below(await headerGeometry(page));
+  await page.locator('[data-id="header"] .bubble-name').evaluate(element=>element.textContent='Étage');
+  assert.ok(sameRow(await headerGeometry(page)));
+  await page.locator('[data-id="header"] .bubble-sub-button-2').evaluate(element=>{
+   element.style.width='';element.textContent="Retour à la station d'accueil pour recharger";
+  });
+  below(await headerGeometry(page));
+  await page.locator('[data-id="header"] .bubble-sub-button-2').evaluate(element=>{
+   element.style.width='158px';element.textContent="À la station d'accueil";
+  });
+  assert.ok(sameRow(await headerGeometry(page)));
+  await page.locator('[data-id="header"] .bubble-sub-button-container').evaluate(container=>{
+   const group=document.createElement('div');group.className='bubble-sub-button-group hidden';
+   group.innerHTML='<div class="bubble-sub-button" style="width:600px">Groupe masqué</div>';
+   container.append(group);
+  });
+  assert.ok(sameRow(await headerGeometry(page)),'a hidden group must not reserve width or reappear');
+  await page.locator('[data-id="header"] .bubble-sub-button-group.hidden').evaluate(group=>{group.classList.remove('hidden');group.hidden=true;});
+  assert.ok(sameRow(await headerGeometry(page)),'the native hidden attribute must also remove a group from layout');
  }
 });
 
