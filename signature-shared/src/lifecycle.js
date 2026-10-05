@@ -1,5 +1,8 @@
+// Invalidate closures and derived caches when a new distribution replaces the
+// module on an existing card. Ordinary entity updates keep the same runtime.
+const version = '@@MODULE_VERSION@@';
 let runtime = this._dpRuntime;
-if (runtime && (runtime.root !== root || !tileEnabled)) {
+if (runtime && (runtime.version !== version || runtime.root !== root || !tileEnabled)) {
   runtime.dispose();
   runtime = null;
 }
@@ -20,7 +23,7 @@ if (tileEnabled && !runtime) {
       if (!present) el.classList.remove(key);
     });
   };
-  runtime = this._dpRuntime = {root,iconOverrides,restoreIcon,restoreAction};
+  runtime = this._dpRuntime = {version,root,iconOverrides,restoreIcon,restoreAction};
   const current = runtime;
   current.dispose = () => {
     if (this._dpRuntime !== current) return;

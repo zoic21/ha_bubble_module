@@ -13,6 +13,7 @@ const specific = (layout, name) => read('signature-' + layout + '/src/' + name +
 
 async function build(layout) {
   const id = 'signature_' + layout;
+  const definition = readModuleDefinition('signature-' + layout + '/src/module.yaml');
   const supported = layout === 'compact'
     ? "['button','cover','climate'].includes(kind) && c.button_type !== 'slider'"
     : layout === 'header'
@@ -75,7 +76,7 @@ async function build(layout) {
   const constants = {layout};
   if (layout !== 'compact') Object.assign(constants, {compactValue:false, numberEnabled:false, valueTrailing:false});
   if (layout !== 'square') constants.autoHeight = false;
-  let body = chunks.join('\n');
+  let body = chunks.join('\n').replaceAll('@@MODULE_VERSION@@', definition.version);
   for (const name of Object.keys(constants).filter(name => name !== 'layout'))
     body = body.replace(new RegExp('const ' + name + '\\s*=[^;]*;'), '');
   const expression = '(() => {\n' + body
@@ -91,7 +92,6 @@ async function build(layout) {
     compress: {global_defs: constants, unsafe: false, passes: 3},
     format: {beautify: true, comments: false, keep_quoted_props: true}
   });
-  const definition = readModuleDefinition('signature-' + layout + '/src/module.yaml');
   definition.code = '${(' + result.code.replace(/\u0001/g, '\\u0001').replace(/[ \t]+$/gm, '') + ').call(this)}';
   definition.code = await minifyModule(definition.code);
   const content = serializeModule(id, definition);

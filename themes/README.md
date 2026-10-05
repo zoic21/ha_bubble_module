@@ -110,7 +110,9 @@ styles: |
 
 ## Modules de présentation autonomes
 
-Signature Compact 1.2.2, Square et Header 1.1.2 et Room 1.0.6 consomment les mêmes variables `signature-*`. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
+Signature Compact 1.2.4, Square et Header 1.1.4 et Room 1.0.7 consomment les mêmes variables `signature-*`. Compact applique aussi ces variables aux lecteurs multimédias natifs, avec les mêmes valeurs de secours et sans changer leurs dimensions ou commandes. Le [guide de migration](../signature-shared/doc/MIGRATION.md) décrit leur configuration. Le thème reste facultatif ; les distributions conservent leurs valeurs de secours.
+
+Les caches de ces quatre présentations sont reconstruits lorsqu’une nouvelle version du module remplace leur runtime sur une carte existante. Les variables de thème restent dans le CSS : un changement de thème ou de mode n’impose aucune invalidation de cache.
 
 | Variable supplémentaire | Défaut | Usage |
 |---|---|---|
@@ -127,7 +129,7 @@ Toutes les distributions Bubble sont désormais générées depuis leurs sources
 
 ## Numeric icon backgrounds
 
-Compact 1.2.3, Square 1.1.3 and Header 1.1.3 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Explicit opaque RGB/hex colors color the main icon square or existing sub-button badge, matching the graph scale. The foreground prefers live `--primary-text-color`; CSS keeps it when contrast is sufficient, otherwise selects readable black/white. Badge text shares the contrast-protected foreground, while main values, card surfaces and alert badges retain their roles. Unknown sources get a neutral background. Relative colors follow theme changes without JavaScript style reads or observers; older CSS engines get a readable black/white fallback. Explicit `icon_color` is a preferred foreground, not a scale override. No theme YAML update or dashboard migration is required.
+Compact 1.2.4, Square 1.1.4 and Header 1.1.4 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Explicit opaque RGB/hex colors color the main icon square or existing sub-button badge, matching the graph scale. The foreground prefers live `--primary-text-color`; CSS keeps it when contrast is sufficient, otherwise selects readable black/white. Badge text shares the contrast-protected foreground, while main values, card surfaces and alert badges retain their roles. Unknown sources get a neutral background. Relative colors follow theme changes without JavaScript style reads or observers; older CSS engines get a readable black/white fallback. Explicit `icon_color` is a preferred foreground, not a scale override. No theme YAML update or dashboard migration is required.
 
 ## Named colors
 

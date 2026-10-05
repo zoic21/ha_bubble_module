@@ -37,6 +37,87 @@ function fixture(layout, options = {}, config = {}, states = {}) {
   return {ctx,hass,run};
 }
 const snapshot = f => ({attributes:[...f.ctx.card.attributes].sort((a,b)=>a.name.localeCompare(b.name)),state:f.ctx.elements.state.textContent,stateData:{...f.ctx.elements.state.dataset},secondary:f.ctx.card.querySelector('.dp-secondary')?.textContent});
+const field = (layout, suffix) => '_signature' + layout[0].toUpperCase() + layout.slice(1) + suffix;
+
+test('same-version updates reuse presentation caches while reading fresh entity states',t=>{
+  for(const layout of layouts){
+    const f=fixture(layout,{secondary:'sensor.humidity',compact_mode:'value'});t.after(()=>f.ctx.teardown());
+    f.run();const runtime=f.ctx[field(layout,'Runtime')],structure=f.ctx[field(layout,'Structure')];
+    assert.equal(runtime.version,definitions[layout].version);
+    let css=runtime.styleCSS,writes=0;
+    Object.defineProperty(runtime,'styleCSS',{get:()=>css,set:value=>{css=value;writes++;},configurable:true});
+    const reads=new Set();
+    f.hass.states['sensor.demo'].state='23.5';f.hass.states['sensor.humidity'].state='66';
+    f.hass.states=new Proxy(f.hass.states,{get:(states,key)=>{reads.add(key);return states[key];}});
+    f.run();
+    assert.equal(f.ctx[field(layout,'Runtime')],runtime);
+    assert.equal(f.ctx[field(layout,'Structure')],structure);
+    assert.equal(writes,0,layout+' rebuilt unchanged layout CSS');
+    assert.ok(reads.has('sensor.demo'),layout+' skipped its tracked entity read');
+    if(layout!=='header')assert.equal(runtime.secondaryEl.textContent,'66 %');
+    if(['compact','square'].includes(layout))assert.equal(f.ctx.elements.state.textContent,'23,5°C');
+  }
+});
+
+for(const layout of layouts)test(layout+' replaces legacy and stale-version caches without duplicated DOM',t=>{
+  for(const legacy of [false,true]){
+    const f=fixture(layout,{secondary:'sensor.humidity',compact_mode:'value'});t.after(()=>f.ctx.teardown());
+    const expectedCSS=f.run(),expected=snapshot(f);
+    const old=f.ctx[field(layout,'Runtime')],structure=f.ctx[field(layout,'Structure')],secondary=old.secondaryEl;
+    if(legacy)delete old.version;else old.version='0.0.0';
+    old.styleCSS='obsolete cached CSS';
+    assert.equal(f.run(),expectedCSS);
+    const current=f.ctx[field(layout,'Runtime')];
+    assert.notEqual(current,old);
+    assert.equal(current.version,definitions[layout].version);
+    assert.notEqual(f.ctx[field(layout,'Structure')],structure);
+    assert.deepEqual(snapshot(f),expected);
+    if(secondary){
+      assert.equal(f.ctx.card.contains(secondary),false);
+      assert.equal(secondary.dataset.entity,undefined,'old delegated action was not restored');
+      assert.notEqual(current.secondaryEl,secondary);
+      assert.equal(current.secondaryEl.dataset.entity,'sensor.humidity');
+    }
+    // A delayed cleanup from the replaced runtime must not remove its successor.
+    old.dispose();assert.equal(f.ctx[field(layout,'Runtime')],current);
+    assert.equal(f.run(),expectedCSS);
+  }
+});
+
+test('Compact version replacement cancels old controls and observers before a delayed service rejection',async t=>{
+  const f=fixture('compact',{controls:'number',compact_mode:'value',secondary:'sensor.humidity'},{entity:'input_number.target'}, {'input_number.target':{state:'2.5',attributes:{min:0,max:10,step:0.5}}});
+  t.after(()=>f.ctx.teardown());
+  let reject;f.hass.callService=()=>new Promise((resolve,fail)=>{reject=fail;});
+  const cleared=[],clear=context.clearTimeout;
+  context.clearTimeout=timer=>{cleared.push(timer);clear(timer);};t.after(()=>{context.clearTimeout=clear;});
+  f.run();const old=f.ctx._signatureCompactRuntime,control=f.ctx._signatureCompactNumber,observer=f.ctx._signatureCompactValueWatch.observer;
+  const request=control.plus.click(),timer=control.timer;
+  assert.notEqual(timer,null);old.version='0.0.0';f.run();
+  const current=f.ctx._signatureCompactNumber;
+  assert.notEqual(current,control);assert.equal(control.disposed,true);
+  assert.ok(cleared.includes(timer));assert.equal(f.ctx.card.contains(control.group),false);
+  assert.equal(observer.disconnected,true);assert.notEqual(f.ctx._signatureCompactValueWatch.observer,observer);
+  f.hass.callService=async()=>{};await current.plus.click();const pending=current.pending;
+  reject(new Error('old request failed'));await request;
+  assert.equal(current.pending,pending);assert.equal(current.plus.disabled,true);
+  assert.equal(control.group.events.length,0);assert.equal(current.group.events.length,0);
+  old.dispose();assert.equal(f.ctx._signatureCompactNumber,current);
+});
+
+test('Room version replacement restores the native temperature label and replaces its observer',t=>{
+  const f=fixture('room',{}, {sub_button:{main:[{css_class:'room-temperature',entity:'sensor.demo'}]}});t.after(()=>f.ctx.teardown());
+  const query=f.ctx.card.querySelector.bind(f.ctx.card);
+  f.ctx.card.querySelector=selector=>selector==='.room-temperature .bubble-sub-button-name-container'
+    ? query('.room-temperature')?.querySelector('.bubble-sub-button-name-container') : query(selector);
+  f.run();const old=f.ctx._signatureRoomRuntime,watch=f.ctx._signatureRoomRoomTemperatureWatch,label=watch.el,restore=watch.restore;
+  let restored=false;watch.restore=()=>{restore();restored=label.children.length===0&&label.textContent==='22,5 °C';};
+  assert.equal(label.children.length,2);delete old.version;f.run();
+  assert.equal(watch.observer.disconnected,true);assert.equal(restored,true);
+  assert.notEqual(f.ctx._signatureRoomRoomTemperatureWatch,watch);
+  assert.equal(label.children.length,2);assert.equal(label.textContent,'22,5 °C');
+  old.dispose();assert.equal(label.children.length,2);
+  f.ctx.teardown();assert.equal(label.children.length,0);assert.equal(label.textContent,'22,5 °C');
+});
 
 test('generated modules are current, autonomous and limited to their own presentation',async()=>{
   for(const layout of layouts){
