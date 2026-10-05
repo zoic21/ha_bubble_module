@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.3.0**. [Complete file to import](../dist/signature.yaml).
+Version **2.3.1**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -31,17 +31,22 @@ Place `signature` at the card's root, at the same level as `entity` and `modules
 
 ## Visual configuration
 
-The form uses French labels. Presentation, accent color and secondary text are immediately accessible; the other settings are grouped in collapsible sections for values/text, controls/sub-buttons, square tiles, rooms and advanced appearance. The main entity and native sub-buttons/actions are still configured in Bubble's own editor.
+The form uses French labels. Open the object panel under **Réglages adaptés à la carte** to edit the settings. Presentation, accent color and secondary text appear when applicable; the other settings are grouped in collapsible sections for values/text, controls/sub-buttons, square tiles, rooms and advanced appearance. The main entity and native sub-buttons/actions are still configured in Bubble's own editor.
 
-Every field writes the existing key directly under `signature`. Sections have no `name`, so they never create intermediate objects in the card configuration. Declared defaults match the runtime; Bubble versions that display schema defaults can show the effective settings without storing untouched defaults. Earlier versions may leave unset controls empty. Selecting the explicit standard choices (`compact_mode: default`, `controls: native`, `sub_buttons_position: default`, `room_measures_position: content`) has the same behavior as omitting those options.
+The anonymous object selector (`name: ''`) edits the existing keys directly under `signature`, without introducing a nested object or list. Bubble's `group` metadata creates collapsible sections and removes sections whose fields are all hidden. Its `visible_if` expressions inspect both the current module settings (`item`) and the native card configuration (`card`). This data path is validated against Bubble Card 3.4.1; older versions without its object-selector visibility support may show every field. Hidden settings stay in the configuration, so switching layouts does not delete previous room/square settings. No extra calculation is added to displayed cards.
+
+The form follows the same effective-layout rules as the renderer: square and room are button layouts, cover/climate/switch cards stay compact, and header falls back to compact unless the button type is name. Section titles expose the layout control; media players expose only color/background. Numeric controls are offered only for compact state buttons linked to number/input_number entities. The square detail-row reservation appears only with measure controls, and room header-measure positioning appears only when main/secondary text leaves that space available. Incompatible layout or control choices show a warning instead of rewriting the card.
+
+Declared defaults match the runtime. Bubble's object selector displays unset select defaults without persisting them; text/number inputs may remain empty and describe their defaults. False-default switches remain off when unset. Selecting the explicit standard choices (`compact_mode: default`, `controls: native`, `sub_buttons_position: default`, `room_measures_position: content`) has the same behavior as omitting those options.
 
 Color accepts the existing palette names as well as custom CSS colors or Jinja. Main/secondary text fields accept multiline Jinja and fixed text; secondary also accepts a direct entity ID. An entity ID in a mixed text field is entered as text because that field also supports templates. The main entity uses Bubble's native entity picker.
 
-Three advanced fields intentionally use native YAML inputs inside the form:
+Four advanced fields intentionally use native YAML inputs inside the form:
 
 - `color_background`: a boolean (`true`/`false`) or a quoted Jinja string.
 - `icon_opacity`: a number from 0 to 1 or a quoted Jinja string; `null` preserves native opacity. Keeping the scalar type also preserves a numeric zero.
 - `sub_button_styles`: the existing object keyed by `css_class` or sub-button number; arbitrary keys and templates remain supported.
+- `room_auto_colors`: `true` by default or `false` to disable automatic room colors. A YAML scalar keeps that default explicit because Bubble's object selector currently injects select defaults only.
 
 For example, enter `"{{ is_state('light.living_room', 'on') }}"` in the background field. The YAML input preserves an existing boolean or template when another setting is edited. It does not convert style objects to lists or introduce new template override keys. No extra JavaScript, polling or subscription is added to displayed cards.
 
@@ -313,6 +318,12 @@ The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.3.1 — 5 October 2026
+
+- Filters the visual configuration using the effective layout, native card type and numeric entity domain. Empty groups disappear; square no longer displays room settings.
+- Uses Bubble's native structured-object form and live `visible_if` expressions without changing existing YAML keys or the card renderer.
+- Retains hidden settings when changing layouts, shows warnings for incompatible choices and keeps the default-on room-color option as a boolean YAML field.
 
 ### 2.3.0 — 5 October 2026
 

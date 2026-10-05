@@ -4,7 +4,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature — card design | 2.3.0 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
+| Signature — card design | 2.3.1 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.4.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.2.1 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.1.2 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
@@ -36,7 +36,7 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 ## Configuration
 
-Signature declares an `editor` schema: open **Modules → Signature** in the card editor to configure its options with French labels and collapsible sections. Existing YAML configurations remain valid. Sub-button style objects and the two options accepting both scalar values and Jinja (`color_background`, `icon_opacity`) use small YAML fields inside the form to preserve their types and templates. The other modules still use YAML for their custom options. Standard controls, entities, and actions remain those provided by Bubble Card. Signature Flow replaces the native button content with a configurable flow diagram; see its [home example](signature-flow/examples/home.yaml). Signature Weather replaces it with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
+Signature declares an `editor` schema: open **Modules → Signature → Réglages adaptés à la carte** in the card editor to configure its options with French labels and collapsible sections. The form follows the effective layout and native card type: square hides room settings, cover/climate/switch cards use compact settings, and media players expose their two color options. It uses Bubble Card's structured object selector and `visible_if` support, validated against 3.4.1. Existing YAML configurations remain valid and hidden values are retained. Sub-button style objects, background/opacity scalars and the default-on room color setting use small YAML fields inside the form to preserve their types. The other modules still use YAML for their custom options. Standard controls, entities, and actions remain those provided by Bubble Card. Signature Flow replaces the native button content with a configurable flow diagram; see its [home example](signature-flow/examples/home.yaml). Signature Weather replaces it with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
 
 Signature Wind Rose replaces the button content with a time-weighted, 16-direction wind rose and period selector; see its [Ecowitt example](signature-wind-rose/examples/ecowitt.yaml). It uses recorded direction and optional speed history without duplicating current values from a graph above it.
 

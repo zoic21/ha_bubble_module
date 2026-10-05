@@ -628,7 +628,9 @@ test('a service failure received after teardown does not dispatch a notification
 });
 
 function editorFields(schema=definition.editor) {
-  return schema.flatMap(field=>field.schema ? editorFields(field.schema) : field.selector ? [field] : []);
+  return schema.flatMap(field=>field.selector?.object?.fields
+    ? Object.entries(field.selector.object.fields).map(([name,options])=>({name,...options}))
+    : field.schema ? editorFields(field.schema) : field.selector ? [field] : []);
 }
 
 test('visual editor covers the existing option keys without nesting or narrowing mixed YAML types',() => {
@@ -637,9 +639,8 @@ test('visual editor covers the existing option keys without nesting or narrowing
   const runtimeNames=[...new Set([...code.matchAll(/\bo\.([a-z_]+)/g)].map(match=>match[1]))];
   assert.equal(new Set(names).size,names.length,'Each option has a single input');
   assert.deepEqual([...names].sort(),runtimeNames.sort(),'The form exposes the runtime options directly');
-  for (const section of definition.editor.filter(field=>field.schema)) {
-    assert.equal(section.name,undefined,'Sections must not nest the existing YAML keys');
-  }
+  const container=definition.editor.find(field=>field.selector?.object?.fields);
+  assert.equal(container.name,'','The object form must edit the module root without nesting it');
   for (const field of fields) {
     assert.ok(Object.hasOwn(field,'default'),field.name);
     assert.ok(field.label,field.name);
@@ -647,10 +648,55 @@ test('visual editor covers the existing option keys without nesting or narrowing
       assert.ok(field.selector.select.options.some(option=>option.value === field.default),field.name);
     }
   }
-  for (const name of ['color_background','icon_opacity','sub_button_styles']) {
+  for (const name of ['color_background','icon_opacity','sub_button_styles','room_auto_colors']) {
     assert.deepEqual(fields.find(field=>field.name === name).selector,{object:{}},name);
   }
   assert.equal(fields.find(field=>field.name === 'color').selector.select.custom_value,true);
+});
+
+const editorVisible = (options,card) => editorFields().filter(field=>
+  !field.visible_if || new Function('item','hass','card','return !!('+field.visible_if+');')(options,{},card)
+).map(field=>field.name);
+
+test('editor visibility follows the effective layout and native card compatibility',() => {
+  const roomKeys=['room_auto_colors','room_control_columns','room_measures_position'];
+  const squareKeys=['auto_height','reserve_measure_detail'];
+  const base={card_type:'button',button_type:'state',entity:'sensor.temperature'};
+  const square=editorVisible({layout:'square'},base);
+  assert.ok(square.includes('auto_height'));
+  assert.ok(roomKeys.every(key=>!square.includes(key)));
+  assert.ok(!square.includes('compact_mode'));
+  assert.ok(!square.includes('sub_buttons_position'));
+  assert.ok(!square.includes('reserve_measure_detail'));
+  assert.ok(editorVisible({layout:'square',controls:'measure'},base).includes('reserve_measure_detail'));
+  const room=editorVisible({layout:'room'},{...base,button_type:'name',show_state:false});
+  assert.ok(roomKeys.every(key=>room.includes(key)));
+  assert.ok(squareKeys.every(key=>!room.includes(key)));
+  assert.ok(!room.includes('compact_mode'));
+  assert.ok(!editorVisible({layout:'room',secondary:'Details'},{...base,button_type:'name',show_state:false}).includes('room_measures_position'));
+  assert.ok(!editorVisible({layout:'room'},base).includes('room_measures_position'));
+  for (const card of [{...base,card_type:'cover'},{...base,card_type:'climate'},{...base,button_type:'switch'}]) {
+    const keys=editorVisible({layout:'square'},card);
+    assert.ok([...roomKeys,...squareKeys].every(key=>!keys.includes(key)));
+    assert.ok(keys.includes('sub_buttons_position'),'Native cards use the compact settings');
+    assert.ok(!keys.includes('controls'),'Native controls must not offer numeric or measure modes');
+  }
+  assert.deepEqual(editorVisible({layout:'title'},{card_type:'separator'}),['layout']);
+  assert.deepEqual(editorVisible({},{card_type:'media-player'}),['color','color_background']);
+  assert.ok(editorVisible({layout:'header'},base).includes('compact_mode'),'A state button falls back to compact');
+  assert.ok(!editorVisible({layout:'header'},{...base,button_type:'name'}).includes('compact_mode'));
+  assert.ok(!editorVisible({},{...base,button_type:'slider'}).includes('color'));
+});
+
+test('numeric editor controls require a compact number entity and secondary formatting requires text',() => {
+  for (const entity of ['number.target','input_number.target']) {
+    assert.ok(editorVisible({}, {card_type:'button',button_type:'state',entity}).includes('controls'));
+  }
+  assert.ok(!editorVisible({}, {card_type:'button',button_type:'state',entity:'sensor.temperature'}).includes('controls'));
+  assert.ok(!editorVisible({}, {card_type:'button',button_type:'name',entity:'number.target'}).includes('controls'));
+  assert.ok(editorVisible({secondary:'Details'},{card_type:'button',button_type:'state'}).includes('secondary_bold'));
+  assert.ok(!editorVisible({}, {card_type:'button',button_type:'state'}).includes('secondary_bold'));
+  assert.doesNotThrow(()=>editorVisible({layout:'square'},undefined),'The module definition preview has no card context');
 });
 
 test('shown editor defaults preserve card rendering and explicit template and scalar settings',t => {

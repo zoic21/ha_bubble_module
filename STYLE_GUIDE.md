@@ -1,10 +1,10 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature 2.3.0**, **Signature Flow 3.4.1**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.2**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature 2.3.1**, **Signature Flow 3.4.1**, **Signature Weather 1.2.1** et **Signature Wind Rose 1.1.2**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
-L’éditeur natif de Signature regroupe ses options dans des sections repliables sans `name` pour conserver les clés directement sous `signature`. Ses valeurs par défaut doivent décrire le comportement existant, sans ajouter de calcul aux cartes. Conserver les types mixtes des options compatibles Jinja et la structure indexée de `sub_button_styles` ; le [guide](signature/doc/README.md#visual-configuration) précise les trois champs YAML intégrés au formulaire. L’ajout de cet éditeur en 2.3.0 ne change aucune règle de rendu.
+L’éditeur natif de Signature utilise un sélecteur d’objet anonyme (`name: ''`) et le regroupement `group` de Bubble pour conserver les clés directement sous `signature`. Ses conditions `visible_if` doivent suivre le layout effectif du rendu et le type natif de carte ; masquer les groupes sans champ utile sans supprimer les valeurs précédentes. Ses valeurs par défaut doivent décrire le comportement existant, sans ajouter de calcul aux cartes. Conserver les types mixtes des options compatibles Jinja, les booléens et la structure indexée de `sub_button_styles` ; le [guide](signature/doc/README.md#visual-configuration) précise les quatre champs YAML intégrés au formulaire. L’ajout du filtrage en 2.3.1 ne change aucune règle de rendu.
 
 ## 1. Variables et cascade
 
