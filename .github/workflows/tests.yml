@@ -35,6 +35,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test modules and documentation
         run: |
+          npm run build:modules
           npm run check:modules
           npm test
 
@@ -54,6 +55,8 @@ jobs:
           cache: npm
       - name: Install test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build modules from the tested sources
+        run: npm run build:modules
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Check computed styles

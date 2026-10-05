@@ -33,9 +33,19 @@ npm run test:styles:split
 
 1. Modifier les sources propres au module ou les fonctions communes. Ne pas éditer directement `dist`.
 2. Augmenter la version dans le `src/module.yaml` de chaque module affecté, puis actualiser son guide et le tableau des versions du README racine.
-3. Régénérer et vérifier les distributions ; les committer avec les sources. Les chemins d'installation restent identiques.
+3. Régénérer et vérifier les distributions localement pour les tester ; les committer avec les sources, ou laisser le workflow automatique les publier après le push. Les chemins d'installation restent identiques.
 
-`npm run build` est un alias du build complet. `build:signature` et `check:signature` restent disponibles pour les quatre présentations séparées. La CI utilise `check:modules` pour refuser toute distribution périmée, même si la modification concerne un fichier partagé. Elle vérifie également les comportements et les styles calculés dans des fixtures Chromium ; ces tests ne sont pas une exécution Home Assistant ou Safari/iOS.
+`npm run build` est un alias du build complet. `build:signature` et `check:signature` restent disponibles pour les quatre présentations séparées. La CI régénère d'abord les distributions dans son checkout, puis vérifie leur correspondance aux sources et leurs comportements. Les tests de styles utilisent également les modules construits depuis les sources du commit testé, sans attendre le commit automatique. Les fixtures Chromium ne sont pas une exécution Home Assistant ou Safari/iOS.
+
+## Build automatique GitHub
+
+Le workflow [Build module distributions](../.github/workflows/build.yml) démarre après un push qui modifie un fichier `**/src/**`, un script de build, `package.json`, `package-lock.json` ou le workflow lui-même. Il fonctionne sur les branches du dépôt, y compris `main`, et peut aussi être lancé manuellement depuis l'onglet Actions.
+
+Il installe les dépendances, reconstruit les dix modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
+
+Les builds d'une même branche sont sérialisés. Si un autre commit arrive pendant le build, le script reprend la dernière révision et reconstruit avant de retenter le push, au maximum trois fois, sans push forcé. La publication utilise le `GITHUB_TOKEN` du job avec `contents: write` ; les branches protégées conservent leurs règles. Aucun secret supplémentaire n'est requis. Les commits du bot limités à `dist` ne correspondent pas au filtre des sources ; GitHub ne déclenche pas non plus de nouveau workflow `push` pour un commit publié avec ce token ([documentation GitHub](https://docs.github.com/en/actions/concepts/security/github_token)).
+
+Les pull requests restent validées par la CI en lecture seule ; le workflow de publication s'exécute après un push sur une branche du dépôt, sans écrire dans un fork.
 
 ## Composition des sources
 

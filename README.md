@@ -47,7 +47,7 @@ The optional Signature theme supplies common CSS appearance variables; each modu
 
 ## Source maintenance
 
-All ten module YAML distributions are generated. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules`. Commit sources and regenerated distributions together; never edit `dist` directly. Installation paths and module IDs are unchanged.
+All ten module YAML distributions are generated. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
 
 ## Configuration
 
