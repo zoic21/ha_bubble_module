@@ -8,7 +8,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Flow — six configurable flow slots | 3.5.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.2.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
-| Signature Navigation — floating glass footer | 1.0.3 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
+| Signature Navigation — floating glass footer | 1.0.4 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.6.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Each module has its own folder: `dist` contains the complete YAML file to import, `doc` contains its documentation, and `test` contains its tests.
@@ -47,7 +47,7 @@ Signature Wind Rose replaces the button content with a time-weighted, 16-directi
 
 Weather, Wind Rose and Alert Manager also provide French module forms. Weather exposes all forecast/current settings and ten optional local sources with entity and attribute selectors. Wind Rose exposes sources, history, calm filtering and color. Alert Manager exposes card display, source sensors, colors/icons, activated packs and per-entity exceptions. Repeated pack/entity entries are converted to the existing keyed mappings, retaining inheritance and exclusions. Existing YAML configurations remain valid; automatic defaults are preserved and the visual forms rely on Bubble Card 3.4.1 object helpers.
 
-Signature Navigation styles a native `sub-buttons` footer with a directional glass rim and automatic active-dashboard selection. Icons and navigation actions remain in Bubble's native editor; mobile margins, blur and opacity have their own French module form. It uses a 64 px bar, 26 px icons, concentric selection corners and a visible neutral selection inherited from the light/dark theme. See the [six-route example](signature-navigation/examples/home.yaml) and remove the former navigation `styles` block when adopting it.
+Signature Navigation styles a native `sub-buttons` footer with a directional glass rim and automatic active-dashboard selection. Icons and navigation actions remain in Bubble's native editor; mobile margins, blur and opacity have their own French module form. It uses a 64 px bar, 26 px icons, concentric selection corners and a visible neutral selection inherited from the light/dark theme. The footer stays below Bubble popups and their backdrop so it cannot cover popup content or intercept clicks through the backdrop. See the [six-route example](signature-navigation/examples/home.yaml) and remove the former navigation `styles` block when adopting it.
 
 ## Signature theme
 

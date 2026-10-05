@@ -12,7 +12,7 @@ const example = YAML.parse(fs.readFileSync(path.join(root, 'signature-navigation
 const native = `
   ha-card { display:block; position:relative; font:14px/1.3 sans-serif; }
   .bubble-container { display:flex; position:relative; width:100%; box-sizing:border-box; overflow:hidden; border-radius:28px; }
-  ha-card.footer-mode { position:fixed; bottom:var(--bubble-footer-bottom,16px); --start:var(--bubble-content-inline-start,0px); }
+  ha-card.footer-mode { position:fixed; bottom:var(--bubble-footer-bottom,16px); --start:var(--bubble-content-inline-start,0px); z-index:5; }
   ha-card.footer-mode:not(.footer-full-width) { width:var(--bubble-footer-width,500px); left:calc(var(--start) + (100% - var(--start) - var(--bubble-footer-width,500px))/2); }
   @media(max-width:600px) { ha-card.footer-mode:not(.footer-full-width) { width:calc(100% - 16px); left:8px; } }
   ha-card.footer-mode .bubble-container { box-shadow:2px 2px 40px #0006; }
@@ -124,6 +124,43 @@ test('navigation preserves mobile margins, desktop sidebar centering and native 
     await page.evaluate(()=>window.nav.shadow.querySelector('.bubble-sub-button-2').classList.add('hidden'));
     const hidden=await page.evaluate(()=>getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-2')).display);
     assert.equal(hidden,'none');
+  }
+});
+
+test('popup and backdrop receive clicks above navigation, then navigation works after closing',async t=>{
+  for(const width of [390,1280])for(const mode of ['light','dark']){
+    const page=await fixture(t,{width,mode});
+    const points=await page.evaluate(()=>{
+      const center=selector=>{
+        const r=window.nav.shadow.querySelector(selector).getBoundingClientRect();
+        return {x:r.x+r.width/2,y:r.y+r.height/2};
+      };
+      return {first:center('.bubble-sub-button-1'),last:center('.bubble-sub-button-6')};
+    });
+    await page.mouse.click(points.first.x,points.first.y);
+    assert.deepEqual(await page.evaluate(()=>window.nativeClicks),['/lovelace/summary-home']);
+    await page.evaluate(()=>{
+      // Independent popup/backdrop roots, inserted before the footer so the
+      // native equal z-indices reproduce the footer painting over the popup.
+      const r=window.nav.card.getBoundingClientRect();
+      const host=document.createElement('div');document.body.prepend(host);
+      const shadow=host.attachShadow({mode:'open'});
+      shadow.innerHTML=`<style>
+        .bubble-backdrop {position:fixed;inset:0;z-index:4;background:#0006;}
+        .bubble-pop-up {position:fixed;left:${r.x}px;top:${r.y-40}px;width:${r.width/2}px;height:104px;z-index:5!important;background:var(--ha-card-background);}
+      </style><div class="bubble-backdrop"></div><div class="bubble-pop-up is-popup-opened"></div>`;
+      window.popupClicks=[];
+      shadow.querySelector('.bubble-pop-up').addEventListener('click',()=>window.popupClicks.push('popup'));
+      shadow.querySelector('.bubble-backdrop').addEventListener('click',()=>window.popupClicks.push('backdrop'));
+      window.popupHost=host;
+    });
+    await page.mouse.click(points.first.x,points.first.y);
+    await page.mouse.click(points.last.x,points.last.y);
+    assert.deepEqual(await page.evaluate(()=>window.popupClicks),['popup','backdrop']);
+    assert.deepEqual(await page.evaluate(()=>window.nativeClicks),['/lovelace/summary-home']);
+    await page.evaluate(()=>window.popupHost.remove());
+    await page.mouse.click(points.last.x,points.last.y);
+    assert.deepEqual(await page.evaluate(()=>window.nativeClicks),['/lovelace/summary-home','/dashboard-serveur/summary']);
   }
 });
 

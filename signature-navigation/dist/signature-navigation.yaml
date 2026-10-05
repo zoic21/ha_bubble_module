@@ -1,6 +1,6 @@
 signature_navigation:
   name: Signature Navigation
-  version: 1.0.3
+  version: 1.0.4
   creator: Loïc
   supported:
   - sub-buttons
@@ -74,6 +74,10 @@ signature_navigation:
       -webkit-backdrop-filter: blur(${blur}px) saturate(180%) !important;
       box-shadow: 0 4px 16px rgb(0 0 0 / .10) !important;
       font-family: var(--signature-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    }
+    /* Below Bubble's backdrop (4) and popup (5), above dashboard content. */
+    ha-card.footer-mode:not(.editor) {
+      z-index: 3 !important;
     }
     .bubble-container {
       display: flex;

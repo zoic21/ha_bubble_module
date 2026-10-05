@@ -1,6 +1,6 @@
 # Signature Navigation
 
-Version **1.0.3**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+Version **1.0.4**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
 
 ## Installation
 
@@ -73,6 +73,12 @@ The first native `navigate` action whose destination has the same dashboard segm
 
 No `css_class`, fixed route list or entity is required. Selection uses Bubble's numbered sub-button classes for the flat bottom row. The module does not rewrite configuration, replace buttons or install click handlers. When a route changes, Bubble evaluates the module again as part of the card lifecycle; there is no extra route listener, entity subscription, polling or timer.
 
+## Popups
+
+Outside the card editor, the footer uses `z-index: 3`, below Bubble's backdrop (`4`) and popup content (`5`). Bubble's native footer uses the same level as its popups; with some card orders it covers popup content and receives clicks above the backdrop. The module corrects that stacking order automatically, using CSS only.
+
+Popup content covers the bar where they overlap, and the backdrop covers the remaining bar and receives outside clicks. The bar is usable again when the popup closes. This does not remove the footer from the DOM or hide it completely behind a translucent backdrop. There is no new setting, popup/hash detection or extra listener. The editor preview keeps its native positioning. Updating the imported module is sufficient; existing dashboard YAML and the theme do not need changes.
+
 ## Shared appearance and corners
 
 - Surface: `signature-card-background`, then `ha-card-background`, then `card-background-color`, then white.
@@ -94,9 +100,15 @@ npm run test:signature-navigation
 npm run test:styles
 ```
 
-Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, 26 px icon bounds, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. They also check neutral selection/focus colors, translucency, a visible composed selection fill and stronger active-icon contrast in light and dark palettes, with and without the Signature theme, changing modes on the same nodes without rerendering. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
+Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, 26 px icon bounds, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. They also check neutral selection/focus colors, translucency, a visible composed selection fill and stronger active-icon contrast in light and dark palettes, with and without the Signature theme, changing modes on the same nodes without rerendering. Popup/backdrop fixtures in independent shadow roots check real pointer clicks in mobile/desktop widths and light/dark modes: popup content and the backdrop receive clicks above the footer, and native navigation clicks work before opening and after removing the popup. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
 
 ## Changelog
+
+### 1.0.4
+
+- Placed the navigation footer below Bubble popup content and its backdrop, avoiding overlapping content and intercepted outside clicks regardless of their relative DOM order.
+- Used a scoped CSS stacking correction with no popup detection or added runtime listeners. Existing dashboards only need the imported module updated.
+- Added Chromium pointer-click coverage for popup/backdrop overlays and restored navigation in mobile/desktop widths and light/dark modes.
 
 ### 1.0.3
 
