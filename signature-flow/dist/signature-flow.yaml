@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 3.5.0
+  version: 3.5.1
   creator: Loïc
   supported:
     - button
@@ -423,6 +423,19 @@ signature_flow:
               }
               return;
             }
+            const Group = customElements.get('ha-form-bc_group');
+            if (Group && !customElements.get('ha-form-signature_group')) {
+              customElements.define('ha-form-signature_group',class extends Group {
+                createRenderRoot() {
+                  const root = super.createRenderRoot();
+                  const style = document.createElement('style');
+                  style.textContent = ':host ha-expansion-panel{--ha-card-border-radius:inherit;border-radius:var(--ha-card-border-radius,var(--ha-border-radius-lg))}';
+                  root.append(style);
+                  return root;
+                }
+              });
+            }
+            const groupType = customElements.get('ha-form-signature_group') ? 'signature_group' : 'bc_group';
             if (!this._engine) {
               // Use Bubble's schema/default/event logic, without mounting its item UI.
               this._engine = document.createElement('ha-selector-bc_object');
@@ -446,7 +459,7 @@ signature_flow:
             // Missing slots stay absent until explicitly enabled; existing slots default on.
             if (this.schema.slot) data.enabled = Boolean(this.data && this.data.enabled !== false);
             const expand = entries => entries.map(field => {
-              if (field.schema) return {...field,schema:expand(field.schema)};
+              if (field.schema) return {...field,type:field.type === 'bc_group' ? groupType : field.type,schema:expand(field.schema)};
               const meta = this.schema.fields[field.name];
               if (meta?.fields) {
                 const {selector,...rest} = field;
@@ -486,7 +499,7 @@ signature_flow:
       // End Signature Flow editor bridge.
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '3.5.0';
+      const version = '3.5.1';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';

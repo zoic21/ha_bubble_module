@@ -34,6 +34,66 @@ const style = (result, id, selector) => {
 const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
 
+test('Signature editor sections follow native expansion-panel radii across live theme changes',async t => {
+  const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
+  const definitions=['signature','signature-flow'].map(name=>Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0]);
+  const modules=definitions.map(definition=>{
+    const start=definition.code.indexOf('// Signature'),end=definition.code.indexOf('// End Signature');
+    return {bootstrap:definition.code.slice(start,end),schema:definition.editor.find(field=>field.fields)};
+  });
+  const page=await fixture(t);
+  const result=await page.evaluate(async modules=>{
+    // Audited CSS roles from Bubble 3.4.1's bc_group and HA's expansion panel.
+    customElements.define('ha-expansion-panel',class extends HTMLElement {
+      constructor(){super();const root=this.attachShadow({mode:'open'});root.innerHTML='<style>:host{display:block} :host([outlined]),.top{border-radius:var(--ha-card-border-radius,var(--ha-border-radius-lg))} :host([expanded]) .top{border-bottom-left-radius:0;border-bottom-right-radius:0}</style><div class="top">Section</div>';}
+    });
+    const groupCSS='ha-expansion-panel{border-radius:6px;--ha-card-border-radius:6px}';
+    const groupSheet=new CSSStyleSheet();groupSheet.replaceSync(groupCSS);
+    customElements.define('ha-form-bc_group',class extends HTMLElement {
+      createRenderRoot(){
+        const root=this.attachShadow({mode:'open'});
+        if(this.hasAttribute('fallback-style')){const style=document.createElement('style');style.textContent=groupCSS;root.append(style);}
+        else root.adoptedStyleSheets=[groupSheet];
+        return root;
+      }
+      connectedCallback(){const root=this.createRenderRoot();this.panel=document.createElement('ha-expansion-panel');this.panel.setAttribute('outlined','');root.append(this.panel);}
+    });
+    customElements.define('ha-selector-bc_object',class extends HTMLElement {
+      _itemFormData(value){return {...value};}
+      _generateSchema(){return [{name:'bc_group_0',type:'bc_group',flatten:true,schema:[]}];}
+      _computeLabel(){return '';}_computeHelper(){return '';}
+    });
+    const container=document.createElement('div');document.body.append(container);
+    for(const module of modules){new Function(module.bootstrap)();const form=document.createElement('ha-form-'+module.schema.type);Object.assign(form,{schema:module.schema,data:{},hass:{states:{}}});container.append(form);}
+    await Promise.resolve();
+    const editors=[...container.children].map(form=>form._form.schema[0].type);
+    const native=document.createElement('ha-expansion-panel');native.setAttribute('outlined','');container.append(native);
+    const base=document.createElement('ha-form-bc_group');container.append(base);
+    const styled=document.createElement('ha-form-signature_group');container.append(styled);
+    const fallback=document.createElement('ha-form-signature_group');fallback.setAttribute('fallback-style','');container.append(fallback);
+    const read=panel=>({radius:getComputedStyle(panel).borderTopLeftRadius,top:getComputedStyle(panel.shadowRoot.querySelector('.top')).borderTopLeftRadius,bottom:getComputedStyle(panel.shadowRoot.querySelector('.top')).borderBottomLeftRadius});
+    const snapshots=[];
+    for(const radius of ['22px','17px',null]){
+      container.style.setProperty('--ha-border-radius-lg','12px');
+      if(radius)container.style.setProperty('--ha-card-border-radius',radius);else container.style.removeProperty('--ha-card-border-radius');
+      for(const expanded of [false,true]){
+        for(const panel of [native,styled.panel,fallback.panel])panel.toggleAttribute('expanded',expanded);
+        snapshots.push({radius:radius||'12px',expanded,native:read(native),styled:read(styled.panel),fallback:read(fallback.panel),base:read(base.panel)});
+      }
+    }
+    return {editors,snapshots,renderInherited:Object.getPrototypeOf(customElements.get('ha-form-signature_group').prototype)===customElements.get('ha-form-bc_group').prototype};
+  },modules);
+  assert.deepEqual(result.editors,['signature_group','signature_group']);
+  assert.equal(result.renderInherited,true);
+  for(const snapshot of result.snapshots){
+    assert.deepEqual(snapshot.styled,snapshot.native);
+    assert.deepEqual(snapshot.fallback,snapshot.native,'Lit style-tag fallbacks must match adopted stylesheets');
+    assert.equal(snapshot.styled.radius,snapshot.radius);
+    assert.equal(snapshot.styled.bottom,snapshot.expanded?'0px':snapshot.radius);
+    assert.equal(snapshot.base.radius,'6px','Other Bubble forms must retain their own styles');
+  }
+});
+
 test('Flow inline editor keeps one root label and hides nested labels in the browser',async t => {
   const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
   const definition=YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-flow/dist/signature-flow.yaml'),'utf8')).signature_flow;

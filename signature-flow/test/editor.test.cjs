@@ -44,6 +44,7 @@ function environment() {
   }
   const customElements={get:name=>registry.get(name),define:(name,Class)=>registry.set(name,Class)};
   customElements.define('ha-selector-bc_object',Engine);
+  customElements.define('ha-form-bc_group',class extends Element {});
   const document={createElement(name){const element=new (registry.get(name)||Element)();element.tag=name;return element;}};
   const context=vm.createContext({HTMLElement:Element,customElements,document,CustomEvent,queueMicrotask:fn=>queue.push(fn)});
   vm.runInContext(bootstrap,context);
@@ -80,7 +81,8 @@ test('Flow editor opens directly and converts nested scopes inside their existin
   for(const field of nested){assert.equal(field.type,'signature_flow_options');assert.equal(Object.hasOwn(field,'selector'),false);assert.equal(field.show_label,false);}
   const slotForm=env.create(nested.find(field=>field.name==='slots'),{});
   assert.equal(slotForm._form.schema.length,6);
-  assert.ok(slotForm._form.schema.every(group=>group.type==='bc_group'&&group.schema.length===1));
+  assert.ok(slotForm._form.schema.every(group=>group.type==='signature_group'&&group.schema.length===1));
+  assert.ok(slotForm._form.schema.every(group=>group.flatten&&group.name.startsWith('bc_group_')),'Grouping must preserve the native flat data path');
   for(const field of flatten(slotForm._form.schema)){assert.equal(field.type,'signature_flow_options');assert.equal(field.slot,true);}
   assert.deepEqual(env.create(schema,{}, {card_type:'cover'})._form.schema,[]);
   assert.deepEqual(env.create(schema,{}, {card_type:'button',button_type:'slider'})._form.schema,[]);
@@ -101,7 +103,11 @@ test('opening absent slots creates no data and shows disabled, existing slots de
 
 test('Flow fields follow enablement, animation and entity versus template formatting',()=>{
   const env=environment(),schema={...slots[1],slot:true};
-  const visible=data=>flatten(env.create(schema,data)._form.schema).map(field=>field.name);
+  const visible=data=>{
+    const form=env.create(schema,data);
+    assert.ok(form._form.schema.filter(field=>field.schema).every(field=>field.type==='signature_group'),'Appearance, formatting, flow, animation and action sections must all use native panel corners');
+    return flatten(form._form.schema).map(field=>field.name);
+  };
   const direct=visible({primary:'sensor.power',secondary:'sensor.battery'});
   for(const key of ['primary_scale','primary_precision','secondary_scale','secondary_precision','flow_entity','animation'])assert.ok(direct.includes(key),key);
   const template=visible({primary:"{{ states('sensor.power') }}",secondary:'Fixed text'});

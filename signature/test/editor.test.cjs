@@ -99,3 +99,21 @@ test('inline editor handles late Bubble selector loading and reconnects with fre
   assert.equal(form._form.data.layout,'room');
   assert.ok(form._form.schema.some(field=>field.name === 'room_control_columns'));
 });
+
+test('editor groups inherit native behavior and retain flat paths and warning metadata',()=>{
+  const env=environment();
+  class NativeGroup {
+    render(){return 'native-group';}
+  }
+  env.customElements.define('ha-form-bc_group',NativeGroup);
+  const warnings={controls:'warning'};
+  env.Engine.prototype._generateSchema=()=>[{name:'bc_group_0',type:'bc_group',flatten:true,title:'Commandes',warnings,schema:[{name:'controls',selector:{select:{}}}]}];
+  const form=env.create({layout:'square'},{card_type:'button'});
+  const Styled=env.customElements.get('ha-form-signature_group');
+  assert.ok(Styled.prototype instanceof NativeGroup);
+  assert.equal(Styled.prototype.render,NativeGroup.prototype.render,'The native rendering and warnings must not be replaced');
+  const [group]=form._form.schema;
+  assert.equal(group.type,'signature_group');assert.equal(group.flatten,true);
+  assert.equal(group.name,'bc_group_0');assert.equal(group.warnings,warnings);
+  assert.equal(group.schema[0].name,'controls');
+});

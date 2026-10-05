@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.3.2**. [Complete file to import](../dist/signature.yaml).
+Version **2.3.3**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -34,6 +34,8 @@ Place `signature` at the card's root, at the same level as `entity` and `modules
 The form uses French labels. Settings appear directly under **Modules → Signature**, with a single presentation dropdown and no object-item header or root-object delete button. Presentation, accent color and secondary text appear when applicable; the other settings are grouped in collapsible sections for values/text, controls/sub-buttons, square tiles, rooms and advanced appearance. The main entity and native sub-buttons/actions are still configured in Bubble's own editor.
 
 The anonymous form (`name: ''`, `type: signature_options`) edits the existing keys directly under `signature`, without introducing a nested object or list. A small component registered by the module renders a native `ha-form` and delegates schema generation, defaults and value changes to a detached Bubble object selector. Its redundant outer panel is never mounted. Bubble's `group` metadata creates collapsible sections and removes sections whose fields are all hidden. Its `visible_if` expressions inspect both the current module settings (`item`) and the native card configuration (`card`). The bridge relies on Bubble's object-selector helpers, validated against 3.4.1; versions without those helpers are unsupported. Hidden settings stay in the configuration, so switching layouts does not delete previous room/square settings. Reload the page after importing this update if an editor is already open.
+
+Collapsible sections inherit Home Assistant's native panel radius (`ha-card-border-radius`, then `ha-border-radius-lg`) instead of Bubble's object-group fixed 6 px radius. The same scoped group component is used by Signature Flow. It retains native grouping, warnings and events, follows live theme changes and does not change other Bubble forms.
 
 The form follows the same effective-layout rules as the renderer: square and room are button layouts, cover/climate/switch cards stay compact, and header falls back to compact unless the button type is name. Section titles expose the layout control; media players expose only color/background. Numeric controls are offered only for compact state buttons linked to number/input_number entities. The square detail-row reservation appears only with measure controls, and room header-measure positioning appears only when main/secondary text leaves that space available. Incompatible layout or control choices show a warning instead of rewriting the card.
 
@@ -318,6 +320,11 @@ The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.3.3 — 5 October 2026
+
+- Aligns editor section corners with the native Home Assistant panels and theme, including live radius changes.
+- Retains Bubble's grouped-field renderer, warnings and flat configuration without changing other forms or displayed cards.
 
 ### 2.3.2 — 5 October 2026
 

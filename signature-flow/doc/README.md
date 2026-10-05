@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.1**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -23,6 +23,8 @@ Conditional groups follow the actual renderer. Disabled slots show only their en
 Blank per-slot animation values inherit each global setting separately; they do not get replaced by module defaults. A slot with only `animation.reference: 20` keeps its global speed and maximum arrow count. Other defaults and inheritance are described next to their fields. Switches display the effective defaults; opening the form writes nothing. Editing a slot can store equivalent default booleans (`enabled: true`, `animate: true`, `invert_flow: false`). False values, numeric zero, hidden settings, templates and explicit action objects are retained.
 
 The module registers its editor component once and reuses Bubble Card's object-field schema, condition/group and value-change helpers in native `ha-form` elements. Nested forms edit `slots` and `animation` in their existing scopes; object-item shells are never mounted. This path is validated against Bubble Card 3.4.1 and relies on those helpers. No observer, polling or subscription is added to displayed cards for the editor. Reimport the complete distribution and reload the page when updating an already open editor.
+
+Section corners follow the native Home Assistant panel radius (`ha-card-border-radius`, then `ha-border-radius-lg`) instead of the object group's fixed 6 px radius. Signature uses the same scoped component; native group warnings, fields and events remain intact. Radius changes follow the theme directly in CSS, without changing other Bubble forms.
 
 ## Slots and layout
 
@@ -233,6 +235,11 @@ Run `npm run test:signature-flow` or `npm test` from the repository root. Tests 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
 
 ## Release notes
+
+### 3.5.1 — 5 October 2026
+
+- Aligns editor section corners with native Home Assistant panels and live theme variables, matching Signature.
+- Preserves nested scopes, fields and warnings; the diagram's rendering and other Bubble forms are unchanged.
 
 ### 3.5.0 — 5 October 2026
 
