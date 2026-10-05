@@ -77,13 +77,17 @@ async function headerGeometry(page) {
   const root = document.querySelector('[data-id="header"]').shadowRoot;
   const container = root.querySelector('.bubble-sub-button-container');
   const rect = container.getBoundingClientRect();
+  const titleRange = document.createRange();
+  titleRange.selectNodeContents(root.querySelector('.bubble-name'));
   const read = element => {
    const box = element.getBoundingClientRect();
    return {left:box.left-rect.left,right:box.right-rect.left,top:box.top-rect.top,width:box.width,height:box.height};
   };
   return {
    cardWidth:root.querySelector('ha-card').getBoundingClientRect().width,
+   cardRight:read(root.querySelector('ha-card')).right,
    container:read(container),title:read(root.querySelector('.bubble-name')),
+   titleTextWidth:titleRange.getBoundingClientRect().width,
    justification:getComputedStyle(container).justifyContent,
    buttons:[...container.querySelectorAll('.bubble-sub-button:not(.hidden)')].filter(element=>element.getClientRects().length).map(read),
    hidden:container.querySelector('.hidden').getBoundingClientRect().width,
@@ -160,6 +164,45 @@ test('mobile room header gives three short pills equal widths and adapts to long
  }
 });
 
+test('mobile header keeps one or two inline pills at their natural widths and expands the complete group below', async t => {
+ const page = await fixture(t, {hasTouch:true});
+ for (const mode of ['light','dark']) for (const plain of [false,true]) for (const grouped of [false,true]) for (const count of [1,2]) {
+  await page.setViewportSize({width:402,height:1400});
+  await headerButtons(page,{mode,plain,width:382,nameText:'RDC'},grouped);
+  const widths = count===1 ? [158] : [72,158];
+  await page.evaluate(({widths,count}) => {
+   const root = document.querySelector('[data-id="header"]').shadowRoot;
+   const buttons = [...root.querySelectorAll('.bubble-sub-button:not(.hidden)')];
+   buttons.slice(count).forEach(button=>button.remove());
+   buttons.slice(0,count).forEach((button,i)=>{
+    button.style.width = '';button.style.whiteSpace = 'nowrap';
+    const content=button.firstElementChild;
+    content.style.width=(widths[i]-20)+'px';
+    content.textContent=count===2 && i===0 ? 'Éteint' : "À la station d'accueil";
+   });
+  },{widths,count});
+  const inline = geometry => {
+   assert.ok(geometry.buttons.every(button=>button.top<geometry.title.top+geometry.title.height && geometry.title.top<button.top+button.height),'all pills must fit beside the title');
+   assert.ok(geometry.buttons.every((button,i)=>Math.abs(button.width-widths[i])<0.1),'inline pills must retain their natural widths');
+   assert.ok(Math.abs(geometry.container.width-(widths.reduce((sum,width)=>sum+width,0)+8*(count-1)))<0.1,'inline group must not absorb spare card width');
+   assert.ok(Math.abs(geometry.container.right-geometry.cardRight)<0.1,'inline group must align to the right edge');
+   assert.ok(geometry.container.left-geometry.title.right>=24-0.1,'title clearance must remain at least 24px');
+  };
+  const original = await headerGeometry(page);inline(original);
+  const required = original.titleTextWidth+24+original.container.width;
+  const setWidth = width => page.locator('[data-id="header"]').evaluate((shell,width)=>shell.style.width=width+'px',width);
+  await setWidth(required-0.5);
+  const below = await headerGeometry(page);
+  assert.ok(below.buttons.every(button=>button.top>=below.title.top+below.title.height+12-0.1),'the entire group must move below when clearance is lost');
+  assert.ok(Math.abs(below.container.width-below.cardWidth)<0.1,'wrapped group must fill the available width');
+  assert.ok(below.buttons.some((button,i)=>button.width>widths[i]+1),'pills must grow when the group is below the title');
+  assert.ok(Math.abs(below.buttons[0].left)<0.1 && Math.abs(below.buttons.at(-1).right-below.container.width)<0.1,'wrapped pills must fill both row edges');
+  if(count===2) assert.ok(Math.abs(below.buttons[1].left-below.buttons[0].right-8)<0.1,'wrapped pills must keep a fixed 8px gap');
+  await setWidth(required+0.5);inline(await headerGeometry(page));
+  await setWidth(382);assert.deepEqual(await headerGeometry(page),original,'resizing must restore natural widths without module execution');
+ }
+});
+
 test('mobile header moves the entire button group below the title before losing its 24px clearance', async t => {
  const page = await fixture(t, {hasTouch:true});
  for (const mode of ['light','dark']) for (const plain of [false,true]) for (const grouped of [false,true]) {
@@ -188,7 +231,7 @@ test('mobile header moves the entire button group below the title before losing 
   assert.ok(Math.abs(original.buttons.at(-1).right-original.container.right)<1,'group must align to the right edge');
 
   // Cross the exact fit boundary on the same DOM: no module execution or JS measurement in the module.
-  const required = original.title.width+24+72+8+158;
+  const required = original.titleTextWidth+24+72+8+158;
   const setWidth = width => page.locator('[data-id="header"]').evaluate((shell,width)=>shell.style.width=width+'px',width);
   await setWidth(required-0.5);
   below(await headerGeometry(page));

@@ -49,7 +49,10 @@ ha-card[data-dp-layout="header"] .bubble-wrapper {
 display: flex !important; flex-wrap: wrap; column-gap: 24px; row-gap: 12px;
 }
 ha-card[data-dp-layout="header"] .bubble-content-container:not(.hidden):not([hidden]) {
-display: flex !important; align-items: center; flex: 0 0 auto;
+/* Absorb spare inline space into the title rather than stretching the pills.
+   Below it, the button group is alone on its flex line and grows to full width.
+   At mobile widths this ratio leaves less than .01px of spare inline growth. */
+display: flex !important; align-items: center; flex: 100000 0 auto;
 width: max-content; max-width: 100%; padding: 0 !important; margin: 0 !important;
 }
 ha-card[data-dp-layout="header"] .bubble-sub-button-container {
