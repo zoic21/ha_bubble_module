@@ -37,5 +37,5 @@ if (c.card_type === 'separator') {
       margin-inline-start: auto !important;
       flex-shrink: 0;
     }
-  `;
+  ` + styles.map(({cls,b,spec,thresholdScale}) => subThresholdCSS('ha-card .'+cls,b,spec,thresholdScale)).join('');
 }

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.1.4**, **Square, Room et Header 1.0.4**, **Signature Flow 3.5.5**, **Signature Weather 1.3.3**, **Signature Wind Rose 1.2.3** et **Signature Navigation 1.0.7**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.2.0**, **Square et Header 1.1.0**, **Room 1.0.4**, **Signature Flow 3.5.5**, **Signature Weather 1.3.3**, **Signature Wind Rose 1.2.3** et **Signature Navigation 1.0.7**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -14,7 +14,7 @@ Weather 1.3.3, Wind Rose 1.2.3 et Alert Manager 3.6.2 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.1.4** et **Square, Room et Header 1.0.4** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.2.0** et **Square et Header 1.1.0**, **Room 1.0.4** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -137,6 +137,14 @@ Ne pas modifier une taille sans vérifier la hauteur de ligne, la ligne de grill
 Le thème Signature ne remplace aucune couleur globale de Home Assistant : conserver les fonds de page, surfaces, textes, accents, en-tête et barre latérale natifs. Il ajuste la typographie, les arrondis et l'ombre des cartes natives. Ses variables Bubble globales ajustent seulement les arrondis ; ne pas y ajouter un fond, une bordure ou une ombre qui s'appliquerait aussi aux séparateurs. Hors thème, conserver les replis de la section 1. Le fond des groupes de période utilise `signature-control-background`, puis un mélange de 5 % de texte primaire dans la surface neutre. Leur onglet sélectionné reprend la surface de carte.
 
 Le fond d'icône Signature et Flow mélange 16 % de l'accent dans la surface neutre. Les options explicites de couleur et de teinte restent fonctionnelles. Les valeurs météo froides/chaudes utilisent `signature-weather-cool-color` (`#8bc3d2`) et `signature-weather-warm-color` (`#e9ac70`). La rose utilise `signature-wind-rose-color` (`#4db6ac`). Les couleurs des conditions météo et les alertes portent une information ; ne pas les remplacer uniformément par une couleur décorative.
+
+### Échelles numériques d’icône
+
+Compact et Square, sur une carte bouton, acceptent `color_thresholds.values` pour l’icône principale. Compact/Square/Header acceptent aussi des échelles par icône de sous-bouton, y compris les séparateurs Header. Appliquer les règles exclusivement à `.bubble-main-icon` ou `.bubble-sub-button-icon` : ne pas recolorer valeur, fond, accent de la carte, interrupteur visuel ou badge Alert Manager. Room et les couleurs d’activité du thermostat restent indépendants.
+
+Les points opaques explicites `#RGB`, `#RRGGBB` ou `rgb(r,g,b)` utilisent l’interpolation linéaire RGB avec arrondis de Statistics Graph Chart Card, indépendante du cadrage. Deux couleurs égales délimitent une plage constante ; les extrémités sont conservées hors de l’échelle. Les données invalides prennent `secondary-text-color`, maintenu dans le CSS. Les couleurs manuelles gardent la priorité. Préparer les points au changement de configuration et garder les lectures d’entité hors cache, sans lecture des styles, abonnement, observateur, polling ou historique supplémentaire. Voir le [guide de configuration](signature-shared/doc/COLOR_THRESHOLDS.md).
+
+Les fixtures Chromium comparent les couleurs aux points de référence du graphique dans les deux modes, avec/sans thème, et vérifient les nœuds, dimensions, surfaces et actions. Les valeurs moyennées d’un graphique et un état instantané peuvent différer ; la correspondance est définie à valeur égale.
 
 ## 4. Arrondis et contrôles
 

@@ -1,5 +1,5 @@
 name: Signature Header
-version: 1.0.4
+version: 1.1.0
 creator: Loïc
 supported:
   - button
@@ -55,5 +55,5 @@ editor:
           object: {}
         group: Commandes et sous-boutons
         group_icon: mdi:gesture-tap-button
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
-        description: Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles.
+        visible_if: (!card || card.card_type === 'separator' || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
+        description: Objet YAML indexé par css_class ou numéro ; color_thresholds colore seulement l’icône, icon_color reste prioritaire. Les titres de section prennent en charge ces couleurs d’icône.

@@ -10,6 +10,7 @@ Les neuf modules du dépôt sont générés à partir de sources. Chaque YAML da
 | `shared/src/editor-group.js` | Groupes de formulaire et arrondis natifs pour tous les éditeurs concernés |
 | `shared/src/number-locales.js` | Correspondance des préférences numériques Home Assistant |
 | `shared/src/number-format.js` | Formatage localisé des présentations Signature |
+| `shared/src/color-thresholds.js` | Échelles numériques et interpolation RGB communes à Compact, Square et Header |
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
 | [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des huit modules Signature |
 | [signature-shared/src](../signature-shared/src) | Éditeur, comportements et composition CSS des quatre présentations Signature |

@@ -56,6 +56,7 @@ if (visualSwitches && !structure.switchCSS) {
 if (visualSwitches) css += structure.switchCSS;
 styles.forEach(({cls,b,spec,visualSwitch,lock}) => {
   const opacity = paint('ha-card .'+cls,b,spec,layout === 'room' && o.room_auto_colors !== false && roleSet.has(b));
+  if (layout !== 'room' && !visualSwitch) css += subThresholdCSS('ha-card .'+cls,b,spec,structure.thresholdScales.get(spec));
   if (spec.type === 'mode' && layout === 'compact'
       && (!b.sub_button_type || b.sub_button_type === 'default')) {
     css += `

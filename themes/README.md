@@ -124,3 +124,7 @@ Ces quatre variables sont utilisées par Signature Header, sans modifier l’anc
 ## Maintenance des modules
 
 Toutes les distributions Bubble sont désormais générées depuis leurs sources et les [fonctions communes](../shared/README.md). Le thème reste un fichier YAML directement modifiable ; ses variables CSS sont conservées dans le code généré et résolues à l’exécution par le navigateur.
+
+## Numeric icon colors
+
+Compact 1.2.0, Square 1.1.0 and Header 1.1.0 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Explicit opaque RGB/hex colors are interpolated independently of the theme to match graph colors. Only icons change; text, surfaces and alert badges keep their own roles. Unavailable sources use the live `--secondary-text-color` token. Existing manual CSS/Jinja colors remain available and take priority; threshold points do not read theme variables in JavaScript.

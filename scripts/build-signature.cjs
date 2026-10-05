@@ -16,7 +16,7 @@ async function build(layout) {
   const supported = layout === 'compact'
     ? "['button','cover','climate'].includes(kind) && c.button_type !== 'slider'"
     : layout === 'header'
-      ? "kind === 'button' && c.button_type === 'name'"
+      ? "kind === 'separator' || (kind === 'button' && c.button_type === 'name')"
       : "kind === 'button' && !['switch','slider'].includes(c.button_type)";
   const chunks = [shared('editor'), `
     const c = this.config;
@@ -25,14 +25,15 @@ async function build(layout) {
     const kind = c.card_type || 'button';
     const tileEnabled = root && (${supported});
   `, shared('lifecycle')];
-  if (layout === 'header') chunks.push(specific(layout, 'title'));
   // Media uses Compact's theme styling without creating a tile runtime or
   // transforming Bubble's artwork, controls and native dimensions.
   chunks.push(layout === 'compact'
     ? "if (!tileEnabled && !(root && kind === 'media-player')) return '';"
     : "if (!tileEnabled) return '';", shared('helpers'));
   if (layout === 'compact') chunks.push(specific(layout, 'media'));
+  if (layout !== 'room') chunks.push(shared('color-thresholds'));
   chunks.push(shared('structure'));
+  if (layout === 'header') chunks.push(specific(layout, 'title'));
   if (layout !== 'header') {
     chunks.push(shared('value-config'));
     chunks.push(layout === 'compact' ? specific(layout, 'number') : 'const numberEnabled = false;');

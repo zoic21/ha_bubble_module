@@ -2,7 +2,8 @@
 let structure = this._dpStructure;
 if (!structure || structure.config !== c || structure.options !== c.signature
     || structure.sub !== c.sub_button || structure.main !== c.sub_button?.main
-    || structure.bottom !== c.sub_button?.bottom || structure.overrides !== o.sub_button_styles) {
+    || structure.bottom !== c.sub_button?.bottom || structure.overrides !== o.sub_button_styles
+    || (layout !== 'room' && structure.thresholdOptions !== o.color_thresholds)) {
   const flat = [];
   // Bubble 3.4 numbers explicit groups before individual buttons in each section.
   // This differs from visual/YAML order when both kinds are mixed.
@@ -33,13 +34,20 @@ if (!structure || structure.config !== c || structure.options !== c.signature
       && ['lock.lock','lock.unlock'].includes(b.tap_action.perform_action);
     const toggle = b.tap_action?.action === 'toggle'
       && ['switch','input_boolean','light','automation','humidifier'].includes(domain);
-    return {cls,spec,b,visualSwitch:spec.type === 'switch'
+    const style = {cls,spec,b,visualSwitch:spec.type === 'switch'
       && (!b.sub_button_type || b.sub_button_type === 'default') && (lock || toggle),lock};
+    if (layout !== 'room') style.thresholdScale = prepareColorThresholds(spec.color_thresholds);
+    return style;
   });
   structure = this._dpStructure = {config:c,options:c.signature,sub,main:sub?.main,bottom:sub?.bottom,overrides:o.sub_button_styles,
     flat,styles,hasSwitches:styles.some(style => style.visualSwitch),
     styledButtons:new Set(styles.map(style => style.b)),roleSet:new Set(roles),
     roles:roles.map(b => ({b,selector:'ha-card .'+normalize(b.css_class)}))};
+  if (layout !== 'room') {
+    structure.thresholdOptions = o.color_thresholds;
+    structure.thresholdScale = prepareColorThresholds(o.color_thresholds);
+    structure.thresholdScales = new Map(styles.map(style => [style.spec,style.thresholdScale]));
+  }
 }
 const {flat,styles,roleSet} = structure;
 const {iconOverrides,restoreIcon,restoreAction} = runtime;
