@@ -1,3 +1,5 @@
+const {loadModule}=require('../../shared/test/module.cjs');
+const {editorEnvironment}=require('../../shared/test/editor-environment.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -6,7 +8,7 @@ const {test} = require('node:test');
 const YAML = require('yaml');
 const {build, layouts} = require('../../scripts/build-signature.cjs');
 const root = path.resolve(__dirname, '../..');
-const definitions = Object.fromEntries(layouts.map(layout => [layout, YAML.parse(fs.readFileSync(path.join(root, 'signature-' + layout + '/dist/signature-' + layout + '.yaml'), 'utf8'))['signature_' + layout]]));
+const definitions = Object.fromEntries(layouts.map(layout => [layout, loadModule('signature-'+layout)]));
 
 // Exercise the actual distributions in a native-shaped DOM, without Home Assistant.
 const context = vm.createContext({...require('./dom.cjs'), Intl, setTimeout, clearTimeout});
@@ -106,9 +108,6 @@ test('Compact version replacement cancels old controls and observers before a de
 
 test('Room version replacement restores the native temperature label and replaces its observer',t=>{
   const f=fixture('room',{}, {sub_button:{main:[{css_class:'room-temperature',entity:'sensor.demo'}]}});t.after(()=>f.ctx.teardown());
-  const query=f.ctx.card.querySelector.bind(f.ctx.card);
-  f.ctx.card.querySelector=selector=>selector==='.room-temperature .bubble-sub-button-name-container'
-    ? query('.room-temperature')?.querySelector('.bubble-sub-button-name-container') : query(selector);
   f.run();const old=f.ctx._signatureRoomRuntime,watch=f.ctx._signatureRoomRoomTemperatureWatch,label=watch.el,restore=watch.restore;
   let restored=false;watch.restore=()=>{restore();restored=label.children.length===0&&label.textContent==='22,5 °C';};
   assert.equal(label.children.length,2);delete old.version;f.run();
@@ -214,13 +213,7 @@ test('module forms expose only their useful fields and preserve mixed YAML types
 
 test('each standalone distribution registers a working flat editor on its own',()=>{
   for(const layout of layouts){
-    const registry=new Map(),queue=[];
-    class Element extends EventTarget {
-      constructor(){super();this.children=[];this.isConnected=false;}
-      append(...children){this.children.push(...children);}
-      attachShadow(){return this.shadowRoot=new Element();}
-      getRootNode(){return {host:{_config:this.card}};}
-    }
+    const {Element,registry,customElements,evaluate,flush}=editorEnvironment();
     class Engine extends Element {
       _itemFormData(value){return {...value};}
       _generateSchema(fields,item){return Object.entries(fields).filter(([,f])=>!f.visible_if||new Function('item','hass','card','return !!('+f.visible_if+');')(item,this.hass,this.getRootNode().host._config)).map(([name,f])=>({name,selector:f.selector}));}
@@ -228,22 +221,19 @@ test('each standalone distribution registers a working flat editor on its own',(
       _computeHelper(){return '';}
       _itemChanged(event){event.stopPropagation();this.dispatchEvent(new CustomEvent('value-changed',{detail:event.detail}));}
     }
-    registry.set('ha-selector-bc_object',Engine);
-    const customElements={get:key=>registry.get(key),define:(key,value)=>registry.set(key,value)};
-    const document={createElement:key=>{const element=new (registry.get(key)||Element)();element.tag=key;return element;}};
-    const env=vm.createContext({HTMLElement:Element,CustomEvent,document,customElements,queueMicrotask:fn=>queue.push(fn)});
-    const register=vm.runInContext('(function(){return `'+definitions[layout].code+'`;})',env);
+    customElements.define('ha-selector-bc_object',Engine);
+    const register=evaluate('(function(){return `'+definitions[layout].code+'`;})');
     register.call({config:{card_type:'pop-up'},card:null});
     const Form=registry.get('ha-form-signature_options');assert.ok(Form);
     const form=new Form(),original={color_background:false,icon_opacity:0,sub_button_styles:{'1':{opacity:0}},room_auto_colors:false,secondary:"{{ states('sensor.demo') }}"};
     Object.assign(form,{schema:definitions[layout].editor[1],data:original,hass:{states:{}},card:{card_type:'button',button_type:layout==='header'||layout==='room'?'name':'state',show_state:false,entity:'sensor.demo'}});
-    form.isConnected=true;form.connectedCallback();while(queue.length)queue.shift()();
+    form.isConnected=true;form.connectedCallback();flush();
     assert.equal(form._engine.isConnected,false);assert.ok(form._form.schema.every(field=>field.name!=='layout'));
     const changes=[];form.addEventListener('value-changed',event=>changes.push(event.detail.value));
     form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,color:'teal'}}}));
     assert.equal(changes.length,1);assert.deepEqual(JSON.parse(JSON.stringify(changes[0])),{...original,color:'teal'});
     if(layout==='compact'){
-      form.card={card_type:'media-player'};form._scheduleUpdate();while(queue.length)queue.shift()();
+      form.card={card_type:'media-player'};form._scheduleUpdate();flush();
       assert.deepEqual(JSON.parse(JSON.stringify(form._form.schema.map(field=>field.name))),['color','color_background']);
       form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,color:'orange'}}}));
       assert.deepEqual(JSON.parse(JSON.stringify(changes[1])),{...original,color:'orange'});

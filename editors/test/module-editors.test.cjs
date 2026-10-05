@@ -1,10 +1,10 @@
+const {loadModule}=require('../../shared/test/module.cjs');
+const {editorEnvironment}=require('../../shared/test/editor-environment.cjs');
 const assert=require('node:assert/strict');
-const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {test}=require('node:test');
-const YAML=require('yaml');
 const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
 const modules=['signature-weather','signature-wind-rose','alert_manager'].map(folder=>{
-  const definition=Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+folder+'/dist/'+folder+'.yaml'),'utf8')))[0];
+  const definition=loadModule(folder);
   return {folder,definition,schema:definition.editor.find(field=>field.fields),bootstrap:editorBootstrap(definition)};
 });
 const [weather,wind,alerts]=modules;
@@ -12,15 +12,7 @@ const flat=schema=>schema.flatMap(field=>field.schema?flat(field.schema):[field]
 const plain=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
 // Native-shaped fixtures cover editor events and stored values, not a live HA frontend.
 function environment({delayed=false,module}={}) {
-  const registry=new Map(),waiting=new Map(),queue=[];
-  class Element extends EventTarget {
-    constructor(){super();this.children=[];this.isConnected=false;this.attributes={};}
-    append(...children){this.children.push(...children);}
-    attachShadow(){return this.shadowRoot=new Element();}
-    setAttribute(key,value){this.attributes[key]=value;}
-    getRootNode(){return {host:{_config:this.card}};}
-    requestUpdate(){}
-  }
+  const {Element,registry,customElements,document,evaluate,flush}=editorEnvironment();
   class Engine extends Element {
     _itemFormData(value){
       const defaults={};
@@ -48,14 +40,10 @@ function environment({delayed=false,module}={}) {
       this.dispatchEvent(new CustomEvent('value-changed',{detail:{value:clean},bubbles:true,composed:true}));
     }
   }
-  const customElements={get:name=>registry.get(name),define(name,Class){registry.set(name,Class);waiting.get(name)?.();},whenDefined:name=>new Promise(resolve=>waiting.set(name,resolve))};
   if(!delayed)customElements.define('ha-selector-bc_object',Engine);
   customElements.define('ha-form-bc_group',class extends Element {});
-  const document={createElement(name){const element=new (registry.get(name)||Element)();element.tag=name;return element;}};
-  const context=vm.createContext({HTMLElement:Element,document,customElements,CustomEvent,queueMicrotask:fn=>queue.push(fn)});
-  const register=source=>vm.runInContext(source,context);
+  const register=evaluate;
   for(const item of module?[module]:modules)register(item.bootstrap);
-  const flush=()=>{while(queue.length)queue.shift()();};
   const create=(schema,data,card={card_type:'button',button_type:'state',entity:'weather.home'})=>{
     const form=document.createElement('ha-form-signature_module_options');
     Object.assign(form,{schema,data,card,hass:{states:{}},label:schema.label});form.isConnected=true;form.connectedCallback();flush();

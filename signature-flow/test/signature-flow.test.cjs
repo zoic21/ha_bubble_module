@@ -1,10 +1,11 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {test} = require('node:test');
 const YAML = require('yaml');
 const base = path.resolve(__dirname, '..');
-const definition = YAML.parse(fs.readFileSync(path.join(base,'dist/signature-flow.yaml'),'utf8')).signature_flow;
+const definition = loadModule('signature-flow');
 const render = new Function('hass','onTeardown','renderTemplate','return `'+definition.code+'`;');
 
 class Animation {
@@ -17,47 +18,13 @@ class Animation {
   play() {this.playState='running';}
   cancel() {this.playState='idle';this.currentTime=null;}
 }
-class Element {
-  constructor() {
-    this.children=[]; this.attrs=new Map(); this.dataset={}; this.listeners=new Map(); this.hidden=false; this.events=[];
-    const classes=this.classes=new Set();
-    this.classList={add:(...v)=>v.forEach(x=>classes.add(x)),contains:x=>classes.has(x),
-      toggle:(x,on)=>{if(on ?? !classes.has(x)) classes.add(x);else classes.delete(x);},remove:x=>classes.delete(x)};
-    const styles=this.styles=new Map();this.style={setProperty:(k,v)=>styles.set(k,v),getPropertyValue:k=>styles.get(k)||''};
-  }
-  setAttribute(k,v) {this.attrs.set(k,String(v));if(k==='class') this.classList.add(...v.split(' '));}
-  getAttribute(k) {return this.attrs.get(k) ?? null;}
-  removeAttribute(k) {this.attrs.delete(k);}
-  get textContent() {return (this._text||'')+this.children.map(c=>c.textContent).join('');}
-  set textContent(v) {this.children=[];this._text=String(v);}
-  append(...nodes) {nodes.forEach(n=>{n.parentElement=this;this.children.push(n);});}
-  appendChild(n) {this.append(n);return n;}
-  get childNodes() {
-    if (!this._text) return this.children;
-    const node=new Element();node._text=this._text;return [node,...this.children];
-  }
-  cloneNode() {
-    const clone=new Element();
-    for(const [key,value] of this.attrs) clone.setAttribute(key,value);
-    for(const cls of this.classes) clone.classList.add(cls);
-    for(const [key,value] of this.styles) clone.style.setProperty(key,value);
-    Object.assign(clone.dataset,this.dataset);clone.hidden=this.hidden;clone.style.fontSize=this.style.fontSize;
-    return clone;
-  }
-  replaceWith(next) {
-    const parent=this.parentElement;parent.children[parent.children.indexOf(this)]=next;next.parentElement=parent;
-  }
-  contains(n) {return this===n||this.children.some(c=>c.contains(n));}
-  remove() {this.parentElement.children=this.parentElement.children.filter(c=>c!==this);}
-  addEventListener(k,fn) {this.listeners.set(k,fn);}
-  removeEventListener(k) {this.listeners.delete(k);}
-  dispatchEvent(e) {this.events.push(e);}
+const {Element:BaseElement,createDocument}=require('../../shared/test/dom.cjs');
+class Element extends BaseElement {
   animate(_,timing) {return new Animation(timing);}
-  closest(selector) {return this.classList.contains(selector.slice(1)) ? this : this.parentElement?.closest(selector);}
   getBoundingClientRect() {return {left:0,right:468,top:0,bottom:280,width:468,height:280};}
 }
 const documentListeners=new Set();
-global.document={createElement:()=>new Element(),createElementNS:()=>new Element(),
+global.document={...createDocument(Element),
   addEventListener:(_,fn)=>documentListeners.add(fn),removeEventListener:(_,fn)=>documentListeners.delete(fn)};
 global.CSS={supports:(_,s)=>s!=='invalid'};
 global.ResizeObserver=class {constructor(fn){this.fn=fn;}observe(){}disconnect(){this.disconnected=true;}};

@@ -1,11 +1,11 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert=require('node:assert/strict');
 const {test}=require('node:test');
-const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
 const {fixture: browserFixture}=require('./browser.cjs');
 const {render}=require('./fixtures.cjs');
 const {readSource}=require('../../scripts/source-files.cjs');
 const names=['signature-compact','signature-flow','signature-wind-rose','alert_manager'];
-const codes=Object.fromEntries(names.map(name=>[name,Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0].code]));
+const codes=Object.fromEntries(names.map(name=>[name,loadModule(name).code]));
 async function fixture(t){
   const page=await browserFixture(t);await render(page,{mode:'dark',plain:true,width:600});
   await page.evaluate(codes=>{

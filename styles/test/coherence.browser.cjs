@@ -1,3 +1,4 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
 const {test} = require('node:test');
 const {fixture} = require('./browser.cjs');
@@ -16,9 +17,8 @@ const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'c
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
 
 test('Module editor sections follow native expansion-panel radii across live theme changes',async t => {
-  const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
   const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
-  const definitions=['signature-square','signature-compact','signature-room','signature-header','signature-flow','signature-weather','signature-wind-rose','alert_manager'].map(name=>Object.values(YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../'+name+'/dist/'+name+'.yaml'),'utf8')))[0]);
+  const definitions=['signature-square','signature-compact','signature-room','signature-header','signature-flow','signature-weather','signature-wind-rose','alert_manager'].map(name=>loadModule(name));
   const modules=definitions.map(definition=>({bootstrap:editorBootstrap(definition),schema:definition.editor.find(field=>field.fields)}));
   const page=await fixture(t);
   const result=await page.evaluate(async modules=>{
@@ -74,8 +74,7 @@ test('Module editor sections follow native expansion-panel radii across live the
 });
 
 test('Flow inline editor keeps one root label and hides nested labels in the browser',async t => {
-  const fs=require('node:fs'),path=require('node:path'),YAML=require('yaml');
-  const definition=YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-flow/dist/signature-flow.yaml'),'utf8')).signature_flow;
+  const definition=loadModule('signature-flow');
   const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
   const bootstrap=editorBootstrap(definition);
   const schema=definition.editor.find(field=>field.type==='signature_flow_options');
@@ -153,10 +152,7 @@ test('section titles stay transparent without borders or shadows in both modes',
 });
 
 test('shared switch CSS preserves independent tracks, opacity, actions and live themes', async t => {
-  const fs = require('node:fs');
-  const path = require('node:path');
-  const YAML = require('yaml');
-  const code = YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-compact/dist/signature-compact.yaml'),'utf8')).signature_compact.code;
+  const code = loadModule('signature-compact').code;
   const page = await fixture(t);
   await page.emulateMedia({reducedMotion:'reduce'});
   await render(page);
@@ -366,8 +362,7 @@ test('keyboard focus preserves themed period corners and visible 2px outlines', 
 
 test('signed four-digit Flow watts retain mobile wire space and stable density', async t => {
   const page = await fixture(t, true);
-  const fs = require('node:fs'), path = require('node:path'), YAML = require('yaml');
-  const code = YAML.parse(fs.readFileSync(path.resolve(__dirname, '../../signature-flow/dist/signature-flow.yaml'), 'utf8')).signature_flow.code;
+  const code = loadModule('signature-flow').code;
   for (const mode of ['light', 'dark']) for (const width of [358, 374, 382, 488, 490, 600]) {
     await render(page, {width, mode, value: -9999});
     const dimensions = await page.evaluate(async code => {

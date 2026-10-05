@@ -1,3 +1,4 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -5,7 +6,7 @@ const vm = require('node:vm');
 const {test} = require('node:test');
 const YAML = require('yaml');
 const base = path.resolve(__dirname, '..');
-const definition = YAML.parse(fs.readFileSync(path.join(base, 'dist/signature-navigation.yaml'), 'utf8')).signature_navigation;
+const definition = loadModule('signature-navigation');
 const example = YAML.parse(fs.readFileSync(path.join(base, 'examples/home.yaml'), 'utf8'));
 
 function fixture(config = structuredClone(example), pathname = '/lovelace/summary-home') {

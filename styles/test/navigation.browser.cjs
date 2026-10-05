@@ -1,3 +1,4 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -6,7 +7,7 @@ const {fixture: browserFixture} = require('./browser.cjs');
 const YAML = require('yaml');
 const {theme, nativeModes} = require('./fixtures.cjs');
 const root = path.resolve(__dirname, '../..');
-const definition = YAML.parse(fs.readFileSync(path.join(root, 'signature-navigation/dist/signature-navigation.yaml'), 'utf8')).signature_navigation;
+const definition = loadModule('signature-navigation');
 const example = YAML.parse(fs.readFileSync(path.join(root, 'signature-navigation/examples/home.yaml'), 'utf8'));
 // Minimal native footer/group/ripple cascade, based on Bubble Card 3.4.1.
 const native = `

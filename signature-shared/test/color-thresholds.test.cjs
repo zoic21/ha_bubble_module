@@ -1,12 +1,10 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
 const vm = require('node:vm');
 const {test} = require('node:test');
-const YAML = require('yaml');
 const context = vm.createContext({...require('./dom.cjs'),Intl,setTimeout,clearTimeout});
 const definitions = Object.fromEntries(['compact','square','header','room'].map(layout => [layout,
-  YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-' + layout + '/dist/signature-' + layout + '.yaml'),'utf8'))['signature_' + layout]]));
+  loadModule('signature-'+layout)]));
 const renderers = Object.fromEntries(Object.entries(definitions).map(([layout,definition]) => [layout,
   vm.runInContext('(function(hass,onTeardown,renderTemplate){return `' + definition.code + '`;})',context)]));
 const scale = {enabled:true,values:[{value:15,color:'#2196f3'},{value:19,color:'#4caf50'},{value:22,color:'#4caf50'},{value:30,color:'#ff9800'}]};

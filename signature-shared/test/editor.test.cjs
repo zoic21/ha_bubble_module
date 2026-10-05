@@ -1,24 +1,16 @@
+const {loadModule}=require('../../shared/test/module.cjs');
+const {editorEnvironment}=require('../../shared/test/editor-environment.cjs');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
 const {test} = require('node:test');
-const YAML = require('yaml');
 const {editorBootstrap} = require('../../shared/test/editor-bootstrap.cjs');
 
-const definition = YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-compact/dist/signature-compact.yaml'),'utf8')).signature_compact;
+const definition = loadModule('signature-compact');
 const source = editorBootstrap(definition);
 const schema = definition.editor.find(field=>field.type === 'signature_options');
 
 // Exercise the native-form bridge; Bubble's field rules are covered separately.
 function environment({delayed=false}={}) {
-  const registry = new Map(),waiting = new Map(),queue = [];
-  class Element extends EventTarget {
-    constructor() { super();this.children=[];this.isConnected=false; }
-    append(...elements) { this.children.push(...elements); }
-    attachShadow() { this.shadowRoot=new Element();return this.shadowRoot; }
-    getRootNode() { return {host:{_config:this.card}}; }
-  }
+  const {Element,registry,customElements,document,evaluate,flush}=editorEnvironment();
   class Engine extends Element {
     _itemFormData(value) { return {...value,__card_entity:this.getRootNode().host._config.entity}; }
     _generateSchema(fields,data) {
@@ -33,16 +25,8 @@ function environment({delayed=false}={}) {
       this.dispatchEvent(new CustomEvent('value-changed',{detail:{value},bubbles:true,composed:true}));
     }
   }
-  const customElements={
-    get:name=>registry.get(name),
-    define(name,Class) { registry.set(name,Class);waiting.get(name)?.(); },
-    whenDefined:name=>new Promise(resolve=>waiting.set(name,resolve))
-  };
   if (!delayed) customElements.define('ha-selector-bc_object',Engine);
-  const document={createElement(name) { const element=new (registry.get(name) || Element)();element.tag=name;return element; }};
-  const context=vm.createContext({HTMLElement:Element,document,customElements,CustomEvent,queueMicrotask:fn=>queue.push(fn)});
-  const register=()=>vm.runInContext(source,context);
-  const flush=()=>{while(queue.length) queue.shift()();};
+  const register=()=>evaluate(source);
   register();
   const create=(data,card) => {
     const form=document.createElement('ha-form-signature_options');

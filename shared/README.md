@@ -47,6 +47,8 @@ npm run test:styles
 
 Les suites navigateur utilisent le même [socle de préparation et nettoyage](../styles/README.md), avec un contexte isolé par fixture. Les exceptions non gérées et les erreurs capturées au rendu font échouer le test dans toutes les suites. `test:styles:split` appelle la suite navigateur complète.
 
+Les suites fonctionnelles partagent également leurs [helpers de test](test/README.md) : DOM simulé, environnement d’éditeur isolé et lecture des distributions YAML. Les animations, horloges, compteurs et règles de formulaire propres aux modules restent dans leurs suites.
+
 ## Build automatique GitHub
 
 Le workflow [Build module distributions](../.github/workflows/build.yml) démarre après un push qui modifie un fichier `**/src/**`, un script de build, `package.json`, `package-lock.json` ou le workflow lui-même. Il fonctionne sur les branches du dépôt, y compris `main`, et peut aussi être lancé manuellement depuis l'onglet Actions.

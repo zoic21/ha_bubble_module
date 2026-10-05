@@ -1,3 +1,4 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -5,33 +6,22 @@ const vm = require('node:vm');
 const {test} = require('node:test');
 const YAML = require('yaml');
 const base = path.resolve(__dirname,'..');
-const definition = YAML.parse(fs.readFileSync(path.join(base,'dist/signature-wind-rose.yaml'),'utf8')).signature_wind_rose;
+const definition = loadModule('signature-wind-rose');
 
-class Element {
-  constructor(tag) {
-    this.tagName=tag;this.children=[];this.attrs=new Map();this.listeners=new Map();this.hidden=false;this.isConnected=true;this.writes=0;
-    this.style={setProperty:(key,value)=>{this.style[key]=value;},removeProperty:key=>{delete this.style[key];}};
-  }
-  setAttribute(key,value) {this.attrs.set(key,String(value));this.writes++;}
-  getAttribute(key) {return this.attrs.get(key) ?? null;}
-  removeAttribute(key) {this.attrs.delete(key);}
-  get textContent() {return this._text || '';}
-  set textContent(value) {this._text=String(value);this.writes++;}
-  append(...nodes) {for(const node of nodes){node.parentElement=this;this.children.push(node);}}
-  remove() {if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(c=>c!==this);this.parentElement=null;this.isConnected=false;}
-  addEventListener(name,fn) {this.listeners.set(name,fn);}
-  event(name,extra={}) {
-    const event={target:this,stopPropagation(){this.stopped=true;},preventDefault(){this.prevented=true;},...extra};
-    this.listeners.get(name)?.(event);return event;
-  }
-  click() {return this.event('click');}
+const {Element:BaseElement,createDocument}=require('../../shared/test/dom.cjs');
+class Element extends BaseElement {
+  constructor(tag) {super(tag);this.isConnected=true;this.writes=0;}
+  setAttribute(key,value) {super.setAttribute(key,value);this.writes++;}
+  get textContent() {return super.textContent;}
+  set textContent(value) {super.textContent=value;this.writes++;}
+  remove() {super.remove();this.isConnected=false;}
 }
 const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
 function fixture(t,options={}) {
   let now=Date.parse('2026-10-04T18:00:00Z'), timerId=0;
   const timers=new Map(),listeners=new Map();
   class Clock extends Date {static now(){return now;}}
-  const document={hidden:false,createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),
+  const document={...createDocument(Element),hidden:false,
     addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);}};
   const render=vm.runInNewContext('(function(hass,onTeardown,renderTemplate){return `'+definition.code+'`;})',{
     document,Date:Clock,Intl,CSS:{supports:(_,value)=>/^(#[a-f0-9]{6}|var\(--[a-z-]+, #[a-f0-9]{6}\))$/i.test(value)},setTimeout:(fn,delay)=>{const id=++timerId;timers.set(id,{fn,at:now+delay,delay});return id;},clearTimeout:id=>timers.delete(id)

@@ -18,6 +18,8 @@ The eight Signature modules share [CSS source fragments by visual role](shared/s
 
 Each module has its own folder: `src` contains its editable sources, `dist` contains the generated complete YAML file to import and `doc` contains its documentation. Existing modules keep their own `test` folders; the four standalone presentation modules share behavior and build tests in `signature-shared/test`.
 
+The suites share [test helpers](shared/test/README.md) for DOM fixtures, isolated editor environments and distribution loading. Module-specific simulations and assertions stay in their own suites.
+
 ## Installation
 
 1. Install Bubble Card and [Bubble Card Tools](https://github.com/Clooos/Bubble-Card-Tools).

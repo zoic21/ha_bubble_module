@@ -1,12 +1,10 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
 const {test} = require('node:test');
 const {fixture} = require('./browser.cjs');
-const YAML = require('yaml');
 const {render,nativeModes} = require('./fixtures.cjs');
 const codes = Object.fromEntries(['compact','square','header'].map(layout => [layout,
-  YAML.parse(fs.readFileSync(path.resolve(__dirname,'../../signature-' + layout + '/dist/signature-' + layout + '.yaml'),'utf8'))['signature_' + layout].code]));
+  loadModule('signature-'+layout).code]));
 const luminance = rgb => rgb.slice(0,3).map(channel=>{const v=channel/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
 const near = (actual,expected,message) => actual.forEach((channel,i)=>assert.ok(Math.abs(channel-expected[i])<=1,message+' '+JSON.stringify({actual,expected})));
 const graphColors=[[33,150,243,255],[33,150,243,255],[55,163,162,255],[76,175,80,255],[76,175,80,255],

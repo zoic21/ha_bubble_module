@@ -2,6 +2,8 @@
 
 Les suites dans `test/*.browser.cjs` utilisent Node.js 22 ou plus récent et Playwright Chromium. Elles exécutent les distributions réelles dans des fixtures de forme Bubble ; elles ne lancent pas Home Assistant et ne valident pas Safari/iOS.
 
+La lecture des distributions utilise le même [helper YAML](../shared/test/README.md) que les tests fonctionnels. Les éléments et événements navigateur restent ceux de Chromium.
+
 ```sh
 npm ci --ignore-scripts
 npm run build:modules

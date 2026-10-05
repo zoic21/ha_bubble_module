@@ -1,3 +1,4 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 // Minimal native-shaped fixture, not a Home Assistant runtime or a Bubble Card build.
 // The native secondary-opacity rule intentionally reproduces the audited cascade.
 const assert=require('node:assert/strict');
@@ -6,7 +7,7 @@ const path=require('node:path');
 const YAML=require('yaml');
 const root=path.resolve(__dirname,'../..');
 const names=['signature-flow','signature-weather','signature-wind-rose','signature-square','signature-compact','signature-room','signature-header'];
-const modules=Object.fromEntries(names.map(k=>[k,Object.values(YAML.parse(fs.readFileSync(path.join(root,k,'dist',k+'.yaml'),'utf8')))[0]]));
+const modules=Object.fromEntries(names.map(k=>[k,loadModule(k)]));
 const theme=YAML.parse(fs.readFileSync(path.join(root,'themes/signature.yaml'),'utf8')).Signature;
 const cases=[
   ['compact','signature-compact',{compact_mode:'value',secondary:'65 %'}],

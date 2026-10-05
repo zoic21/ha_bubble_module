@@ -1,3 +1,4 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -5,7 +6,7 @@ const {test} = require('node:test');
 const YAML = require('yaml');
 
 const file = process.argv[2] || path.resolve(__dirname, '../dist/alert_manager.yaml');
-const definition = YAML.parse(fs.readFileSync(file, 'utf8')).alert_manager;
+const definition = loadModule('alert_manager',file);
 const code = definition.code;
 assert.ok(code, 'Module code missing');
 const render = new Function('hass', 'onTeardown', 'return `'+code+'`;');
@@ -20,22 +21,8 @@ const manager = (alerts=[]) => ({state:String(alerts.length),attributes:{alerts}
 const normal = () => ({states:Object.fromEntries(ids.map(id=>[id,manager()])),connection:{}});
 const custom = (entity=primary,rule='temperature') => ({id:`rule:${rule}:${entity}`,entity_id:entity});
 const pack = (entity=primary,id='battery') => ({id:`${id}:${entity}`,entity_id:entity});
-class Element {
-  constructor(tag='div'){this.tagName=tag;this.children=[];this.attributes=new Map();this.style={};this.className='';}
-  appendChild(child){child.parentElement=this;this.children.push(child);return child;}
-  get firstElementChild(){return this.children[0];}
-  setAttribute(name,value){this.attributes.set(name,String(value));}
-  getAttribute(name){return this.attributes.get(name) ?? null;}
-  querySelector(selector){
-    for(const child of this.children){
-      if(selector.startsWith('.') ? child.className.split(' ').includes(selector.slice(1)) : child.tagName===selector)return child;
-      const found=child.querySelector(selector);if(found)return found;
-    }
-    return null;
-  }
-  remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(child=>child!==this);this.parentElement=null;}
-}
-globalThis.document={createElement:tag=>new Element(tag)};
+const {Element,createDocument}=require('../../shared/test/dom.cjs');
+globalThis.document=createDocument();
 const plainContext = (options,extra={}) => {
   const card=new Element();const container=new Element();container.className='bubble-main-icon-container';card.appendChild(container);
   return {card,config:{card_type:'button',entity:primary,...extra,...(options === undefined ? {} : {alert_manager:options})}};

@@ -1,12 +1,10 @@
+const {loadModule}=require('../../shared/test/module.cjs');
+const {editorEnvironment}=require('../../shared/test/editor-environment.cjs');
 const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const vm=require('node:vm');
 const {test}=require('node:test');
-const YAML=require('yaml');
 const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
 const {readSource}=require('../../scripts/source-files.cjs');
-const definition=YAML.parse(fs.readFileSync(path.resolve(__dirname,'../dist/signature-flow.yaml'),'utf8')).signature_flow;
+const definition=loadModule('signature-flow');
 const schema=definition.editor.find(field=>field.type==='signature_flow_options');
 const slots=schema.fields.slots.fields;
 const fields=slots[1].fields;
@@ -15,13 +13,7 @@ const flatten=schema=>schema.flatMap(field=>field.schema?flatten(field.schema):[
 
 // Native-shaped form fixtures exercise the bridge; they are not a Home Assistant runtime.
 function environment() {
-  const registry=new Map(),queue=[];
-  class Element extends EventTarget {
-    constructor(){super();this.children=[];this.isConnected=false;}
-    append(...children){this.children.push(...children);}
-    attachShadow(){return this.shadowRoot=new Element();}
-    getRootNode(){return {host:{_config:this.card}};}
-  }
+  const {Element,customElements,document,evaluate,flush}=editorEnvironment();
   class Engine extends Element {
     _itemFormData(value){return {...value,__card_entity:this.getRootNode().host._config.entity};}
     _generateSchema(fields,item){
@@ -44,13 +36,9 @@ function environment() {
       this.dispatchEvent(new CustomEvent('value-changed',{detail:{value},bubbles:true,composed:true}));
     }
   }
-  const customElements={get:name=>registry.get(name),define:(name,Class)=>registry.set(name,Class)};
   customElements.define('ha-selector-bc_object',Engine);
   customElements.define('ha-form-bc_group',class extends Element {});
-  const document={createElement(name){const element=new (registry.get(name)||Element)();element.tag=name;return element;}};
-  const context=vm.createContext({HTMLElement:Element,customElements,document,CustomEvent,queueMicrotask:fn=>queue.push(fn)});
-  vm.runInContext(bootstrap,context);
-  const flush=()=>{while(queue.length)queue.shift()();};
+  evaluate(bootstrap);
   const create=(schema,data,card={card_type:'button',button_type:'state',entity:'sensor.home'})=>{
     const element=document.createElement('ha-form-signature_flow_options');
     Object.assign(element,{schema,data,card,hass:{states:{}},label:schema.label});element.isConnected=true;element.connectedCallback();flush();return element;

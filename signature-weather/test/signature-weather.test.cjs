@@ -1,3 +1,4 @@
+const {loadModule}=require('../../shared/test/module.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -5,40 +6,14 @@ const vm = require('node:vm');
 const {test} = require('node:test');
 const YAML = require('yaml');
 const base = path.resolve(__dirname, '..');
-const definition = YAML.parse(fs.readFileSync(path.join(base,'dist/signature-weather.yaml'),'utf8')).signature_weather;
+const definition = loadModule('signature-weather');
 
-class Element {
-  constructor(tag) {
-    this.tagName=tag;this.children=[];this.attrs=new Map();this.listeners=new Map();this.style={};this.events=[];this.hidden=false;
-  }
-  setAttribute(k,v) {this.attrs.set(k,String(v));}
-  getAttribute(k) {return this.attrs.get(k) ?? null;}
-  removeAttribute(k) {this.attrs.delete(k);}
-  get textContent() {return (this._text||'')+this.children.map(c=>c.textContent).join('');}
-  set textContent(v) {this.children.forEach(c=>{c.parentElement=null;});this.children=[];this._text=String(v);}
-  append(...nodes) {
-    for(const node of nodes) {
-      if(node.parentElement) node.remove();
-      node.parentElement=this;this.children.push(node);
-    }
-  }
-  appendChild(node) {this.append(node);return node;}
-  remove() {
-    if(this.parentElement) this.parentElement.children=this.parentElement.children.filter(c=>c!==this);
-    this.parentElement=null;
-  }
-  addEventListener(name,fn) {this.listeners.set(name,fn);}
-  dispatchEvent(event) {this.events.push(event);}
-  click() {const event={stopPropagation(){this.stopped=true;}};this.listeners.get('click')?.(event);return event;}
-}
-class CustomEvent {
-  constructor(type,options) {this.type=type;Object.assign(this,options);}
-}
+const {Element,createDocument,CustomEvent}=require('../../shared/test/dom.cjs');
 let now='2026-10-04T11:46:00Z';
 class Clock extends Date {
   constructor(...args) {super(...(args.length ? args : [now]));}
 }
-const document={createElement:tag=>new Element(tag)};
+const document=createDocument();
 const render=vm.runInNewContext('(function(hass,onTeardown){return `'+definition.code+'`;})',{document,CustomEvent,Date:Clock,Intl});
 const state=(value,unit)=>({state:String(value),attributes:unit ? {unit_of_measurement:unit} : {}});
 function connection(deferred=false) {
