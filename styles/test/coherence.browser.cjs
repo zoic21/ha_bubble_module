@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const {test, before, after} = require('node:test');
 const {chromium} = require('playwright');
-const {setup, render, theme} = require('./fixtures.cjs');
+const {setup, render, theme, nativeModes} = require('./fixtures.cjs');
 
 let browser;
 before(async () => {
@@ -33,6 +33,44 @@ const style = (result, id, selector) => {
 };
 const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
+
+test('Signature preserves the host page palette and uses its native card surface', async t => {
+  const page = await fixture(t);
+  const bodyColors = () => page.evaluate(() => {
+    const computed = getComputedStyle(document.body);
+    return {background: computed.backgroundColor, color: computed.color};
+  });
+  for (const mode of ['light', 'dark']) {
+    const nativePalette = {
+      'primary-background-color': mode === 'light' ? '#ededed' : '#121314',
+      'primary-text-color': mode === 'light' ? '#234567' : '#dedcda',
+      'ha-card-background': mode === 'light' ? '#fefdfc' : '#252627'
+    };
+    const plain = await render(page, {mode, nativePalette, plain: true});
+    const body = await bodyColors();
+    const themed = await render(page, {mode, nativePalette});
+    assert.deepEqual(await bodyColors(), body);
+    for (const id of surfaceIds) same(style(themed, id, '.bubble-container'),
+      style(plain, id, '.bubble-container'), ['backgroundColor']);
+    assert.equal(style(themed, 'compact', '.bubble-name').color, body.color);
+  }
+});
+
+test('section titles stay transparent without borders or shadows in both modes', async t => {
+  const page = await fixture(t);
+  for (const mode of ['light', 'dark']) for (const plain of [false, true]) {
+    const result = await render(page, {mode, plain, nameText: 'Prévisions', titleSurface: true,
+      overrides: {'bubble-main-background-color': '#abcdef', 'bubble-border': '1px solid red', 'bubble-box-shadow': '0 2px 10px black'}});
+    for (const selector of ['ha-card', '.bubble-container']) {
+      const title = style(result, 'title', selector);
+      assert.equal(title.backgroundColor, 'rgba(0, 0, 0, 0)');
+      assert.equal(title.borderTopWidth, '0px');
+      assert.equal(title.boxShadow, 'none');
+    }
+    assert.equal(style(result, 'title', '.bubble-container').height, 32);
+    assert.equal(style(result, 'title', '.bubble-name').fontSize, '18px');
+  }
+});
 
 test('shared switch CSS preserves independent tracks, opacity, actions and live themes', async t => {
   const fs = require('node:fs');
@@ -227,9 +265,9 @@ test('theme mode switches update existing elements without running module code a
     return [...document.querySelectorAll('.fixture')].map(shell => ({id: shell.dataset.id,
       color: getComputedStyle(shell.shadowRoot.querySelector('.bubble-container')).backgroundColor,
       shadow: getComputedStyle(shell.shadowRoot.querySelector('.bubble-container')).boxShadow}));
-  }, theme.modes.dark);
+  }, {...nativeModes.dark, ...theme.modes.dark});
   for (const id of surfaceIds) {
-    assert.equal(switched.find(item => item.id === id).color, 'rgb(28, 28, 30)');
+    assert.equal(switched.find(item => item.id === id).color, 'rgb(28, 28, 28)');
     assert.match(switched.find(item => item.id === id).shadow, /0\.2/);
   }
 });

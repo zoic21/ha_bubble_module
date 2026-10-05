@@ -26,7 +26,7 @@
 # Livraison 1.8.5 : rendu et commandes dans HA à confirmer.
 signature:
   name: Signature
-  version: 2.2.3
+  version: 2.2.4
   creator: Loïc
   supported:
     - button
@@ -93,8 +93,18 @@ signature:
           if (c.card_type === 'separator') {
             if (o.layout !== 'title') return '';
             return `
-              .bubble-container { height: 32px !important; }
-              ha-card { font-family: var(--signature-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif); }
+              .bubble-container {
+                height: 32px !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+              }
+              ha-card {
+                font-family: var(--signature-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+              }
               .bubble-icon {
                 --mdc-icon-size: 20px !important;
                 margin: 0 9px 0 2px !important;

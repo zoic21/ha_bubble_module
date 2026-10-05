@@ -1,6 +1,6 @@
 # Signature — design module guide
 
-Version **2.2.3**. [Complete file to import](../dist/signature.yaml).
+Version **2.2.4**. [Complete file to import](../dist/signature.yaml).
 
 **YAML ID: `signature`; display name: Signature.**
 
@@ -260,7 +260,7 @@ signature:
   layout: title
 ```
 
-The section title is 32 px tall with 18 px text. It hides the horizontal divider and pushes sub-buttons to the end of the row. Use their native `show_background` and `state_background` options for their backgrounds.
+The section title is 32 px tall with 18 px text. Its outer card and visible container stay transparent, without a border or shadow, including under a theme that styles Bubble containers. It hides the horizontal divider and pushes sub-buttons to the end of the row. Use their native `show_background` and `state_background` options for their backgrounds.
 
 For a banner, use `card_type: button`, `button_type: name`, and `layout: header`. The background is transparent and sub-buttons become pills. The title shrinks from 38 to 32 px in a small container; pills wrap below the title depending on the container width.
 
@@ -297,6 +297,11 @@ The module targets Bubble Card's DOM. Local styles, the theme, grid dimensions, 
 After importing, check your layouts on mobile and desktop, long names, units, and numeric controls in your installation. YAML/JavaScript syntax checks do not validate rendering or commands in a real Home Assistant instance.
 
 ## Release notes
+
+### 2.2.4 — 5 October 2026
+
+- Section titles remain transparent and have no border or shadow on either their outer card or visible Bubble container.
+- The optional Signature theme now inherits Home Assistant's native palette and card backgrounds. It retains shared typography, corners and card shadows without styling every Bubble container's surface.
 
 ### 2.2.3 — 4 October 2026
 

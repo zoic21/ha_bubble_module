@@ -6,6 +6,7 @@ const YAML = require('yaml');
 
 const document = YAML.parseDocument(fs.readFileSync(path.join(__dirname, '../signature.yaml'), 'utf8'));
 const {Signature: theme} = document.toJS();
+const nativeVariables = new Set(['ha-card-background', 'card-background-color', 'primary-text-color']);
 
 test('both theme modes have complete, non-circular CSS variable references', () => {
   assert.deepEqual(document.errors, []);
@@ -15,6 +16,7 @@ test('both theme modes have complete, non-circular CSS variable references', () 
     delete variables.modes;
     const visited = new Set();
     const visit = (key, ancestors = new Set()) => {
+      if (nativeVariables.has(key)) return;
       assert.ok(Object.hasOwn(variables, key), 'Undefined theme variable: ' + key);
       assert.ok(!ancestors.has(key), 'Circular theme variable: ' + key);
       if (visited.has(key)) return;
@@ -26,20 +28,14 @@ test('both theme modes have complete, non-circular CSS variable references', () 
   }
 });
 
-function luminance(hex) {
-  const channels = hex.slice(1).match(/../g).map(value => parseInt(value, 16) / 255)
-    .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
-}
-
-test('primary and secondary text retain readable contrast on both mode surfaces', () => {
-  for (const [name, mode] of Object.entries(theme.modes)) {
-    for (const textKey of ['primary-text-color', 'secondary-text-color']) {
-      for (const surfaceKey of ['card-background-color', 'primary-background-color']) {
-        const a = luminance(mode[textKey]), b = luminance(mode[surfaceKey]);
-        const contrast = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-        assert.ok(contrast >= 4.5, `${name}: ${textKey} on ${surfaceKey} has contrast ${contrast}`);
-      }
+test('the theme preserves native colors and does not add global Bubble borders or shadows', () => {
+  for (const variables of [theme, ...Object.values(theme.modes)]) {
+    for (const key of Object.keys(variables)) {
+      if (key.startsWith('signature-')) continue;
+      assert.doesNotMatch(key, /(?:^|-)(?:color|background)(?:-|$)/, key);
+      assert.ok(!['bubble-border', 'bubble-box-shadow'].includes(key), key);
     }
   }
+  for (const mode of Object.values(theme.modes))
+    assert.ok(Object.keys(mode).every(key => key.startsWith('signature-')));
 });
