@@ -21,7 +21,7 @@ const native = `
   .bubble-sub-button-alignment-lane { display:flex; flex:1; min-width:0; gap:8px; align-items:center; }
   .bubble-sub-button-group { display:flex; position:relative; flex:1; min-width:0; gap:8px; align-items:center; }
   .bubble-sub-button { display:flex; position:relative; align-items:center; justify-content:center; box-sizing:border-box; min-width:36px; height:36px; border-radius:18px; padding:0 8px; pointer-events:auto; }
-  .bubble-sub-button-icon { display:block; width:24px; height:24px; }
+  .bubble-sub-button-icon { display:block; width:var(--mdc-icon-size,24px); height:var(--mdc-icon-size,24px); }
   ha-ripple { display:block; position:absolute; inset:0; pointer-events:none; --ha-ripple-hover-opacity:.08; }
   .hidden,[hidden] { display:none!important; }
 `;
@@ -79,7 +79,7 @@ async function computed(page) {
     };
     const first=q('.bubble-sub-button-1');
     return {card:get(q('ha-card')),bar:get(q('.bubble-container')),selection:get(first,'::before'),
-      first:get(first),ripple:get(first.querySelector('ha-ripple')),rim:get(q('.bubble-container'),'::after'),
+      first:get(first),icon:get(first.querySelector('.bubble-sub-button-icon')),ripple:get(first.querySelector('ha-ripple')),rim:get(q('.bubble-container'),'::after'),
       second:get(q('.bubble-sub-button-2'),'::before'),secondButton:get(q('.bubble-sub-button-2')),
       oldLayer:get(q('.bubble-container'),'::before')};
   });
@@ -93,6 +93,7 @@ test('navigation has concentric first/last selections and one glass surface',asy
   assert.equal(s.bar.radius,'22px');assert.equal(s.selection.radius,'16px');
   assert.equal(s.first.x-s.bar.x,6);assert.equal(s.first.y-s.bar.y,6);
   assert.equal(s.first.height,52);
+  assert.equal(s.icon.width,26);assert.equal(s.icon.height,26);
   assert.equal(s.selection.width,s.first.width);assert.equal(s.selection.height,52);
   assert.equal(s.ripple.width,s.selection.width);assert.equal(s.ripple.height,52);assert.equal(s.ripple.radius,'16px');
   assert.equal(s.card.border,'0px');assert.equal(s.bar.border,'0px');assert.equal(s.bar.shadow,'none');
@@ -118,7 +119,8 @@ test('navigation preserves mobile margins, desktop sidebar centering and native 
     assert.equal(s.card.x,width<=600?24:240+(1280-240-420)/2);
     assert.equal(s.bar.height,64);assert.equal(s.first.height,52);
     assert.equal(s.first.y-s.bar.y,6);
-    assert.ok(s.first.width>24,'icon fits the route cell');
+    assert.equal(s.icon.width,26);assert.equal(s.icon.height,26);
+    assert.ok(s.first.width>s.icon.width,'icon fits the route cell');
     await page.evaluate(()=>window.nav.shadow.querySelector('.bubble-sub-button-2').classList.add('hidden'));
     const hidden=await page.evaluate(()=>getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-2')).display);
     assert.equal(hidden,'none');
@@ -190,6 +192,7 @@ test('neutral selection and focus follow light/dark palettes without rerendering
       const expected=mode==='dark'?'rgb(225, 225, 225)':'rgb(33, 33, 33)';
       assert.equal(s.first.color,expected);assert.equal(s.first.outlineColor,expected);
       assert.equal(s.first.outlineWidth,'2px');assert.equal(s.selection.radius,'16px');
+      assert.equal(s.icon.width,26);assert.equal(s.icon.height,26);
       const pixels=await page.evaluate(()=>{
         const q=selector=>window.nav.shadow.querySelector(selector);
         const color=(el,pseudo)=>getComputedStyle(el,pseudo).backgroundColor;
@@ -207,7 +210,7 @@ test('neutral selection and focus follow light/dark palettes without rerendering
       });
       assert.ok(pixels.sameStyle&&pixels.sameButton,'theme changes use the same CSS and native button');
       assert.ok(pixels.fill[3]>0&&pixels.fill[3]<255,'selection fill stays translucent');
-      assert.ok(Math.abs(pixels.selected[0]-pixels.bar[0])>2&&Math.abs(pixels.selected[0]-pixels.bar[0])<32,'selection tint stays subtle and visible');
+      assert.ok(Math.abs(pixels.selected[0]-pixels.bar[0])>=12&&Math.abs(pixels.selected[0]-pixels.bar[0])<32,'selection has a visible neutral tint without becoming a solid block');
       assert.ok(mode==='dark'?pixels.selected[0]>pixels.bar[0]:pixels.selected[0]<pixels.bar[0],'selection is lighter in dark mode and darker in light mode');
       assert.ok(Math.max(...pixels.selected.slice(0,3))-Math.min(...pixels.selected.slice(0,3))<=1,'native neutral palette stays neutral');
       assert.ok(contrast(pixels.active.slice(0,3),pixels.selected.slice(0,3))>contrast(pixels.inactive.slice(0,3),pixels.bar.slice(0,3)),'selected icon has stronger contrast than inactive icons');
