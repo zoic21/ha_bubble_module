@@ -384,6 +384,46 @@ test('keyboard focus preserves themed period corners and visible 2px outlines', 
   }
 });
 
+test('signed four-digit Flow watts retain mobile wire space and stable density', async t => {
+  const page = await fixture(t, true);
+  const fs = require('node:fs'), path = require('node:path'), YAML = require('yaml');
+  const code = YAML.parse(fs.readFileSync(path.resolve(__dirname, '../../signature-flow/dist/signature-flow.yaml'), 'utf8')).signature_flow.code;
+  for (const mode of ['light', 'dark']) for (const width of [358, 374, 382, 488, 490, 600]) {
+    await render(page, {width, mode, value: -9999});
+    const dimensions = await page.evaluate(async code => {
+      const ctx = window.contexts.find(ctx => ctx._signatureFlow);
+      ctx._hass.locale.number_format = 'none';
+      ctx._hass.states['sensor.demo'].attributes.unit_of_measurement = 'W';
+      new Function('hass', 'onTeardown', 'renderTemplate', 'return `'+code+'`;').call(ctx, ctx._hass, fn => ctx.teardown = fn, v => v);
+      const r = ctx._signatureFlow;
+      for (let i = 0; i < 3; i++) {
+        r.draw();
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }
+      const padding = getComputedStyle(r.host), node = r.nodes[2];
+      const box = r.canvas.getBoundingClientRect();
+      return {
+        padding: [padding.paddingTop, padding.paddingRight, padding.paddingBottom, padding.paddingLeft],
+        gap: getComputedStyle(node.el).columnGap,
+        small: r.canvas.classList.contains('sf-small'), narrow: r.canvas.classList.contains('sf-narrow'),
+        text: node.value.textContent, font: getComputedStyle(node.number).fontSize,
+        length: r.edges[2].length, unitGap: r.edges[2].start - (node.unit.getBoundingClientRect().right - box.left),
+        junction: box.left + r.center.x, cardCenter: r.host.getBoundingClientRect().left + r.host.getBoundingClientRect().width / 2
+      };
+    }, code);
+    const compact = width < 490;
+    assert.deepEqual(dimensions.padding, ['14px', compact ? '10px' : '14px', '14px', compact ? '10px' : '14px']);
+    assert.equal(dimensions.gap, compact ? '8px' : '10px');
+    assert.equal(dimensions.small, width < 382);
+    assert.equal(dimensions.narrow, compact);
+    assert.equal(dimensions.text, '-9999 W');
+    assert.equal(dimensions.font, width < 382 ? '26px' : '28px');
+    assert.ok(dimensions.length >= 24, JSON.stringify({width, mode, dimensions}));
+    assert.ok(Math.abs(dimensions.unitGap - 12) < .1);
+    assert.ok(Math.abs(dimensions.junction - dimensions.cardCenter) < .1);
+  }
+});
+
 test('long Flow numbers fit at 288px while units and secondary text keep their size', async t => {
   const page = await fixture(t);
   const result = await render(page, {width: 288, value: 1234567.8, nameText: 'Énergie de la maison — mesure détaillée'});

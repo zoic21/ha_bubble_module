@@ -5,7 +5,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
 | Signature — card design | 2.3.3 | [signature.yaml](signature/dist/signature.yaml) | [Guide](signature/doc/README.md) |
-| Signature Flow — six configurable flow slots | 3.5.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Flow — six configurable flow slots | 3.5.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.2.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.3 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |

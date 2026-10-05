@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature 2.3.3**, **Signature Flow 3.5.1**, **Signature Weather 1.3.0**, **Signature Wind Rose 1.2.0** et **Signature Navigation 1.0.3**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature 2.3.3**, **Signature Flow 3.5.2**, **Signature Weather 1.3.0**, **Signature Wind Rose 1.2.0** et **Signature Navigation 1.0.3**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -80,9 +80,9 @@ Le thème livré hérite des couleurs de texte et des surfaces Home Assistant. L
 
 | Élément | Règle de densité conservée |
 |---|---|
-| Flow, canvas inférieur à 352 px | Valeur principale = `max(18px, valeur - 2px)` ; slots 4/6 = `max(16px, valeur - 8px)` ; leurs unités utilisent la légende de 12 px |
+| Flow, carte inférieure à 382 px | Valeur principale = `max(18px, valeur - 2px)` ; slots 4/6 = `max(16px, valeur - 8px)` ; leurs unités utilisent la légende de 12 px |
 | Flow, canvas plus large | Slots 4/6 = `max(16px, valeur - 4px)` ; leurs unités utilisent le secondaire de 13 px |
-| Flow, canvas inférieur à 460 px | Connexions et positionnement passent au layout étroit ; ce seuil porte sur le canvas, pas sur la fenêtre |
+| Flow, carte inférieure à 490 px | Connexions et positionnement passent au layout étroit ; ce seuil porte sur la carte, pas sur la fenêtre. Les seuils de densité excluent les 8 px gagnés par le retrait horizontal réduit. |
 | Weather, conteneur au plus égal à 360 px | Température actuelle = `max(20px, température - 4px)` ; prévision haute = 18 px, ou 15 px dans `ranges` |
 | Weather, conteneur plus large | Prévision haute = 20 px dans `ribbon`/`summary`, 16 px dans `ranges` ; prévision basse = secondaire de 13 px |
 | Room, température principale | `clamp(20px, 14cqw, température)` ; valeur maximale 30 px par défaut |
@@ -161,7 +161,7 @@ Les lignes de prévision Weather sont placées dans des lignes déjà rembourré
 
 Ne pas donner une longueur fixe commune aux connexions Flow et aux séparateurs : leurs rôles diffèrent. Flow conserve le dégagement de 12 px après les valeurs des sources horizontales et sa géométrie responsive.
 
-Conserver les densités existantes : 10 px pour le contenu compact/square, 12 px pour le contenu room, 14 px pour l'enveloppe Flow, généralement 16 px pour les sections Weather et Wind Rose. Les adaptations étroites de Weather restent propres à ses sections. Ne pas imposer le même padding à tous les modules.
+Conserver les densités existantes : 10 px pour le contenu compact/square, 12 px pour le contenu room, 14 px pour l'enveloppe Flow, généralement 16 px pour les sections Weather et Wind Rose. Depuis Flow 3.5.2, une carte de moins de 490 px conserve 14 px verticalement mais utilise 10 px horizontalement et 8 px entre l'icône et le texte. Déterminer ce retrait depuis la largeur extérieure, indépendante du padding, pour éviter une oscillation au seuil. L'axe central reste fixe ; les unités et tailles de police restent celles de leur rôle, avec l'ajustement des nombres débordants existant. Les adaptations étroites de Weather restent propres à ses sections. Ne pas imposer le même padding à tous les modules.
 
 ## 6. Comportement et maintenance
 

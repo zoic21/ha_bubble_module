@@ -1,6 +1,6 @@
 signature_flow:
   name: Signature Flow
-  version: 3.5.1
+  version: 3.5.2
   creator: Loïc
   supported:
     - button
@@ -499,7 +499,7 @@ signature_flow:
       // End Signature Flow editor bridge.
       const config = this.config || {};
       const options = config.signature_flow || {};
-      const version = '3.5.1';
+      const version = '3.5.2';
       const root = this.card;
       const host = this.elements?.mainContainer || root?.querySelector('.bubble-container');
       const enabled = root && host && (config.card_type || 'button') === 'button' && config.button_type !== 'slider';
@@ -662,10 +662,15 @@ signature_flow:
         };
         // Layout changes measure geometry; horizontal sources also follow their text.
         current.draw = () => {
+          // Use the outer width so reduced padding cannot toggle itself on resize.
+          const compact = host.getBoundingClientRect().width < 490;
+          attr(root, 'data-signature-flow', compact ? 'compact' : '');
           const box = canvas.getBoundingClientRect();
           if (!box.width || !box.height) return;
-          canvas.classList.toggle('sf-narrow', box.width < 460);
-          canvas.classList.toggle('sf-small', box.width < 352);
+          // Preserve density breakpoints while the canvas gains 8 horizontal pixels.
+          const layoutWidth = box.width - (compact ? 8 : 0);
+          canvas.classList.toggle('sf-narrow', layoutWidth < 460);
+          canvas.classList.toggle('sf-small', layoutWidth < 352);
           const local = key => {
             const r = current.nodes[key].el.getBoundingClientRect();
             return {left:r.left-box.left, right:r.right-box.left, top:r.top-box.top,
@@ -876,6 +881,7 @@ signature_flow:
       if (runtime.styleHeight === height) return runtime.styleCSS;
       runtime.styleHeight = height;
       runtime.styleCSS = '[data-signature-flow] .bubble-container{height:'+height+'px!important;padding:14px;box-sizing:border-box;border-radius:var(--signature-card-border-radius,22px)!important;background:var(--signature-card-background,var(--ha-card-background,var(--card-background-color,#fff)))!important;border:1px solid var(--signature-card-border-color,color-mix(in srgb,var(--primary-text-color) 5%,transparent))!important;box-shadow:var(--signature-card-box-shadow,var(--ha-card-box-shadow,0 2px 10px rgb(0 0 0 / .035)))}\n'+
+        '[data-signature-flow="compact"] .bubble-container{padding-inline:10px}[data-signature-flow="compact"] .sf-node{gap:8px}\n'+
         '[data-signature-flow] .bubble-container>.bubble-wrapper{display:none!important}\n'+
         '.sf-canvas{position:relative;width:100%;height:100%;font-family:var(--signature-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif);color:var(--primary-text-color);font-weight:var(--signature-font-weight-normal,400);--sf-surface:var(--signature-card-background,var(--ha-card-background,var(--card-background-color,#fff)))}\n'+
         '.sf-canvas *{box-sizing:border-box}.sf-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.sf-line,.sf-arrow{fill:none;stroke:var(--sf-color);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}.sf-line{opacity:.35}.sf-flow{offset-distance:0%;offset-rotate:auto 0deg;offset-anchor:0px 0px;transition:offset-rotate .18s ease}.sf-edge[data-direction="-1"] .sf-flow{offset-rotate:auto 180deg}.sf-edge[data-direction="0"] .sf-flow{display:none}.sf-junction{fill:var(--secondary-text-color)}\n'+

@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.1**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.5.2**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -41,7 +41,7 @@ Section corners follow the native Home Assistant panel radius (`ha-card-border-r
 
 Negative measurements reverse those directions. Slots 4 and 6 connect independently to slot 5; their connections are hidden when slot 5 is absent. The junction is hidden when none of slots 1, 2, 3 or 5 is configured. No entity type is imposed on any slot.
 
-At card widths below 490 px, slots 1, 2 and 3 form an aligned left column. Slots 4, 5 and 6 align on the right. All icons use the same size; slots 3 and 6 share label and value baselines. The layout responds to the card's width, including a narrow column in a wide browser.
+At card widths below 490 px, slots 1, 2 and 3 form an aligned left column. Slots 4, 5 and 6 align on the right. These cards use 10 px horizontal padding instead of 14 px and an 8 px icon/text gap instead of 10 px, giving four-digit power values and their connections more room. Vertical padding remains 14 px. The center axis stays centered; units, number formatting and value font defaults are unchanged. All icons use the same size; slots 3 and 6 share label and value baselines. The layout responds to the card's width, including a narrow column in a wide browser. Padding is selected from the outer card width so resizing cannot make it alternate around the breakpoint. The original narrow/small layout thresholds are preserved by excluding the extra 8 px from density classification; wire geometry uses the expanded canvas.
 
 The default height is **310 px** on mobile and desktop. The card fills its parent width; the home example reserves 12 columns and 5 rows in a Sections view. `height` accepts 280–600 px. Keep the dashboard row reservation consistent with a changed height. Hovering a block or value does not change its background.
 
@@ -235,6 +235,11 @@ Run `npm run test:signature-flow` or `npm test` from the repository root. Tests 
 This module supports the optional [Signature light/dark theme](../../themes/README.md). Shared CSS variables are resolved by the browser, including when switching modes. The shared Signature defaults apply when the theme is absent. Card options and actions are unchanged.
 
 ## Release notes
+
+### 3.5.2 — 5 October 2026
+
+- Reduces horizontal padding from 14 to 10 px and the icon/text gap from 10 to 8 px on cards below 490 px, leaving longer visible connections next to four-digit readings.
+- Keeps watts and other configured units, the centered junction, existing number fitting, font defaults, actions and light/dark surfaces. No dashboard configuration changes are needed.
 
 ### 3.5.1 — 5 October 2026
 
