@@ -88,11 +88,13 @@ async function computed(page) {
 test('navigation has concentric first/last selections and one glass surface',async t=>{
   const page=await fixture(t);
   const s=await computed(page);
-  assert.equal(s.bar.height,56);assert.equal(s.card.width,420);
+  assert.equal(s.bar.height,64);assert.equal(s.card.height,64);assert.equal(s.card.width,420);
+  assert.equal(page.viewportSize().height-s.card.y-s.card.height,16);
   assert.equal(s.bar.radius,'22px');assert.equal(s.selection.radius,'16px');
   assert.equal(s.first.x-s.bar.x,6);assert.equal(s.first.y-s.bar.y,6);
-  assert.equal(s.selection.width,s.first.width);assert.equal(s.selection.height,44);
-  assert.equal(s.ripple.width,s.selection.width);assert.equal(s.ripple.height,44);assert.equal(s.ripple.radius,'16px');
+  assert.equal(s.first.height,52);
+  assert.equal(s.selection.width,s.first.width);assert.equal(s.selection.height,52);
+  assert.equal(s.ripple.width,s.selection.width);assert.equal(s.ripple.height,52);assert.equal(s.ripple.radius,'16px');
   assert.equal(s.card.border,'0px');assert.equal(s.bar.border,'0px');assert.equal(s.bar.shadow,'none');
   assert.equal(s.oldLayer.display,'none');assert.equal(s.rim.mask,'exclude, exclude');
   assert.equal(s.first.color,'rgb(33, 150, 243)');assert.equal(s.ripple.hover,'0');
@@ -114,7 +116,8 @@ test('navigation preserves mobile margins, desktop sidebar centering and native 
     const s=await computed(page);
     assert.ok(Math.abs(s.card.width-(width<=600?width-48:420))<.01);
     assert.equal(s.card.x,width<=600?24:240+(1280-240-420)/2);
-    assert.equal(s.bar.height,56);
+    assert.equal(s.bar.height,64);assert.equal(s.first.height,52);
+    assert.equal(s.first.y-s.bar.y,6);
     assert.ok(s.first.width>24,'icon fits the route cell');
     await page.evaluate(()=>window.nav.shadow.querySelector('.bubble-sub-button-2').classList.add('hidden'));
     const hidden=await page.evaluate(()=>getComputedStyle(window.nav.shadow.querySelector('.bubble-sub-button-2')).display);

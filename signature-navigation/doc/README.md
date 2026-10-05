@@ -1,6 +1,6 @@
 # Signature Navigation
 
-Version **1.0.0**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
+Version **1.0.1**. A standalone floating navigation footer for Bubble Card **3.4.1 or later**. It uses native `sub-buttons` and their actions; the module supplies the glass surface, spacing and active-dashboard highlight.
 
 ## Installation
 
@@ -65,7 +65,7 @@ signature_navigation:
 | `blur` | 18 px | 0–32 | Backdrop blur; saturation stays at 180% |
 | `opacity` | 45% | 0–100 | Theme card-surface contribution to the glass background |
 
-Zero is a valid value. Out-of-range values are bounded to the documented limits. Height remains 56 px; the native footer fields control desktop width and bottom offset.
+Zero is a valid value. Out-of-range values are bounded to the documented limits. The bar is 64 px high with 52 px route cells and a uniform 6 px inset; the native footer fields control desktop width and bottom offset.
 
 ## Active route
 
@@ -96,6 +96,12 @@ npm run test:styles
 Unit tests exercise the actual distribution and example, native configuration preservation, dashboard matching, changed routes and visual options. Chromium fixtures check computed sizes, concentric corners, the masked rim, theme changes, narrow/wide layouts, hover, focus and the ripple bounds. These tests are simulated browser coverage; they do not demonstrate a real Home Assistant or Safari/iOS check.
 
 ## Changelog
+
+### 1.0.1
+
+- Increased the bar from 56 to 64 px and route cells, selection, hover and ripple from 44 to 52 px.
+- Kept the uniform 6 px inset and derived inner radius, along with the existing width, margins, glass and icon sizes.
+- Updating the imported module is sufficient for cards already using `signature_navigation`; no dashboard YAML changes are required.
 
 ### 1.0.0
 

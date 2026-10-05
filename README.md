@@ -8,7 +8,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Flow — six configurable flow slots | 3.5.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.2.1 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.1.2 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
-| Signature Navigation — floating glass footer | 1.0.0 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
+| Signature Navigation — floating glass footer | 1.0.1 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.5.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 Each module has its own folder: `dist` contains the complete YAML file to import, `doc` contains its documentation, and `test` contains its tests.
@@ -45,7 +45,7 @@ Signature and Flow editor sections use the native Home Assistant panel radius an
 
 Signature Wind Rose replaces the button content with a time-weighted, 16-direction wind rose and period selector; see its [Ecowitt example](signature-wind-rose/examples/ecowitt.yaml). It uses recorded direction and optional speed history without duplicating current values from a graph above it.
 
-Signature Navigation styles a native `sub-buttons` footer with a directional glass rim and automatic active-dashboard selection. Icons and navigation actions remain in Bubble's native editor; mobile margins, blur and opacity have their own French module form. It uses a 56 px bar with concentric selection corners. See the [six-route example](signature-navigation/examples/home.yaml) and remove the former navigation `styles` block when adopting it.
+Signature Navigation styles a native `sub-buttons` footer with a directional glass rim and automatic active-dashboard selection. Icons and navigation actions remain in Bubble's native editor; mobile margins, blur and opacity have their own French module form. It uses a 64 px bar with concentric selection corners. See the [six-route example](signature-navigation/examples/home.yaml) and remove the former navigation `styles` block when adopting it.
 
 ## Signature theme
 
