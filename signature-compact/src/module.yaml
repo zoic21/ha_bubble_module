@@ -1,5 +1,5 @@
 name: Signature Compact
-version: 1.2.6
+version: 1.3.0
 creator: Loïc
 supported:
   - button
@@ -37,6 +37,15 @@ editor:
       state:
         $field: state
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      fill:
+        label: Remplissage proportionnel (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Remplissage proportionnel
+        group_icon: mdi:chart-bar
+        description: "reference_entity : entité du total, ou max : limite fixe dans l’unité principale. Fond doux à 16 %, enabled: false désactive. Une donnée invalide masque la jauge."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'state' && item.controls !== 'number'))
       secondary_bold:
         $field: secondary_bold
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (String(item.secondary || '').trim() !== '')

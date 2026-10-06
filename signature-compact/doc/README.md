@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.2.6**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.3.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -56,6 +56,37 @@ Voir aussi l’[exemple média](../examples/media.yaml).
 
 `color_thresholds.values` applique une teinte discrète à 16 % au fond du carré et la couleur interpolée du graphe à l’icône. Le même principe s’applique aux badges via `sub_button_styles`. Les fonds suivent la surface claire/sombre du thème ; l’icône conserve toujours la couleur exacte du graphe, sans gestion du contraste. Le texte des badges garde le thème. Avec des seuils actifs, `icon_color` n’écrase pas la couleur numérique ; hors seuils, son comportement reste inchangé. Voir le [guide commun et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
+## Remplissage proportionnel
+
+`fill` décore le fond natif d’un bouton État numérique. Il est désactivé tant qu’aucune `reference_entity` ni limite `max` n’est configurée. `enabled: false` permet de le désactiver sans perdre ses réglages. Les volets, thermostats, lecteurs, boutons Nom/Switch/Slider et les contrôles `controls: number` ignorent cette option.
+
+```yaml
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.pump_power
+name: Pompe de relevage
+icon: mdi:water-pump
+card_layout: large
+modules:
+  - signature_compact
+signature_compact:
+  color: blue
+  compact_mode: value
+  fill:
+    reference_entity: sensor.house_power
+```
+
+La jauge affiche `100 × valeur / total`. Une échelle fixe se configure avec `fill: {max: 20}` pour un débit de 0 à 20 dans l’unité de l’entité, ou `fill: {max: 100}` pour une batterie. Une référence configurée est prioritaire sur `max` ; une référence invalide ne revient pas à une autre échelle. Les deux entités doivent avoir la même unité, sans conversion implicite W/kW. Les valeurs visuelles sont bornées à 0–100 % ; la mesure affichée et sa précision ne sont pas modifiées.
+
+Zéro reste une mesure valide. Une source absente, vide, non numérique, un total nul/négatif ou une différence d’unité masque le remplissage (`data-dp-fill="unavailable"`), sans inventer une mesure à zéro. Si seule la référence manque, la mesure principale reste affichée. Aucun pourcentage ni texte secondaire n’est ajouté automatiquement. Une part de puissance peut augmenter lorsque d’autres appareils s’arrêtent ; elle n’indique pas une hausse de la puissance de cet appareil.
+
+Le fond conserve la surface Signature native ; un accent transparent à 16 % la recouvre seulement sur la largeur calculée. `--signature-fill-tint`, valeur CSS facultative de 0 % à 100 %, permet d’ajuster cette intensité dans le thème. La transition de largeur dure 1,5 s et disparaît avec `prefers-reduced-motion: reduce`. Le texte conserve les couleurs du thème, l’icône et les badges leurs réglages propres. Les seuils d’icône ne recolorent pas la jauge, qui reprend `color`.
+
+Les sous-boutons restent natifs : mêmes nœuds, états, actions, conditions, switches et listes déroulantes. Aucune réduction de police, de padding ou de flèche n’est appliquée. Avec `compact_mode: value` et au moins trois sous-boutons configurés, une carte de 480 px ou moins place le groupe sous la mesure et laisse ses boutons se répartir sur plusieurs lignes ; la hauteur devient automatique. Au-dessus, la disposition compacte habituelle est conservée. Les cartes avec zéro, un ou deux sous-boutons restent à 56 px. Les sous-boutons masqués restent masqués ; le seuil de trois compte les boutons configurés, même lorsqu’une condition en masque certains.
+
+Alert Manager continue d’ajouter son badge au-dessus de l’icône, sans changement de son module. Le remplissage n’ajoute aucun nœud, action, abonnement, observateur ou polling : les deux états sont lus à chaque passage pour être suivis par Bubble, les styles statiques sont mis en cache et le thème reste résolu en CSS.
+
 ## Options
 
 | Option | Défaut | Usage |
@@ -64,6 +95,7 @@ Voir aussi l’[exemple média](../examples/media.yaml).
 | `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
 | `compact_mode` | `default` | Valeur compacte Valeurs : `default`, `value`. |
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
+| `fill` | Aucun | Objet YAML `reference_entity` ou `max`, avec `enabled: false` facultatif ; remplissage proportionnel doux |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
 | `controls` | `native` | Commandes Valeurs : `native`, `number`. |
@@ -93,6 +125,15 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.3.0 — 6 octobre 2026
+
+- Remplissage proportionnel facultatif à partir d’une entité de total ou d’une limite fixe, avec une teinte de 16 % héritant du thème.
+- Données invalides distinguées du zéro réel ; largeur visuelle bornée sans modifier la mesure.
+- Interrupteurs, selects, sous-boutons groupés et badges Alert Manager préservés ; groupe de trois commandes placé sous la valeur à 480 px ou moins.
+- Styles statiques mis en cache, lectures d’entités suivies et mouvement réduit respecté, sans nouvel observateur ni abonnement.
+- Vérifications sur DOM simulé et fixtures Chromium ; aucune validation Home Assistant réel ou Safari/iOS.
+
 
 ### 1.2.6 — 5 octobre 2026
 

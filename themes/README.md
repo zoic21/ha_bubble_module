@@ -138,3 +138,7 @@ Compact 1.2.6, Square/Header 1.1.6 et Room 1.0.8 ancrent le survol natif sur les
 ## Named colors
 
 Signature, Flow, Wind Rose and Alert Manager resolve named palette colors through the same native theme variables. For example `blue` uses `blue-color` with fallback `#2196f3`. Flow 3.6.0, Wind Rose 1.3.0 and Alert Manager 3.7.0 replace their former literal CSS-name overrides; use `#0000ff` for literal CSS blue. Explicit CSS colors and semantic defaults remain available. Invalid Wind Rose colors restore its default wind accent.
+
+### Remplissage des jauges Compact
+
+Signature Compact 1.3.0 accepte une variable facultative `signature-fill-tint` (pourcentage CSS, par défaut `16%`). Elle adoucit l’accent transparent au-dessus de la surface native sans remplacer les couleurs de texte ni les fonds des commandes. Aucun ajout au thème n’est requis pour le rendu par défaut ; cette variable suit les changements de thème sans réexécution. Voir le [guide Compact](../signature-compact/doc/README.md#remplissage-proportionnel).
