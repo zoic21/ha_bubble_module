@@ -43,5 +43,52 @@ if (c.card_type === 'separator') {
       margin-inline-start: auto !important;
       flex-shrink: 0;
     }
+    /* Separators have direct icon/name/buttons children, unlike page headers.
+       Keep the whole button group together beside the title only when it fits. */
+    ha-card .bubble-separator {
+      height: auto !important;
+      min-height: 32px;
+      flex-wrap: wrap;
+      align-items: center !important;
+      row-gap: 8px;
+    }
+    ha-card .bubble-separator > .bubble-icon { flex: 0 0 auto; }
+    ha-card .bubble-separator > .bubble-name {
+      flex: 100000 0 auto;
+      width: max-content;
+      /* Reserve the 20px icon, its 11px margins and the 14px title gap. */
+      max-width: calc(100% - 45px);
+      white-space: normal !important;
+      overflow: visible !important;
+      overflow-wrap: anywhere;
+    }
+    ha-card .bubble-separator .bubble-sub-button-container {
+      position: static !important;
+      inset: auto !important;
+      margin: 0 !important;
+      flex: 1 0 auto;
+      width: max-content;
+      max-width: 100%;
+      min-width: 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    ha-card .bubble-separator .bubble-sub-button-group {
+      max-width: 100%;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    ha-card .bubble-separator .bubble-sub-button {
+      max-width: 100%;
+      min-width: 0;
+      height: auto;
+      min-height: var(--bubble-sub-button-height, 36px);
+      white-space: normal;
+    }
+    ha-card .bubble-separator .bubble-sub-button-name-container {
+      min-width: 0;
+      overflow: visible;
+      overflow-wrap: anywhere;
+    }
   ` + styles.map(({cls,b,spec,thresholdScale}) => subThresholdCSS('ha-card .'+cls,b,spec,thresholdScale)).join('') + headerTextCSS;
 }

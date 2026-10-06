@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.11**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.12**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -33,11 +33,13 @@ modules:
 
 ## Compatibilité et comportement
 
-Un `button` avec `button_type: name` donne un grand en-tête et des pilules. Un `separator` donne un titre de section de 32 px de haut, transparent et sans trait. Les autres types de carte ne sont pas habillés. Une configuration incompatible ne reçoit aucun style de ce module.
+Un `button` avec `button_type: name` donne un grand en-tête et des pilules. Un `separator` donne un titre de section transparent et sans trait, de 32 px au minimum ; sa hauteur suit ses pastilles lorsqu’elles nécessitent une ou plusieurs lignes. Les autres types de carte ne sont pas habillés. Une configuration incompatible ne reçoit aucun style de ce module.
+
+Sur un titre de section, le groupe de pastilles reste à droite si le titre et tous ses libellés tiennent. Sinon, le groupe entier passe sous le titre, sur ordinateur comme sur mobile. Les pastilles et groupes natifs se répartissent dans la largeur de la colonne avec 8 px d’écart ; les libellés très longs peuvent occuper plusieurs lignes. Le titre reste visible et la hauteur s’adapte pour éviter le chevauchement de la carte suivante ou d’une colonne voisine. La taille du titre reste 18 px ; sans pastille, un titre court conserve 32 px. Aucun calcul de largeur ni observateur JavaScript supplémentaire.
 
 Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_styles` permet d’appliquer des seuils aux fonds des badges et une préférence `icon_color` à leurs icônes. Les autres options continuent à concerner le grand en-tête. Les pilules passent sous le titre selon la largeur. `sub_button_styles` accepte une classe CSS ou un numéro natif, avec `color`, `background`, `opacity` et `icon`, dont les valeurs peuvent utiliser Jinja.
 
-Sur mobile (fenêtre de 600 px ou moins), tous les sous-boutons restent à droite du titre si l’ensemble tient avec au moins 24 px de dégagement. **À côté du titre, les pilules gardent leur largeur naturelle**, alignées à droite avec 8 px d’écart. Sinon, **tout le groupe passe sous le titre** : aucun bouton ne reste à droite. Le conteneur occupe alors toute la largeur et les pilules s’agrandissent automatiquement pour remplir chaque ligne, avec leur contenu centré et 8 px d’écart fixe. Elles ont la même largeur lorsque leurs contenus tiennent dans ces parts ; un libellé plus long conserve sa largeur minimale et peut entraîner une ligne supplémentaire. Un bouton seul sous le titre remplit sa ligne. Aucune largeur n’est à régler bouton par bouton. Le navigateur ajuste ce placement en CSS lorsque la largeur ou les libellés changent, sans mesure JavaScript ni observateur supplémentaire. La disposition sur ordinateur et les titres de section restent inchangés.
+Sur mobile (fenêtre de 600 px ou moins), tous les sous-boutons restent à droite du titre si l’ensemble tient avec au moins 24 px de dégagement. **À côté du titre, les pilules gardent leur largeur naturelle**, alignées à droite avec 8 px d’écart. Sinon, **tout le groupe passe sous le titre** : aucun bouton ne reste à droite. Le conteneur occupe alors toute la largeur et les pilules s’agrandissent automatiquement pour remplir chaque ligne, avec leur contenu centré et 8 px d’écart fixe. Elles ont la même largeur lorsque leurs contenus tiennent dans ces parts ; un libellé plus long conserve sa largeur minimale et peut entraîner une ligne supplémentaire. Un bouton seul sous le titre remplit sa ligne. Aucune largeur n’est à régler bouton par bouton. Le navigateur ajuste ce placement en CSS lorsque la largeur ou les libellés changent, sans mesure JavaScript ni observateur supplémentaire. Ces règles du grand bandeau mobile ne changent pas sa disposition sur ordinateur ; les titres de section utilisent le retour de groupe décrit ci-dessus.
 
 ## Couleurs du fond d’icône selon la valeur
 
@@ -69,6 +71,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.12 — 6 octobre 2026
+
+- Titres de section : groupe de pastilles à droite lorsqu’il tient, sinon passage du groupe entier sous le titre, sur ordinateur et mobile.
+- Hauteur automatique à partir de 32 px, retour des pastilles/groupes dans la largeur de la colonne et libellés longs lisibles ; aucun débordement sur le titre, la colonne voisine ou la carte suivante.
+- Structure native spécifique des séparateurs vérifiée en Chromium (Machines et quatre pastilles), sans modification des nœuds, actions, seuils, masquages ni comportement du grand bandeau. Aucune mesure ou écoute JavaScript ajoutée.
 
 ### 1.1.11 — 5 octobre 2026
 
@@ -141,6 +149,12 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 - Retrait du module historique `signature` ; métadonnées et guides actualisés, rendu et options inchangés.
 
 ## Notes de version
+
+### 1.1.12 — 6 octobre 2026
+
+- Titres de section : groupe de pastilles à droite lorsqu’il tient, sinon passage du groupe entier sous le titre, sur ordinateur et mobile.
+- Hauteur automatique à partir de 32 px, retour des pastilles/groupes dans la largeur de la colonne et libellés longs lisibles ; aucun débordement sur le titre, la colonne voisine ou la carte suivante.
+- Structure native spécifique des séparateurs vérifiée en Chromium (Machines et quatre pastilles), sans modification des nœuds, actions, seuils, masquages ni comportement du grand bandeau. Aucune mesure ou écoute JavaScript ajoutée.
 
 ### 1.1.1 — 5 October 2026
 
