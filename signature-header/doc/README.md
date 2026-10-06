@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.12**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.13**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -35,7 +35,7 @@ modules:
 
 Un `button` avec `button_type: name` donne un grand en-tête et des pilules. Un `separator` donne un titre de section transparent et sans trait, de 32 px au minimum ; sa hauteur suit ses pastilles lorsqu’elles nécessitent une ou plusieurs lignes. Les autres types de carte ne sont pas habillés. Une configuration incompatible ne reçoit aucun style de ce module.
 
-Sur un titre de section, le groupe de pastilles reste à droite si le titre et tous ses libellés tiennent. Sinon, le groupe entier passe sous le titre, sur ordinateur comme sur mobile. Les pastilles et groupes natifs se répartissent dans la largeur de la colonne avec 8 px d’écart ; les libellés très longs peuvent occuper plusieurs lignes. Le titre reste visible et la hauteur s’adapte pour éviter le chevauchement de la carte suivante ou d’une colonne voisine. La taille du titre reste 18 px ; sans pastille, un titre court conserve 32 px. Aucun calcul de largeur ni observateur JavaScript supplémentaire.
+Sur un titre de section, le groupe de pastilles reste à droite si le titre et tous ses libellés tiennent. Sinon, le groupe entier passe sous le titre, sur ordinateur comme sur mobile. Chaque ligne de pastilles commence au bord gauche de la colonne, y compris une dernière pastille seule ; les pastilles gardent leur largeur naturelle, avec 8 px d’écart. Cette règle s’applique aussi aux groupes natifs. Les libellés très longs peuvent occuper plusieurs lignes. Le titre reste visible et la hauteur s’adapte pour éviter le chevauchement de la carte suivante ou d’une colonne voisine. La taille du titre reste 18 px ; sans pastille, un titre court conserve 32 px. Aucun calcul de largeur ni observateur JavaScript supplémentaire.
 
 Le séparateur conserve ses sous-boutons et leurs actions natifs ; `sub_button_styles` permet d’appliquer des seuils aux fonds des badges et une préférence `icon_color` à leurs icônes. Les autres options continuent à concerner le grand en-tête. Les pilules passent sous le titre selon la largeur. `sub_button_styles` accepte une classe CSS ou un numéro natif, avec `color`, `background`, `opacity` et `icon`, dont les valeurs peuvent utiliser Jinja.
 
@@ -71,6 +71,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.13 — 6 octobre 2026
+
+- Titres de section : toutes les lignes de pastilles sous le titre sont alignées à gauche, y compris la dernière pastille seule et les groupes natifs.
+- Largeurs naturelles et écart de 8 px conservés ; lorsqu’il tient à côté du titre, le groupe reste à droite.
+- Régression Chromium du cas trois pastilles puis une seule, en clair/sombre, sans et avec groupe natif ; largeur de test dérivée des libellés rendus.
 
 ### 1.1.12 — 6 octobre 2026
 
@@ -147,14 +153,6 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 ### 1.0.2 — 5 octobre 2026
 
 - Retrait du module historique `signature` ; métadonnées et guides actualisés, rendu et options inchangés.
-
-## Notes de version
-
-### 1.1.12 — 6 octobre 2026
-
-- Titres de section : groupe de pastilles à droite lorsqu’il tient, sinon passage du groupe entier sous le titre, sur ordinateur et mobile.
-- Hauteur automatique à partir de 32 px, retour des pastilles/groupes dans la largeur de la colonne et libellés longs lisibles ; aucun débordement sur le titre, la colonne voisine ou la carte suivante.
-- Structure native spécifique des séparateurs vérifiée en Chromium (Machines et quatre pastilles), sans modification des nœuds, actions, seuils, masquages ni comportement du grand bandeau. Aucune mesure ou écoute JavaScript ajoutée.
 
 ### 1.1.1 — 5 October 2026
 

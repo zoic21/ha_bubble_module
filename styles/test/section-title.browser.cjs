@@ -15,7 +15,7 @@ const nativeCSS = `
   .bubble-name:empty { display:none; }
   .bubble-line { flex-grow:1; height:6px; margin-right:14px; }
   .bubble-sub-button-container { position:relative; display:flex; inset-inline-end:8px; margin-inline-start:8px; align-items:center; justify-content:end; gap:8px; }
-  .bubble-sub-button-group { display:flex; position:relative; gap:8px; align-items:center; }
+  .bubble-sub-button-group { display:flex; position:relative; gap:8px; align-items:center; justify-content:end; }
   .bubble-sub-button { display:flex; flex-direction:row-reverse; align-items:center; justify-content:center; position:relative; box-sizing:border-box; width:max-content; min-width:36px; height:36px; border-radius:18px; padding:0 8px; font-size:12px; white-space:nowrap; color:var(--primary-text-color); background:var(--card-background-color); }
   .bubble-sub-button-name-container { display:flex; overflow:auto; }
   .bubble-sub-button-icon { width:16px; height:16px; flex-shrink:0; margin-right:4px; }
@@ -61,7 +61,7 @@ async function geometry(page) {
     const {shell,root,buttons,style,config,configured}=window.section;
     const rect=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
     const title=root.querySelector('.bubble-name');
-    return {card:rect(root),title:rect(title),text:title.textContent,titleOverflow:title.scrollWidth>title.clientWidth+1,
+    return {card:rect(root),container:rect(window.section.container),title:rect(title),text:title.textContent,titleOverflow:title.scrollWidth>title.clientWidth+1,
       buttons:buttons.map(b=>({rect:rect(b),overflow:b.scrollWidth>b.clientWidth+1,color:getComputedStyle(b.querySelector('span')).color,icon:getComputedStyle(b.querySelector('ha-icon')).color})),
       following:rect(document.querySelector('#following')),neighbor:rect(document.querySelector('#neighbor')),shell:rect(shell),
       hidden:root.querySelector('.hidden')?.getClientRects().length||0,sameConfig:JSON.stringify(config)===configured,css:style.textContent,
@@ -97,7 +97,32 @@ test('machine section keeps its title and four native badges within its column i
     assert.ok(sample.buttons.every(b=>(b.rect.top<sample.title.bottom)===inline),'group stays entirely beside or below title');
     if(width<=382)assert.ok(!inline,'narrow column moves the complete group under title');
     if(width===1200)assert.ok(sample.buttons.every(b=>b.rect.top<sample.title.bottom),'fitting group stays beside title');
+    if(inline){
+      assert.ok(Math.abs(sample.buttons.at(-1).rect.right-sample.card.right)<0.1,'fitting group remains anchored to the right');
+    }else{
+      const rows=new Map();
+      for(const b of sample.buttons)if(!rows.has(b.rect.top))rows.set(b.rect.top,b.rect);
+      for(const row of rows.values())assert.ok(Math.abs(row.left-sample.card.left)<0.1,'every wrapped row starts at the left edge');
+    }
     const button=sample.buttons[1].rect;await page.mouse.click((button.left+button.right)/2,(button.top+button.bottom)/2);assert.equal(await page.evaluate(()=>window.clicks),1);
+  }
+});
+
+test('three badges followed by one wrapped badge share a left edge and keep their natural widths',async t=>{
+  const page=await fixture(t,{prepare:null});
+  for(const mode of ['light','dark'])for(const grouped of [false,true]){
+    await section(page,{width:1200,mode,grouped});
+    const wide=await geometry(page);contained(wide);
+    // Derive a three-plus-one row from rendered labels, not CI font assumptions.
+    const widths=wide.buttons.map(b=>b.rect.width);
+    const width=Math.ceil(widths.slice(0,3).reduce((sum,value)=>sum+value,0)+16+1);
+    await page.evaluate(width=>window.section.shell.style.width=width+'px',width);
+    const wrapped=await geometry(page);contained(wrapped);
+    assert.ok(wrapped.buttons[0].rect.top>=wrapped.title.bottom,'whole group moves below title');
+    for(const b of wrapped.buttons.slice(0,3))assert.equal(b.rect.top,wrapped.buttons[0].rect.top,'three badges fit on first row');
+    assert.ok(wrapped.buttons[3].rect.top>=wrapped.buttons[0].rect.bottom+7.9,'last badge wraps to next row');
+    for(const index of [0,3])assert.ok(Math.abs(wrapped.buttons[index].rect.left-wrapped.card.left)<0.1,'both rows align left');
+    wrapped.buttons.forEach((b,index)=>assert.ok(Math.abs(b.rect.width-widths[index])<0.1,'wrapping does not stretch a badge'));
   }
 });
 

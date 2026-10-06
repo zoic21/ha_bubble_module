@@ -71,12 +71,14 @@ if (c.card_type === 'separator') {
       max-width: 100%;
       min-width: 0;
       flex-wrap: wrap;
+      justify-content: flex-start;
       gap: 8px;
     }
     ha-card .bubble-separator .bubble-sub-button-group {
       max-width: 100%;
       min-width: 0;
       flex-wrap: wrap;
+      justify-content: flex-start;
     }
     ha-card .bubble-separator .bubble-sub-button {
       max-width: 100%;
