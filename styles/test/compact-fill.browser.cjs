@@ -39,7 +39,7 @@ async function prepare(page,scenario={}){
     [...document.getElementById('cards').children].filter(shell=>shell.dataset.id!=='compact').forEach(shell=>shell.remove());
     const root=ctx.card,shadow=root.getRootNode();shadow.querySelector('style').textContent+=nativeCSS;
     root.querySelector('.bubble-name').textContent=scenario.name||'Pompe de relevage';
-    ctx.config={...ctx.config,entity:'sensor.demo',button_type:'state',show_icon:scenario.noIcon!==true,signature_compact:{compact_mode:'value',value_style:scenario.valueStyle||'text',secondary:scenario.secondary||'',...(['switch','mixed'].includes(scenario.controls)?{sub_button_styles:{'1':{type:'switch'}}}:{})},sub_button:scenario.grouped?{main:[{group:buttons}]}:buttons};
+    ctx.config={...ctx.config,entity:'sensor.demo',button_type:'state',show_icon:scenario.noIcon!==true,signature_compact:{compact_mode:'value',value_style:scenario.valueStyle||'text',value_background:scenario.valueBackground,secondary:scenario.secondary||'',...(['switch','mixed'].includes(scenario.controls)?{sub_button_styles:{'1':{type:'switch'}}}:{})},sub_button:scenario.grouped?{main:[{group:buttons}]}:buttons};
     if(scenario.noIcon)root.querySelector('.bubble-icon-container').classList.add('hidden');
     ctx._hass.states['sensor.demo']={state:scenario.value||'200',attributes:{unit_of_measurement:'W'}};
     ctx._hass.states['sensor.house']={state:'1000',attributes:{unit_of_measurement:'W'}};
@@ -77,7 +77,7 @@ async function prepare(page,scenario={}){
 }
 async function geometry(page){return page.evaluate(()=>{
   const root=window.fillContext.card,host=root.querySelector('.bubble-container');const rect=host.getBoundingClientRect();
-  const read=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {left:r.left-rect.left,right:r.right-rect.left,top:r.top-rect.top,bottom:r.bottom-rect.top,width:r.width,height:r.height,color:s.color,fontSize:s.fontSize};};
+  const read=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {left:r.left-rect.left,right:r.right-rect.left,top:r.top-rect.top,bottom:r.bottom-rect.top,width:r.width,height:r.height,color:s.color,fontSize:s.fontSize,background:s.backgroundColor,backgroundImage:s.backgroundImage,shadow:s.boxShadow,border:s.borderWidth};};
   const s=getComputedStyle(host);
   const badge=root.querySelector('.am-alert-badge');
   return {width:rect.width,height:rect.height,background:s.backgroundImage,size:s.backgroundSize,surface:s.backgroundColor,transition:s.transitionDuration,state:read(root.querySelector('.bubble-state')),unit:read(root.querySelector('.dp-unit')),name:read(root.querySelector('.bubble-name')),buttons:[...root.querySelectorAll('.bubble-sub-button')].map(read),badge:badge?getComputedStyle(badge).display:null};
@@ -118,17 +118,18 @@ test('fill follows live theme changes, missing values, reduced motion and Alert 
 test('small value buttons precede native actions and keep switches last at narrow/wide widths',async t=>{
   const page=await fixture(t);
   for(const width of [288,328,382,480,500,600])for(const mode of ['light','dark'])for(const control of ['none','switch','select','crowded','mixed']){
-    const result=await prepare(page,{width,mode,controls:control,grouped:true,valueStyle:'button',name:'Pompe de relevage',fill:width!==328,alert:control==='switch',secondary:width===480?'Actif':'',noIcon:width===382});
+    const result=await prepare(page,{width,mode,controls:control,grouped:true,valueStyle:'button',valueBackground:width>=500,name:'Pompe de relevage',fill:width!==328,alert:control==='switch',secondary:width===480?'Actif':'',noIcon:width===382});
     assert.ok(result.sameNodes);assert.deepEqual(result.after,result.before);
     const g=await geometry(page);
     assert.equal(g.state.fontSize,'14px');assert.equal(g.unit.fontSize,'12px');assert.equal(g.state.height,36);
+    if(width<500){assert.equal(g.state.background,'rgba(0, 0, 0, 0)');assert.equal(g.state.backgroundImage,'none');assert.equal(g.state.shadow,'none');assert.equal(g.state.border,'0px');}
     assert.ok(g.name.width>0,'Name clipped: '+JSON.stringify({width,control,g}));
     for(const b of [g.state,...g.buttons])assert.ok(b.left>=0&&b.right<=g.width+.1&&b.top>=0&&b.bottom<=g.height+.1,'Control clipped: '+JSON.stringify({width,control,g}));
     for(const b of g.buttons)assert.ok(b.top>=g.state.bottom-.1||b.left>=g.state.right-.1,'Power must precede controls: '+JSON.stringify({width,control,g}));
     if(control==='mixed')for(const b of g.buttons.slice(1))assert.ok(g.buttons[0].top>=b.bottom-.1||g.buttons[0].left>=b.right-.1,'Switch must end its group: '+JSON.stringify({width,control,g}));
     if(control==='switch')assert.equal(g.badge,'flex');
   }
-  await prepare(page,{width:328,controls:'mixed',grouped:true,valueStyle:'button'});
+  await prepare(page,{width:328,controls:'mixed',grouped:true,valueStyle:'button',valueBackground:false,plain:true});
   const shell=page.locator('[data-id="compact"]');
   await shell.locator('.bubble-state').click();
   await shell.locator('select').selectOption('Fast');
@@ -139,4 +140,8 @@ test('small value buttons precede native actions and keep switches last at narro
   await page.evaluate(()=>{window.fillContext.config.signature_compact.value_style='button';window.updateFill();});
   assert.equal((await geometry(page)).state.fontSize,'14px');
   assert.ok(await page.evaluate(()=>window.smallState===window.fillContext.elements.state));
+  await page.evaluate(()=>{window.fillContext.config.signature_compact.value_background=true;window.updateFill();});
+  assert.notEqual((await geometry(page)).state.background,'rgba(0, 0, 0, 0)');
+  await page.evaluate(()=>{window.fillContext.config.signature_compact.value_background=false;window.updateFill();document.body.style.setProperty('--signature-control-background','red');});
+  assert.equal((await geometry(page)).state.background,'rgba(0, 0, 0, 0)');
 });

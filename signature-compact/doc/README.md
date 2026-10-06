@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.4.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.4.1**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -27,7 +27,7 @@ signature_compact:
 
 Cartes `button` hors `slider`, ainsi que `cover`, `climate` et `media-player`. Les commandes natives restent intactes. `compact_mode: value` concerne les boutons État, ou Nom avec une option `state` personnalisée. Une configuration incompatible ne reçoit aucun style de ce module.
 
-`value_style: button` avec `compact_mode: value` présente la mesure dans une petite pastille cliquable : hauteur 36 px, valeur 14 px, unité 12 px, surface neutre et rayon des commandes du thème. Elle ouvre les détails de l’entité principale et précède les sous-boutons. Les interrupteurs visuels sont placés en dernier dans leur groupe natif. Avec trois sous-boutons ou plus, le groupe passe sous la mesure sur les cartes de 480 px ou moins, avec hauteur automatique et retour à la ligne ; ce comportement fonctionne aussi sans `fill`. Le nœud d’état, ses actions et son formatage restent natifs. `value_style: text` conserve la grande valeur de 20 px. Les commandes numériques − / valeur / + ignorent cette option.
+`value_style: button` avec `compact_mode: value` présente la mesure dans une petite pastille cliquable : hauteur 36 px, valeur 14 px, unité 12 px, surface neutre et rayon des commandes du thème. Elle ouvre les détails de l’entité principale et précède les sous-boutons. Les interrupteurs visuels sont placés en dernier dans leur groupe natif. Avec trois sous-boutons ou plus, le groupe passe sous la mesure sur les cartes de 480 px ou moins, avec hauteur automatique et retour à la ligne ; ce comportement fonctionne aussi sans `fill`. `value_background: false` retire la pastille autour de la valeur et réduit son padding horizontal à 4 px ; la cible cliquable garde une hauteur de 36 px. Le remplissage de la carte reste visible derrière la puissance. Le nœud d’état, ses actions et son formatage restent natifs. `value_style: text` conserve la grande valeur de 20 px. Les commandes numériques − / valeur / + ignorent cette option.
 
 `controls: number` ajoute − / valeur / + pour un bouton État lié à `number` ou `input_number`. Les limites et le pas viennent de l’entité. Les pressions attendent un changement de valeur ou cinq secondes avant de reprendre ; les états invalides désactivent les commandes. Un clic sur la valeur ouvre les détails. `sub_buttons_position: end` place les sous-boutons après les commandes natives.
 
@@ -79,6 +79,7 @@ signature_compact:
   color: blue
   compact_mode: value
   value_style: button
+  value_background: false
   fill:
     reference_entity: sensor.house_power
 ```
@@ -101,6 +102,7 @@ Alert Manager continue d’ajouter son badge au-dessus de l’icône, sans chang
 | `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
 | `compact_mode` | `default` | Valeur compacte Valeurs : `default`, `value`. |
 | `value_style` | `text` | `button` : petite valeur cliquable avant les commandes, switches visuels en dernier dans leur groupe ; avec `compact_mode: value` |
+| `value_background` | `true` | Avec `value_style: button`, `false` affiche la petite valeur cliquable sans pastille |
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
 | `fill` | Aucun | Objet YAML `reference_entity` ou `max`, avec `enabled: false` facultatif ; remplissage proportionnel doux |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
@@ -132,6 +134,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.1 — 6 octobre 2026
+
+- Option `value_background: false` pour conserver une petite valeur cliquable sans pastille, avec un padding horizontal réduit à 4 px.
+- Typographie, cible de 36 px, placement avant les commandes, interrupteurs en dernier et remplissage de carte conservés.
+- Rendu et clics vérifiés sur fixtures Chromium ; aucune validation Home Assistant réel ou Safari/iOS.
 
 ### 1.4.0 — 6 octobre 2026
 

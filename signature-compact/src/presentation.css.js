@@ -92,6 +92,9 @@ opacity: 1;
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-style="button"] .bubble-state .dp-unit {
       font-size: var(--signature-caption-font-size, 12px); flex-shrink: 0;
     }
+    ha-card[data-dp-layout="compact"][data-dp-value-style="button"][data-dp-value-background="no"] .bubble-state {
+      background: none; border: 0; box-shadow: none; padding-inline: 4px;
+    }
     ${secondary ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-secondary { grid-area: 2 / 1; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 1; }` : ''}
     ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep the native state node, formatting and action bindings. */

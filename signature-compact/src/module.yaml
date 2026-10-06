@@ -1,5 +1,5 @@
 name: Signature Compact
-version: 1.4.0
+version: 1.4.1
 creator: Loïc
 supported:
   - button
@@ -49,6 +49,15 @@ editor:
         group_icon: mdi:format-text
         description: "Bouton de 36 px, valeur de 14 px et unité de 12 px. Les interrupteurs visuels restent en dernier dans leur groupe natif."
         visible_if: item.compact_mode === 'value' && item.controls !== 'number' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
+      value_background:
+        label: Fond du petit bouton de valeur
+        default: true
+        selector:
+          boolean: {}
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        description: "Désactiver pour afficher la petite valeur sans pastille, toujours cliquable avant les commandes."
+        visible_if: item.compact_mode === 'value' && item.value_style === 'button' && item.controls !== 'number' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
       state:
         $field: state
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
