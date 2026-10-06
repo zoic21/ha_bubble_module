@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.3.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.4.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -26,6 +26,8 @@ signature_compact:
 ## Compatibilité et comportement
 
 Cartes `button` hors `slider`, ainsi que `cover`, `climate` et `media-player`. Les commandes natives restent intactes. `compact_mode: value` concerne les boutons État, ou Nom avec une option `state` personnalisée. Une configuration incompatible ne reçoit aucun style de ce module.
+
+`value_style: button` avec `compact_mode: value` présente la mesure dans une petite pastille cliquable : hauteur 36 px, valeur 14 px, unité 12 px, surface neutre et rayon des commandes du thème. Elle ouvre les détails de l’entité principale et précède les sous-boutons. Les interrupteurs visuels sont placés en dernier dans leur groupe natif. Avec trois sous-boutons ou plus, le groupe passe sous la mesure sur les cartes de 480 px ou moins, avec hauteur automatique et retour à la ligne ; ce comportement fonctionne aussi sans `fill`. Le nœud d’état, ses actions et son formatage restent natifs. `value_style: text` conserve la grande valeur de 20 px. Les commandes numériques − / valeur / + ignorent cette option.
 
 `controls: number` ajoute − / valeur / + pour un bouton État lié à `number` ou `input_number`. Les limites et le pas viennent de l’entité. Les pressions attendent un changement de valeur ou cinq secondes avant de reprendre ; les états invalides désactivent les commandes. Un clic sur la valeur ouvre les détails. `sub_buttons_position: end` place les sous-boutons après les commandes natives.
 
@@ -67,12 +69,16 @@ button_type: state
 entity: sensor.pump_power
 name: Pompe de relevage
 icon: mdi:water-pump
+grid_options:
+  columns: full
+  rows: 1
 card_layout: large
 modules:
   - signature_compact
 signature_compact:
   color: blue
   compact_mode: value
+  value_style: button
   fill:
     reference_entity: sensor.house_power
 ```
@@ -94,6 +100,7 @@ Alert Manager continue d’ajouter son badge au-dessus de l’icône, sans chang
 | `color` | `blue` | Couleur de la palette, couleur CSS ou template Jinja. Valeurs : `blue`, `light-blue`, `teal`, `cyan`, `green`, `orange`, `amber`, `yellow`, `red`, `pink`, `indigo`, `purple`, `grey`. |
 | `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
 | `compact_mode` | `default` | Valeur compacte Valeurs : `default`, `value`. |
+| `value_style` | `text` | `button` : petite valeur cliquable avant les commandes, switches visuels en dernier dans leur groupe ; avec `compact_mode: value` |
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
 | `fill` | Aucun | Objet YAML `reference_entity` ou `max`, avec `enabled: false` facultatif ; remplissage proportionnel doux |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
@@ -112,7 +119,7 @@ Alert Manager continue d’ajouter son badge au-dessus de l’icône, sans chang
 
 Le [thème Signature](../../themes/README.md) centralise l’apparence via les variables `--signature-*`. Le navigateur résout ces variables, y compris dans le CSS mis en cache, sans lecture JavaScript du thème. Les valeurs de secours reproduisent le rendu actuel en l’absence du thème. Les grilles, les placements et les comportements appartiennent au module. Aucune dépendance entre modules n’est à installer et aucun `card-mod` n’est nécessaire.
 
-Utiliser **un seul module de présentation par carte**. `alert_manager` peut être ajouté après celui-ci ; les alertes gardent leurs couleurs prioritaires. Les lecteurs multimédias utilisent Compact.
+Utiliser **un seul module de présentation par carte**. `alert_manager` peut être ajouté après celui-ci ; les alertes restent signalées par leur badge. Les lecteurs multimédias utilisent Compact.
 
 Pour migrer : remplacer `signature` dans `modules` par `signature_compact`, déplacer les options sous cette nouvelle clé et retirer `layout`. Conserver les entités, actions et sous-boutons natifs. Voir le [guide de migration](../../signature-shared/doc/MIGRATION.md). Importer un module ne migre pas les dashboards existants.
 
@@ -125,6 +132,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.0 — 6 octobre 2026
+
+- Option `value_style: button` : pastille cliquable de 36 px, valeur 14 px et unité 12 px, placée avant les commandes natives.
+- Interrupteurs visuels en dernier dans leur groupe ; tailles et actions des switches et selects conservées.
+- Groupes de trois commandes sous la valeur sur carte étroite, avec ou sans jauge, y compris sans icône et avec un texte secondaire.
+- Vérifications sur fixtures Chromium, clair/sombre, clics et selects ; aucune validation Home Assistant réel ou Safari/iOS.
 
 ### 1.3.0 — 6 octobre 2026
 

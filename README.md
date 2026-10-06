@@ -5,7 +5,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
 | Signature Square — square tiles | 1.1.6 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information, control rows and media players | 1.3.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.4.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Room — room summaries and controls | 1.0.8 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.11 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
@@ -48,7 +48,7 @@ Square, Compact, Room and Header are separate, autonomous modules with French fo
 
 The optional Signature theme supplies common CSS appearance variables; each module owns its layout and controls. Shared JavaScript and CSS source files are assembled at build time, so no base module or runtime import is needed.
 
-Compact also supports an optional proportional `fill`: a live reference entity or a fixed maximum, with a soft 16% accent over the theme surface. It preserves native switches, selects and Alert Manager badges; three or more controls wrap below the value on narrow gauge cards. See the [Compact guide](signature-compact/doc/README.md#remplissage-proportionnel).
+Compact can display its main value as a small clickable button (`value_style: button`): 14px value, 12px unit, placed before native commands, with visual switches last in their native group. Compact also supports an optional proportional `fill`: a live reference entity or a fixed maximum, with a soft 16% accent over the theme surface. It preserves native switches, selects and Alert Manager badges; three or more controls wrap below the value on narrow gauge cards. See the [Compact guide](signature-compact/doc/README.md#remplissage-proportionnel).
 
 Compact and Square support numeric `color_thresholds.values` on their main icons; all three modules also support existing sub-button badges, including Header section titles. Surfaces mix only 16% of the threshold color into the live theme surface, just like ordinary Signature icons. Icons match the graph's RGB accent without any contrast adaptation; badge labels keep theme text. Header also keeps theme text on every ordinary badge and button label, including slider values, while preserving their icon colors, fills and functional opacity. See the [shared threshold guide](signature-shared/doc/COLOR_THRESHOLDS.md). Room, native controls and Alert Manager retain their behavior.
 

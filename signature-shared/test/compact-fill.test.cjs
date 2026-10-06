@@ -83,3 +83,22 @@ test('fill keeps theme surfaces, colors and reduced motion in CSS and exposes it
   assert.equal(visible({}, {card_type:'media-player'}),false);
   assert.equal(visible({controls:'number'}, {card_type:'button',button_type:'state'}),false);
 });
+
+test('small value style is reversible, respects native visibility and restores delegated actions on teardown',t=>{
+  const f=fixture(t,undefined,{signature_compact:{compact_mode:'value',value_style:'button'}});
+  const state=f.ctx.elements.state;
+  f.run();assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),'button');
+  assert.equal(state.dataset.entity,'sensor.pump');assert.equal(JSON.parse(state.dataset.tapAction).action,'more-info');
+  f.ctx.config.signature_compact.value_style='text';f.run();
+  assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),'text');assert.equal(f.ctx.elements.state,state);
+  f.ctx.config.signature_compact.value_style='button';f.ctx.config.show_state=false;state.classList.add('hidden');f.run();
+  assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),'text');assert.ok(state.classList.contains('hidden'));
+  f.ctx.config.show_state=true;state.classList.remove('hidden');f.run();assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),'button');
+  f.ctx.teardown();assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),null);assert.equal(state.dataset.tapAction,undefined);
+  const field=definition.editor[1].fields.value_style;
+  const visible=new Function('item','card','return !!('+field.visible_if+');');
+  assert.ok(visible({compact_mode:'value'},{button_type:'state'}));
+  assert.equal(visible({compact_mode:'default'},{button_type:'state'}),false);
+  assert.equal(visible({compact_mode:'value',controls:'number'},{button_type:'state'}),false);
+  assert.equal(visible({compact_mode:'value'},{card_type:'media-player'}),false);
+});

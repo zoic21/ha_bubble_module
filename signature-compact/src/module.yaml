@@ -1,5 +1,5 @@
 name: Signature Compact
-version: 1.3.0
+version: 1.4.0
 creator: Loïc
 supported:
   - button
@@ -34,6 +34,21 @@ editor:
         group: Valeurs et textes
         group_icon: mdi:format-text
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
+      value_style:
+        label: Présentation de la valeur
+        default: text
+        selector:
+          select:
+            mode: dropdown
+            options:
+              - label: Grande valeur
+                value: text
+              - label: Petit bouton avant les commandes
+                value: button
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        description: "Bouton de 36 px, valeur de 14 px et unité de 12 px. Les interrupteurs visuels restent en dernier dans leur groupe natif."
+        visible_if: item.compact_mode === 'value' && item.controls !== 'number' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
       state:
         $field: state
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))

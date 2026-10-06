@@ -80,6 +80,18 @@ opacity: 1;
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-unit {
       /* @include shared/src/styles/unit.css {"SIZE":"var(--signature-secondary-font-size, 13px)"} */
      }
+    /* A small neutral button uses the existing state and its more-info action. */
+    ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-style="button"] .bubble-state {
+      display: inline-flex !important; align-items: center; justify-content: center;
+      min-width: 36px; height: 36px; padding: 0 10px;
+      font-size: var(--signature-name-font-size, 14px); font-weight: var(--signature-font-weight-medium, 500);
+      line-height: 1.2; color: var(--primary-text-color); text-align: center;
+      border-radius: var(--signature-control-border-radius, 14px);
+      background: var(--signature-control-background, color-mix(in srgb, var(--primary-text-color) 4%, ${neutralSurface}));
+    }
+    ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-style="button"] .bubble-state .dp-unit {
+      font-size: var(--signature-caption-font-size, 12px); flex-shrink: 0;
+    }
     ${secondary ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-secondary { grid-area: 2 / 1; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 1; }` : ''}
     ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep the native state node, formatting and action bindings. */
@@ -98,4 +110,9 @@ row-gap: 0;
     ${secondary ? `ha-card[data-dp-value-trailing="yes"] .dp-secondary { grid-area: 2 / 2 / 3 / 3 !important; align-self: start; min-width: 0; }
     ha-card[data-dp-value-trailing="yes"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 2 / 2 / 3 !important; align-self: end; }` : ''}
     ha-card[data-dp-value-trailing="yes"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) auto fit-content(60%); }
+    /* The measurement precedes every native action, including the final switch. */
+    ha-card[data-dp-value-style="button"] .bubble-wrapper { grid-template-columns: 36px minmax(0, 1fr) fit-content(40%) auto; }
+    ha-card[data-dp-value-style="button"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) fit-content(40%) auto; }
+    ha-card[data-dp-value-style="button"] .bubble-state { grid-area: 1 / 3 / 3 / 4 !important; }
+    ha-card[data-dp-value-style="button"] .bubble-sub-button-container { grid-area: 1 / 4 / 3 / 5; }
     ` : ''))

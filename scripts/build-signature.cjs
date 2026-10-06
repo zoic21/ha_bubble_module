@@ -55,7 +55,7 @@ async function build(layout) {
     `);
   }
   chunks.push(shared('appearance'));
-  if (layout === 'compact') chunks.push(specific(layout, 'fill'));
+  if (layout === 'compact') chunks.push(specific(layout, 'value-button'), specific(layout, 'fill'), specific(layout, 'value-controls'));
   chunks.push(layout === 'room' ? specific(layout, 'room-geometry') : `
     const roles = [], roomColumns = 4, roomRows = 1, roomHeaderMeasures = false;
   `);
