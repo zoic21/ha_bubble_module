@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.4.1**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.4.2**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -27,11 +27,13 @@ signature_compact:
 
 Cartes `button` hors `slider`, ainsi que `cover`, `climate` et `media-player`. Les commandes natives restent intactes. `compact_mode: value` concerne les boutons État, ou Nom avec une option `state` personnalisée. Une configuration incompatible ne reçoit aucun style de ce module.
 
-`value_style: button` avec `compact_mode: value` présente la mesure dans une petite pastille cliquable : hauteur 36 px, valeur 14 px, unité 12 px, surface neutre et rayon des commandes du thème. Elle ouvre les détails de l’entité principale et précède les sous-boutons. Les interrupteurs visuels sont placés en dernier dans leur groupe natif. Avec trois sous-boutons ou plus, le groupe passe sous la mesure sur les cartes de 480 px ou moins, avec hauteur automatique et retour à la ligne ; ce comportement fonctionne aussi sans `fill`. `value_background: false` retire la pastille autour de la valeur et réduit son padding horizontal à 4 px ; la cible cliquable garde une hauteur de 36 px. Le remplissage de la carte reste visible derrière la puissance. Le nœud d’état, ses actions et son formatage restent natifs. `value_style: text` conserve la grande valeur de 20 px. Les commandes numériques − / valeur / + ignorent cette option.
+`value_style: button` avec `compact_mode: value` présente la mesure dans une petite pastille cliquable : hauteur 36 px, valeur 14 px, unité 12 px, surface neutre et rayon concentrique de 12 px par défaut (`max(0px, rayon de carte − 10px)`). Elle ouvre les détails de l’entité principale et précède les sous-boutons. Les interrupteurs visuels sont placés en dernier dans leur groupe natif. Avec trois sous-boutons ou plus, le groupe passe sous la mesure sur les cartes de 480 px ou moins, avec hauteur automatique et retour à la ligne ; ce comportement fonctionne aussi sans `fill`. `value_background: false` retire la pastille autour de la valeur et réduit son padding horizontal à 4 px ; la cible cliquable garde une hauteur de 36 px. Le remplissage de la carte reste visible derrière la puissance. Le nœud d’état, ses actions et son formatage restent natifs. `value_style: text` conserve la grande valeur de 20 px. Les commandes numériques − / valeur / + ignorent cette option.
 
 `controls: number` ajoute − / valeur / + pour un bouton État lié à `number` ou `input_number`. Les limites et le pas viennent de l’entité. Les pressions attendent un changement de valeur ou cinq secondes avant de reprendre ; les états invalides désactivent les commandes. Un clic sur la valeur ouvre les détails. `sub_buttons_position: end` place les sous-boutons après les commandes natives.
 
 Les valeurs conservent le format numérique Home Assistant et leur unité. `state` personnalise l’état affiché avec du texte ou Jinja. `secondary` accepte du texte, une entité directe ou Jinja ; l’entité directe fournit l’unité. La première référence d’entité détectée dans un template définit la cible des détails, sans analyser quelle branche Jinja est affichée. `secondary_bold: true` autorise `**texte**`, sans interpréter du HTML.
+
+Les pastilles natives de 36 px partagent ce rayon concentrique et un retrait extérieur de 10 px à droite, égal aux retraits verticaux de la carte de 56 px. Les variables de thème restent résolues en CSS, y compris pendant un changement de thème sans réexécution. Les switches visuels et les contrôles de géométrie propre conservent leur forme.
 
 Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button_styles` est un objet indexé par classe CSS ou numéro natif. Les switches visuels sont disponibles en square/compact, avec des actions toggle compatibles ou des actions lock/unlock explicites ; ils ne créent pas de commande supplémentaire.
 
@@ -134,6 +136,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.2 — 6 octobre 2026
+
+- Les pastilles et valeurs avec fond suivent le rayon de la carte moins 10 px : 12 px avec le rayon de carte par défaut de 22 px.
+- Retrait extérieur de 10 px à droite comme en haut, en bas et à gauche ; les grandes valeurs sans fond restent alignées sur ce bord.
+- Les switches visuels, commandes numériques, volets, thermostats et lecteurs conservent leurs formes propres. Aucun calcul ni observateur ajouté.
 
 ### 1.4.1 — 6 octobre 2026
 

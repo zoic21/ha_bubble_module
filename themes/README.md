@@ -96,6 +96,8 @@ styles: |
   }
 ```
 
+Compact 1.4.2 gives its 36 px value pills and native badges concentric corners: the card radius minus 10 px, clamped at zero (12 px with the default 22 px card radius). The 56 px row keeps a 10 px outer inset at the right edge, matching its vertical inset. This local rule follows live card-radius changes without altering the global control radius, visual switches, cover/climate/number controls or media players.
+
 ## References
 
 - [Home Assistant themes](https://www.home-assistant.io/integrations/frontend/)

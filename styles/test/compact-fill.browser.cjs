@@ -29,6 +29,7 @@ const controls={
   select:[{entity:'select.mode',sub_button_type:'select',label:'Eco+'}],
   crowded:[{entity:'sensor.status',label:'En attente',icon:true},{entity:'select.mode',sub_button_type:'select',label:'Eco+',icon:true},{entity:'input_select.priority',sub_button_type:'select',label:'Prioritaire'}],
   temperatures:[{entity:'sensor.temperature1',label:'45 °C',icon:true},{entity:'sensor.temperature2',label:'55 °C',icon:true}],
+  server:[{entity:'sensor.cpu',label:'6 %',icon:true},{entity:'sensor.memory',label:'19,5 %',icon:true},{entity:'sensor.temperature',label:'39 °C',icon:true}],
   mixed:[{entity:'switch.socket',tap_action:{action:'toggle'}},{entity:'select.mode',sub_button_type:'select',label:'Eco+'},{entity:'sensor.status',label:'En attente'}],
 };
 async function prepare(page,scenario={}){
@@ -91,6 +92,33 @@ test('fill retains switch/select nodes, native geometry and click/change handler
     if(name==='switch'){await shell.locator('.bubble-sub-button').click();assert.deepEqual(result.after[0],{width:52,height:34,padding:'0px',fontSize:'12px'});}
     else await shell.locator('select').selectOption('Fast');
     assert.equal((await page.evaluate(()=>window.events)).length,1);
+  }
+});
+
+test('compact value pills and server badges follow the card corners with equal outer insets',async t=>{
+  const page=await fixture(t);
+  const read=()=>page.evaluate(()=>{
+    const root=window.fillContext.card,card=root.querySelector('.bubble-container'),r=card.getBoundingClientRect();
+    const measure=el=>{const b=el.getBoundingClientRect();return {radius:getComputedStyle(el).borderRadius,height:b.height,top:b.top-r.top,bottom:r.bottom-b.bottom,right:r.right-b.right};};
+    return {cardRadius:getComputedStyle(card).borderRadius,pills:[...root.querySelectorAll('.bubble-sub-button')].map(measure),state:measure(root.querySelector('.bubble-state'))};
+  });
+  for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const grouped of [false,true]){
+    await prepare(page,{width,mode,plain,grouped,controls:'server',name:'Home Assistant'});
+    // Native button CSS flattens the cover/climate placeholder instead of adding a flex gap.
+    await page.evaluate(()=>{const ctx=window.fillContext;ctx.card.querySelector('.bubble-buttons-container').style.display='contents';ctx.config.signature_compact.compact_mode='default';ctx.config.show_state=false;ctx.elements.state.classList.add('hidden');window.updateFill();});
+    const g=await read();assert.equal(g.cardRadius,'22px');
+    for(const p of g.pills){assert.equal(p.radius,'12px');assert.equal(p.height,36);assert.equal(p.top,10);assert.equal(p.bottom,10);}
+    assert.equal(g.pills.at(-1).right,10);
+    await page.evaluate(()=>document.body.style.setProperty('--signature-card-border-radius','18px'));
+    assert.equal((await read()).pills.at(-1).radius,'8px');
+    await page.evaluate(()=>document.body.style.setProperty('--signature-card-border-radius','6px'));
+    assert.equal((await read()).pills.at(-1).radius,'0px');
+  }
+  for(const mode of ['light','dark'])for(const plain of [false,true]){
+    await prepare(page,{width:328,mode,plain,valueStyle:'button'});
+    const g=await read();assert.deepEqual(g.state,{radius:'12px',height:36,top:10,bottom:10,right:10});
+    await page.evaluate(()=>document.body.style.setProperty('--signature-card-border-radius','18px'));
+    assert.equal((await read()).state.radius,'8px');
   }
 });
 
