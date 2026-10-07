@@ -184,6 +184,15 @@
 [data-signature-wind-rose] .swr-frequency {
   text-align: right;
 }
+[data-signature-wind-rose] .swr-footer[data-has-calm="true"] .swr-frequency {
+  text-align: center;
+}
+[data-signature-wind-rose] .swr-calm {
+  text-align: right;
+}
+[data-signature-wind-rose] .swr-calm .swr-value {
+  white-space: nowrap;
+}
 @media (pointer: coarse) {
   [data-signature-wind-rose] .swr-tab {
     min-height: var(--signature-control-touch-height,44px);

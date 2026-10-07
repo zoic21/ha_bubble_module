@@ -46,6 +46,21 @@ function history(f,direction=135,speed=3) {
 }
 const result=f=>f.r.cache.get(f.r.period).data;
 
+test('calm footer distinguishes zero duration from missing data, hides without speed and follows cached periods',async t=>{
+  const f=fixture(t,{speed_entity:'sensor.speed'});
+  assert.equal(f.r.calm.hidden,false);assert.equal(f.r.calmValue.textContent,'—');
+  await f.resolve(history(f));assert.equal(f.r.calmValue.textContent,'0 min');
+  f.r.tabNodes[0].click();await f.resolve(history(f,135,0));assert.equal(f.r.calmValue.textContent,'1 h');
+  f.r.tabNodes[1].click();assert.equal(f.r.calmValue.textContent,'0 min');assert.equal(f.requests.length,2);
+  f.hass.locale={language:'en',number_format:'comma_decimal'};f.run();
+  assert.equal(f.r.calmLabel.textContent,'Calm');assert.equal(f.requests.length,2);
+  f.r.tabNodes[2].click();await f.resolve({});assert.equal(f.r.calmValue.textContent,'—');
+  assert.ok(f.r.footer.getAttribute('title').endsWith('Calm —'));
+  const noSpeed=fixture(t);await noSpeed.resolve(history(noSpeed));
+  assert.equal(noSpeed.r.calm.hidden,true);assert.equal(noSpeed.r.footer.getAttribute('data-has-calm'),'false');
+  assert.ok(!noSpeed.r.footer.getAttribute('title').includes('Calme'));
+});
+
 test('speed bands share sector duration and mean weights time, with exact range boundaries',async t=>{
   const f=fixture(t,{speed_entity:'sensor.speed'}),start=f.now-86400000,h=3600000;
   const speeds=[compressed(start,2),compressed(start+12*h,5),compressed(start+18*h,10),compressed(start+22*h,20)];
@@ -111,7 +126,7 @@ test('speed details relocalize cached data and unit changes discard pending and 
 });
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.5.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.5.1');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');
@@ -152,6 +167,7 @@ test('joins asynchronous direction/speed histories and excludes calm and unavail
   await f.resolve({'sensor.direction':[compressed(start,0),compressed(start+6*h,90),compressed(start+20*h,'unavailable')],
     'sensor.speed':[compressed(start,2),compressed(start+3*h,0.5),compressed(start+9*h,2),compressed(start+12*h,'unknown'),compressed(start+15*h,3)]});
   const d=result(f);assert.equal(d.bins[0],3*h);assert.equal(d.bins[4],8*h);assert.equal(d.calm,6*h);assert.equal(d.covered,17*h);
+  assert.equal(f.r.calm.hidden,false);assert.equal(f.r.calmLabel.textContent,'Calme');assert.equal(f.r.calmValue.textContent,'6 h');
   assert.equal(f.r.frequencyValue.textContent,'72,7 %');
   assert.match(f.r.footer.getAttribute('title'),/17 h \/ 24 h/);
   f.r.sectors[4].click();assert.match(f.r.tooltip.textContent,/72,7 %/);assert.match(f.r.tooltip.textContent,/8 h/);
@@ -171,6 +187,7 @@ test('zero and missing speeds remain distinct; negative speed is invalid and cal
   assert.equal(result(f).calm,6*h);assert.equal(result(f).wind,0);assert.equal(f.r.dominantValue.textContent,'Calme');
   assert.match(f.r.status.textContent,/Vent calme/);assert.equal(f.r.chart.hidden,true);
   assert.equal(f.r.frequencyValue.textContent,'—');
+  assert.equal(f.r.calmValue.textContent,'6 h');
 });
 test('empty or unavailable history does not fall back to a fabricated current distribution',async t=>{
   const f=fixture(t,{speed_entity:'sensor.speed'});f.hass.states['sensor.direction']={state:'135'};
