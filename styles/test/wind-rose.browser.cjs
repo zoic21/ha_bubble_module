@@ -97,3 +97,58 @@ test('band and legend shades follow live colors and custom overrides on the same
   assert.ok(result.sameNodes && result.sameData);assert.equal(result.requests,0);
   for(const colors of [result.initial,result.live,result.custom])for(const color of colors)assert.equal(color.fill,color.swatch);
 });
+
+const luminance=rgb=>rgb.reduce((sum,c,i)=>sum+[.2126,.7152,.0722][i]*(c/255<=.04045?c/255/12.92:((c/255+.055)/1.055)**2.4),0);
+const mix=(a,b,p)=>a.map((c,i)=>c*p+b[i]*(1-p));
+const expectedBands=(accent,surface)=>{
+  const tint=mix(surface,[255,255,255],.25);
+  return [mix(accent,tint,.42),mix(accent,tint,.72),mix(accent,[0,0,0],.94),mix(accent,[0,0,0],.67)];
+};
+const assertRgb=(actual,expected)=>actual.forEach((c,i)=>assert.ok(Math.abs(c-expected[i])<=1,JSON.stringify({actual,expected})));
+
+test('wind lower shades reduce dark highlights while preserving the white-card palette and shade order',async t=>{
+  const page=await fixture(t);
+  for(const mode of ['light','dark']) for(const plain of [false,true]) for(const width of [328,600]) {
+    await render(page,{mode,plain,width,windSpeed:true});
+    for(const accent of ['#4db6ac','#2196f3','#f44336']) {
+      const result=await page.evaluate(accent=>{
+        document.body.style.setProperty('--signature-wind-rose-color',accent);
+        const r=window.contexts.find(ctx=>ctx._signatureWindRose)._signatureWindRose;
+        const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const paint=canvas.getContext('2d');
+        const rgb=color=>{paint.clearRect(0,0,1,1);paint.fillStyle=color;paint.fillRect(0,0,1,1);return Array.from(paint.getImageData(0,0,1,1).data).slice(0,3);};
+        return {bands:r.bands[4].map((el,i)=>({rgb:rgb(getComputedStyle(el).fill),fill:getComputedStyle(el).fill,swatch:getComputedStyle(r.legend.querySelectorAll('.swr-swatch')[i]).backgroundColor}))};
+      },accent);
+      const base=accent.match(/\w\w/g).map(c=>parseInt(c,16)),surface=mode==='light'?[255,255,255]:[28,28,28];
+      const expected=expectedBands(base,surface),actual=result.bands.map(b=>b.rgb),light=expectedBands(base,[255,255,255]);
+      for(let i=0;i<4;i++) {
+        assertRgb(actual[i],expected[i]);assert.equal(result.bands[i].fill,result.bands[i].swatch);
+        if(i)assert.ok(luminance(actual[i-1])>luminance(actual[i]),JSON.stringify({mode,plain,width,accent,actual}));
+      }
+      if(mode==='dark') {
+        assert.ok(luminance(actual[0])<luminance(light[0])*.85);
+        assert.ok(luminance(actual[1])<luminance(light[1]));
+      }
+    }
+  }
+});
+
+test('wind shades follow native surface cascades and live mode changes without another module pass',async t=>{
+  const page=await fixture(t);
+  for(const plain of [false,true]) for(const width of [328,600]) {
+    await render(page,{mode:'light',plain,width,windSpeed:true});
+    const result=await page.evaluate(()=>{
+      const ctx=window.contexts.find(ctx=>ctx._signatureWindRose),r=ctx._signatureWindRose,nodes=r.bands.flat(),data=r.cache.get(r.period).data;
+      let requests=0;ctx._hass.callWS=()=>{requests++;throw new Error('Unexpected history request');};
+      const read=()=>r.bands[4].map((el,i)=>({fill:getComputedStyle(el).fill,swatch:getComputedStyle(r.legend.querySelectorAll('.swr-swatch')[i]).backgroundColor}));
+      const initial=read();document.body.style.setProperty('--card-background-color','#1c1c1c');document.body.style.setProperty('--primary-text-color','#e1e1e1');
+      const dark=read();document.body.style.setProperty('--ha-card-background','#fff');
+      const nativeOverride=read();document.body.style.setProperty('--signature-card-background','#1c1c1c');
+      const signatureOverride=read();document.body.style.removeProperty('--signature-card-background');document.body.style.removeProperty('--ha-card-background');document.body.style.setProperty('--card-background-color','#fff');document.body.style.setProperty('--primary-text-color','#212121');
+      return {initial,dark,nativeOverride,signatureOverride,restored:read(),requests,
+        sameNodes:nodes.every((node,i)=>r.bands.flat()[i]===node),sameData:r.cache.get(r.period).data===data};
+    });
+    assert.notDeepEqual(result.initial,result.dark);assert.deepEqual(result.initial,result.nativeOverride);assert.deepEqual(result.dark,result.signatureOverride);assert.deepEqual(result.initial,result.restored);
+    assert.ok(result.sameNodes && result.sameData);assert.equal(result.requests,0);
+    for(const colors of [result.initial,result.dark,result.nativeOverride,result.signatureOverride,result.restored])for(const color of colors)assert.equal(color.fill,color.swatch);
+  }
+});

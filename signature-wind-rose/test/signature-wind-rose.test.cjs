@@ -130,7 +130,7 @@ test('speed details relocalize cached data and unit changes discard pending and 
 });
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.5.2');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.5.3');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');

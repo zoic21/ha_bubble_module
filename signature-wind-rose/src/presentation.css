@@ -24,8 +24,9 @@
   display: none !important;
 }
 [data-signature-wind-rose] .swr-card {
-  --swr-band-0: color-mix(in srgb,var(--swr-accent) 42%,white);
-  --swr-band-1: color-mix(in srgb,var(--swr-accent) 72%,white);
+  --swr-band-tint: color-mix(in srgb,var(--swr-surface) 25%,white);
+  --swr-band-0: color-mix(in srgb,var(--swr-accent) 42%,var(--swr-band-tint));
+  --swr-band-1: color-mix(in srgb,var(--swr-accent) 72%,var(--swr-band-tint));
   --swr-band-2: color-mix(in srgb,var(--swr-accent) 94%,black);
   --swr-band-3: color-mix(in srgb,var(--swr-accent) 67%,black);
   color: var(--primary-text-color);

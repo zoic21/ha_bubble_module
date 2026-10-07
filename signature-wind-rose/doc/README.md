@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.5.2** · Module ID: `signature_wind_rose`
+**Version: 1.5.3** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions with four speed shades, unlabelled guide rings, a compact speed legend, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction, its frequency and recorded calm duration when a speed source is configured. Hover a sector to see its percentage, recorded duration, time-weighted mean and maximum recorded speed. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -87,6 +87,8 @@ Sector areas are proportional to duration. The largest sector reaches the outer 
 
 With a speed source in a supported unit, each petal is divided into four speed ranges: **below 5**, **5 to below 10**, **10 to below 20** and **20 or more km/h**. The matching horizontal legend sits below the rose. Lighter bands are nearer the center; darker bands are farther out. Each band’s area represents its recorded duration, and the complete petal keeps the same area and frequency as before. Guide rings have no percentage labels because their scale adapts to the largest sector.
 
+The two lighter shades mix the accent with a neutral tint made of 25% inherited card surface and 75% white. A white card retains the existing light palette; a dark card reduces pale highlights. Sectors and legend swatches follow surface and accent changes directly in CSS, without another module pass. The default teal and tested blue/red accents keep four distinct shades. Very bright custom accents such as white or yellow may merge or reverse the lighter shades; choose an accent with enough shade separation for the active surfaces.
+
 Speed states in `km/h` (`kmh`, `kph`), `m/s`, `mph` (`mi/h`) and knots (`kn`, `kt`, `knots`) are converted to km/h for the bands only. The calm threshold and tooltip speeds use the entity’s native unit. If the unit is absent or unsupported, the rose stays monochrome without a speed legend; historical speed details still use the source values and any available unit. The module reads unit metadata from the entity, without requesting historical attributes. Changing that unit clears cached aggregates. Recorded states must share the current unit; historical unit changes cannot be inferred from attribute-free history.
 
 The sector detail shows a **time-weighted mean** over the same usable non-calm duration as its frequency, and the **highest recorded speed** that applied during that duration. Missing speeds, calm intervals and states exactly at the period end do not affect those values. This maximum is the speed sensor’s maximum, not a gust measurement from a separate sensor. These details use the existing history response and cached aggregate.
@@ -133,6 +135,11 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 Named colors such as `blue` use the same theme palette as Signature and Flow. Use `#0000ff` to keep literal CSS blue from earlier releases. Explicit CSS and Jinja colors are supported; Jinja uses the card entity. Empty or invalid colors restore `signature-wind-rose-color` (default `#4db6ac`) rather than producing black sectors.
 
 ## Release notes
+
+### 1.5.3 — 7 October 2026
+
+- Reduces the two pale speed shades on dark surfaces by blending the inherited card surface into their white tint. White-card light palettes retain their existing colors.
+- Keeps live CSS theme updates, the accent, speed ranges, history data, sector interactions, periods and footer unchanged.
 
 ### 1.5.2 — 7 October 2026
 
