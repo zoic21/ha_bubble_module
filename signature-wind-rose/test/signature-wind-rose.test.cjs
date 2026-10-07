@@ -59,6 +59,10 @@ test('calm footer distinguishes zero duration from missing data, hides without s
   const noSpeed=fixture(t);await noSpeed.resolve(history(noSpeed));
   assert.equal(noSpeed.r.calm.hidden,true);assert.equal(noSpeed.r.footer.getAttribute('data-has-calm'),'false');
   assert.ok(!noSpeed.r.footer.getAttribute('title').includes('Calme'));
+  const padded=fixture(t,{speed_entity:'sensor.speed'}),start=padded.now-86400000;
+  await padded.resolve({'sensor.direction':[compressed(start,135)],
+    'sensor.speed':[compressed(start,0),compressed(start+65*60000,3)]});
+  assert.equal(padded.r.calmValue.textContent,'1 h 05');
 });
 
 test('speed bands share sector duration and mean weights time, with exact range boundaries',async t=>{
@@ -126,7 +130,7 @@ test('speed details relocalize cached data and unit changes discard pending and 
 });
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.5.1');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.5.2');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');

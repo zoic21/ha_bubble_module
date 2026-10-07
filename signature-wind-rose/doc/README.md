@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.5.1** · Module ID: `signature_wind_rose`
+**Version: 1.5.2** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions with four speed shades, unlabelled guide rings, a compact speed legend, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction, its frequency and recorded calm duration when a speed source is configured. Hover a sector to see its percentage, recorded duration, time-weighted mean and maximum recorded speed. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -79,7 +79,7 @@ Sector percentages add up to 100% of the **usable non-calm duration**, before di
 
 The footer's **Frequency** is the dominant sector's share of that same usable non-calm duration, rounded to at most one decimal with Home Assistant's number format. For example, `S` and `32 %` mean that wind came from south during 32% of the usable windy history. It updates with the selected period and uses the cached aggregate, without another history request. Calm-only or unusable history shows `—` for frequency.
 
-The footer’s **Calm** field shows the recorded duration at or below `calm_threshold`, including calm intervals with a missing direction. It uses the selected period’s existing cached aggregate. Valid speed history with no calm interval shows `0 min`; missing/loading/failed history shows `—`. Without a speed source, this field is hidden and the footer retains its two existing columns. Missing intervals are never counted as calm. Durations are rounded to the nearest minute, like the sector details. The footer uses compact hours/minutes (`2 h 15`) to keep long durations on one row.
+The footer’s **Calm** field shows the recorded duration at or below `calm_threshold`, including calm intervals with a missing direction. It uses the selected period’s existing cached aggregate. Valid speed history with no calm interval shows `0 min`; missing/loading/failed history shows `—`. Without a speed source, this field is hidden and the footer retains its two existing columns. Missing intervals are never counted as calm. Durations are rounded to the nearest minute, like the sector details. The footer uses compact hours/minutes with two-digit minutes (`1 h 05`) to keep long durations on one row.
 
 Sector areas are proportional to duration. The largest sector reaches the outer guide ring; the scale adapts to each period, so ring positions do not imply a fixed percentage. There is no arithmetic averaging of bearings: 359° and 1° correctly contribute to north. Long-term direction statistics are not used because their arithmetic mean can misrepresent circular data.
 
@@ -133,6 +133,10 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 Named colors such as `blue` use the same theme palette as Signature and Flow. Use `#0000ff` to keep literal CSS blue from earlier releases. Explicit CSS and Jinja colors are supported; Jinja uses the card entity. Empty or invalid colors restore `signature-wind-rose-color` (default `#4db6ac`) rather than producing black sectors.
 
 ## Release notes
+
+### 1.5.2 — 7 October 2026
+
+- Pads minutes after hours in the compact calm duration: `1 h 05` instead of `1 h 5`. Minute-only and exact-hour durations retain their existing format.
 
 ### 1.5.1 — 7 October 2026
 

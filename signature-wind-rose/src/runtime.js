@@ -163,7 +163,8 @@
     r.format = value => r.number.format(value);
     r.duration = (milliseconds,compact = false) => {
       const minutes = Math.round(milliseconds/60000);
-      return minutes < 60 ? r.format(minutes)+' min' : r.format(Math.floor(minutes/60))+' h'+(minutes%60 ? ' '+r.format(minutes%60)+(compact ? '' : ' min') : '');
+      return minutes < 60 ? r.format(minutes)+' min' : r.format(Math.floor(minutes/60))+' h'+(minutes%60 ? ' '+
+        (compact ? r.format(minutes%60).padStart(2,r.format(0)) : r.format(minutes%60)+' min') : '');
     };
     r.sectorPath = (index,radius,inner = 6) => {
       const point = (radius,degrees) => { const angle = (degrees-90)*Math.PI/180; return [160+radius*Math.cos(angle),160+radius*Math.sin(angle)].map(v => v.toFixed(2)).join(' '); };

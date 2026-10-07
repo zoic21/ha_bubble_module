@@ -12,13 +12,13 @@ test('long weekly calm durations keep the footer on one row on narrow cards and 
     const result=await page.evaluate(()=>{
       const r=window.contexts.find(ctx=>ctx._signatureWindRose)._signatureWindRose,entry=r.cache.get(r.period),end=entry.data.end,start=end-168*3600000;
       entry.data=r.aggregate({'sensor.direction':[{s:'337.5',lu:start/1000}],
-        'sensor.speed':[{s:'0',lu:start/1000},{s:'7',lu:(end-60000)/1000}]},start,end);
+        'sensor.speed':[{s:'0',lu:start/1000},{s:'7',lu:(end-55*60000)/1000}]},start,end);
       r.renderKey=null;r.render();
       return {text:r.calmValue.textContent,overflow:r.footer.scrollWidth>r.footer.clientWidth,
         height:r.calmValue.getBoundingClientRect().height,line:parseFloat(getComputedStyle(r.calmValue).lineHeight),
         columns:[...r.footer.children].map(el=>({width:el.clientWidth,scroll:el.scrollWidth}))};
     });
-    assert.equal(result.text,'167 h 59');assert.equal(result.overflow,false);
+    assert.equal(result.text,'167 h 05');assert.equal(result.overflow,false);
     assert.ok(Math.abs(result.height-result.line)<1,JSON.stringify(result));
     assert.ok(result.columns.every(column=>column.scroll<=column.width));
   }
