@@ -96,7 +96,7 @@ styles: |
   }
 ```
 
-Compact 1.4.2 gives its 36 px value pills and native badges concentric corners: the card radius minus 10 px, clamped at zero (12 px with the default 22 px card radius). The 56 px row keeps a 10 px outer inset at the right edge, matching its vertical inset. This local rule follows live card-radius changes without altering the global control radius, visual switches, cover/climate/number controls or media players.
+Compact 1.4.3 gives its 36 px value pills and native badges concentric corners: the card radius minus 10 px, clamped at zero (12 px with the default 22 px card radius). The 56 px row keeps a 10 px outer inset at the right edge, matching its vertical inset. This local rule follows live card-radius changes without altering the global control radius, visual switches, cover/climate/number controls or media players.
 
 ## References
 
@@ -144,3 +144,5 @@ Signature, Flow, Wind Rose and Alert Manager resolve named palette colors throug
 ### Remplissage des jauges Compact
 
 Signature Compact 1.3.0 accepte une variable facultative `signature-fill-tint` (pourcentage CSS, par défaut `16%`). Elle adoucit l’accent transparent au-dessus de la surface native sans remplacer les couleurs de texte ni les fonds des commandes. Aucun ajout au thème n’est requis pour le rendu par défaut ; cette variable suit les changements de thème sans réexécution. Voir le [guide Compact](../signature-compact/doc/README.md#remplissage-proportionnel).
+
+Compact 1.4.3 uses 8 px between values, badges and native action groups, matching the consumption rows. Internal pill padding and number/unit spacing keep their existing roles; no theme update is required.

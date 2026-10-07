@@ -2,7 +2,7 @@
     ha-card[data-dp-layout="compact"] { container-type: inline-size; ${kind === 'cover' ? `--bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: var(--signature-control-border-radius, 14px);` : ''} ${kind === 'climate' || numberEnabled ? `--bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface};` : ''} }
     /* Concentric 36px pills: 10px outer inset includes the 1px card border. */
     ha-card[data-dp-layout="compact"] { --dp-compact-pill-radius: max(0px, calc(var(--dp-radius, 22px) - 10px)); }
-    ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 2px; padding: 0 9px; box-sizing: border-box; transition: none !important; }
+    ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 8px; padding: 0 9px; box-sizing: border-box; transition: none !important; }
     ha-card[data-dp-layout="compact"] .bubble-sub-button { --bubble-sub-button-border-radius: var(--dp-compact-pill-radius); }
     ha-card[data-dp-layout="compact"] .bubble-content-container { flex: 1; display: flex !important; align-items: center; min-width: 0; }
     ha-card[data-dp-layout="compact"] .bubble-icon-container { width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; margin: 0 4px 0 0 !important; background: var(--bubble-icon-background-color) !important; border-radius: var(--bubble-icon-border-radius) !important; }
@@ -22,6 +22,7 @@
     ${!multiline ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"][data-dp-multiline="no"] .bubble-state { display: block !important; white-space: nowrap !important; }` : ''}` : ''}
     ha-card[data-dp-layout="compact"] .bubble-sub-button-container { position: relative !important; inset-inline-end: 0 !important; margin: 0 !important; flex-shrink: 0; z-index: 2; }
     ha-card[data-dp-layout="compact"] .bubble-buttons-container { position: static !important; margin: 0 !important; gap: 4px; flex-shrink: 0; }
+    ha-card[data-dp-layout="compact"] :is(.bubble-sub-button-container,.bubble-sub-button-group,.bubble-sub-button-alignment-lane) { gap: 8px; }
     /* Empty native action boxes must not leave flex gaps after an isolated value. */
     ha-card[data-dp-layout="compact"] :is(.bubble-sub-button-container,.bubble-buttons-container):empty { display: none !important; }
     /* Two compact rows plus the native row gap equal a two-row square. */
@@ -52,7 +53,7 @@
 display: grid;
 grid-template-columns: minmax(0, 1fr) fit-content(60%);
 align-items: center;
-column-gap: 6px;
+column-gap: 8px;
     }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-name {
 grid-area: 1 / 1 / 3 / 2;
@@ -106,7 +107,7 @@ opacity: 1;
 display: grid !important;
 grid-template-columns: 36px minmax(0, 1fr) auto fit-content(60%);
 grid-template-rows: 1fr 1fr;
-column-gap: 4px;
+column-gap: 8px;
 row-gap: 0;
     }
     ha-card[data-dp-value-trailing="yes"] :is(.bubble-content-container,.bubble-name-container) { display: contents !important; }
