@@ -1,9 +1,9 @@
 name: Signature Wind Rose
-version: 1.4.0
+version: 1.5.0
 creator: Loïc
 supported:
   - button
-description: A minimal, time-weighted wind rose with 1 hour, 1 day and 1 week periods. Requires Bubble Card 3.3 or later and recorded wind direction states.
+description: A time-weighted wind rose with speed bands, historical sector details and 1 hour, 1 day and 1 week periods. Requires Bubble Card 3.3 or later and recorded wind direction states.
 editor:
   - type: constant
     label: Réglages pour une carte Bubble de type bouton. Les entités et options masquées restent conservées.
@@ -21,7 +21,7 @@ editor:
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
       speed_entity:
         label: Entité de vitesse du vent
-        description: "Facultative : permet d’exclure les périodes calmes. La vitesse n’est pas affichée."
+        description: "Facultative : filtre le calme, colore les plages de vitesse et affiche la moyenne et le maximum historiques de chaque direction."
         selector:
           entity: {}
         group: Sources du vent
@@ -88,7 +88,7 @@ editor:
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
       color:
         label: Couleur des secteurs
-        description: "Vide : couleur du thème. Accepte la palette du thème (blue, teal…), une couleur CSS (#4db6ac, var(--teal-color)) ou un template Jinja. Une couleur invalide reprend le défaut du vent."
+        description: "Couleur de base des secteurs et des quatre nuances de vitesse. Vide : couleur du thème. Accepte la palette du thème (blue, teal…), une couleur CSS (#4db6ac, var(--teal-color)) ou un template Jinja. Une couleur invalide reprend le défaut du vent."
         selector:
           text: {}
         group: Apparence

@@ -17,7 +17,7 @@ class Element extends BaseElement {
   remove() {super.remove();this.isConnected=false;}
 }
 const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
-function fixture(t,options={}) {
+function fixture(t,options={},speedUnit='km/h') {
   let now=Date.parse('2026-10-04T18:00:00Z'), timerId=0;
   const timers=new Map(),listeners=new Map();
   class Clock extends Date {static now(){return now;}}
@@ -29,7 +29,7 @@ function fixture(t,options={}) {
   const root=new Element('ha-card'),host=new Element('div');root.append(host);
   const ctx={card:root,elements:{mainContainer:host},config:{card_type:'button',button_type:'state',entity:'sensor.direction',signature_wind_rose:options}};
   const requests=[];
-  const hass={connection:{},states:{},locale:{language:'fr',number_format:'space_comma'},callWS(message){
+  const hass={connection:{},states:options.speed_entity ? {[options.speed_entity]:{state:'unavailable',attributes:{unit_of_measurement:speedUnit}}} : {},locale:{language:'fr',number_format:'space_comma'},callWS(message){
     return new Promise((resolve,reject)=>requests.push({message,resolve,reject}));
   }};
   const run=template=>render.call(ctx,hass,fn=>{ctx.teardown=fn;},template);const css=run();
@@ -46,8 +46,72 @@ function history(f,direction=135,speed=3) {
 }
 const result=f=>f.r.cache.get(f.r.period).data;
 
+test('speed bands share sector duration and mean weights time, with exact range boundaries',async t=>{
+  const f=fixture(t,{speed_entity:'sensor.speed'}),start=f.now-86400000,h=3600000;
+  const speeds=[compressed(start,2),compressed(start+12*h,5),compressed(start+18*h,10),compressed(start+22*h,20)];
+  for(let n=1;n<30;n++)speeds.push(compressed(start+22*h+n*1000,20));
+  await f.resolve({'sensor.direction':[compressed(start,180)],'sensor.speed':speeds});
+  const d=result(f);
+  assert.deepEqual(Array.from(d.speedBins[8]),[12*h,6*h,4*h,2*h]);
+  assert.equal(d.speedBins[8].reduce((a,b)=>a+b,0),d.bins[8]);
+  assert.equal(d.speedTotals[8]/d.bins[8],134/24);assert.equal(d.speedMaxima[8],20);
+  assert.equal(f.r.legend.hidden,false);assert.equal(f.r.svg.getAttribute('data-speed-bands'),'true');
+  f.r.sectors[8].click();
+  assert.equal(f.r.tooltip.textContent,'S · 100 %\nDurée : 24 h\nMoyenne : 5,6 km/h\nMaximum : 20 km/h');
+  assert.match(f.r.sectors[8].getAttribute('aria-label'),/Moyenne : 5,6 km\/h/);
+  assert.equal(f.r.bands[8].filter(el=>el.getAttribute('d')).length,4);
+  assert.equal(f.r.svg.querySelectorAll('text').length,4,'Only cardinal labels, no ring percentages');
+});
+
+test('speed statistics join changes and exclude calm, gaps, duplicate and end-boundary maxima',async t=>{
+  const f=fixture(t,{speed_entity:'sensor.speed',calm_threshold:2}),start=f.now-86400000,h=3600000;
+  await f.resolve({'sensor.direction':[compressed(start,0),compressed(start+6*h,90),compressed(start+20*h,'unknown')],
+    'sensor.speed':[compressed(start,3),compressed(start+3*h,2),compressed(start+9*h,7),compressed(start+12*h,'unavailable'),
+      compressed(start+15*h,99),compressed(start+15*h,12),compressed(start+20*h,50),compressed(f.now,100)]});
+  const d=result(f);
+  assert.equal(d.speedMaxima[0],3);assert.equal(d.speedMaxima[4],12);
+  assert.equal(d.speedTotals[0]/d.bins[0],3);assert.equal(d.speedTotals[4]/d.bins[4],81/8);
+  assert.deepEqual(Array.from(d.speedBins[4]),[0,3*h,5*h,0]);
+  assert.equal(d.calm,6*h);assert.equal(d.covered,17*h);
+  assert.equal(d.speedMaxima[8],null);
+});
+
+test('supported speed units convert bands to km/h and preserve native tooltip and calm units',async t=>{
+  for(const [unit,speed,band] of [['m/s',3,2],['mph',4,1],['kn',12,3],['kt',2,0],['km/h',20,3]]) {
+    const f=fixture(t,{speed_entity:'sensor.speed',calm_threshold:1},unit);
+    await f.resolve(history(f,90,speed));
+    assert.equal(result(f).speedBins[4][band],86400000,unit);
+    f.r.sectors[4].click();assert.ok(f.r.tooltip.textContent.includes('Maximum : '+speed+' '+unit));
+    assert.equal(f.r.legend.hidden,false);
+  }
+});
+
+test('direction-only and missing or unsupported speed units keep a monochrome rose',async t=>{
+  const directionOnly=fixture(t);await directionOnly.resolve(history(directionOnly));
+  directionOnly.r.sectors[6].click();assert.equal(directionOnly.r.legend.hidden,true);
+  assert.equal(directionOnly.r.tooltip.textContent,'SE · 100 % · 24 h');
+  for(const unit of [null,'custom']) {
+    const f=fixture(t,{speed_entity:'sensor.speed'},unit);await f.resolve(history(f));
+    assert.equal(f.r.legend.hidden,true);assert.equal(f.r.svg.getAttribute('data-speed-bands'),'false');
+    assert.ok(f.r.bands.flat().every(el=>!el.getAttribute('d')));
+    f.r.sectors[6].click();assert.ok(f.r.tooltip.textContent.endsWith('Maximum : 3'+(unit ? ' '+unit : '')));
+  }
+});
+
+test('speed details relocalize cached data and unit changes discard pending and cached aggregates',async t=>{
+  const f=fixture(t,{speed_entity:'sensor.speed'});await f.resolve(history(f,270,6.8));
+  f.r.sectors[12].click();f.hass.locale={language:'en',number_format:'comma_decimal'};f.run();
+  assert.equal(f.requests.length,1);assert.match(f.r.tooltip.textContent,/W · 100 %\nDuration : 24 h\nMean : 6.8 km\/h/);
+  f.hass.states['sensor.speed'].attributes.unit_of_measurement='m/s';f.run();
+  assert.equal(f.r.cache.size,0);assert.equal(f.requests.length,2);assert.equal(f.r.legend.hidden,true);
+  f.hass.states['sensor.speed'].attributes.unit_of_measurement='mph';f.run();
+  await f.resolve(history(f,180,100),1);assert.equal(f.r.cache.size,0);
+  await f.resolve(history(f,90,4),2);assert.equal(result(f).speedMaxima[4],4);
+  assert.equal(result(f).speedBins[4][1],86400000);
+});
+
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.4.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.5.0');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');
@@ -142,10 +206,10 @@ test('ignores out-of-order period responses, including failures',async t=>{
   assert.equal(f.r.period,1);assert.equal(f.r.phase,'ready');assert.equal(f.r.dominantValue.textContent,'E');assert.equal(f.r.cache.size,1);
 });
 test('ordinary state updates neither request nor recalculate nor rewrite the chart',async t=>{
-  const f=fixture(t);await f.resolve(history(f));const data=result(f),writes=f.r.sectors.map(el=>el.writes);
+  const f=fixture(t,{speed_entity:'sensor.speed'});await f.resolve(history(f));const data=result(f),nodes=[...f.r.sectors,...f.r.bands.flat()],writes=nodes.map(el=>el.writes);
   f.r.aggregate=()=>{throw new Error('Unexpected aggregation');};
-  for(let n=0;n<30;n++){f.hass.states['sensor.other']={state:String(n)};f.run();}
-  assert.equal(f.requests.length,1);assert.equal(result(f),data);assert.deepEqual(f.r.sectors.map(el=>el.writes),writes);assert.equal(f.timers.size,1);
+  for(let n=0;n<30;n++){f.hass.states['sensor.speed'].state=String(n);f.run();}
+  assert.equal(f.requests.length,1);assert.equal(result(f),data);assert.deepEqual(nodes.map(el=>el.writes),writes);assert.equal(f.timers.size,1);
 });
 test('refreshes only after the interval, keeps the last rose during the request and replaces it',async t=>{
   const f=fixture(t);await f.resolve(history(f));await f.advance(299000);assert.equal(f.requests.length,1);

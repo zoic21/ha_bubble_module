@@ -1,8 +1,8 @@
 # Signature Wind Rose
 
-**Version: 1.4.0** · Module ID: `signature_wind_rose`
+**Version: 1.5.0** · Module ID: `signature_wind_rose`
 
-A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage and recorded duration. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
+A minimal wind rose for Bubble Card: 16 directions with four speed shades, unlabelled guide rings, a compact speed legend, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage, recorded duration, time-weighted mean and maximum recorded speed. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
 The card shows where the wind comes **from**: north is at the top and west at the left. It deliberately omits current speed, gust values, a vertical speed legend and a large center percentage, so it can sit below an existing wind graph.
 
@@ -42,20 +42,20 @@ signature_wind_rose:
   hours: 24
 ```
 
-Direction is taken from Bubble Card's `entity`. A [direction-only example](../examples/direction-only.yaml) is also available; without speed history, calm periods cannot be identified and all valid direction durations are counted.
+Direction is taken from Bubble Card's `entity`. A [direction-only example](../examples/direction-only.yaml) is also available; without a speed source, the rose remains monochrome without a speed legend or speed details; calm periods cannot be identified and all valid direction durations are counted.
 
 ## Options
 
 | Option under `signature_wind_rose` | Default | Meaning |
 |---|---|---|
 | `direction_entity` | Bubble Card's `entity` | Optional direction source override; recorded entity state is used. |
-| `speed_entity` | Unset | Optional recorded speed entity, used only to exclude calm periods. Its value is not displayed. |
+| `speed_entity` | Unset | Optional recorded speed entity, used for calm filtering, speed bands and historical mean/maximum per direction. |
 | `hours` | `24` | Initial period: `1`, `24` or `168`. The buttons change it locally until the card is recreated. When the buttons are hidden, this is the fixed period. |
 | `show_period_buttons` | `true` | Show the top period selector. `false` removes the toolbar and its spacing, and resets any local selection to `hours`. |
 | `direction_offset` | `0` | Degrees added to recorded bearings, clockwise. |
 | `calm_threshold` | `0` | Speed at or below this value is calm. Uses the speed entity's native unit; only applied when `speed_entity` is set. |
 | `refresh_interval` | `300` | History refresh interval in seconds, minimum `60`. |
-| `color` | Theme or `#4db6ac` | Optional color override for all sectors. |
+| `color` | Theme or `#4db6ac` | Optional base color for all sectors and their four speed shades. |
 
 Directions accept numeric degrees or the 16 English/French compass abbreviations (`N`, `SSE`, `SSW` / `SSO`, `W` / `O`, etc.). Bearings wrap around 360° and are assigned to the closest of the 16 sectors. Zero degrees is valid north, not a missing value. Entity attributes and Jinja templates are not history sources.
 
@@ -80,6 +80,14 @@ Sector percentages add up to 100% of the **usable non-calm duration**, before di
 The footer's **Frequency** is the dominant sector's share of that same usable non-calm duration, rounded to at most one decimal with Home Assistant's number format. For example, `S` and `32 %` mean that wind came from south during 32% of the usable windy history. It updates with the selected period and uses the cached aggregate, without another history request. Calm-only or unusable history shows `—` for frequency.
 
 Sector areas are proportional to duration. The largest sector reaches the outer guide ring; the scale adapts to each period, so ring positions do not imply a fixed percentage. There is no arithmetic averaging of bearings: 359° and 1° correctly contribute to north. Long-term direction statistics are not used because their arithmetic mean can misrepresent circular data.
+
+## Speed bands and sector details
+
+With a speed source in a supported unit, each petal is divided into four speed ranges: **below 5**, **5 to below 10**, **10 to below 20** and **20 or more km/h**. The matching horizontal legend sits below the rose. Lighter bands are nearer the center; darker bands are farther out. Each band’s area represents its recorded duration, and the complete petal keeps the same area and frequency as before. Guide rings have no percentage labels because their scale adapts to the largest sector.
+
+Speed states in `km/h` (`kmh`, `kph`), `m/s`, `mph` (`mi/h`) and knots (`kn`, `kt`, `knots`) are converted to km/h for the bands only. The calm threshold and tooltip speeds use the entity’s native unit. If the unit is absent or unsupported, the rose stays monochrome without a speed legend; historical speed details still use the source values and any available unit. The module reads unit metadata from the entity, without requesting historical attributes. Changing that unit clears cached aggregates. Recorded states must share the current unit; historical unit changes cannot be inferred from attribute-free history.
+
+The sector detail shows a **time-weighted mean** over the same usable non-calm duration as its frequency, and the **highest recorded speed** that applied during that duration. Missing speeds, calm intervals and states exactly at the period end do not affect those values. This maximum is the speed sensor’s maximum, not a gust measurement from a separate sensor. These details use the existing history response and cached aggregate.
 
 ## History and performance
 
@@ -123,6 +131,12 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 Named colors such as `blue` use the same theme palette as Signature and Flow. Use `#0000ff` to keep literal CSS blue from earlier releases. Explicit CSS and Jinja colors are supported; Jinja uses the card entity. Empty or invalid colors restore `signature-wind-rose-color` (default `#4db6ac`) rather than producing black sectors.
 
 ## Release notes
+
+### 1.5.0 — 7 October 2026
+
+- Adds four time-weighted speed bands and a compact horizontal legend when a supported speed unit is available. Sector areas, frequency and calm filtering are preserved.
+- Adds historical duration, mean and maximum speed to hover, tap and keyboard details using the same history request. Guide rings remain unlabelled.
+- Keeps direction-only and unsupported-unit roses monochrome, with live theme and custom-color shades for speed bands.
 
 ### 1.4.0 — 7 October 2026
 

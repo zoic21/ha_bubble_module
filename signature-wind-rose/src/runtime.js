@@ -22,6 +22,9 @@
       const circle = create('circle','swr-grid',true); attr(circle,'cx',160); attr(circle,'cy',160); attr(circle,'r',radius); svg.append(circle);
     }
     const axes = create('path','swr-grid',true); attr(axes,'d','M 160 42 V 278 M 42 160 H 278'); svg.append(axes);
+    const bands = Array.from({length:16},() => Array.from({length:4},(_,index) => {
+      const el = create('path','swr-band swr-band-'+index,true); attr(el,'aria-hidden',true); svg.append(el); return el;
+    }));
     const sectors = Array.from({length:16},() => {
       const el = create('path','swr-sector',true); attr(el,'role','button'); svg.append(el); return el;
     });
@@ -30,12 +33,18 @@
     });
     const tooltip = create('div','swr-tooltip'); attr(tooltip,'role','status'); tooltip.hidden = true;
     chart.append(svg,tooltip);
+    const legend = create('div','swr-legend'); attr(legend,'role','img');
+    const legendLabels = ['< 5','5–10','10–20','≥ 20'].map((label,index) => {
+      const item = create('div','swr-legend-item'), swatch = create('span','swr-swatch swr-band-'+index), value = create('span');
+      attr(swatch,'aria-hidden',true); text(value,label); item.append(swatch,value); legend.append(item); return value;
+    });
+    const legendUnit = create('div','swr-legend-unit'); text(legendUnit,'km/h'); legend.append(legendUnit);
     const status = create('div','swr-status'); attr(status,'role','status');
     const footer = create('div','swr-footer'), dominant = create('div'), frequency = create('div','swr-frequency');
     const dominantLabel = create('div','swr-label'), dominantValue = create('div','swr-value'); dominant.append(dominantLabel,dominantValue);
     const frequencyLabel = create('div','swr-label'), frequencyValue = create('div','swr-value'); frequency.append(frequencyLabel,frequencyValue);
-    footer.append(dominant,frequency); canvas.append(toolbar,chart,status,footer); host.append(canvas); attr(root,'data-signature-wind-rose','');
-    r = this._signatureWindRose = {version,root,host,canvas,toolbar,tabs,chart,svg,sectors,cardinals,tooltip,status,footer,
+    footer.append(dominant,frequency); canvas.append(toolbar,chart,legend,status,footer); host.append(canvas); attr(root,'data-signature-wind-rose','');
+    r = this._signatureWindRose = {version,root,host,canvas,toolbar,tabs,chart,svg,sectors,bands,cardinals,tooltip,legend,legendLabels,status,footer,
       dominantLabel,dominantValue,frequencyLabel,frequencyValue,cache:new Map(),tabNodes:[],selected:null,hovered:null,generation:0};
     const runtime = r;
     r.clearTimer = () => { clearTimeout(r.timer); r.timer = null; };
@@ -98,6 +107,8 @@
       const directions = r.points(history?.[r.directionEntity],r.direction);
       const speeds = r.speedEntity ? r.points(history?.[r.speedEntity],numeric) : [];
       const bins = Array(16).fill(0);
+      const speedBins = Array.from({length:16},() => Array(4).fill(0));
+      const speedTotals = Array(16).fill(0), speedMaxima = Array(16).fill(null);
       let i = 0, j = 0, time = start, direction = null, speed = null, calm = 0, wind = 0;
       while (time < end) {
         while (i < directions.length && directions[i].time <= time) direction = directions[i++].value;
@@ -106,12 +117,23 @@
         const duration = next-time;
         if (!r.speedEntity || (speed !== null && speed >= 0)) {
           if (r.speedEntity && speed <= r.calmThreshold) calm += duration;
-          else if (direction !== null) { bins[Math.round(direction/22.5)%16] += duration; wind += duration; }
+          else if (direction !== null) {
+            const index = Math.round(direction/22.5)%16;
+            bins[index] += duration; wind += duration;
+            if (r.speedEntity && duration > 0) {
+              speedTotals[index] += speed*duration;
+              speedMaxima[index] = Math.max(speedMaxima[index] ?? speed,speed);
+              if (r.speedFactor !== null) {
+                const kmh = speed*r.speedFactor;
+                speedBins[index][kmh < 5 ? 0 : kmh < 10 ? 1 : kmh < 20 ? 2 : 3] += duration;
+              }
+            }
+          }
         }
         time = next;
       }
       const dominant = wind ? bins.indexOf(Math.max(...bins)) : null;
-      return {bins,wind,calm,covered:wind+calm,dominant,start,end};
+      return {bins,speedBins,speedTotals,speedMaxima,wind,calm,covered:wind+calm,dominant,start,end};
     };
     r.load = async () => {
       r.clearTimer();
@@ -142,10 +164,10 @@
       const minutes = Math.round(milliseconds/60000);
       return minutes < 60 ? r.format(minutes)+' min' : r.format(Math.floor(minutes/60))+' h'+(minutes%60 ? ' '+r.format(minutes%60)+' min' : '');
     };
-    r.sectorPath = (index,radius) => {
+    r.sectorPath = (index,radius,inner = 6) => {
       const point = (radius,degrees) => { const angle = (degrees-90)*Math.PI/180; return [160+radius*Math.cos(angle),160+radius*Math.sin(angle)].map(v => v.toFixed(2)).join(' '); };
       const a = index*22.5-9.5, b = index*22.5+9.5;
-      return 'M '+point(6,a)+' L '+point(radius,a)+' A '+radius.toFixed(2)+' '+radius.toFixed(2)+' 0 0 1 '+point(radius,b)+' L '+point(6,b)+' A 6 6 0 0 0 '+point(6,a)+' Z';
+      return 'M '+point(inner,a)+' L '+point(radius,a)+' A '+radius.toFixed(2)+' '+radius.toFixed(2)+' 0 0 1 '+point(radius,b)+' L '+point(inner,b)+' A '+inner.toFixed(2)+' '+inner.toFixed(2)+' 0 0 0 '+point(inner,a)+' Z';
     };
     r.render = () => {
       if (r.disposed) return;
@@ -170,6 +192,9 @@
       const entry = r.cache.get(r.period), data = entry?.data;
       const ready = r.phase === 'ready' && data?.wind > 0;
       chart.hidden = !ready; status.hidden = ready; tooltip.hidden = true;
+      const showBands = ready && r.speedEntity && r.speedFactor !== null;
+      legend.hidden = !showBands; attr(svg,'data-speed-bands',Boolean(showBands));
+      attr(legend,'aria-label',r.labels.speedBands);
       attr(canvas,'aria-busy',Boolean(r.inFlight));
       text(status,r.phase === 'ready' ? (data?.calm > 0 ? r.labels.calm : r.labels.empty) : r.labels[r.phase] || r.labels.loading);
       text(dominantValue,ready ? r.labels.directions[data.dominant] : r.phase === 'ready' && data?.calm > 0 ? r.labels.calmShort : '—');
@@ -180,11 +205,23 @@
       const maximum = Math.max(...data.bins);
       sectors.forEach((el,index) => {
         const duration = data.bins[index], percent = duration/data.wind*100;
-        const description = r.labels.directions[index]+' · '+r.format(percent)+' % · '+r.duration(duration);
+        const title = r.labels.directions[index]+' · '+r.format(percent)+' %';
+        const speedDetail = r.speedEntity && duration ? '\n'+r.labels.mean+' : '+r.format(data.speedTotals[index]/duration)+(r.speedUnit ? ' '+r.speedUnit : '')+
+          '\n'+r.labels.maximum+' : '+r.format(data.speedMaxima[index])+(r.speedUnit ? ' '+r.speedUnit : '') : '';
+        const description = title+' · '+r.duration(duration)+speedDetail;
+        let cumulative = 0;
+        const radius = amount => Math.sqrt(36+(118*118-36)*amount/maximum);
+        bands[index].forEach((band,bandIndex) => {
+          const amount = showBands ? data.speedBins[index][bandIndex] : 0;
+          attr(band,'d',amount ? r.sectorPath(index,radius(cumulative+amount),radius(cumulative)) : '');
+          cumulative += amount;
+        });
         attr(el,'d',duration ? r.sectorPath(index,Math.sqrt(36+(118*118-36)*duration/maximum)) : '');
         attr(el,'tabindex',duration ? 0 : -1); attr(el,'aria-hidden',!duration);
         attr(el,'aria-label',description); attr(el,'aria-pressed',r.selected === index);
-        if ((r.hovered ?? r.selected) === index && duration) { text(tooltip,description); tooltip.hidden = false; }
+        if ((r.hovered ?? r.selected) === index && duration) {
+          text(tooltip,speedDetail ? title+'\n'+r.labels.duration+' : '+r.duration(duration)+speedDetail : description); tooltip.hidden = false;
+        }
       });
     };
   }
@@ -192,17 +229,20 @@
   const options = config.signature_wind_rose || {};
   const directionEntity = options.direction_entity || config.entity;
   const speedEntity = options.speed_entity || null;
+  const speedUnit = String(hass.states[speedEntity]?.attributes?.unit_of_measurement || '').trim();
+  const speedFactor = ({'km/h':1,'kmh':1,'kph':1,'m/s':3.6,'mph':1.609344,'mi/h':1.609344,'kn':1.852,'kt':1.852,'knots':1.852})[speedUnit.toLowerCase()] ?? null;
   const offset = numeric(options.direction_offset) ?? 0;
   const calmThreshold = Math.max(0,numeric(options.calm_threshold) ?? 0);
   const refresh = Math.max(60,numeric(options.refresh_interval) ?? 300);
   const defaultPeriod = [1,24,168].includes(Number(options.hours)) ? Number(options.hours) : 24;
   const showPeriodButtons = options.show_period_buttons !== false;
-  const key = [directionEntity,speedEntity,offset,calmThreshold].join('|');
+  const key = [directionEntity,speedEntity,speedUnit,offset,calmThreshold].join('|');
   if (r.dataKey !== key || r.connection !== hass.connection) {
     r.generation++; r.inFlight = false; r.retryAt = 0; r.cache.clear(); r.selected = null; r.hovered = null; r.renderKey = null;
     r.dataKey = key; r.connection = hass.connection; r.loadKey = null;
   }
-  r.directionEntity = directionEntity; r.speedEntity = speedEntity; r.offset = offset; r.calmThreshold = calmThreshold; r.refresh = refresh;
+  r.directionEntity = directionEntity; r.speedEntity = speedEntity; r.speedUnit = speedUnit; r.speedFactor = speedFactor;
+  r.offset = offset; r.calmThreshold = calmThreshold; r.refresh = refresh;
   if (!r.period || r.defaultPeriod !== defaultPeriod || (!showPeriodButtons && r.period !== defaultPeriod)) {
     r.period = defaultPeriod; r.selected = null; r.hovered = null; r.generation++; r.inFlight = false; r.retryAt = 0; r.loadKey = null;
   }
@@ -219,12 +259,14 @@
     r.french = french;
     r.labels = french ? {
     dominant:'Dominant',frequency:'Fréquence',period:'Période',tabs:['1 h','1 jour','1 semaine'],cardinals:['N','E','S','O'],
+    speedBands:'Durée par plage de vitesse en km/h : moins de 5, de 5 à moins de 10, de 10 à moins de 20, 20 ou plus',duration:'Durée',mean:'Moyenne',maximum:'Maximum',
     directions:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'],
     rose:'Rose des vents : provenance du vent, fréquences par durée hors calme',coverage:'Données exploitables :',
     loading:'Chargement de l’historique…',empty:'Aucun historique exploitable',calm:'Vent calme sur la période enregistrée',calmShort:'Calme',
     error:'Historique indisponible',configuration:'Configurez une entité de direction du vent'
   } : {
     dominant:'Dominant',frequency:'Frequency',period:'Period',tabs:['1 h','1 day','1 week'],cardinals:['N','E','S','W'],
+    speedBands:'Duration by speed range in km/h: below 5, 5 to below 10, 10 to below 20, 20 or above',duration:'Duration',mean:'Mean',maximum:'Maximum',
     directions:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
     rose:'Wind rose: wind origin, time-weighted frequencies excluding calm',coverage:'Usable history:',
     loading:'Loading history…',empty:'No usable history',calm:'Calm wind during the recorded period',calmShort:'Calm',

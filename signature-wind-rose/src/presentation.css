@@ -24,6 +24,10 @@
   display: none !important;
 }
 [data-signature-wind-rose] .swr-card {
+  --swr-band-0: color-mix(in srgb,var(--swr-accent) 42%,white);
+  --swr-band-1: color-mix(in srgb,var(--swr-accent) 72%,white);
+  --swr-band-2: color-mix(in srgb,var(--swr-accent) 94%,black);
+  --swr-band-3: color-mix(in srgb,var(--swr-accent) 67%,black);
   color: var(--primary-text-color);
   font-size: var(--signature-name-font-size,14px);
   font-weight: var(--signature-font-weight-normal,400);
@@ -95,20 +99,56 @@
   stroke: var(--primary-text-color);
   stroke-width: 1.2;
 }
+[data-signature-wind-rose] .swr-svg[data-speed-bands="true"] .swr-sector {
+  fill: transparent;
+  pointer-events: all;
+}
+[data-signature-wind-rose] .swr-band {
+  stroke: none;
+  pointer-events: none;
+}
+[data-signature-wind-rose] .swr-band-0 { fill: var(--swr-band-0); background: var(--swr-band-0); }
+[data-signature-wind-rose] .swr-band-1 { fill: var(--swr-band-1); background: var(--swr-band-1); }
+[data-signature-wind-rose] .swr-band-2 { fill: var(--swr-band-2); background: var(--swr-band-2); }
+[data-signature-wind-rose] .swr-band-3 { fill: var(--swr-band-3); background: var(--swr-band-3); }
+[data-signature-wind-rose] .swr-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 0 16px 16px;
+  color: var(--secondary-text-color);
+  font-size: var(--signature-caption-font-size,12px);
+  font-variant-numeric: tabular-nums;
+}
+[data-signature-wind-rose] .swr-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+[data-signature-wind-rose] .swr-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
 [data-signature-wind-rose] .swr-tooltip {
   position: absolute;
-  inset-inline: 24px;
-  bottom: 8px;
+  inset-inline-start: 24px;
+  top: 8px;
   width: fit-content;
   max-width: calc(100% - 48px);
-  margin: auto;
   padding: 8px 12px;
   border-radius: var(--signature-tooltip-border-radius,var(--signature-icon-border-radius,12px));
   background: var(--swr-surface);
   border: 1px solid var(--swr-divider);
   box-shadow: var(--signature-tooltip-box-shadow,var(--signature-control-box-shadow,0 1px 4px rgb(0 0 0 / .06)));
   font-size: var(--signature-secondary-font-size,13px);
-  text-align: center;
+  text-align: start;
+  white-space: pre-line;
+  line-height: 1.6;
   pointer-events: none;
   font-variant-numeric: tabular-nums;
 }

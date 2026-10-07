@@ -71,6 +71,7 @@ async function render(page,scenario={}){
      if(kind==='media-player'){query('.bubble-buttons-container').innerHTML='<div class="bubble-media-button"></div>';const info=document.createElement('div');info.className='bubble-media-info-container';info.innerHTML='<div class="bubble-title">Une chanson</div><div class="bubble-artist">Un artiste</div>';query('.bubble-content-container').append(info);}
      const config={card_type:kind,button_type:id==='header'||id.startsWith('room')?'name':'state',entity,show_state:!id.startsWith('room'),show_name:true,card_layout:'large',[modules[module].key]:options};
      config[module.replaceAll('-','_')]=options;
+     if(module==='signature-wind-rose'&&scenario.windSpeed)config.signature_wind_rose={...options,speed_entity:'sensor.speed'};
      const ctx={card:root,elements:{mainContainer:host,contentContainer:query('.bubble-content-container'),nameContainer:query('.bubble-name-container'),iconContainer:query('.bubble-icon-container'),state:query('.bubble-state')},config};
      if(id==='room'){
       config.sub_button={main:[{entity:'light.demo',css_class:'room-control-light'},{entity:'sensor.demo',css_class:'room-temperature'}]};
@@ -82,6 +83,11 @@ async function render(page,scenario={}){
      let callbacks=[];
      const hass={locale:{language:'fr',number_format:'space_comma',time_format:'24'},language:'fr',config:{time_zone:'Europe/Paris',unit_system:{temperature:'°C'}},states:{'sensor.demo':state(scenario.value ?? 22.5,'°C','Maison'),'sensor.direction':state(90,'°','Vent'),'light.demo':state('off','','Lumière'),'weather.home':{state:'sunny',attributes:{friendly_name:'Maison',supported_features:3,temperature:22.5,temperature_unit:'°C',humidity:65,wind_speed:10,wind_speed_unit:'km/h',precipitation_unit:'mm'}}},connection:{subscribeMessage(cb){callbacks.push(cb);return Promise.resolve(()=>{});}},callWS:async()=>({'sensor.direction':Array.from({length:24},(_,i)=>({s:String([90,90,135,45][i%4]),lu:(now-86400000+i*3600000)/1000}))}),localize:()=>undefined};
      ctx._hass=hass;
+     if(module==='signature-wind-rose'&&scenario.windSpeed){
+       hass.states['sensor.speed']=state(3,'km/h','Vitesse du vent');
+       const callWS=hass.callWS;
+       hass.callWS=async message=>({...await callWS(message),'sensor.speed':Array.from({length:4},(_,i)=>({s:String([3,7,14,24][i]),lu:(now-86400000+i*21600000)/1000}))});
+     }
      try{
       const css=id.startsWith('native-')?'':new Function('hass','onTeardown','renderTemplate','return `'+modules[module].code+'`;').call(ctx,hass,fn=>ctx.teardown=fn,v=>v);
       const style=document.createElement('style');style.textContent=css;shadow.append(style);
