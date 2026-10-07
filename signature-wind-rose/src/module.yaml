@@ -1,5 +1,5 @@
 name: Signature Wind Rose
-version: 1.3.0
+version: 1.4.0
 creator: Loïc
 supported:
   - button
@@ -50,6 +50,7 @@ editor:
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
       hours:
         label: Période initiale
+        description: "Période utilisée lorsque les boutons de période sont masqués."
         default: "24"
         selector:
           select:
@@ -62,6 +63,15 @@ editor:
                 label: 1 semaine
             mode: dropdown
         number_choice: true
+        group: Historique
+        group_icon: mdi:history
+        visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+      show_period_buttons:
+        label: Afficher les boutons de période
+        description: "Désactivé : masque la barre de choix et utilise la période configurée ci-dessus."
+        default: true
+        selector:
+          boolean: {}
         group: Historique
         group_icon: mdi:history
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"

@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.3.0** · Module ID: `signature_wind_rose`
+**Version: 1.4.0** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions in one teal color, subtle guide rings, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction and its frequency. Hover a sector to see its percentage and recorded duration. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -16,7 +16,7 @@ This standalone module replaces the native button content. Use a button/state ca
 
 ## Visual configuration
 
-The French module form offers direction/speed entity pickers, initial period, direction offset, calm threshold, history refresh and sector color. The calm threshold appears only when a speed entity is configured. A blank direction source inherits the card entity; the initial period remains a numeric YAML value. History sources use entity states rather than attributes or templates.
+The French module form offers direction/speed entity pickers, initial period, period-button visibility, direction offset, calm threshold, history refresh and sector color. Disable **Afficher les boutons de période** to remove the whole top toolbar and use the configured period. The calm threshold appears only when a speed entity is configured. A blank direction source inherits the card entity; the initial period remains a numeric YAML value. History sources use entity states rather than attributes or templates.
 
 Les valeurs masquées sont conservées et l’ouverture du formulaire ne crée aucune option. Les sections suivent les arrondis natifs du thème. Le pont utilise les helpers de Bubble Card 3.4.1 ; les versions sans ces helpers ne prennent pas en charge ce formulaire. Réimporter le fichier complet puis recharger la page après la mise à jour.
 
@@ -50,7 +50,8 @@ Direction is taken from Bubble Card's `entity`. A [direction-only example](../ex
 |---|---|---|
 | `direction_entity` | Bubble Card's `entity` | Optional direction source override; recorded entity state is used. |
 | `speed_entity` | Unset | Optional recorded speed entity, used only to exclude calm periods. Its value is not displayed. |
-| `hours` | `24` | Initial period: `1`, `24` or `168`. The buttons change it locally until the card is recreated. |
+| `hours` | `24` | Initial period: `1`, `24` or `168`. The buttons change it locally until the card is recreated. When the buttons are hidden, this is the fixed period. |
+| `show_period_buttons` | `true` | Show the top period selector. `false` removes the toolbar and its spacing, and resets any local selection to `hours`. |
 | `direction_offset` | `0` | Degrees added to recorded bearings, clockwise. |
 | `calm_threshold` | `0` | Speed at or below this value is calm. Uses the speed entity's native unit; only applied when `speed_entity` is set. |
 | `refresh_interval` | `300` | History refresh interval in seconds, minimum `60`. |
@@ -59,6 +60,14 @@ Direction is taken from Bubble Card's `entity`. A [direction-only example](../ex
 Directions accept numeric degrees or the 16 English/French compass abbreviations (`N`, `SSE`, `SSW` / `SSO`, `W` / `O`, etc.). Bearings wrap around 360° and are assigned to the closest of the 16 sectors. Zero degrees is valid north, not a missing value. Entity attributes and Jinja templates are not history sources.
 
 French and English labels follow the Home Assistant language. Number formatting follows the Home Assistant number format. Unsupported languages use English labels.
+
+For a fixed one-day rose without period buttons:
+
+```yaml
+signature_wind_rose:
+  hours: 24
+  show_period_buttons: false
+```
 
 ## Frequency calculation
 
@@ -114,6 +123,11 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 Named colors such as `blue` use the same theme palette as Signature and Flow. Use `#0000ff` to keep literal CSS blue from earlier releases. Explicit CSS and Jinja colors are supported; Jinja uses the card entity. Empty or invalid colors restore `signature-wind-rose-color` (default `#4db6ac`) rather than producing black sectors.
 
 ## Release notes
+
+### 1.4.0 — 7 October 2026
+
+- Adds `show_period_buttons` in YAML and the visual editor, enabled by default.
+- Hiding the selector removes the whole toolbar and its spacing, and uses the configured `hours` period. Existing history caches, refresh and sector interactions remain available.
 
 ### 1.3.0 — 5 October 2026
 

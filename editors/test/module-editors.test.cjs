@@ -55,7 +55,7 @@ function environment({delayed=false,module}={}) {
 }
 test('remaining schemas cover all documented keys using one standalone inline bridge',()=>{
   assert.deepEqual(Object.keys(weather.schema.fields).sort(),['layout','entity','forecast_type','count','precision','current_precision','show_current','show_details','current_metrics','local','name'].sort());
-  assert.deepEqual(Object.keys(wind.schema.fields).sort(),['direction_entity','speed_entity','hours','direction_offset','calm_threshold','refresh_interval','color'].sort());
+  assert.deepEqual(Object.keys(wind.schema.fields).sort(),['direction_entity','speed_entity','hours','show_period_buttons','direction_offset','calm_threshold','refresh_interval','color'].sort());
   assert.deepEqual(Object.keys(alerts.schema.fields).sort(),['sensors','packs','ignore_pending','show_badge','color_card','color_badge','icons','colors','entities'].sort());
   assert.deepEqual(Object.keys(weather.schema.fields.local.fields).sort(),['temperature','condition','apparent_temperature','humidity','pressure','wind_speed','wind_gust_speed','wind_bearing','precipitation','uv_index'].sort());
   assert.equal(alerts.schema.fields.packs.mapping,'packs');assert.equal(alerts.schema.fields.entities.mapping,'entities');
@@ -104,6 +104,9 @@ test('Weather source editing preserves string/object forms, attributes, empty un
 test('Wind editor preserves the numeric period and hides calm controls without a speed source',()=>{
   const env=environment(),form=env.create(wind.schema,{});
   assert.equal(form._form.data.hours,'24');assert.ok(!flat(form._form.schema).some(field=>field.name==='calm_threshold'));
+  assert.equal(form._form.data.show_period_buttons,true);
+  assert.equal(env.change(form,{show_period_buttons:false}).show_period_buttons,false);
+  assert.equal(env.change(env.create(wind.schema,{show_period_buttons:false}),{hours:'1'}).show_period_buttons,false);
   assert.deepEqual(plain(env.change(form,{color:'var(--teal-color)'})),{color:'var(--teal-color)'});
   assert.equal(env.change(form,{hours:'168'}).hours,168);
   assert.ok(!Object.hasOwn(env.change(form,{hours:''}),'hours'));

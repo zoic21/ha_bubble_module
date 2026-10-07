@@ -35,7 +35,7 @@
     const dominantLabel = create('div','swr-label'), dominantValue = create('div','swr-value'); dominant.append(dominantLabel,dominantValue);
     const frequencyLabel = create('div','swr-label'), frequencyValue = create('div','swr-value'); frequency.append(frequencyLabel,frequencyValue);
     footer.append(dominant,frequency); canvas.append(toolbar,chart,status,footer); host.append(canvas); attr(root,'data-signature-wind-rose','');
-    r = this._signatureWindRose = {version,root,host,canvas,tabs,chart,svg,sectors,cardinals,tooltip,status,footer,
+    r = this._signatureWindRose = {version,root,host,canvas,toolbar,tabs,chart,svg,sectors,cardinals,tooltip,status,footer,
       dominantLabel,dominantValue,frequencyLabel,frequencyValue,cache:new Map(),tabNodes:[],selected:null,hovered:null,generation:0};
     const runtime = r;
     r.clearTimer = () => { clearTimeout(r.timer); r.timer = null; };
@@ -149,9 +149,10 @@
     };
     r.render = () => {
       if (r.disposed) return;
-      const renderKey = [r.phase,r.period,r.cache.get(r.period)?.loadedAt,r.selected,r.hovered,r.formatKey,r.inFlight].join('|');
+      const renderKey = [r.phase,r.period,r.cache.get(r.period)?.loadedAt,r.selected,r.hovered,r.formatKey,r.inFlight,r.showPeriodButtons].join('|');
       if (r.renderKey === renderKey) return;
       r.renderKey = renderKey;
+      toolbar.hidden = !r.showPeriodButtons;
       text(dominantLabel,r.labels.dominant); text(frequencyLabel,r.labels.frequency);
       attr(tabs,'aria-label',r.labels.period); attr(svg,'aria-label',r.labels.rose);
       [1,24,168].forEach((hours,index) => {
@@ -195,14 +196,17 @@
   const calmThreshold = Math.max(0,numeric(options.calm_threshold) ?? 0);
   const refresh = Math.max(60,numeric(options.refresh_interval) ?? 300);
   const defaultPeriod = [1,24,168].includes(Number(options.hours)) ? Number(options.hours) : 24;
+  const showPeriodButtons = options.show_period_buttons !== false;
   const key = [directionEntity,speedEntity,offset,calmThreshold].join('|');
   if (r.dataKey !== key || r.connection !== hass.connection) {
     r.generation++; r.inFlight = false; r.retryAt = 0; r.cache.clear(); r.selected = null; r.hovered = null; r.renderKey = null;
     r.dataKey = key; r.connection = hass.connection; r.loadKey = null;
   }
   r.directionEntity = directionEntity; r.speedEntity = speedEntity; r.offset = offset; r.calmThreshold = calmThreshold; r.refresh = refresh;
-  if (!r.period || r.defaultPeriod !== defaultPeriod) { r.period = defaultPeriod; r.selected = null; r.hovered = null; r.generation++; r.inFlight = false; r.retryAt = 0; }
-  r.defaultPeriod = defaultPeriod;
+  if (!r.period || r.defaultPeriod !== defaultPeriod || (!showPeriodButtons && r.period !== defaultPeriod)) {
+    r.period = defaultPeriod; r.selected = null; r.hovered = null; r.generation++; r.inFlight = false; r.retryAt = 0; r.loadKey = null;
+  }
+  r.defaultPeriod = defaultPeriod; r.showPeriodButtons = showPeriodButtons;
   const language = localeFor(hass);
   const french = language.toLowerCase().startsWith('fr');
   const numberFormat = hass.locale?.number_format;

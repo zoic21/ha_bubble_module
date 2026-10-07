@@ -47,7 +47,7 @@ function history(f,direction=135,speed=3) {
 const result=f=>f.r.cache.get(f.r.period).data;
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.3.0');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.4.0');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');
@@ -123,11 +123,19 @@ test('sector detail is available through touch and keyboard and suppresses nativ
   f.r.chart.event('click');assert.equal(f.r.tooltip.hidden,true);
 });
 test('period buttons cache recent aggregates and preserve user choice on state updates',async t=>{
-  const f=fixture(t);await f.resolve(history(f));f.r.tabNodes[0].click();assert.equal(f.requests.length,2);
+  const f=fixture(t);assert.equal(f.r.toolbar.hidden,false);await f.resolve(history(f));f.r.tabNodes[0].click();assert.equal(f.requests.length,2);
   assert.equal(Date.parse(f.requests[1].message.end_time)-Date.parse(f.requests[1].message.start_time),3600000);
   await f.resolve(history(f,270));f.run();assert.equal(f.r.period,1);
   f.r.tabNodes[1].click();assert.equal(f.requests.length,2);assert.equal(f.r.dominantValue.textContent,'SE');
   f.r.tabNodes[2].click();assert.equal(Date.parse(f.requests[2].message.end_time)-Date.parse(f.requests[2].message.start_time),168*3600000);
+  f.ctx.config.signature_wind_rose.show_period_buttons=false;f.run();
+  assert.equal(f.r.toolbar.hidden,true);assert.equal(f.r.period,24);assert.equal(f.requests.length,3);
+  await f.resolve(history(f,180),2);assert.equal(f.r.dominantValue.textContent,'SE');assert.equal(f.r.cache.has(168),false);
+  f.ctx.config.signature_wind_rose.hours=168;f.run();assert.equal(f.requests.length,4);
+  assert.equal(Date.parse(f.requests[3].message.end_time)-Date.parse(f.requests[3].message.start_time),168*3600000);
+  await f.resolve(history(f,180));f.run();assert.equal(f.r.period,168);assert.equal(f.r.toolbar.hidden,true);
+  delete f.ctx.config.signature_wind_rose.show_period_buttons;f.run();
+  assert.equal(f.r.toolbar.hidden,false);assert.equal(f.r.period,168);assert.equal(f.requests.length,4);
 });
 test('ignores out-of-order period responses, including failures',async t=>{
   const f=fixture(t);f.r.tabNodes[0].click();await f.resolve(history(f,90),1);await f.reject(0);
@@ -172,7 +180,7 @@ test('locale changes update compass labels and numbers without another history r
   assert.equal(f.r.frequencyLabel.textContent,'Frequency');assert.equal(f.r.frequencyValue.textContent,'100 %');
 });
 test('invalid options fall back and absent direction shows a configuration message',t=>{
-  const f=fixture(t,{hours:5,refresh_interval:1,calm_threshold:-1});assert.equal(f.r.period,24);assert.equal(f.r.refresh,60);assert.equal(f.r.calmThreshold,0);
+  const f=fixture(t,{hours:5,refresh_interval:1,calm_threshold:-1,show_period_buttons:false});assert.equal(f.r.period,24);assert.equal(f.r.refresh,60);assert.equal(f.r.calmThreshold,0);assert.equal(f.r.toolbar.hidden,true);
   delete f.ctx.config.entity;f.run();assert.equal(f.r.phase,'configuration');assert.equal(f.timers.size,0);
 });
 test('custom color is removable and incompatible slider cards dispose the runtime',t=>{

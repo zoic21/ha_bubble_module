@@ -10,7 +10,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Header — page headers and section titles | 1.1.13 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
-| Signature Wind Rose — wind direction frequencies | 1.3.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
+| Signature Wind Rose — wind direction frequencies | 1.4.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
@@ -64,7 +64,7 @@ Signature Flow uses the same inline form under **Modules → Signature Flow**, w
 
 Signature, Flow, Weather, Wind Rose and Alert Manager editor sections use the native Home Assistant panel radius and follow live theme changes. This styling is scoped to their own groups, preserving native fields, warnings and configuration without changing other Bubble forms.
 
-Signature Wind Rose replaces the button content with a time-weighted, 16-direction wind rose and period selector; see its [Ecowitt example](signature-wind-rose/examples/ecowitt.yaml). It uses recorded direction and optional speed history without duplicating current values from a graph above it.
+Signature Wind Rose replaces the button content with a time-weighted, 16-direction wind rose and optional period selector; see its [Ecowitt example](signature-wind-rose/examples/ecowitt.yaml). Set `show_period_buttons: false` to hide the selector and use the configured `hours` period. It uses recorded direction and optional speed history without duplicating current values from a graph above it.
 
 Weather, Wind Rose and Alert Manager also provide French module forms. Weather exposes all forecast/current settings and ten optional local sources with entity and attribute selectors. Wind Rose exposes sources, history, calm filtering and color. Alert Manager exposes card display, source sensors, colors/icons, activated packs and per-entity exceptions. Repeated pack/entity entries are converted to the existing keyed mappings, retaining inheritance and exclusions. Existing YAML configurations remain valid; automatic defaults are preserved and the visual forms rely on Bubble Card 3.4.1 object helpers.
 

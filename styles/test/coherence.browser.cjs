@@ -195,6 +195,7 @@ test('shared switch CSS preserves independent tracks, opacity, actions and live 
 });
 
 test('light/dark surfaces agree across five widths and fine/coarse pointers', async t => {
+  const windCode=loadModule('signature-wind-rose').code;
   for (const touch of [false, true]) {
     const page = await fixture(t, {hasTouch: touch});
     for (const mode of ['light', 'dark']) for (const width of [288, 328, 358, 382, 600]) {
@@ -207,6 +208,19 @@ test('light/dark surfaces agree across five widths and fine/coarse pointers', as
       assert.equal(style(result, 'weather-summary', '.sw-tab').height, touch ? 44 : 40);
       assert.equal(style(result, 'wind', '.swr-tab').height, touch ? 44 : 40);
       for (const id of ['flow', 'wind', 'weather-summary']) assert.deepEqual(card(result, id).overflow, [], `${id} ${width}`);
+      const visibility=await page.evaluate(code=>{
+        const ctx=window.contexts.find(ctx=>ctx._signatureWindRose),r=ctx._signatureWindRose;
+        const apply=()=>new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);
+        const height=()=>r.canvas.getBoundingClientRect().height;
+        const initial=height(),toolbarHeight=r.toolbar.getBoundingClientRect().height,svgWidth=r.svg.getBoundingClientRect().width;
+        ctx.config.signature_wind_rose.show_period_buttons=false;apply();
+        const hidden=height(),display=getComputedStyle(r.toolbar).display,sameWidth=r.svg.getBoundingClientRect().width===svgWidth;
+        delete ctx.config.signature_wind_rose.show_period_buttons;apply();
+        return {initial,toolbarHeight,hidden,display,sameWidth,restored:height()};
+      },windCode);
+      assert.equal(visibility.display,'none');assert.ok(visibility.sameWidth);
+      assert.ok(Math.abs(visibility.initial-visibility.hidden-visibility.toolbarHeight)<0.1);
+      assert.equal(visibility.restored,visibility.initial);
     }
   }
 });
