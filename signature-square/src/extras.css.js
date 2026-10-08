@@ -17,5 +17,6 @@ padding: 9px; grid-template-rows: 36px auto;
     ha-card[data-dp-controls="measure"][data-dp-measure-detail="yes"] .bubble-content-container { bottom: 26px; }
     ha-card[data-dp-controls="measure"] :is(.bubble-sub-button-container,.bubble-sub-button-group) { position: static !important; }
     ha-card[data-dp-controls="measure"] .bubble-sub-button-1 { position: absolute !important; top: 8px; right: 10px; width: 34px; min-width: 34px !important; height: 34px; padding: 0; border-radius: 50%; --mdc-icon-size: 20px; }
-    ha-card[data-dp-controls="measure"] .bubble-sub-button-2 { position: absolute !important; top: auto; bottom: 3px; right: 14px; width: auto; min-width: 0 !important; height: 24px; padding: 0; background: transparent !important; box-shadow: none; font-size: var(--signature-caption-font-size, 12px); }
+    /* Keep the text's 14px anchor, with Compact's native inline ripple padding. */
+    ha-card[data-dp-controls="measure"] .bubble-sub-button-2 { position: absolute !important; top: auto; bottom: 3px; right: 6px; width: auto; min-width: 0 !important; height: 24px; padding: 0 8px; background: transparent !important; box-shadow: none; font-size: var(--signature-caption-font-size, 12px); }
     ` : '')

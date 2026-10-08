@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.0.8**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.0.9**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -83,6 +83,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.0.9 — 8 octobre 2026
+
+- Mesures température/humidité avec le dégagement horizontal de 8 px des sous-boutons Compact et une cible de 44 px dans le contenu. Les valeurs gardent leurs ancrages de 12 px et leur alignement vertical. À 180 px de largeur intérieure ou moins, le dégagement passe à 4 px comme les petites valeurs Compact sans fond ; la température réserve la place de l’humidité pour éviter le recouvrement des cibles.
+- Mesures empilées dans l’en-tête : surfaces distinctes de 30/24 px sans recouvrement ; température et alignement droit conservés, humidité espacée sous la température.
+- Le survol et les actions restent ceux des sous-boutons Bubble. Les masquages, unités, couleurs et commandes restent inchangés.
+- Vérifications sur fixtures Chromium clair/sombre, avec/sans thème ; aucun essai Home Assistant réel ou Safari/iOS.
 
 ### 1.0.8 — 5 octobre 2026
 

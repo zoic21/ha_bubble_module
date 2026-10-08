@@ -17,13 +17,14 @@ const nativeCSS = `
  .bubble-name-container { display:flex; flex-direction:column; justify-content:center; flex-grow:1; position:relative; overflow:hidden; pointer-events:none; }
  .bubble-name,.bubble-state { position:relative; }
  .bubble-icon-container { position:relative; overflow:hidden; }
- .bubble-sub-button { position:relative; height:36px; min-width:36px; padding:0 8px; border-radius:var(--bubble-sub-button-border-radius,28px); overflow:hidden; pointer-events:auto; background:var(--secondary-background-color); }
+ .bubble-sub-button { position:relative; width:max-content; height:36px; min-width:36px; padding:0 8px; box-sizing:border-box; border-radius:var(--bubble-sub-button-border-radius,28px); overflow:hidden; pointer-events:auto; background:var(--secondary-background-color); }
+ .bubble-sub-button-name-container { display:flex; }
  .bubble-cover-button,.bubble-media-button,.bubble-climate-minus-button,.bubble-climate-plus-button { display:flex; position:relative; overflow:hidden; }
 `;
 
 async function prepare(page, scenario = {}) {
   await render(page, scenario);
-  await page.evaluate(({nativeCSS,definitions,trailing,switches}) => {
+  await page.evaluate(({nativeCSS,definitions,trailing,switches,measures,headerMeasures,value,humidity}) => {
     if (!customElements.get('ha-ripple')) customElements.define('ha-ripple', class extends HTMLElement {
       connectedCallback() {
         this.attachShadow({mode:'open'}).innerHTML = `<style>
@@ -44,6 +45,31 @@ async function prepare(page, scenario = {}) {
       const root = ctx.card, shadow = root.getRootNode();
       shadow.querySelector('style').textContent += nativeCSS;
       const layout = root.dataset.dpLayout;
+      if (measures && ['room-no-controls','square','square-auto'].includes(shadow.host.dataset.id)) {
+        const room = layout === 'room';
+        const buttons = room ? [
+          {entity:'sensor.demo',css_class:'room-temperature',show_state:true,show_icon:false},
+          {entity:'sensor.humidity',css_class:'room-humidity',show_state:true,show_icon:true},
+          ...Array.from({length:headerMeasures?6:4},(_,i)=>({entity:'light.demo',css_class:'room-control-'+(i+1),show_icon:true}))
+        ] : [
+          {entity:'light.demo',show_icon:true,tap_action:{action:'toggle'}},
+          {entity:'sensor.humidity',show_state:true,show_icon:false}
+        ];
+        ctx._hass.states['sensor.humidity'] = {state:String(humidity ?? 65),attributes:{unit_of_measurement:'%'}};
+        ctx.config = {...ctx.config,sub_button:{main:buttons}};
+        const key = 'signature_'+layout;
+        ctx.config[key] = {...ctx.config[key],...(room ? {room_measures_position:headerMeasures?'header':'content'} : {controls:'measure',reserve_measure_detail:true})};
+        root.querySelector('.bubble-sub-button-container').innerHTML = buttons.map((b,i)=>
+          '<div class="bubble-sub-button bubble-sub-button-'+(i+1)+' '+(b.css_class||'')+' bubble-action">'+
+          (b.show_icon?'<ha-icon class="bubble-sub-button-icon" style="width:13px;height:13px"></ha-icon>':'')+
+          (b.show_state?'<div class="bubble-sub-button-name-container">'+(b.entity==='sensor.demo'?String(value??22.5)+' °C':String(humidity??65)+' %')+'</div>':'')+'</div>'
+        ).join('');
+        for (const [i,element] of [...root.querySelectorAll('.bubble-sub-button')].entries()) {
+          element.dataset.entity = buttons[i].entity;
+          element.dataset.tapAction = JSON.stringify(buttons[i].tap_action || {action:'more-info'});
+        }
+        shadow.lastElementChild.textContent = new Function('hass','onTeardown','renderTemplate','return `'+definitions[layout]+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);
+      }
       if ((trailing || switches) && ['compact','square'].includes(layout)) {
         const button = {entity:'light.demo',css_class:'test-control',tap_action:{action:'toggle'}};
         ctx.config = {...ctx.config,sub_button:{main:[button]}};
@@ -181,4 +207,84 @@ test('pointer hover clears on leave, respects theme changes and stays absent on 
   const tap = await pointAt(card(touch,'compact').locator('.bubble-name'));
   await touch.touchscreen.tap(tap.x,tap.y);
   assert.equal(await hoverOpacity(touch,'compact','.bubble-background'),'0');
+});
+
+test('room measurements leave Compact-like breathing room without moving their content anchors', async t => {
+  const page = await fixture(t);
+  for (const width of [160,180,288,328,600]) for (const mode of ['light','dark']) for (const plain of [false,true]) {
+    await prepare(page,{width,mode,plain,measures:true});
+    const metrics = await card(page,'room-no-controls').evaluate(shell => {
+      const root = shell.shadowRoot, container = root.querySelector('.bubble-container');
+      const box = el => {const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+      return {container:box(container),border:parseFloat(getComputedStyle(container).borderLeftWidth),measures:['room-temperature','room-humidity'].map(cls => {
+        const button=root.querySelector('.'+cls),label=button.querySelector('.bubble-sub-button-name-container');
+        return {button:box(button),label:box(label),padding:parseFloat(getComputedStyle(button).paddingLeft),ripple:box(button.querySelector('ha-ripple'))};
+      })};
+    });
+    const [temperature,humidity] = metrics.measures;
+    for (const measure of metrics.measures) {
+      assert.equal(measure.padding,width<=182?4:8);
+      assert.ok(measure.label.top-measure.button.top>=6-.1);
+      assert.ok(measure.button.bottom-measure.label.bottom>=6-.1);
+      fills({x:measure.ripple.left,y:measure.ripple.top,width:measure.ripple.width,height:measure.ripple.height},
+        {x:measure.button.left,y:measure.button.top,width:measure.button.width,height:measure.button.height},'measure ripple');
+    }
+    assert.ok(Math.abs(temperature.label.left-metrics.container.left-metrics.border-12)<.1);
+    assert.ok(Math.abs(temperature.label.top-metrics.container.top-metrics.border-62)<.1);
+    assert.ok(Math.abs(metrics.container.right-metrics.border-humidity.label.right-12)<.1);
+    assert.ok(temperature.button.right<=humidity.button.left+.1,'Measurement action targets overlap');
+  }
+  await card(page,'room-no-controls').locator('.room-temperature').hover();
+  assert.equal(await hoverOpacity(page,'room-no-controls','.room-temperature'),'0.08');
+  assert.equal(await hoverOpacity(page,'room-no-controls','.bubble-background'),'0');
+  await card(page,'room-no-controls').locator('.room-temperature').click();
+  let click=await page.evaluate(()=>window.clicks.at(-1));
+  assert.equal(click.entity,'sensor.demo');assert.equal(JSON.parse(click.action).action,'more-info');
+  await card(page,'room-no-controls').locator('.room-humidity').click();
+  click=await page.evaluate(()=>window.clicks.at(-1));
+  assert.equal(click.entity,'sensor.humidity');assert.equal(JSON.parse(click.action).action,'more-info');
+  await page.mouse.move(0,0);
+  assert.equal(await hoverOpacity(page,'room-no-controls','.room-humidity'),'0');
+});
+
+test('stacked header measures and Square footer details keep independent native hover targets', async t => {
+  const page = await fixture(t);
+  for (const width of [180,288,328,600]) for (const mode of ['light','dark']) for (const plain of [false,true]) for (const value of [22.5,-12.5,'unavailable']) {
+    await prepare(page,{width,mode,plain,measures:true,headerMeasures:true,value,humidity:100});
+    const boxes = await card(page,'room-no-controls').evaluate(shell => {
+      const root=shell.shadowRoot,read=selector=>{const r=root.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
+      return {temperature:read('.room-temperature'),humidity:read('.room-humidity'),control:read('.room-control-1')};
+    });
+    assert.ok(boxes.temperature.bottom<=boxes.humidity.top+.1,'Stacked measurement targets overlap');
+    assert.ok(boxes.humidity.bottom<=boxes.control.top+.1,'Header measures overlap room controls');
+    for (const id of ['square','square-auto']) {
+      const geometry=await card(page,id).locator('.bubble-sub-button-2').evaluate(el=>{
+        const label=el.querySelector('.bubble-sub-button-name-container'),r=el.getBoundingClientRect(),text=label.getBoundingClientRect(),container=el.closest('.bubble-container').getBoundingClientRect();
+        return {padding:parseFloat(getComputedStyle(el).paddingLeft),left:text.left-r.left,right:r.right-text.right,anchor:container.right-text.right,border:parseFloat(getComputedStyle(el.closest('.bubble-container')).borderRightWidth)};
+      });
+      assert.equal(geometry.padding,8);
+      assert.ok(Math.abs(geometry.left-8)<.1);assert.ok(Math.abs(geometry.right-8)<.1);
+      assert.ok(Math.abs(geometry.anchor-geometry.border-14)<.1);
+    }
+  }
+  await card(page,'square').locator('.bubble-sub-button-2').hover();
+  assert.equal(await hoverOpacity(page,'square','.bubble-sub-button-2'),'0.08');
+  await card(page,'square').locator('.bubble-sub-button-2').click();
+  const click=await page.evaluate(()=>window.clicks.at(-1));
+  assert.equal(click.entity,'sensor.humidity');assert.equal(JSON.parse(click.action).action,'more-info');
+});
+
+test('narrow room measurement targets stay separate with negative, long and missing values',async t=>{
+  const page=await fixture(t);
+  for(const width of [144,160,180,240,328]) for(const mode of ['light','dark']) for(const plain of [false,true])
+    for(const [value,humidity] of [[22.5,65],[22.5,100],[-12.5,100],[-123.4,100],['unavailable','unavailable']]) {
+      await prepare(page,{width,mode,plain,measures:true,value,humidity});
+      const geometry=await card(page,'room-no-controls').evaluate(shell=>{
+        const root=shell.shadowRoot,container=root.querySelector('.bubble-container').getBoundingClientRect();
+        const temperature=root.querySelector('.room-temperature').getBoundingClientRect(),humidity=root.querySelector('.room-humidity').getBoundingClientRect();
+        return {temperature:{left:temperature.left,right:temperature.right},humidity:{left:humidity.left,right:humidity.right},container:{left:container.left,right:container.right}};
+      });
+      assert.ok(geometry.temperature.right<=geometry.humidity.left+.1,'Room measurement action targets overlap');
+      assert.ok(geometry.temperature.left>=geometry.container.left && geometry.humidity.right<=geometry.container.right);
+    }
 });
