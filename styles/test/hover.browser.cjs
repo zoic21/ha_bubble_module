@@ -216,7 +216,9 @@ test('room measurements leave Compact-like breathing room without moving their c
     const metrics = await card(page,'room-no-controls').evaluate(shell => {
       const root = shell.shadowRoot, container = root.querySelector('.bubble-container');
       const box = el => {const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
-      return {container:box(container),border:parseFloat(getComputedStyle(container).borderLeftWidth),measures:['room-temperature','room-humidity'].map(cls => {
+      const line=getComputedStyle(container,'::after'),rect=container.getBoundingClientRect();
+      const dividerTop=rect.bottom-parseFloat(getComputedStyle(container).borderBottomWidth)-parseFloat(line.bottom)-parseFloat(line.height);
+      return {container:box(container),dividerTop,border:parseFloat(getComputedStyle(container).borderLeftWidth),measures:['room-temperature','room-humidity'].map(cls => {
         const button=root.querySelector('.'+cls),label=button.querySelector('.bubble-sub-button-name-container');
         return {button:box(button),label:box(label),padding:parseFloat(getComputedStyle(button).paddingLeft),ripple:box(button.querySelector('ha-ripple'))};
       })};
@@ -224,8 +226,9 @@ test('room measurements leave Compact-like breathing room without moving their c
     const [temperature,humidity] = metrics.measures;
     for (const measure of metrics.measures) {
       assert.equal(measure.padding,width<=182?4:8);
-      assert.ok(measure.label.top-measure.button.top>=6-.1);
-      assert.ok(measure.button.bottom-measure.label.bottom>=6-.1);
+      assert.ok(measure.label.top-measure.button.top>=2-.1);
+      assert.ok(measure.button.bottom-measure.label.bottom>=2-.1);
+      assert.ok(metrics.dividerTop-measure.button.bottom>=2-.1,'Measurement hover touches its divider');
       fills({x:measure.ripple.left,y:measure.ripple.top,width:measure.ripple.width,height:measure.ripple.height},
         {x:measure.button.left,y:measure.button.top,width:measure.button.width,height:measure.button.height},'measure ripple');
     }
@@ -253,10 +256,13 @@ test('stacked header measures and Square footer details keep independent native 
     await prepare(page,{width,mode,plain,measures:true,headerMeasures:true,value,humidity:100});
     const boxes = await card(page,'room-no-controls').evaluate(shell => {
       const root=shell.shadowRoot,read=selector=>{const r=root.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
-      return {temperature:read('.room-temperature'),humidity:read('.room-humidity'),control:read('.room-control-1')};
+      const container=root.querySelector('.bubble-container'),rect=container.getBoundingClientRect(),line=getComputedStyle(container,'::after');
+      const dividerTop=rect.bottom-parseFloat(getComputedStyle(container).borderBottomWidth)-parseFloat(line.bottom)-parseFloat(line.height);
+      return {temperature:read('.room-temperature'),humidity:read('.room-humidity'),control:read('.room-control-1'),dividerTop};
     });
     assert.ok(boxes.temperature.bottom<=boxes.humidity.top+.1,'Stacked measurement targets overlap');
     assert.ok(boxes.humidity.bottom<=boxes.control.top+.1,'Header measures overlap room controls');
+    assert.ok(boxes.dividerTop-boxes.humidity.bottom>=4-.1,'Header measurement hover touches its divider');
     for (const id of ['square','square-auto']) {
       const geometry=await card(page,id).locator('.bubble-sub-button-2').evaluate(el=>{
         const label=el.querySelector('.bubble-sub-button-name-container'),r=el.getBoundingClientRect(),text=label.getBoundingClientRect(),container=el.closest('.bubble-container').getBoundingClientRect();

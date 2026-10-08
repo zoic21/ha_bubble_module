@@ -18,7 +18,7 @@
     ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity,.room-status,.room-climate,[class*="room-control-"]) { position: absolute !important; margin: 0 !important; padding: 0 !important; min-width: 0 !important; box-sizing: border-box; transform: none !important; }
     /* Match Compact's native 8px inline breathing room. Grow the action box
        around the existing text anchors so its native ripple is never cramped. */
-    ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity) { top: 56px; bottom: auto; width: max-content; height: 44px; padding: 0 8px !important; background: transparent !important; font-variant-numeric: tabular-nums; }
+    ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity) { top: 60px; bottom: auto; width: max-content; height: 36px; padding: 0 8px !important; background: transparent !important; font-variant-numeric: tabular-nums; }
     ha-card[data-dp-layout="room"] .room-temperature { left: 4px; right: auto; max-width: calc(100% - 86px);
       /* @include shared/src/styles/value.css {"SIZE":"clamp(20px,14cqw,var(--signature-temperature-font-size,30px))"} */
       color: var(--primary-text-color); }
@@ -42,9 +42,9 @@ mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox=
     }
     ${roomHeaderMeasures ? `
     ha-card[data-dp-layout="room"] .bubble-content-container { right: 100px; }
-    ha-card[data-dp-layout="room"] .room-temperature { top: 8px; left: auto; right: 4px; height: 30px; max-width: 98px; font-size: 20px; letter-spacing: -0.2px; }
+    ha-card[data-dp-layout="room"] .room-temperature { top: 10px; left: auto; right: 4px; height: 26px; max-width: 98px; font-size: 20px; letter-spacing: -0.2px; }
     ha-card[data-dp-layout="room"] .room-temperature .bubble-sub-button-name-container { line-height: 22px; }
-    ha-card[data-dp-layout="room"] .room-humidity { top: 38px; height: 24px; }
+    ha-card[data-dp-layout="room"] .room-humidity { top: 36px; height: 18px; }
     ha-card[data-dp-layout="room"] .room-humidity .bubble-sub-button-name-container { line-height: 16px; }
     ` : ''}
     /* The divider exists only for real controls and never intercepts a tap. */
