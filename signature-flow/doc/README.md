@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.1**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 
@@ -42,6 +42,8 @@ Section corners follow the native Home Assistant panel radius (`ha-card-border-r
 Negative measurements reverse those directions. Slots 4 and 6 connect independently to slot 5; their connections are hidden when slot 5 is absent. The junction is hidden when none of slots 1, 2, 3 or 5 is configured. No entity type is imposed on any slot.
 
 At card widths below 490 px, slots 1, 2 and 3 form an aligned left column. Slots 4, 5 and 6 align on the right. These cards use 10 px horizontal padding instead of 14 px and an 8 px icon/text gap instead of 10 px, giving four-digit power values and their connections more room. Vertical padding remains 14 px. The center axis stays centered; units, number formatting and value font defaults are unchanged. All icons use the same size; slots 3 and 6 share label and value baselines. The layout responds to the card's width, including a narrow column in a wide browser. Padding is selected from the outer card width so resizing cannot make it alternate around the breakpoint. The original narrow/small layout thresholds are preserved by excluding the extra 8 px from density classification; wire geometry uses the expanded canvas.
+
+Secondary text stays left-aligned below its slot's name and primary value at every width, including slot 3 in the small layout. Battery percentages therefore share the same text-column alignment as solar secondary text.
 
 The default height is **310 px** on mobile and desktop. The card fills its parent width; the home example reserves 12 columns and 5 rows in a Sections view. `height` accepts 280–600 px. Keep the dashboard row reservation consistent with a changed height. Hovering a block or value does not change its background.
 
@@ -239,6 +241,11 @@ Named colors such as `blue` use the shared native theme palette (`var(--blue-col
 Main-entity templates such as `{{ states(entity) }}` and `{{ state_attr(entity, 'friendly_name') }}` retain the card entity for default more-info actions. Explicit actions still take priority; templates with dynamic, unidentified entities have no inferred target.
 
 ## Release notes
+
+### 3.6.1 — 10 October 2026
+
+- Keeps slot 3 secondary text aligned below its name and primary value on narrow cards, matching the other slots. Removes the 36 px left shift that put battery percentages below the icon on smaller phones.
+- Preserves values, units, actions, colors, connections and responsive density. Reimport the module; no dashboard configuration change is required.
 
 ### 3.6.0 — 5 October 2026
 

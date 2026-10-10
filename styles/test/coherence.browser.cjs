@@ -455,17 +455,35 @@ test('signed four-digit Flow watts retain mobile wire space and stable density',
   }
 });
 
-test('long Flow numbers fit at 288px while units and secondary text keep their size', async t => {
-  const page = await fixture(t);
-  const result = await render(page, {width: 288, value: 1234567.8, nameText: 'Énergie de la maison — mesure détaillée'});
-  const sizes = await page.locator('[data-id="flow"] .sf-content').evaluateAll(nodes => nodes.map(el => ({
-    content: el.getBoundingClientRect().width,
-    value: el.querySelector('.sf-value').getBoundingClientRect().width,
-    number: el.querySelector('.sf-value > span:first-child').textContent
-  })));
-  for (const size of sizes) { assert.ok(size.number.includes('234')); assert.ok(size.value <= size.content + 1, JSON.stringify(size)); }
-  assert.equal(style(result, 'flow', '.sf-slot-3 .sf-secondary').fontSize, '13px');
-  assert.equal(style(result, 'flow', '.sf-unit').fontSize, '16px');
+test('long Flow numbers fit while secondary text stays aligned under each value', async t => {
+  const page = await fixture(t, {hasTouch: true});
+  for (const mode of ['light', 'dark']) for (const plain of [false, true]) for (const width of [288, 328, 358, 382, 600]) {
+    const result = await render(page, {width, mode, plain, value: 1234567.8, nameText: 'Énergie de la maison — mesure détaillée'});
+    const sizes = await page.locator('[data-id="flow"] .sf-content').evaluateAll(nodes => nodes.map(el => {
+      const value = el.querySelector('.sf-value'), secondary = el.querySelector('.sf-secondary');
+      const label = el.querySelector('.sf-label').getBoundingClientRect();
+      return {
+        content: el.getBoundingClientRect().width,
+        value: value.getBoundingClientRect().width,
+        number: value.firstElementChild.textContent,
+        secondary: secondary.textContent,
+        labelLeft: label.left, valueLeft: value.getBoundingClientRect().left,
+        secondaryLeft: secondary.getBoundingClientRect().left,
+        valueTop: value.getBoundingClientRect().top, secondaryTop: secondary.getBoundingClientRect().top
+      };
+    }));
+    for (const size of sizes) {
+      const detail = JSON.stringify({width, mode, plain, size});
+      assert.ok(size.number.includes('234')); assert.ok(size.value <= size.content + 1, detail);
+      if (size.secondary) {
+        assert.ok(Math.abs(size.secondaryLeft - size.labelLeft) < .1, detail);
+        assert.ok(Math.abs(size.secondaryLeft - size.valueLeft) < .1, detail);
+        assert.ok(size.secondaryTop > size.valueTop, detail);
+      }
+    }
+    assert.equal(style(result, 'flow', '.sf-slot-3 .sf-secondary').fontSize, '13px');
+    assert.equal(style(result, 'flow', '.sf-unit').fontSize, '16px');
+  }
 });
 
 test('unavailable readings and reduced motion keep a stable render', async t => {

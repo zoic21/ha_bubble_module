@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.3**, **Square 1.1.7**, **Header 1.1.13**, **Room 1.0.10**, **Signature Flow 3.6.0**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.3**, **Square 1.1.7**, **Header 1.1.13**, **Room 1.0.10**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -115,7 +115,7 @@ Le thème livré hérite des couleurs de texte et des surfaces Home Assistant. L
 | Signature title | Titre de section 18 px ; distinct du grand header et du nom d'une carte |
 | Durées composées Signature | Unités de 10 px en compact standard, 13 px en compact valeur, 11 px pour l’état room, 16 px en square ; conserver les espaces entre nombres et unités |
 
-Les nombres Flow trop longs sont ajustés par le mécanisme existant de mesure de largeur, en conservant la taille de l'unité. Les noms et textes secondaires peuvent être tronqués lorsque le layout le prévoit. Ne pas appliquer cette réduction de police à tous les textes.
+Les nombres Flow trop longs sont ajustés par le mécanisme existant de mesure de largeur, en conservant la taille de l'unité. Chaque texte secondaire reste aligné à gauche sous le nom et la valeur de son emplacement, y compris le slot 3 en disposition étroite ; aucun décalage sous l'icône. Les noms et textes secondaires peuvent être tronqués lorsque le layout le prévoit. Ne pas appliquer cette réduction de police à tous les textes.
 
 Les libellés cardinaux Wind Rose sont des textes SVG dans un `viewBox` de 320 unités : une taille CSS de 12 correspond à 12 unités avant mise à l'échelle. Leur taille physique suit la largeur réelle du SVG, plafonnée à 360 px. Ne pas présenter cette valeur comme 12 pixels à toutes les largeurs.
 

@@ -193,9 +193,6 @@
 .sf-small .sf-slot-3,.sf-small .sf-slot-1 {
   width:min(140px,calc(50% - 20px))
 }
-.sf-small .sf-slot-3 .sf-secondary {
-  margin-left:-36px
-}
 .sf-small .sf-value {
   font-size:max(18px,calc(var(--signature-value-font-size,28px) - 2px))
 }
