@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.3**, **Square 1.1.7**, **Header 1.1.13**, **Room 1.0.10**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.3**, **Square 1.2.0**, **Header 1.1.13**, **Room 1.0.10**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.5.3 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.4.3**, **Square 1.1.7**, **Header 1.1.13** et **Room 1.0.10** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.4.3**, **Square 1.2.0**, **Header 1.1.13** et **Room 1.0.10** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -246,6 +246,17 @@ Le footer Navigation hors éditeur utilise `z-index: 3`, sous le fond des popups
 Les modules autonomes Flow, Weather et Wind Rose remplacent leur contenu natif et s'utilisent sans le module de design Signature sur la même carte. Aucun besoin de `card-mod`, de police externe ou d'une dépendance npm dans Home Assistant. Les dépendances du dépôt servent uniquement au développement.
 
 Une variation de thème ne doit déclencher ni abonnement, ni requête d'historique, ni timer supplémentaire. Les abonnements, observateurs, animations et listeners existants doivent être libérés au teardown. Respecter `prefers-reduced-motion` dans Flow. Ne pas ajouter une boucle permanente de lecture des styles pour maintenir l'harmonie ; conserver les mesures de géométrie déjà nécessaires au diagramme.
+
+### Illustration facultative de Square
+
+Square 1.2.0 réserve l’illustration au seul mode explicitement configuré. Le
+pseudo-élément décoratif ne reçoit pas les clics ; valeur et secondaire gardent
+leurs nœuds et actions natifs. La colonne de valeur prend sa largeur intrinsèque
+avant celle de l’image (maximum 80 px), laquelle rétrécit sur une carte étroite.
+Les noms occupent la largeur entière ; le secondaire reste sur sa rangée dédiée.
+Les surfaces, la typographie et les cartes sans illustration sont inchangées.
+Une image ne représente pas un état valide lorsque son index est absent du
+domaine : un index `-1` masque l’illustration. Aucun observateur ni abonnement.
 
 ## 7. Contrôles obligatoires lors d'une évolution
 

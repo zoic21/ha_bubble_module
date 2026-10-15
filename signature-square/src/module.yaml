@@ -1,5 +1,5 @@
 name: Signature Square
-version: 1.1.7
+version: 1.2.0
 creator: Loïc
 supported:
   - button
@@ -60,6 +60,15 @@ editor:
         group: Tuile carrée
         group_icon: mdi:card-outline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.controls === 'measure')
+      illustration:
+        label: Illustration décorative (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Tuile carrée
+        group_icon: mdi:card-outline
+        description: "image : URL locale/HTTPS ; columns/rows : grille de sprites facultative ; index : case à partir de 0, nombre ou Jinja. Masquer l’icône dans Bubble pour une tuile sans doublon. L’illustration cède la place à la valeur sur écran étroit."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       color_background:
         $field: color_background
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

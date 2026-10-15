@@ -4,7 +4,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 1.1.7 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Square — square tiles | 1.2.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.4.3 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Room — room summaries and controls | 1.0.10 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.13 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |

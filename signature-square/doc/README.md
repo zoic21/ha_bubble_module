@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.1.7**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.2.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -38,6 +38,41 @@ Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button
 
 `color_thresholds.values` applique une teinte discrète à 16 % au fond du carré et la couleur interpolée du graphe à l’icône. Le même principe s’applique aux badges via `sub_button_styles`. Les fonds suivent la surface claire/sombre du thème ; l’icône conserve toujours la couleur exacte du graphe, sans gestion du contraste. Le texte des badges garde le thème. Avec des seuils actifs, `icon_color` n’écrase pas la couleur numérique ; hors seuils, son comportement reste inchangé. Voir le [guide commun et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
+## Illustration décorative facultative
+
+L’option `illustration` affiche une image à droite de la valeur, sans modifier
+les unités, le secondaire, les actions ou les dimensions de la carte. Utiliser
+`show_icon: false` dans Bubble pour éviter le doublon avec le pictogramme natif.
+Sans cette option, le rendu reste inchangé.
+
+```yaml
+show_icon: false
+signature_square:
+  illustration:
+    image: /local/illustrations/confort-v1.png
+    columns: 4
+    rows: 3
+    index: 1
+```
+
+`image` accepte une URL locale absolue (`/local/...`) ou HTTP(S), éventuellement
+Jinja. Une image ordinaire utilise `columns: 1`, `rows: 1`, `index: 0` par défaut.
+Pour une planche à cases égales, colonnes/rangées sont bornées à 1–16 ; `index`
+compte les cases de gauche à droite puis de haut en bas, à partir de 0. Il accepte
+un nombre ou Jinja et est relu à chaque rendu Bubble. Un index négatif, vide,
+invalide ou hors planche masque l’image : un capteur indisponible peut utiliser
+`-1`, sans inventer une situation « calme » ou « sec ».
+
+La planche doit avoir des cases carrées transparentes avec une marge autour de
+chaque objet. Elle n’est pas fournie par le module : installer l’image dans
+`config/www/illustrations/` pour la servir sous `/local/illustrations/`.
+Les images doivent être de confiance et accessibles au navigateur.
+
+Le placement utilise seulement CSS : l’image, limitée à 80 px, rétrécit avant la
+valeur sur une carte étroite ; le secondaire conserve toute la largeur. Elle ne
+capte pas les clics et ne remplace aucun nœud natif. Aucun abonnement, observateur,
+timer ou bibliothèque supplémentaire n’est ajouté.
+
 ## Options
 
 | Option | Défaut | Usage |
@@ -51,6 +86,7 @@ Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
 | `auto_height` | `false` | Adapter la hauteur au contenu |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
+| `illustration` | Aucun | Objet `image`, `columns`, `rows`, `index` ; illustration et sprites facultatifs |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
 | `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
@@ -75,6 +111,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.2.0 — 15 octobre 2026
+
+- Illustration décorative facultative : image locale/HTTP(S), ou planche de sprites avec index numérique/Jinja.
+- La valeur reste prioritaire et le secondaire garde toute la largeur ; masquage d’icône natif compatible.
+- Données relues hors cache structurel, sans nouveau nœud, listener, timer ou observateur.
+- Présentation et actions des cartes sans illustration conservées.
 
 ### 1.1.7 — 8 octobre 2026
 

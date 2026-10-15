@@ -1,0 +1,30 @@
+`/* Artwork consumes only the width remaining AFTER the main value. The detail
+    stays full width; narrow cards shrink artwork rather than hiding information. */
+    ha-card[data-dp-layout="square"][data-dp-illustration="yes"] .bubble-content-container {
+      grid-template-columns: minmax(0,max-content) minmax(0,1fr);
+      column-gap: 0;
+      padding: 0;
+    }
+    ha-card[data-dp-layout="square"][data-dp-illustration="yes"] .bubble-name {
+      grid-area: 1 / 1 / 2 / 3;
+    }
+    ha-card[data-dp-layout="square"][data-dp-illustration="yes"][data-dp-icon="yes"] .bubble-name {
+      padding-left: 46px;
+    }
+    ha-card[data-dp-layout="square"][data-dp-illustration="yes"] .bubble-state {
+      grid-area: 2 / 1 / 3 / 2;
+    }
+    ha-card[data-dp-layout="square"][data-dp-illustration="yes"] .bubble-content-container::after {
+      content: '';
+      grid-area: 2 / 2 / 3 / 3;
+      width: min(80px,100%);
+      aspect-ratio: 1;
+      align-self: end;
+      justify-self: end;
+      pointer-events: none;
+      background-image: var(--dp-illustration-image);
+      background-size: var(--dp-illustration-size);
+      background-position: var(--dp-illustration-position);
+      background-repeat: no-repeat;
+    }
+    `
