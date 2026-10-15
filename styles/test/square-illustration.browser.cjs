@@ -7,13 +7,15 @@ const code = loadModule('signature-square').code;
 
 async function illustrated(page, {width=180,mode='dark',plain=false,value='25.3',unit='°C',secondary='',index=1,icon=false}={}) {
   await render(page,{width,mode,plain});
-  return page.evaluate(({code,value,unit,secondary,index,icon}) => {
+  return page.evaluate(({code,value,unit,secondary,index,icon,mode}) => {
     const shell=document.querySelector('[data-id="square"]'), shadow=shell.shadowRoot;
     const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
     ctx.config.show_icon=icon;
     // Native Bubble applies this visibility before invoking module styles.
     ctx.elements.iconContainer.classList.toggle('hidden', !icon);
-    ctx.config.signature_square={secondary,illustration:{image:'/local/atlas.webp',columns:4,rows:3,index}};
+    ctx.config.signature_square={secondary,illustration:{image:'/local/atlas.webp',
+      image_light:'/local/day.webp?v=1',image_dark:'/local/night.webp?v=1',columns:4,rows:3,index}};
+    ctx._hass.themes={darkMode:mode==='dark'};
     ctx._hass.states[ctx.config.entity]={state:value,attributes:{unit_of_measurement:unit}};
     const css=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
     shadow.querySelectorAll('style')[1].textContent=css;
@@ -21,11 +23,11 @@ async function illustrated(page, {width=180,mode='dark',plain=false,value='25.3'
     const pseudo=getComputedStyle(content,'::after'),rect=state.getBoundingClientRect(),box=content.getBoundingClientRect();
     const second=shadow.querySelector('.dp-secondary');
     return {stateWidth:rect.width,stateScroll:state.scrollWidth,stateClient:state.clientWidth,
-      imageWidth:parseFloat(pseudo.width),imageHeight:parseFloat(pseudo.height),imagePosition:pseudo.backgroundPosition,
+      imageWidth:parseFloat(pseudo.width),imageHeight:parseFloat(pseudo.height),imagePosition:pseudo.backgroundPosition,imageURL:pseudo.backgroundImage,
       pointer:pseudo.pointerEvents,contentWidth:box.width,secondaryWidth:second?.getBoundingClientRect().width,
       icon:getComputedStyle(shadow.querySelector('.bubble-icon-container')).display,
       valueAction:JSON.parse(state.dataset.tapAction).action,template:shadow.querySelector('ha-card').getAttribute('data-dp-illustration')};
-  },{code,value,unit,secondary,index,icon});
+  },{code,value,unit,secondary,index,icon,mode});
 }
 
 test('illustrated squares prioritize values and keep secondary full-width at mobile card widths', async t => {
@@ -65,4 +67,32 @@ test('illustration keeps a visible native icon clear of the heading when it is n
     return {padding:parseFloat(getComputedStyle(name).paddingLeft),iconWidth:icon.getBoundingClientRect().width};
   });
   assert.ok(m.padding>=m.iconWidth+10);
+});
+
+test('theme variants follow HA instead of OS mode, including a theme-only update with cached layout', async t => {
+  const page=await fixture(t,{colorScheme:'dark'});
+  for(const plain of [false,true]) {
+    await page.emulateMedia({colorScheme:'dark'});
+    const light=await illustrated(page,{mode:'light',plain,secondary:'Rafales · 4,0 km/h'});
+    assert.ok(light.imageURL.includes('/local/day.webp?v=1'));
+    const dark=await page.evaluate(code=>{
+      const shadow=document.querySelector('[data-id="square"]').shadowRoot;
+      const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
+      const states=ctx._hass.states,structural=ctx._signatureSquareRuntime.styleCSS;
+      const content=ctx.elements.contentContainer,state=ctx.elements.state;
+      const before=state.textContent,count=content.children.length;
+      ctx._hass={...ctx._hass,themes:{darkMode:true}};
+      const css=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
+      shadow.querySelectorAll('style')[1].textContent=css;
+      return {url:getComputedStyle(content,'::after').backgroundImage,
+        sameStates:states===ctx._hass.states,sameStructure:structural===ctx._signatureSquareRuntime.styleCSS,
+        sameNodes:count===content.children.length&&state===ctx.elements.state,
+        sameValue:before===state.textContent,action:JSON.parse(state.dataset.tapAction).action};
+    },code);
+    assert.ok(dark.url.includes('/local/night.webp?v=1'));
+    assert.equal(dark.sameStates,true);assert.equal(dark.sameStructure,true);
+    assert.equal(dark.sameNodes,true);assert.equal(dark.sameValue,true);assert.equal(dark.action,'more-info');
+    await page.emulateMedia({colorScheme:'light'});
+    assert.ok(await page.evaluate(()=>getComputedStyle(document.querySelector('[data-id="square"]').shadowRoot.querySelector('.bubble-content-container'),'::after').backgroundImage.includes('/local/night.webp?v=1')));
+  }
 });

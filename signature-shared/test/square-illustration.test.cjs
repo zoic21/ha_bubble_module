@@ -103,3 +103,50 @@ test('the illustration object is exposed only in the Square editor', () => {
   for (const module of ['signature-compact','signature-room','signature-header'])
     assert.equal(loadModule(module).editor[1].fields.illustration,undefined);
 });
+
+test('theme-only HA updates switch illustration assets without rebuilding layout or native nodes', t => {
+  const f = fixture({illustration:{image:'/local/base.webp?v=1',
+    image_light:'/local/day.webp?v=1',image_dark:'/local/night.webp?v=1',columns:4,rows:3,index:1}});
+  t.after(() => f.ctx.teardown());
+  const states=f.hass.states, count=f.content.children.length;
+  f.hass.themes={darkMode:false};
+  let css=f.run(); const structural=f.ctx._signatureSquareRuntime.styleCSS;
+  assert.ok(css.includes('url("/local/day.webp?v=1")'));
+  assert.ok(!css.includes('night.webp'));
+  f.hass.themes={darkMode:true};css=f.run();
+  assert.ok(css.includes('url("/local/night.webp?v=1")'));
+  assert.ok(!css.includes('day.webp'));
+  assert.equal(f.hass.states,states);assert.equal(f.content.children.length,count);
+  assert.equal(f.ctx._signatureSquareRuntime.styleCSS,structural);
+  assert.equal(f.ctx.elements.state,f.value);assert.equal(JSON.parse(f.value.dataset.tapAction).action,'more-info');
+  f.hass.themes={darkMode:false};assert.ok(f.run().includes('day.webp?v=1'));
+});
+
+test('missing, blank or invalid theme variants fall back safely to image', t => {
+  const illustration={image:'/local/base.webp?v=1'};
+  const f=fixture({illustration});t.after(() => f.ctx.teardown());
+  for(const darkMode of [false,true]) for(const variant of [undefined,'','  ','javascript:alert(1)','//bad/a.png','/local/a\nb.png']) {
+    f.hass.themes={darkMode};illustration[darkMode?'image_dark':'image_light']=variant;
+    const css=f.run();assert.equal(f.root.getAttribute('data-dp-illustration'),'yes');
+    assert.ok(css.includes('url("/local/base.webp?v=1")'));
+  }
+  illustration.image_light='/local/day.webp';illustration.image_dark='/local/night.webp';
+  delete f.hass.themes;assert.ok(f.run().includes('base.webp'));
+  delete illustration.image;f.run();assert.equal(f.root.getAttribute('data-dp-illustration'),'no');
+  f.hass.themes={darkMode:true};assert.ok(f.run().includes('night.webp'));
+  delete illustration.image_dark;f.run();assert.equal(f.root.getAttribute('data-dp-illustration'),'no');
+});
+
+test('selected theme templates stay live and retain frame validation', t => {
+  const f=fixture({illustration:{image:'/local/base.webp',image_light:'{{ day_image }}',
+    image_dark:'{{ night_image }}',columns:4,rows:3,index:'{{ frame }}'}});
+  t.after(() => f.ctx.teardown());
+  let frame='5',night='/local/night-a.webp?v=1';const reads=[];
+  const template=source=>{reads.push(source);return source.includes('night_image')?night:source.includes('day_image')?'/local/day.webp?v=1':frame;};
+  f.hass.themes={darkMode:true};assert.ok(f.run(template).includes('night-a.webp'));
+  assert.ok(!reads.includes('{{ day_image }}'),'inactive variant must not create template subscriptions');
+  night='/local/night-b.webp?v=2';assert.ok(f.run(template).includes('night-b.webp?v=2'));
+  frame='-1';f.run(template);assert.equal(f.root.getAttribute('data-dp-illustration'),'no');
+  frame='11';f.hass.themes={darkMode:false};assert.ok(f.run(template).includes('day.webp'));
+  assert.equal(f.root.getAttribute('data-dp-illustration'),'yes');
+});

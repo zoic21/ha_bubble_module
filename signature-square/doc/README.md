@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.2.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.3.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -50,6 +50,8 @@ show_icon: false
 signature_square:
   illustration:
     image: /local/illustrations/confort-v1.png
+    image_light: /local/illustrations/confort-day-v1.webp?v=1
+    image_dark: /local/illustrations/confort-night-v1.webp?v=1
     columns: 4
     rows: 3
     index: 1
@@ -62,6 +64,17 @@ compte les cases de gauche à droite puis de haut en bas, à partir de 0. Il acc
 un nombre ou Jinja et est relu à chaque rendu Bubble. Un index négatif, vide,
 invalide ou hors planche masque l’image : un capteur indisponible peut utiliser
 `-1`, sans inventer une situation « calme » ou « sec ».
+
+`image_light` et `image_dark` sont facultatifs et acceptent les mêmes URLs ou
+templates. Le choix suit **le mode effectif de Home Assistant**
+(`hass.themes.darkMode`), y compris un thème forcé différent de celui du système.
+La variante est relue à chaque rendu natif Bubble : un changement de thème seul
+suffit, sans changer de capteur ni reconstruire la disposition. Si la variante
+est absente, vide ou incorrecte, ou si le mode HA n’est pas encore connu,
+`image` sert de repli. Aucune image n’est affichée sans URL exploitable.
+Les deux variantes doivent utiliser la même grille et le même ordre de cases.
+Le paramètre de version d’URL reste stable ; l’incrémenter lorsque le fichier
+change, sans générer de date ou de valeur aléatoire à chaque rendu.
 
 La planche doit avoir des cases carrées transparentes avec une marge autour de
 chaque objet. Elle n’est pas fournie par le module : installer l’image dans
@@ -86,7 +99,7 @@ timer ou bibliothèque supplémentaire n’est ajouté.
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
 | `auto_height` | `false` | Adapter la hauteur au contenu |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
-| `illustration` | Aucun | Objet `image`, `columns`, `rows`, `index` ; illustration et sprites facultatifs |
+| `illustration` | Aucun | Objet `image`, `image_light`, `image_dark`, `columns`, `rows`, `index` ; images externes et sprites facultatifs |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
 | `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
@@ -111,6 +124,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.3.0 — 15 octobre 2026
+
+- Variantes facultatives `image_light` / `image_dark` selon le mode HA effectif.
+- Repli compatible sur `image` si une variante ou le mode manque ; URLs invalides rejetées.
+- Bascule sur rendu natif hors cache structurel, sans écouteur, timer ou abonnement ajouté.
+- Aucun asset embarqué ; images, valeur, secondaire, grille et actions restent indépendants.
 
 ### 1.2.0 — 15 octobre 2026
 

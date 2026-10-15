@@ -2,15 +2,23 @@
 // CSS owns responsive placement, with no listener, measurement or extra runtime.
 const illustration = o.illustration && typeof o.illustration === 'object' && !Array.isArray(o.illustration)
   ? o.illustration : {};
-const illustrationImage = render(illustration.image).trim();
+// Follow Home Assistant's effective theme, never the OS colour preference.
+// Keep this selection outside the structural cache: a theme-only hass update
+// must switch the asset even when every entity state stays identical.
+const illustrationMode = hass?.themes?.darkMode;
+const modeImage = illustrationMode === true ? illustration.image_dark
+  : illustrationMode === false ? illustration.image_light : undefined;
+const validImage = image => /^(?:\/(?!\/)|https?:\/\/)/i.test(image)
+  && !/[\u0000-\u001f\u007f]/.test(image);
+const variantImage = modeImage == null ? '' : render(modeImage).trim();
+const illustrationImage = validImage(variantImage) ? variantImage : render(illustration.image).trim();
 const columns = Math.trunc(number(illustration.columns, 1, 1, 16));
 const rows = Math.trunc(number(illustration.rows, 1, 1, 16));
 const illustrationInput = render(illustration.index ?? 0).trim();
 const illustrationIndex = illustrationInput === '' ? NaN : Number(illustrationInput);
 const index = Math.trunc(illustrationIndex);
 // Use ordinary local/HTTP image URLs, never executable URLs or injected CSS.
-const illustrationEnabled = /^(?:\/(?!\/)|https?:\/\/)/i.test(illustrationImage)
-  && !/[\u0000-\u001f\u007f]/.test(illustrationImage)
+const illustrationEnabled = validImage(illustrationImage)
   && Number.isFinite(illustrationIndex) && index >= 0 && index < columns * rows;
 attr('data-dp-illustration', illustrationEnabled ? 'yes' : 'no');
 if (illustrationEnabled) {
