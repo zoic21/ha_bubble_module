@@ -5,11 +5,14 @@ const {render} = require('./fixtures.cjs');
 const {loadModule} = require('../../shared/test/module.cjs');
 const code = loadModule('signature-room').code;
 
-async function room(page,{width=180,mode='dark',plain=false,controls=4,columns=4,named=false,temperature='22,1 °C',badge=true,secondary=''}={}) {
+async function room(page,{width=180,mode='dark',plain=false,controls=4,columns=4,named=false,labelFirst=true,temperature='22,1 °C',badge=true,secondary=''}={}) {
   await render(page,{width,mode,plain});
-  return page.evaluate(({code,mode,controls,columns,named,temperature,badge,secondary})=>{
+  return page.evaluate(({code,mode,controls,columns,named,labelFirst,temperature,badge,secondary})=>{
     const shell=document.querySelector('[data-id="room"]'), shadow=shell.shadowRoot;
     const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
+    // Bubble 3.4.1 creates the label first, appends the icon later and reverses
+    // their visual order with flexbox. Grid must place both items explicitly.
+    shadow.querySelectorAll('style')[0].textContent+='\n.bubble-sub-button{flex-direction:row-reverse}.bubble-sub-button-name-container{display:flex;overflow:auto}';
     const buttons=[{entity:'sensor.demo',css_class:'room-temperature',show_state:true,show_icon:false},
       {entity:'sensor.humidity',css_class:'room-humidity',show_state:true},
       ...Array.from({length:controls},(_,i)=>({entity:'light.demo',css_class:'room-control-'+(i+1),show_name:named,tap_action:{action:'toggle'}})),
@@ -29,8 +32,9 @@ async function room(page,{width=180,mode='dark',plain=false,controls=4,columns=4
       if(b.show_icon===false)icon.classList.add('hidden');
       if(b.css_class==='room-temperature'||b.css_class==='room-humidity'||b.show_name){
         const label=document.createElement('div');label.className='bubble-sub-button-name-container';
-        label.textContent=b.css_class==='room-temperature'?temperature:b.css_class==='room-humidity'?'65 %':['Balcon','Étendage','Portillon','Ambiance','Arrière','Escalier'][i-2];
-        el.append(label);
+        if(b.show_name)Object.assign(label.style,{whiteSpace:'normal',display:'-webkit-box',WebkitLineClamp:'2',WebkitBoxOrient:'vertical',textOverflow:'ellipsis',overflow:'hidden'});
+        label.textContent=b.css_class==='room-temperature'?temperature:b.css_class==='room-humidity'?'65 %':['Balcon','Étendage','Portillon','Avant','Arrière','Escalier'][i-2];
+        if(labelFirst)el.prepend(label);else el.append(label);
       }
       if(b.css_class==='room-status'&&!badge)el.classList.add('hidden');
       el.addEventListener('click',e=>{e.stopPropagation();window.roomClicks[b.css_class==='room-temperature'?'temperature':'control']++;});
@@ -47,7 +51,7 @@ async function room(page,{width=180,mode='dark',plain=false,controls=4,columns=4
       radius:getComputedStyle(ctx.card.querySelector('.bubble-container')).borderRadius,shadow:getComputedStyle(ctx.card.querySelector('.bubble-container')).boxShadow,
       mode:ctx.card.getAttribute('data-dp-room-mode'),text:ctx.card.querySelector('.room-temperature').textContent,
       dividerBottom:parseFloat(getComputedStyle(ctx.card.querySelector('.bubble-container'),'::after').bottom)};
-  },{code,mode,controls,columns,named,temperature,badge,secondary});
+  },{code,mode,controls,columns,named,labelFirst,temperature,badge,secondary});
 }
 
 test('illustrated rooms preserve title, temperature, status and footer on small and large cards',async t=>{
@@ -75,15 +79,26 @@ test('illustrated rooms preserve title, temperature, status and footer on small 
 
 test('garden retains six labelled controls on two rows and enough room above the divider',async t=>{
   const page=await fixture(t);
-  for(const width of [288,328,358,382,600]){
-    const m=await room(page,{width,controls:6,columns:3,named:true});
+  for(const mode of ['light','dark'])for(const plain of [false,true])for(const labelFirst of [true,false])for(const width of [288,328,358,382,600,770]){
+    const m=await room(page,{width,mode,plain,labelFirst,controls:6,columns:3,named:true});
     assert.equal(m.container.height,196);assert.equal(m.controls.length,6);
     assert.ok(m.controls[3].y>m.controls[0].y);
     assert.ok(m.art.y+m.art.height<m.controls[0].y);
-    const labels=await page.evaluate(()=>[...window.roomCtx.card.querySelectorAll('[class*="room-control-"] .bubble-sub-button-name-container')].map(el=>({text:el.textContent,scroll:el.scrollWidth,client:el.clientWidth})));
+    const labels=await page.evaluate(()=>[...window.roomCtx.card.querySelectorAll('[class*="room-control-"] .bubble-sub-button-name-container')].map(el=>{
+      const label=el.getBoundingClientRect(),icon=el.parentElement.querySelector('.bubble-sub-button-icon').getBoundingClientRect();
+      return {text:el.textContent,scroll:el.scrollWidth,client:el.clientWidth,iconRight:icon.right,labelLeft:label.left,iconTop:icon.top,labelTop:label.top};
+    }));
     assert.equal(labels.length,6);
-    for(const label of labels)assert.ok(label.scroll<=label.client+1,JSON.stringify({width,label}));
+    for(const label of labels){
+      const hint=JSON.stringify({width,mode,plain,labelFirst,label});
+      assert.ok(label.scroll<=label.client+1,hint);assert.ok(label.iconRight<=label.labelLeft,hint);
+      assert.ok(Math.abs(label.iconTop-label.labelTop)<15,hint);
+    }
   }
+  const button=page.locator('[data-id="room"] .room-control-1');
+  await button.locator('.bubble-sub-button-name-container').click();
+  await button.locator('.bubble-sub-button-icon').click();
+  assert.deepEqual(await page.evaluate(()=>window.roomClicks),{tile:0,temperature:0,control:2});
 });
 
 test('one live theme size controls Square and Room artwork without rebuilding either layout',async t=>{

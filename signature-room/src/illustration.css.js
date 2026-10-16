@@ -82,11 +82,13 @@
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] :is([class*="room-control-"],.room-climate):has(.bubble-sub-button-name-container:not(:empty):not(.hidden):not([hidden])) {
       display: grid !important;
       grid-template-columns: 30px minmax(0,1fr);
+      grid-template-areas: 'icon label';
       gap: 4px;
       padding: 0 8px !important;
       border-radius: var(--signature-control-border-radius,14px);
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] :is([class*="room-control-"],.room-climate):has(.bubble-sub-button-name-container:not(:empty):not(.hidden):not([hidden])) .bubble-sub-button-icon {
+      grid-area: icon;
       width: 30px;
       height: 30px;
       padding: 6px;
@@ -94,6 +96,7 @@
       margin: 0 !important;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] :is([class*="room-control-"],.room-climate) .bubble-sub-button-name-container {
+      grid-area: label;
       min-width: 0;
       margin: 0 !important;
       font-size: var(--signature-caption-font-size,12px);

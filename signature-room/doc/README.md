@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.1.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.1.3**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -55,7 +55,7 @@ La variante illustrée place le nom et la température à gauche, le dessin à d
 
 La variable de thème **`signature-illustration-size: 80px`** définit la taille cible des dessins pour Room et Square. Sans thème, la même valeur de 80 px est utilisée. Les petites cartes réduisent le dessin pour préserver les textes ; une taille demandée supérieure à 80 px augmente la hauteur pour garder les commandes dégagées. Le changement suit le thème en CSS, sans reconstruire le module. Voir le [thème](../../themes/README.md#shared-module-variables).
 
-L’humidité et l’icône du titre sont masquées par le module ; conserver leurs configurations pour pouvoir revenir au mode classique. Le badge d’état reste en haut à droite. `icon_border_color` entoure le dessin au lieu de l’icône masquée. `border_color` conserve le contour d’alerte et l’ombre Signature. Les libellés des commandes nommées restent près de leur icône ; leurs actions restent celles de Bubble.
+L’humidité et l’icône du titre sont masquées par le module ; conserver leurs configurations pour pouvoir revenir au mode classique. Le badge d’état reste en haut à droite. `icon_border_color` entoure le dessin au lieu de l’icône masquée. `border_color` conserve le contour d’alerte et l’ombre Signature. Les libellés des commandes nommées restent à droite de leur icône, dans la colonne souple de la grille, quel que soit leur ordre dans le HTML natif. Les noms de Jardin restent complets dès 288 px ; leurs actions restent celles de Bubble.
 
 L’objet `illustration` accepte `image` (URL locale/HTTPS), `image_light` et `image_dark` facultatives sélectionnées selon le mode effectif Home Assistant, ainsi que `columns`, `rows` et `index` (à partir de 0). Les URL et l’index peuvent utiliser Jinja via le moteur Bubble. Une URL ou une case non valide masque la décoration ; aucun code, image embarquée, écouteur ou abonnement supplémentaire n’est chargé. Les dessins sont à installer séparément dans `config/www/illustrations/`. Le même atlas peut servir aux vingt pièces avec des index différents.
 
@@ -115,6 +115,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.3 — 16 octobre 2026
+
+- Correction des noms tronqués des commandes de Jardin : placement explicite de l’icône et du libellé dans leurs colonnes, compatible avec le HTML natif Bubble qui place le texte avant l’icône.
+- Le libellé dispose de la largeur restante au lieu des seuls 26/30 px de l’icône. Aucun changement de hauteur, de taille de dessin, d’entité ou d’action ; cibles natives conservées.
+- Test navigateur corrigé pour reproduire l’ordre natif ; les deux ordres restent couverts en clair/sombre, avec/sans thème, de 288 à 770 px, avec clics sur le texte et l’icône.
 
 ### 1.1.2 — 16 octobre 2026
 
