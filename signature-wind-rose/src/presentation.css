@@ -71,7 +71,7 @@
 [data-signature-wind-rose] .swr-svg {
   display: block;
   width: 100%;
-  max-width: 360px;
+  max-width: var(--signature-wind-rose-max-size,360px);
   height: auto;
   margin: auto;
 }

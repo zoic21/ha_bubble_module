@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.5.3** · Module ID: `signature_wind_rose`
+**Version: 1.5.4** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions with four speed shades, unlabelled guide rings, a compact speed legend, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction, its frequency and recorded calm duration when a speed source is configured. Hover a sector to see its percentage, recorded duration, time-weighted mean and maximum recorded speed. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -110,6 +110,7 @@ The optional [Signature theme](../../themes/README.md) controls typography, surf
 | Theme variable | Fallback |
 |---|---|
 | `signature-wind-rose-color` | `#4db6ac` |
+| `signature-wind-rose-max-size` | `360px` maximum SVG width and height |
 | `signature-divider-inset` | `16px` from each edge |
 | `signature-divider-color` | Subtle line based on primary text color |
 | `signature-card-border-radius` | `22px` |
@@ -118,6 +119,8 @@ The optional [Signature theme](../../themes/README.md) controls typography, surf
 
 Set `signature-divider-inset: 0px` in the theme for a separator spanning the inner card width. This variable changes the line only. It is compatible with the divider harmonization change and does not require that change to be installed first.
 
+The rose keeps a square drawing and shrinks to the available width on narrow cards. Its default maximum is 360 px; `signature-wind-rose-max-size` changes that limit without imposing a fixed card height. The legend and footer retain their text sizes and natural height. For example, a 348 px limit reduces a wide card by 12 px, while cards narrower than that drawing keep their current responsive size. Use a positive CSS length and keep `grid_options.rows: auto`.
+
 For a single card, use Bubble Card's `styles`:
 
 ```yaml
@@ -125,6 +128,7 @@ styles: |
   ha-card {
     --signature-divider-inset: 24px;
     --signature-wind-rose-color: #32b5ad;
+    --signature-wind-rose-max-size: 348px;
   }
 ```
 
@@ -135,6 +139,10 @@ Run `npm run test:signature-wind-rose` or `npm test` from the repository root. T
 Named colors such as `blue` use the same theme palette as Signature and Flow. Use `#0000ff` to keep literal CSS blue from earlier releases. Explicit CSS and Jinja colors are supported; Jinja uses the card entity. Empty or invalid colors restore `signature-wind-rose-color` (default `#4db6ac`) rather than producing black sectors.
 
 ## Release notes
+
+### 1.5.4 — 16 October 2026
+
+- Adds the CSS-only `signature-wind-rose-max-size` limit, with the existing 360 px default. It can be scoped to one card and follows live changes without another module pass or history request. Small cards remain constrained by their available width; text, history and interactions are unchanged.
 
 ### 1.5.3 — 7 October 2026
 

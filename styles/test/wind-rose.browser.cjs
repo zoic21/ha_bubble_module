@@ -5,6 +5,33 @@ const {fixture} = require('./browser.cjs');
 const {render} = require('./fixtures.cjs');
 const code = loadModule('signature-wind-rose').code;
 
+test('wind size limit reduces only wide cards and follows live CSS changes without history work',async t=>{
+  const page=await fixture(t);
+  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,358,382,508,600]){
+    await render(page,{mode,plain,width,windSpeed:true});
+    const result=await page.evaluate(code=>{
+      const ctx=window.contexts.find(ctx=>ctx._signatureWindRose);
+      ctx.config.signature_wind_rose.show_period_buttons=false;
+      new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);
+      const r=ctx._signatureWindRose,nodes=[r.svg,r.legend,r.footer,...r.sectors],data=r.cache.get(r.period).data;
+      let requests=0;ctx._hass.callWS=()=>{requests++;throw new Error('Unexpected history request');};
+      const read=()=>{const b=r.canvas.parentElement.getBoundingClientRect(),s=r.svg.getBoundingClientRect();return{height:b.height,svg:s.width,square:s.width===s.height,legendFont:getComputedStyle(r.legend).fontSize,valueFont:getComputedStyle(r.dominantValue).fontSize,inside:[r.svg,r.legend,r.footer].every(el=>{const box=el.getBoundingClientRect();return box.left>=b.left&&box.right<=b.right&&box.bottom<=b.bottom;})};};
+      const before=read();ctx.card.style.setProperty('--signature-wind-rose-max-size','348px');const smaller=read();
+      r.sectors[4].dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+      const selected=r.sectors[4].getAttribute('aria-pressed');
+      ctx.card.style.removeProperty('--signature-wind-rose-max-size');const restored=read();
+      return{before,smaller,restored,selected,requests,sameNodes:nodes.every(el=>el.isConnected),sameData:r.cache.get(r.period).data===data};
+    },code);
+    const delta=Math.max(0,result.before.svg-348);
+    assert.ok(Math.abs(result.before.height-result.smaller.height-delta)<.1,JSON.stringify({width,mode,plain,result}));
+    assert.equal(result.smaller.svg,Math.min(result.before.svg,348));
+    assert.deepEqual(result.restored,result.before);
+    assert.equal(result.smaller.legendFont,result.before.legendFont);assert.equal(result.smaller.valueFont,result.before.valueFont);
+    assert.ok(result.before.inside&&result.smaller.inside&&result.smaller.square&&result.sameNodes&&result.sameData);
+    assert.equal(result.selected,'true');assert.equal(result.requests,0);
+  }
+});
+
 test('long weekly calm durations keep the footer on one row on narrow cards and enlarged value fonts',async t => {
   const page=await fixture(t);
   for(const font of [14,18]) {
