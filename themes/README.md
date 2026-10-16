@@ -156,3 +156,5 @@ Signature, Flow, Wind Rose and Alert Manager resolve named palette colors throug
 Signature Compact 1.3.0 accepte une variable facultative `signature-fill-tint` (pourcentage CSS, par défaut `16%`). Elle adoucit l’accent transparent au-dessus de la surface native sans remplacer les couleurs de texte ni les fonds des commandes. Aucun ajout au thème n’est requis pour le rendu par défaut ; cette variable suit les changements de thème sans réexécution. Voir le [guide Compact](../signature-compact/doc/README.md#remplissage-proportionnel).
 
 Compact 1.4.3 uses 8 px between values, badges and native action groups, matching the consumption rows. Internal pill padding and number/unit spacing keep their existing roles; no theme update is required.
+
+Compact 1.4.4 also maps the native button-specific radius to the Signature card radius; local copies of `--bubble-button-border-radius` are unnecessary. Square 1.4.4 removes the empty detail row from single-measurement banners and derives secondary leading from its effective font size. These changes require module imports; no theme YAML update is needed.

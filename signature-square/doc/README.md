@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.4.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.4.4**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -48,7 +48,8 @@ Pour une seule mesure principale, utiliser **`summary: {enabled: true}`**, sans
 `entity` dans cet objet. La colonne de la seconde mesure disparaît et aucun
 nœud n’est créé pour elle ; la valeur et le secondaire natifs restent à gauche,
 avec l’illustration centrée à droite. La valeur conserve sa taille standard de
-28 px et l’unité 16 px (variables Signature). `enabled: false` désactive le
+28 px et l’unité 16 px (variables Signature). Sans secondaire, la rangée
+vide disparaît et la valeur reprend le placement d’une tuile classique. `enabled: false` désactive le
 bandeau, même si une seconde entité est configurée. Un objet vide reste inactif.
 
 ```yaml
@@ -190,6 +191,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.4 — 16 octobre 2026
+
+- Un bandeau à une mesure sans secondaire ne réserve plus de ligne vide : titre et valeur reprennent exactement les positions du Square classique, avec deux lignes natives et illustration centrée.
+- L’interligne des secondaires suit leur taille effective, y compris une personnalisation du thème sans réexécution du module.
 
 ### 1.4.3 — 16 octobre 2026
 

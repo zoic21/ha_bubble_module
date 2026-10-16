@@ -2,6 +2,8 @@
     ha-card[data-dp-layout="compact"] { container-type: inline-size; ${kind === 'cover' ? `--bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: var(--signature-control-border-radius, 14px);` : ''} ${kind === 'climate' || numberEnabled ? `--bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface};` : ''} }
     /* Concentric 36px pills: 10px outer inset includes the 1px card border. */
     ha-card[data-dp-layout="compact"] { --dp-compact-pill-radius: max(0px, calc(var(--dp-radius, 22px) - 10px)); }
+    /* Bubble's button-specific token must follow the same Signature card radius. */
+    ha-card[data-dp-layout="compact"][data-dp-kind="button"] { --bubble-button-border-radius: var(--dp-radius,22px); }
     ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 8px; padding: 0 9px; box-sizing: border-box; transition: none !important; }
     ha-card[data-dp-layout="compact"] .bubble-sub-button { --bubble-sub-button-border-radius: var(--dp-compact-pill-radius); }
     ha-card[data-dp-layout="compact"] .bubble-content-container { flex: 1; display: flex !important; align-items: center; min-width: 0; }

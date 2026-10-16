@@ -37,7 +37,7 @@
       /* @include shared/src/styles/secondary.css */
       font-size: clamp(12px,3.5cqw,var(--signature-secondary-font-size,13px));
       min-width: 0; margin: 0; padding: 0; align-self: end;
-      line-height: 16px; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip;
+      line-height: max(16px,1.2em); white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip;
       font-variant-numeric: tabular-nums;
     }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"] .dp-secondary { grid-area: 3 / 1; }
@@ -53,11 +53,19 @@
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .bubble-content-container {
       grid-template-columns: minmax(0,1fr);
     }
+    /* No detail means the same two text rows as a classic illustrated tile. */
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-secondary="no"] .bubble-content-container {
+      grid-template-rows: minmax(36px,max-content) minmax(0,1fr);
+      row-gap: 6px;
+    }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-illustration="yes"] .bubble-content-container {
       grid-template-columns: minmax(0,1fr) var(--dp-summary-art-size);
     }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-illustration="yes"] .bubble-content-container::after {
       grid-area: 1 / 2 / 4 / 3;
+    }
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-secondary="no"][data-dp-illustration="yes"] .bubble-content-container::after {
+      grid-row-end: 3;
     }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .bubble-state {
       font-size: var(--signature-value-font-size,28px) !important;

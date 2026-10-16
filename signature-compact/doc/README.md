@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.4.3**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.4.4**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -30,6 +30,11 @@ Cartes `button` hors `slider`, ainsi que `cover`, `climate` et `media-player`. L
 `value_style: button` avec `compact_mode: value` présente la mesure dans une petite pastille cliquable : hauteur 36 px, valeur 14 px, unité 12 px, surface neutre et rayon concentrique de 12 px par défaut (`max(0px, rayon de carte − 10px)`). Elle ouvre les détails de l’entité principale et précède les sous-boutons. Les interrupteurs visuels sont placés en dernier dans leur groupe natif. Avec trois sous-boutons ou plus, le groupe passe sous la mesure sur les cartes de 480 px ou moins, avec hauteur automatique et retour à la ligne ; ce comportement fonctionne aussi sans `fill`. `value_background: false` retire la pastille autour de la valeur et réduit son padding horizontal à 4 px ; la cible cliquable garde une hauteur de 36 px. Le remplissage de la carte reste visible derrière la puissance. Le nœud d’état, ses actions et son formatage restent natifs. `value_style: text` conserve la grande valeur de 20 px. Les commandes numériques − / valeur / + ignorent cette option.
 
 `controls: number` ajoute − / valeur / + pour un bouton État lié à `number` ou `input_number`. Les limites et le pas viennent de l’entité. Les pressions attendent un changement de valeur ou cinq secondes avant de reprendre ; les états invalides désactivent les commandes. Un clic sur la valeur ouvre les détails. `sub_buttons_position: end` place les sous-boutons après les commandes natives.
+
+Pour un total calculé sans capteur dédié, un bouton Nom avec `state`,
+`show_state: true` et `compact_mode: value` utilise la même présentation. Un
+texte tel que `1200 W` est séparé en nombre/unité ; sans entité principale,
+aucune action more-info artificielle n’est ajoutée.
 
 Les valeurs conservent le format numérique Home Assistant et leur unité. `state` personnalise l’état affiché avec du texte ou Jinja. `secondary` accepte du texte, une entité directe ou Jinja ; l’entité directe fournit l’unité. La première référence d’entité détectée dans un template définit la cible des détails, sans analyser quelle branche Jinja est affichée. `secondary_bold: true` autorise `**texte**`, sans interpréter du HTML.
 
@@ -136,6 +141,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.4 — 16 octobre 2026
+
+- Le rayon natif spécifique aux boutons Bubble suit le rayon Signature, même avec une autre valeur héritée de l’hôte. Les cartes n’ont plus besoin de recopier `--bubble-button-border-radius`.
+- La variable reste résolue en CSS ; aucun changement de formulaire, de hauteur ou d’action.
 
 ### 1.4.3 — 7 octobre 2026
 

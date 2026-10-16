@@ -53,6 +53,28 @@ test('energy banner titles keep the same top inset as classic half-width tiles',
   }
 });
 
+test('single banners share classic value placement and grow secondary leading with the live font',async t=>{
+  const page=await fixture(t);
+  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,358,382,600]){
+    const banner=await summary(page,{mode,plain,width,single:true});
+    const classic=await page.evaluate(()=>{
+      const ctx=window.summaryContext,shadow=ctx.card.getRootNode();
+      delete ctx.config.signature_square.summary;window.refreshSummary();
+      return shadow.querySelector('.bubble-state').getBoundingClientRect().top-shadow.querySelector('.bubble-container').getBoundingClientRect().top;
+    });
+    assert.equal(banner.nodes.find(n=>n.selector==='.bubble-state').box.top-banner.card.top,classic);
+    assert.equal(banner.height,120);
+  }
+  await summary(page,{width:600});
+  const leading=await page.evaluate(()=>{
+    const ctx=window.summaryContext,shadow=ctx.card.getRootNode(),css=ctx._signatureSquareRuntime.styleCSS;
+    document.body.style.setProperty('--signature-secondary-font-size','17px');
+    return {cached:css===ctx._signatureSquareRuntime.styleCSS,nodes:[...shadow.querySelectorAll('.dp-secondary,.dp-summary-secondary')].map(el=>({font:parseFloat(getComputedStyle(el).fontSize),line:parseFloat(getComputedStyle(el).lineHeight)}))};
+  });
+  assert.equal(leading.cached,true);
+  for(const node of leading.nodes){assert.equal(node.font,17);assert.ok(node.line>=20.39);}
+});
+
 test('wide energy summaries remain two rows with complete text, both values and centred artwork',async t=>{
   const page=await fixture(t),cdp=await page.context().newCDPSession(page);
   try{

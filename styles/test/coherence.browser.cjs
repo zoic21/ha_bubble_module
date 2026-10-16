@@ -16,6 +16,26 @@ const style = (result, id, selector) => {
 const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
 
+test('Compact owns the native button radius without dashboard overrides and follows live themes',async t=>{
+  const page=await fixture(t);
+  for(const mode of ['light','dark'])for(const plain of [false,true]){
+    await render(page,{mode,plain});
+    const radii=await page.evaluate(()=>{
+      const root=document.querySelector('[data-id="compact"]').shadowRoot;
+      // Bubble resolves its type-specific token on the inner card container.
+      root.querySelector('style').textContent+='.bubble-button-card-container{--bubble-card-type-border-radius:var(--bubble-button-border-radius,var(--bubble-border-radius));border-radius:var(--bubble-card-type-border-radius)}';
+      document.body.style.setProperty('--bubble-button-border-radius','6px');
+      const result=[];
+      for(const radius of ['22px','18px']){
+        document.body.style.setProperty('--signature-card-border-radius',radius);
+        result.push(getComputedStyle(root.querySelector('.bubble-container')).borderRadius);
+      }
+      return result;
+    });
+    assert.deepEqual(radii,['22px','18px']);
+  }
+});
+
 test('Module editor sections follow native expansion-panel radii across live theme changes',async t => {
   const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
   const definitions=['signature-square','signature-compact','signature-room','signature-header','signature-flow','signature-weather','signature-wind-rose','alert_manager'].map(name=>loadModule(name));
