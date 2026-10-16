@@ -87,7 +87,10 @@ listener, observateur ou abonnement. Le bandeau est ignoré en `auto_height` ou
 
 Les textes peuvent passer sur deux lignes ; les valeurs et unités s’adaptent à
 la largeur. Les deux blocs partagent les mêmes lignes de titre/valeur/détail.
-Le dessin est centré verticalement sur la carte. Les badges actifs/en attente
+Les titres reprennent la rangée de 36 px, l’interligne de 20 px et le centrage
+vertical des cartes classiques : le même titre garde le même retrait supérieur
+en pleine largeur et en demi-largeur. Les noms longs peuvent toujours revenir
+à la ligne. Le dessin est centré verticalement sur la carte. Les badges actifs/en attente
 d’Alert Manager restent visibles en haut à droite lorsque l’icône est masquée.
 
 ## Couleurs du fond d’icône selon la valeur
@@ -187,6 +190,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.3 — 16 octobre 2026
+
+- Titres des bandeaux énergie alignés verticalement sur les tuiles classiques : rangée de 36 px et même interligne de 20 px, pour une marge supérieure identique en pleine largeur et demi-largeur.
+- Hauteur native de deux lignes, illustrations centrées, textes longs, valeurs et actions conservés.
 
 ### 1.4.2 — 16 octobre 2026
 

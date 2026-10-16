@@ -5,7 +5,7 @@
     }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"] .bubble-content-container {
       grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-      grid-template-rows: minmax(20px,max-content) minmax(28px,1fr) minmax(16px,max-content);
+      grid-template-rows: minmax(36px,max-content) minmax(28px,1fr) minmax(16px,max-content);
       gap: 0 10px;
       padding: 0;
     }
@@ -15,9 +15,9 @@
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"] .dp-summary { display: contents; }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"] :is(.bubble-name,.dp-summary-name) {
       /* @include shared/src/styles/name.css {"SIZE_IMPORTANT":" !important"} */
-      min-width: 0; margin: 0; padding: 0; align-self: start;
+      min-width: 0; margin: 0; padding: 0; align-self: center;
       display: block; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip;
-      line-height: 16px; color: var(--primary-text-color);
+      line-height: 20px; color: var(--primary-text-color);
     }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"] .bubble-name { grid-area: 1 / 1; }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"] .dp-summary-name { grid-area: 1 / 2; }

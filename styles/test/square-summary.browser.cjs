@@ -5,9 +5,9 @@ const {render}=require('./fixtures.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-square').code;
 
-async function summary(page,{width=328,mode='dark',plain=false,solar=false,missing=false,single=false,kind='home'}={}){
+async function summary(page,{width=328,mode='dark',plain=false,solar=false,missing=false,single=false,kind='home',shortNames=false}={}){
   await render(page,{width,mode,plain});
-  return page.evaluate(({code,solar,missing,mode,single,kind})=>{
+  return page.evaluate(({code,solar,missing,mode,single,kind,shortNames})=>{
     const shadow=document.querySelector('[data-id="square"]').shadowRoot;
     const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
     ctx.config.show_icon=false;ctx.elements.iconContainer.classList.add('hidden');
@@ -16,7 +16,7 @@ async function summary(page,{width=328,mode='dark',plain=false,solar=false,missi
     ctx._hass.states['sensor.demo']={state:missing?'unavailable':single?(kind==='water'?'15.0':kind==='grid'?'-7500':'7500'):solar?'22.15':'3.4',attributes:{unit_of_measurement:single?(kind==='water'?'L/min':'W'):'kWh'}};
     ctx._hass.states['sensor.power']={state:missing?'unavailable':solar?'7500':'385',attributes:{unit_of_measurement:'W'}};
     ctx.config.signature_square={secondary:single?'':solar?'Demain : 4,7 kWh':'Charge globale : 42,0 %',
-      summary:single?{enabled:true}:{entity:'sensor.power',name:missing?'Indisponible':solar?'Puissance':'En décharge',secondary:solar?'':missing?'Estimation indisponible':'8 h 47 min restantes'},
+      summary:single?{enabled:true}:{entity:'sensor.power',name:shortNames?'Puissance':missing?'Indisponible':solar?'Puissance':'En décharge',secondary:solar?'':missing?'Estimation indisponible':'8 h 47 min restantes'},
       illustration:{image:'/local/day.png',image_dark:'/local/night.png',columns:2,rows:1,index:solar?1:0}};
     window.summaryContext=ctx;
     window.refreshSummary=()=>{
@@ -26,12 +26,32 @@ async function summary(page,{width=328,mode='dark',plain=false,solar=false,missi
     const selectors=['.bubble-name','.bubble-state','.dp-secondary','.dp-summary-name','.dp-summary-state','.dp-summary-secondary'];
     const box=el=>{const r=el.getBoundingClientRect();return{x:r.x,y:r.y,left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
     const content=ctx.elements.contentContainer,art=getComputedStyle(content,'::after');
-    return {height:shadow.querySelector('.bubble-container').getBoundingClientRect().height,content:box(content),
+    return {height:shadow.querySelector('.bubble-container').getBoundingClientRect().height,card:box(shadow.querySelector('.bubble-container')),content:box(content),
       art:{width:parseFloat(art.width),height:parseFloat(art.height)},
       single:ctx.card.getAttribute('data-dp-summary-single'),groups:shadow.querySelectorAll('.dp-summary').length,
       nodes:selectors.flatMap(selector=>{const el=shadow.querySelector(selector);if(!el)return[];const s=getComputedStyle(el);return[{selector,text:el.textContent,box:box(el),scroll:el.scrollWidth,client:el.clientWidth,font:s.fontSize,entity:el.dataset.entity}];})};
-  },{code,solar,missing,mode,single,kind});
+  },{code,solar,missing,mode,single,kind,shortNames});
 }
+
+test('energy banner titles keep the same top inset as classic half-width tiles',async t=>{
+  const page=await fixture(t);
+  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,358,382,600])for(const single of [false,true]){
+    const banner=await summary(page,{mode,plain,width,single,shortNames:true});
+    const classic=await page.evaluate(width=>{
+      const ctx=window.summaryContext,shadow=ctx.card.getRootNode();
+      delete ctx.config.signature_square.summary;
+      window.refreshSummary();
+      shadow.host.style.width=(width-8)/2+'px';
+      const title=shadow.querySelector('.bubble-name'),card=shadow.querySelector('.bubble-container');
+      return {top:title.getBoundingClientRect().top-card.getBoundingClientRect().top,height:title.getBoundingClientRect().height};
+    },width);
+    for(const name of banner.nodes.filter(n=>['.bubble-name','.dp-summary-name'].includes(n.selector))){
+      assert.equal(name.box.top-banner.card.top,classic.top,JSON.stringify({mode,plain,width,single,name,classic}));
+      assert.equal(name.box.height,classic.height);
+    }
+    assert.equal(banner.height,120);
+  }
+});
 
 test('wide energy summaries remain two rows with complete text, both values and centred artwork',async t=>{
   const page=await fixture(t),cdp=await page.context().newCDPSession(page);
