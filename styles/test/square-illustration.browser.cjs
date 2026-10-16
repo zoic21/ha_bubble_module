@@ -23,6 +23,7 @@ async function illustrated(page, {width=180,mode='dark',plain=false,value='25.3'
     const pseudo=getComputedStyle(content,'::after'),rect=state.getBoundingClientRect(),box=content.getBoundingClientRect();
     const second=shadow.querySelector('.dp-secondary');
     return {stateWidth:rect.width,stateScroll:state.scrollWidth,stateClient:state.clientWidth,
+      contentTop:box.top,contentRight:box.right,valueText:state.textContent,secondaryText:second?.textContent,
       imageWidth:parseFloat(pseudo.width),imageHeight:parseFloat(pseudo.height),imagePosition:pseudo.backgroundPosition,imageURL:pseudo.backgroundImage,
       pointer:pseudo.pointerEvents,contentWidth:box.width,secondaryWidth:second?.getBoundingClientRect().width,
       icon:getComputedStyle(shadow.querySelector('.bubble-icon-container')).display,
@@ -44,6 +45,31 @@ test('illustrated squares prioritize values and keep secondary full-width at mob
         if(metric.secondary)assert.ok(Math.abs(m.secondaryWidth-m.contentWidth)<1,'secondary lost width');
       }
     }
+  }
+});
+
+test('artwork stays at the top right with or without gust detail and preserves both units', async t => {
+  const page=await fixture(t);
+  const cdp=await page.context().newCDPSession(page);
+  try {
+    for(const mode of ['light','dark']) for(const width of [142,180,288,600]) {
+      for(const secondary of ['', 'Rafales · 3,2 km/h']) {
+        const m=await illustrated(page,{width,mode,value:'2.5',unit:'km/h',secondary});
+        const {result}=await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelector(\'[data-id="square"]\').shadowRoot.querySelector(".bubble-content-container")'
+        });
+        const {node}=await cdp.send('DOM.describeNode',{objectId:result.objectId});
+        const artwork=node.pseudoElements.find(p=>p.pseudoType==='after');
+        const {model}=await cdp.send('DOM.getBoxModel',{backendNodeId:artwork.backendNodeId});
+        assert.ok(Math.abs(model.border[1]-m.contentTop)<1,'artwork moved away from the top');
+        assert.ok(Math.abs(model.border[2]-m.contentRight)<1,'artwork moved away from the right');
+        assert.match(m.valueText,/km\/h$/);
+        if(secondary) assert.equal(m.secondaryText,secondary);
+        await cdp.send('Runtime.releaseObject',{objectId:result.objectId});
+      }
+    }
+  } finally {
+    await cdp.detach();
   }
 });
 

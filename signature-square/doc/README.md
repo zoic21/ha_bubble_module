@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.3.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.3.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -40,7 +40,7 @@ Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button
 
 ## Illustration décorative facultative
 
-L’option `illustration` affiche une image à droite de la valeur, sans modifier
+L’option `illustration` affiche une image en haut à droite de la carte, sans modifier
 les unités, le secondaire, les actions ou les dimensions de la carte. Utiliser
 `show_icon: false` dans Bubble pour éviter le doublon avec le pictogramme natif.
 Sans cette option, le rendu reste inchangé.
@@ -81,8 +81,10 @@ chaque objet. Elle n’est pas fournie par le module : installer l’image dans
 `config/www/illustrations/` pour la servir sous `/local/illustrations/`.
 Les images doivent être de confiance et accessibles au navigateur.
 
-Le placement utilise seulement CSS : l’image, limitée à 80 px, rétrécit avant la
-valeur sur une carte étroite ; le secondaire conserve toute la largeur. Elle ne
+Le placement utilise seulement CSS : l’image reste ancrée en haut, même lorsque
+la carte affiche un secondaire sous sa valeur. Limitée à 80 px, elle rétrécit
+avant le titre ou la valeur sur une carte étroite ; le secondaire conserve toute
+la largeur et son unité. Elle ne
 capte pas les clics et ne remplace aucun nœud natif. Aucun abonnement, observateur,
 timer ou bibliothèque supplémentaire n’est ajouté.
 
@@ -124,6 +126,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.3.1 — 16 octobre 2026
+
+- Illustrations ancrées en haut à droite sur toutes les cartes illustrées, indépendamment du secondaire.
+- Titre et valeur prioritaires sur la largeur de l’image ; rafales et unités conservées sous la vitesse.
+- Placement uniquement CSS, sans modification des cartes sans illustration ni des actions.
 
 ### 1.3.0 — 15 octobre 2026
 
