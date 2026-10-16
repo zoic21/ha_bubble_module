@@ -21,6 +21,7 @@ Les neuf modules du dépôt sont générés à partir de sources. Chaque YAML da
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
 | [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des huit modules Signature |
 | [signature-shared/src](../signature-shared/src) | Éditeur, comportements et composition CSS des quatre présentations Signature |
+| `signature-shared/src/illustration.js` | Images décoratives externes Square/Room : URL, sprites, index et variantes du thème HA, assemblées au build |
 | `signature-*/src` et `alert_manager/src` | Métadonnées, formulaires et code propres à chaque module |
 | [scripts/build-modules.cjs](../scripts/build-modules.cjs) | Build et vérification de toutes les distributions |
 

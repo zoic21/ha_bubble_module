@@ -55,7 +55,7 @@ async function build(layout) {
     `);
   }
   chunks.push(shared('appearance'));
-  if (layout === 'square') chunks.push(specific(layout, 'illustration'));
+  if (layout === 'square' || layout === 'room') chunks.push(shared('illustration'));
   if (layout === 'compact') chunks.push(specific(layout, 'value-button'), specific(layout, 'fill'), specific(layout, 'value-controls'));
   chunks.push(layout === 'room' ? specific(layout, 'room-geometry') : `
     const roles = [], roomColumns = 4, roomRows = 1, roomHeaderMeasures = false;
@@ -63,9 +63,10 @@ async function build(layout) {
   chunks.push(shared('sub-buttons'));
   const css = [shared('base.css'), specific(layout, 'presentation.css')];
   if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'));
+  if (layout === 'room') css.push(`(roomIllustrated ? ${specific(layout, 'illustration.css')} : '')`);
   css.push(shared('visibility.css'));
   chunks.push(`
-    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline].join('\u0001');
+    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline].join('\u0001');
     if (runtime.styleKey !== styleKey) {
       runtime.styleCSS = ${css.join(' + ')};
       runtime.styleKey = styleKey;

@@ -98,9 +98,10 @@ test('artwork keeps secondary action and native visibility, and cleans up on tea
   assert.equal(f.root.contains(secondary),false);assert.equal(f.value.dataset.entity,undefined);
 });
 
-test('the illustration object is exposed only in the Square editor', () => {
+test('the illustration object is exposed in Square and the illustrated Room editor', () => {
   assert.ok(definition.editor[1].fields.illustration.selector.object);
-  for (const module of ['signature-compact','signature-room','signature-header'])
+  assert.ok(loadModule('signature-room').editor[1].fields.illustration.selector.object);
+  for (const module of ['signature-compact','signature-header'])
     assert.equal(loadModule(module).editor[1].fields.illustration,undefined);
 });
 

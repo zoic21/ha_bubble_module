@@ -1,5 +1,5 @@
 name: Signature Room
-version: 1.0.10
+version: 1.1.0
 creator: Loïc
 supported:
   - button
@@ -11,6 +11,30 @@ editor:
     label: Réglages room
     type: signature_options
     fields:
+      room_mode:
+        label: Présentation de la pièce
+        default: classic
+        selector:
+          select:
+            mode: dropdown
+            options:
+              - label: Classique
+                value: classic
+              - label: Illustrée
+                value: illustrated
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: "Illustrée : 176 px, nom et température, dessin à droite ; humidité et icône principale masquées. Commandes et badges natifs conservés."
+      illustration:
+        label: Illustration de la pièce (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode === 'illustrated')
+        description: "image : URL locale/HTTPS ; image_light/image_dark : variantes facultatives HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja. Images à installer séparément."
       color:
         $field: color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
@@ -64,7 +88,7 @@ editor:
                 value: header
         group: Pièce
         group_icon: mdi:sofa-outline
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true && card.button_type === 'name' && String(item.state || '').trim() === '')))
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode !== 'illustrated') && (String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true && card.button_type === 'name' && String(item.state || '').trim() === '')))
       color_background:
         $field: color_background
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

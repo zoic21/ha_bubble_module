@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.0.10**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.1.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -37,6 +37,28 @@ signature_room:
   room_control_columns: 4
 ```
 
+## Pièce illustrée
+
+```yaml
+signature_room:
+  room_mode: illustrated
+  illustration:
+    image: /local/illustrations/rooms-day-v1.png?v=1
+    image_light: /local/illustrations/rooms-day-v1.png?v=1
+    image_dark: /local/illustrations/rooms-night-v1.png?v=1
+    columns: 4
+    rows: 5
+    index: 0
+```
+
+La variante illustrée affiche le nom, la température à gauche, le dessin à droite et les commandes natives en bas. Sa hauteur de base est de **176 px** (+12,8 %), puis augmente de 48 px par rangée de commandes supplémentaire. Les tuiles larges comme Jardin gardent donc leurs deux rangées. Dans les grilles Sections Home Assistant, utiliser `grid_options.rows: auto` pour que le conteneur suive cette hauteur. Ne pas imposer de hauteur ou ajouter du CSS dans la carte.
+
+L’humidité et l’icône du titre sont masquées par le module ; conserver leurs configurations pour pouvoir revenir au mode classique. Le badge d’état reste en haut à droite. `icon_border_color` entoure le dessin au lieu de l’icône masquée. `border_color` conserve le contour d’alerte et l’ombre Signature. Les libellés des commandes nommées restent près de leur icône ; leurs actions restent celles de Bubble.
+
+L’objet `illustration` accepte `image` (URL locale/HTTPS), `image_light` et `image_dark` facultatives sélectionnées selon le mode effectif Home Assistant, ainsi que `columns`, `rows` et `index` (à partir de 0). Les URL et l’index peuvent utiliser Jinja via le moteur Bubble. Une URL ou une case non valide masque la décoration ; aucun code, image embarquée, écouteur ou abonnement supplémentaire n’est chargé. Les dessins sont à installer séparément dans `config/www/illustrations/`. Le même atlas peut servir aux vingt pièces avec des index différents.
+
+Pour conserver un contour de contraste sur une lampe Hue sans CSS, ajouter `icon_outline_color` dans son entrée `sub_button_styles` : couleur CSS, transparente ou Jinja ; le contour de glyphe fait 1,5 px et ne modifie pas la couleur RGB configurée. Les couleurs d’activité et les commandes restent natives.
+
 ## Compatibilité et comportement
 
 Cartes `button`, hors boutons `switch` et `slider`. Une carte pièce commence à 156 px et peut grandir avec le texte et les rangées de commandes. Une configuration incompatible ne reçoit aucun style de ce module.
@@ -57,6 +79,8 @@ Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
+| `room_mode` | `classic` | Présentation `classic` ou `illustrated` ; le mode classique existant reste inchangé. |
+| `illustration` | `{}` | Image externe, variantes HA, grille de sprites et index ; active dans le mode illustré. |
 | `room_auto_colors` | `true` | true par défaut ; false désactive les couleurs automatiques. |
 | `room_control_columns` | `4` | 4 colonnes par défaut, de 1 à 6. |
 | `room_measures_position` | `content` | Position des mesures Valeurs : `content`, `header`. |
@@ -83,6 +107,14 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.0 — 16 octobre 2026
+
+- Mode `room_mode: illustrated`, hauteur 176 px, nom/température et illustration ; humidité et icône principale masquées.
+- Configuration d’illustration partagée avec Square au build : URL, sprites, index et variantes HA, sans dépendance entre distributions.
+- Badges, anneaux d’alerte/de présence, couleurs RGB, libellés et commandes conservés sans CSS local. Mode classique par défaut inchangé.
+- Vérifications fonctionnelles et sur fixtures Chromium ; installation Home Assistant et Safari/iOS à confirmer.
+
 
 ### 1.0.10 — 8 octobre 2026
 
