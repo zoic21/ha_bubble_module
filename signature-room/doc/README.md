@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.1.3**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.1.4**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -49,13 +49,15 @@ signature_room:
     columns: 4
     rows: 5
     index: 0
+    offset_x: 7
+    offset_y: 17.58
 ```
 
 La variante illustrée place le nom et la température à gauche, le dessin à droite et les commandes natives en bas. Sa hauteur de base est de **148 px**, soit 28 px de moins que la première version illustrée, puis augmente de 48 px par rangée de commandes supplémentaire. Jardin conserve ses deux rangées dans **196 px**. Dans les grilles Sections Home Assistant, utiliser `grid_options.rows: auto` pour que le conteneur suive cette hauteur. Ne pas imposer de hauteur ou ajouter du CSS dans la carte.
 
 La variable de thème **`signature-illustration-size: 80px`** définit la taille cible des dessins pour Room et Square. Sans thème, la même valeur de 80 px est utilisée. Les petites cartes réduisent le dessin pour préserver les textes ; une taille demandée supérieure à 80 px augmente la hauteur pour garder les commandes dégagées. Le changement suit le thème en CSS, sans reconstruire le module. Voir le [thème](../../themes/README.md#shared-module-variables).
 
-L’humidité et l’icône du titre sont masquées par le module ; conserver leurs configurations pour pouvoir revenir au mode classique. Le badge d’état reste en haut à droite. `icon_border_color` entoure le dessin au lieu de l’icône masquée. `border_color` conserve le contour d’alerte et l’ombre Signature. Les libellés des commandes nommées restent à droite de leur icône, dans la colonne souple de la grille, quel que soit leur ordre dans le HTML natif. Les noms de Jardin restent complets dès 288 px ; leurs actions restent celles de Bubble.
+L’humidité et l’icône du titre sont masquées par le module ; conserver leurs configurations pour pouvoir revenir au mode classique. Le badge d’état reste en haut à droite. `icon_border_color` entoure le dessin au lieu de l’icône masquée. `border_color` conserve le contour d’alerte et l’ombre Signature. L’image est centrée verticalement entre le haut intérieur de la carte et le séparateur des actions, sur une ou plusieurs rangées. Sans commandes visibles et sans secondaire, elle est centrée dans la carte entière. Le secondaire éventuel conserve son espace à pleine largeur et son bloc d’illustration réservé. Les libellés des commandes nommées restent à droite de leur icône, dans la colonne souple de la grille, quel que soit leur ordre dans le HTML natif. Les noms de Jardin restent complets dès 288 px ; leurs actions restent celles de Bubble.
 
 L’objet `illustration` accepte `image` (URL locale/HTTPS), `image_light` et `image_dark` facultatives sélectionnées selon le mode effectif Home Assistant, ainsi que `columns`, `rows` et `index` (à partir de 0). Les URL et l’index peuvent utiliser Jinja via le moteur Bubble. Une URL ou une case non valide masque la décoration ; aucun code, image embarquée, écouteur ou abonnement supplémentaire n’est chargé. Les dessins sont à installer séparément dans `config/www/illustrations/`. Le même atlas peut servir aux vingt pièces avec des index différents.
 
@@ -75,7 +77,7 @@ Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button
 
 Les nombres **`illustration.offset_x`** et **`offset_y`** déplacent la fenêtre de lecture dans la planche. Unités : pourcentage de la largeur/hauteur **d’une case source**, de −50 à 50 ; 0 par défaut. Une valeur positive lit plus à droite/en bas ; une valeur négative plus à gauche/en haut. La taille de la case, le zoom et la boîte affichée restent identiques. L’axe concerné est ignoré lorsque la planche n’y contient qu’une case ; une valeur invalide revient à 0. Ce cadrage est commun à Square et Room et s’applique aux deux variantes de thème.
 
-Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x: 7` et `offset_y: 4` dans l’objet `illustration`. Le module déplace le cadrage de 19,6 px à droite et 11,2 px vers le bas dans les PNG de 1 122 × 1 402 px, sans redessiner les illustrations. Ne pas ajouter de CSS dans la carte.
+Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x: 7` et `offset_y: 20.97` dans l’objet `illustration`. Le module déplace le cadrage de 19,6 px à droite et 58,8 px vers le bas dans les PNG de 1 122 × 1 402 px, sans redessiner les illustrations. Ce cadrage tient aussi compte des marges transparentes pour centrer la silhouette visible ; vérifier les cases voisines et les deux variantes de thème. Ne pas ajouter de CSS dans la carte.
 
 ## Options
 
@@ -115,6 +117,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.4 — 16 octobre 2026
+
+- Illustration centrée verticalement au-dessus du séparateur natif, avec adaptation à la taille responsive et aux rangées de commandes. Sans commandes visibles, centrage dans la carte entière ; le secondaire garde son bloc réservé.
+- Placement uniquement CSS, sans déplacer les textes, mesures, commandes ou badges ni changer les hauteurs et la taille cible des dessins.
+- Contrôle des coordonnées réelles des pseudo-éléments dans Chromium, y compris après changement de taille et masquage des commandes. Les atlas aux marges inégales peuvent ajuster leur cadrage via `illustration.offset_y`.
 
 ### 1.1.3 — 16 octobre 2026
 

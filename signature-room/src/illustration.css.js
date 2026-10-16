@@ -35,7 +35,9 @@
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .bubble-content-container::after {
       content: '';
       position: absolute;
-      top: -3px;
+      /* Centre within the card interior above the 1px footer divider. */
+      top: calc((100% - ${roomDividerBottom + 1}px) / 2);
+      transform: translateY(-50%);
       right: 0;
       width: min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px));
       aspect-ratio: 1;
@@ -45,6 +47,9 @@
       background-size: var(--dp-illustration-size);
       background-position: var(--dp-illustration-position);
       background-repeat: no-repeat;
+    }
+    ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-secondary="no"] .bubble-container:not(:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden]))) .bubble-content-container::after {
+      top: 50%;
     }
     /* Badges remain independent native targets at the top right. */
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .room-status {
@@ -73,6 +78,7 @@
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-secondary="yes"] .bubble-content-container::after {
       top: 8px;
+      transform: none;
       right: 12px;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .dp-secondary {

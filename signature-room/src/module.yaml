@@ -1,5 +1,5 @@
 name: Signature Room
-version: 1.1.3
+version: 1.1.4
 creator: Loïc
 supported:
   - button
@@ -25,7 +25,7 @@ editor:
         group: Pièce
         group_icon: mdi:sofa-outline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-        description: "Illustrée : 148 px, nom et température, dessin à droite ; humidité et icône principale masquées. Commandes et badges natifs conservés."
+        description: "Illustrée : 148 px, nom et température, dessin à droite centré au-dessus des commandes ; humidité et icône principale masquées. Commandes et badges natifs conservés."
       illustration:
         label: Illustration de la pièce (objet YAML)
         default: {}

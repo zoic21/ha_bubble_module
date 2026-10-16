@@ -47,7 +47,7 @@ async function room(page,{width=180,mode='dark',plain=false,controls=4,columns=4
     const content=rect('.bubble-content-container');
     return {container,content,name:rect('.bubble-name'),temperature:rect('.room-temperature'),temperatureLabel:rect('.room-temperature .bubble-sub-button-name-container'),humidity:rect('.room-humidity'),icon:rect('.bubble-icon-container'),badge:rect('.room-status'),
       controls:[...ctx.card.querySelectorAll('[class*="room-control-"]')].map(el=>rect('.'+[...el.classList].find(c=>c.startsWith('room-control-')))),
-      art:{width:parseFloat(pseudo.width),x:content.right-parseFloat(pseudo.right)-parseFloat(pseudo.width),y:content.y+parseFloat(pseudo.top),height:parseFloat(pseudo.height),pointer:pseudo.pointerEvents,image:pseudo.backgroundImage,shadow:pseudo.boxShadow},
+      art:{width:parseFloat(pseudo.width),x:content.right-parseFloat(pseudo.right)-parseFloat(pseudo.width),y:content.y+parseFloat(pseudo.top)+new DOMMatrixReadOnly(pseudo.transform).m42,height:parseFloat(pseudo.height),pointer:pseudo.pointerEvents,image:pseudo.backgroundImage,shadow:pseudo.boxShadow},
       radius:getComputedStyle(ctx.card.querySelector('.bubble-container')).borderRadius,shadow:getComputedStyle(ctx.card.querySelector('.bubble-container')).boxShadow,
       mode:ctx.card.getAttribute('data-dp-room-mode'),text:ctx.card.querySelector('.room-temperature').textContent,
       dividerBottom:parseFloat(getComputedStyle(ctx.card.querySelector('.bubble-container'),'::after').bottom)};
@@ -68,7 +68,7 @@ test('illustrated rooms preserve title, temperature, status and footer on small 
     assert.ok(m.temperature.right<=m.art.x+1,hint);
     assert.ok(m.name.right<=m.art.x+1,hint);
     assert.ok(m.art.y+m.art.height<m.controls[0].y,hint);
-    assert.ok(m.badge.height>0&&m.badge.y<m.art.y,hint);
+    assert.ok(m.badge.height>0&&m.badge.y>=m.container.y&&m.badge.bottom<m.controls[0].y,hint);
     assert.ok(m.art.image.includes(mode==='dark'?'night.png':'day.png'));
     assert.ok(m.art.shadow.includes('54, 138, 203'));
     assert.ok(m.shadow.includes('225, 70, 62'));
@@ -101,6 +101,39 @@ test('garden retains six labelled controls on two rows and enough room above the
   assert.deepEqual(await page.evaluate(()=>window.roomClicks),{tile:0,temperature:0,control:2});
 });
 
+test('room artwork is vertically centred above the actual divider, including live size and visibility changes',async t=>{
+  const page=await fixture(t),cdp=await page.context().newCDPSession(page);
+  const pseudoBox=async selector=>{
+    const {result}=await cdp.send('Runtime.evaluate',{expression:'document.querySelector(\'[data-id="room"]\').shadowRoot.querySelector('+JSON.stringify(selector)+')'});
+    try{
+      const {node}=await cdp.send('DOM.describeNode',{objectId:result.objectId});
+      const pseudo=node.pseudoElements.find(n=>n.pseudoType==='after');
+      const {model}=await cdp.send('DOM.getBoxModel',{backendNodeId:pseudo.backendNodeId});
+      const y=model.border.filter((_,i)=>i%2===1);return {top:Math.min(...y),bottom:Math.max(...y)};
+    }finally{await cdp.send('Runtime.releaseObject',{objectId:result.objectId});}
+  };
+  const check=async footer=>{
+    const art=await pseudoBox('.bubble-content-container');
+    const card=await page.evaluate(()=>{
+      const el=window.roomCtx.card.querySelector('.bubble-container'),r=el.getBoundingClientRect(),s=getComputedStyle(el);
+      return {top:r.top+parseFloat(s.borderTopWidth),bottom:r.bottom-parseFloat(s.borderBottomWidth)};
+    });
+    const limit=footer?(await pseudoBox('.bubble-container')).top:card.bottom;
+    assert.ok(Math.abs((art.top-card.top)-(limit-art.bottom))<.1,JSON.stringify({art,card,limit,footer}));
+  };
+  try{
+    for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [142,180,328])for(const controls of [4,6]){
+      await room(page,{mode,plain,width,controls,columns:controls===6?3:4});await check(true);
+    }
+    for(const size of [64,96]){
+      await page.evaluate(size=>document.body.style.setProperty('--signature-illustration-size',size+'px'),size);await check(true);
+    }
+    await page.evaluate(()=>window.roomCtx.card.querySelectorAll('[class*="room-control-"]').forEach(el=>el.classList.add('hidden')));
+    await check(false);
+    await room(page,{controls:0,width:328});await check(false);
+  }finally{await cdp.detach();}
+});
+
 test('one live theme size controls Square and Room artwork without rebuilding either layout',async t=>{
   const page=await fixture(t);await room(page,{width:328});
   const values=await page.evaluate(squareCode=>{
@@ -117,7 +150,7 @@ test('one live theme size controls Square and Room artwork without rebuilding ei
       const roomContent=room.elements.contentContainer.getBoundingClientRect();
       return {size,square:parseFloat(art(square).width),room:parseFloat(art(room).width),
         height:room.card.querySelector('.bubble-container').getBoundingClientRect().height,
-        artBottom:roomContent.top+parseFloat(art(room).top)+parseFloat(art(room).height),
+        artBottom:roomContent.top+parseFloat(art(room).top)+new DOMMatrixReadOnly(art(room).transform).m42+parseFloat(art(room).height),
         controlTop:native[1].getBoundingClientRect().top};
     });
     const same=layouts[0]===square._signatureSquareRuntime.styleCSS&&layouts[1]===room._signatureRoomRuntime.styleCSS&&
@@ -151,7 +184,7 @@ test('source framing excludes neighbouring sprite pixels without shrinking the a
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
         const content=window.roomCtx.elements.contentContainer,rect=content.getBoundingClientRect(),art=getComputedStyle(content,'::after');
         return {x:rect.right-parseFloat(art.right)-parseFloat(art.width)+scrollX,
-          y:rect.top+parseFloat(art.top)+scrollY,width:parseFloat(art.width),height:parseFloat(art.height)};
+          y:rect.top+parseFloat(art.top)+new DOMMatrixReadOnly(art.transform).m42+scrollY,width:parseFloat(art.width),height:parseFloat(art.height)};
       });
       const png=await page.screenshot({clip:box});
       const pixels=await page.evaluate(async encoded=>{
