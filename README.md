@@ -11,7 +11,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Flow — six configurable flow slots | 3.6.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.5.4 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
-| Signature Group — popup activity summaries | 1.0.0 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
+| Signature Group — popup activity summaries | 1.0.1 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
@@ -99,4 +99,6 @@ For browser style checks, run `npx playwright install chromium` once, then `npm 
 
 GitHub Actions runs the unit tests on Node.js 22 and 24 and browser style checks on Chromium for every push and pull request, and can also be triggered manually. It checks alert sources, filters, caching, translations, numeric controls, metadata, YAML examples, and local documentation links. It does not replace checking the rendered cards in Home Assistant.
 
-Signature Group 1.0.0 links a popup and a name button through their hash. Enable `background_update: true` on the popup, add `signature_group` to both cards, and keep the button’s native navigation action. Its destination is reused by the summary, without a second list of entities or conditions. See the [Group guide](signature-group/doc/README.md).
+Signature Group 1.0.1 links a popup and a name button through their hash. Enable `background_update: true` on the popup, add `signature_group` to both cards, and keep the button’s native navigation action. Its destination is reused by the summary, without a second list of entities or conditions. See the [Group guide](signature-group/doc/README.md).
+
+Group’s optional `hide_empty: true` hides an empty summary through the native Home Assistant visibility contract while retaining state updates. Editor previews stay available; popup placeholders receive no extra empty-state block.

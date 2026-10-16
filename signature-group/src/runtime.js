@@ -2,6 +2,7 @@ const config = this.config || {};
 const options = config.signature_group || {};
 const version = '@@MODULE_VERSION@@';
 const producer = config.card_type === 'pop-up';
+const editing = !!(this.editor || this.detectedEditor || this.inEditorPreview || this._preview || this.preview);
 const supported = producer || (config.card_type === 'button' && config.button_type === 'name');
 const tap = config.button_action?.tap_action || config.tap_action;
 const target = producer ? config.hash : options.popup || (tap?.action === 'navigate' ? tap.navigation_path : '');
@@ -22,6 +23,21 @@ const notify = () => registry.listeners.get(key)?.forEach(listener => listener()
 if (!runtime) {
   runtime = this._signatureGroup = {version, key, root, producer, owner: this, disposed: false};
   const current = runtime;
+  current.setHidden = hidden => {
+    if (hidden && !current.ownsHidden && !this.hidden) {
+      current.previousConnected = this.connectedWhileHidden;
+      current.hadConnected = Object.hasOwn(this, 'connectedWhileHidden');
+      this.connectedWhileHidden = true;
+      this.hidden = true;
+      current.ownsHidden = true;
+    } else if (!hidden && current.ownsHidden) {
+      this.hidden = false;
+      if (current.hadConnected) this.connectedWhileHidden = current.previousConnected;
+      else delete this.connectedWhileHidden;
+      current.ownsHidden = false;
+    } else return;
+    this.dispatchEvent?.(new CustomEvent('card-visibility-changed', {detail:{value:!this.hidden}, bubbles:true, composed:true}));
+  };
   current.refresh = () => {
     if (current.pending || current.disposed) return;
     current.pending = true;
@@ -37,6 +53,7 @@ if (!runtime) {
       if (registry.sources.get(key) === current) { registry.sources.delete(key); notify(); }
       current.empty?.remove();
     } else {
+      current.setHidden(false);
       const listeners = registry.listeners.get(key);
       listeners?.delete(current.refresh);
       if (!listeners?.size) registry.listeners.delete(key);
@@ -53,12 +70,13 @@ if (!runtime) {
 }
 if (producer) {
   if (!Array.isArray(config.cards)) { runtime.dispose(); return ''; }
-  const changed = runtime.config !== config || runtime.cards !== config.cards;
+  const changed = runtime.config !== config || runtime.cards !== config.cards || runtime.editing !== editing;
   runtime.config = config;
+  runtime.editing = editing;
   if (registry.sources.get(key) !== runtime) { registry.sources.set(key, runtime); notify(); }
   else if (changed) notify();
   const host = this.elements?.popUpContainer;
-  if (host) {
+  if (host && !editing) {
     if (!runtime.empty || !host.contains(runtime.empty)) {
       runtime.empty?.remove();
       runtime.empty = document.createElement('div');
@@ -67,6 +85,9 @@ if (producer) {
       host.appendChild(runtime.empty);
     }
     runtime.empty.hidden = activeItems(runtime).length > 0;
+  } else {
+    runtime.empty?.remove();
+    runtime.empty = null;
   }
   return `
     .sg-empty { padding: 20px 12px; text-align: center; color: var(--secondary-text-color); font-size: var(--signature-secondary-font-size, 13px); }
@@ -79,6 +100,7 @@ const ready = source && !source.disposed && source.owner.isConnected !== false
   && source.owner.config.card_type === 'pop-up'
   && source.owner.config.modules?.includes('signature_group');
 const items = ready ? activeItems(source) : null;
+runtime.setHidden(options.hide_empty === true && items?.length === 0 && !editing);
 const limit = Math.max(0, Math.min(5, Number.isFinite(Number(options.max_names)) ? Math.floor(Number(options.max_names)) : 2));
 const names = items?.slice(0, limit).map(labelFor) || [];
 const remaining = items ? items.length - names.length : 0;

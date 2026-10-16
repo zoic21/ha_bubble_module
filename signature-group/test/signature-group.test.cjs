@@ -21,7 +21,8 @@ function fixture() {
   const make = config => {
     const card=new dom.Element(), host=new dom.Element(), names=new dom.Element();
     card.append(host);host.append(names);
-    const ctx={config,card,elements:{mainContainer:host,nameContainer:names,popUpContainer:host},isConnected:true};
+    const ctx={config,card,elements:{mainContainer:host,nameContainer:names,popUpContainer:host},isConnected:true,events:[]};
+    ctx.dispatchEvent=event=>{ctx.events.push(event);return true;};
     const run=()=>render.call(ctx,hass,fn=>ctx.teardown=fn,value=>value,conditions=>{checks.push(conditions);return evaluate(conditions);});
     ctx.updateBubbleCard=run;
     return {ctx,run,get text(){return ctx._signatureGroup?.summary?.textContent},get count(){return ctx._signatureGroup?.badge?.textContent}};
@@ -87,4 +88,34 @@ test('identical hashes in different views do not mix and unsupported cards do no
   const button=f.consumer();button.run();assert.equal(button.count,'—');
   const invalid=f.make({card_type:'button',button_type:'state',signature_group:{popup:'#activities'}});assert.equal(invalid.run().trim(),'');
   button.ctx.teardown();source.ctx.teardown();
+});
+
+test('empty groups use native visibility and remain connected so new activities can reveal them',async()=>{
+  const f=fixture(),source=f.producer([robot]),button=f.consumer({hide_empty:true});
+  f.hass.states['vacuum.robot'].state='docked';source.run();button.run();
+  assert.equal(button.ctx.hidden,true);assert.equal(button.ctx.connectedWhileHidden,true);
+  assert.equal(button.ctx.events.at(-1).type,'card-visibility-changed');assert.equal(button.ctx.events.at(-1).detail.value,false);
+  f.hass.states['vacuum.robot'].state='cleaning';button.run();assert.equal(button.ctx.hidden,false);assert.equal(button.count,'1');
+  assert.equal(button.ctx.connectedWhileHidden,undefined);assert.equal(button.ctx.events.at(-1).detail.value,true);
+  f.hass.states['vacuum.robot'].state='docked';button.run();assert.equal(button.ctx.hidden,true);
+  source.ctx.teardown();await Promise.resolve();assert.equal(button.ctx.hidden,false);assert.equal(button.count,'—');
+  button.ctx.teardown();
+});
+
+test('editing keeps empty buttons available and adds no empty-state block above the native popup placeholder',async()=>{
+  const f=fixture(),source=f.producer([robot]),button=f.consumer({hide_empty:true});
+  f.hass.states['vacuum.robot'].state='docked';source.run();button.run();
+  source.ctx.editor=true;button.ctx.editor=true;source.run();await Promise.resolve();
+  assert.equal(source.ctx._signatureGroup.empty,null);assert.equal(source.ctx.elements.popUpContainer.querySelector('.sg-empty'),null);
+  assert.equal(button.ctx.hidden,false);assert.equal(button.count,'0');
+  source.ctx.editor=false;button.ctx.editor=false;source.run();button.run();
+  assert.equal(source.ctx._signatureGroup.empty.hidden,false);assert.equal(button.ctx.hidden,true);
+  button.ctx.teardown();assert.equal(button.ctx.hidden,false);assert.equal(button.ctx.connectedWhileHidden,undefined);source.ctx.teardown();
+});
+
+test('group visibility does not undo a hidden state set by another feature',()=>{
+  const f=fixture(),source=f.producer([robot]),button=f.consumer({hide_empty:true});
+  button.ctx.hidden=true;f.hass.states['vacuum.robot'].state='docked';source.run();button.run();
+  f.hass.states['vacuum.robot'].state='cleaning';button.run();assert.equal(button.ctx.hidden,true);
+  button.ctx.teardown();assert.equal(button.ctx.hidden,true);source.ctx.teardown();
 });

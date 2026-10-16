@@ -1,5 +1,5 @@
 name: Signature Group
-version: 1.0.0
+version: 1.0.1
 creator: Loïc
 supported:
   - button
@@ -23,4 +23,11 @@ editor:
         max: 5
         step: 1
         mode: box
+    visible_if: (!card || card.card_type !== 'pop-up')
+  - name: hide_empty
+    label: Masquer le bouton sans activité
+    default: false
+    selector:
+      boolean: {}
+    description: Conserve le bouton en mode édition et signale une source manquante au lieu de la confondre avec une liste vide.
     visible_if: (!card || card.card_type !== 'pop-up')

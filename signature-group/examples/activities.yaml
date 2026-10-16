@@ -32,3 +32,4 @@ button_action:
 modules: [signature_compact, signature_group]
 signature_group:
   max_names: 2
+  hide_empty: true

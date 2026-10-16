@@ -41,3 +41,33 @@ test('group summary fits compact cards in light and dark, follows native updates
     assert.deepEqual(result.empty,{count:'0',text:'Aucune activité'});assert.equal(result.missing,'—');assert.equal(result.remaining,0);
   }
 });
+
+test('native hidden-card contract collapses the grid row and keeps updates alive, including editor transitions',async t=>{
+  const page=await browserFixture(t,{prepare:null});
+  const result=await page.evaluate(({group})=>{
+    document.body.innerHTML='<style>#grid{display:grid;gap:8px}#cell[hidden]{display:none}#next{height:56px}</style><div id="grid"><div id="cell"></div><div id="next">Confort</div></div>';
+    const host=document.createElement('div'),root=document.createElement('div'),names=document.createElement('div');
+    const cell=document.querySelector('#cell');cell.append(host);host.append(root);root.append(names);
+    Object.assign(host,{config:{card_type:'button',button_type:'name',signature_group:{popup:'#activities',hide_empty:true}},card:root,elements:{nameContainer:names,mainContainer:root}});
+    // Same retention contract as hui-card: hidden elements must opt in to staying connected.
+    host.addEventListener('card-visibility-changed',event=>{
+      event.stopPropagation();cell.hidden=host.hidden;
+      if(host.connectedWhileHidden===true||!host.hidden){if(!host.parentNode)cell.append(host);}else host.remove();
+    });
+    const sourceHost=document.createElement('div');document.body.append(sourceHost);
+    const source={config:{card_type:'pop-up',hash:'#activities',modules:['signature_group'],cards:[]},elements:{popUpContainer:sourceHost}};
+    const hass={states:{}},render=new Function('hass','onTeardown','renderTemplate','checkConditionsMet','return `'+group+'`;');
+    const run=ctx=>render.call(ctx,hass,fn=>ctx.teardown=fn,v=>v,()=>true);
+    run(source);run(host);
+    const empty={hidden:host.hidden,connected:host.isConnected,nextTop:document.querySelector('#next').getBoundingClientRect().top,gridTop:document.querySelector('#grid').getBoundingClientRect().top};
+    source.config={...source.config,cards:[{type:'tile',name:'Alarme'}]};run(source);run(host);
+    const active={hidden:host.hidden,visible:!cell.hidden,count:host._signatureGroup.badge.textContent,text:host._signatureGroup.summary.textContent};
+    source.config={...source.config,cards:[]};run(source);run(host);
+    source.editor=true;host.editor=true;run(source);run(host);
+    const editing={hidden:host.hidden,emptyBlocks:sourceHost.querySelectorAll('.sg-empty').length};
+    host.teardown();source.teardown();return {empty,active,editing};
+  },{group});
+  assert.equal(result.empty.hidden,true);assert.equal(result.empty.connected,true);assert.equal(result.empty.nextTop,result.empty.gridTop);
+  assert.deepEqual(result.active,{hidden:false,visible:true,count:'1',text:'Alarme'});
+  assert.deepEqual(result.editing,{hidden:false,emptyBlocks:0});
+});

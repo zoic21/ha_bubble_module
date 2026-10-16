@@ -1,3 +1,4 @@
+:host([hidden]) { display: none !important; }
 ha-card[data-signature-group="summary"] .bubble-wrapper {
   padding-inline-end: 54px !important;
 }

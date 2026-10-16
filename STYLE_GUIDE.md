@@ -383,8 +383,10 @@ Les quatre distributions YAML totalisent 318 octets de plus : le gain porte sur 
 
 ## Groupe de synthèse facultatif
 
-Signature Group 1.0.0 est un module de comportement, compatible avec un bouton Nom et une popup. Il accompagne une présentation existante, sans modifier ses surfaces, entités ou actions. La source est la liste native `cards` de la popup, avec ses conditions ; ne pas recopier cette liste sur le bouton.
+Signature Group 1.0.1 est un module de comportement, compatible avec un bouton Nom et une popup. Il accompagne une présentation existante, sans modifier ses surfaces, entités ou actions. La source est la liste native `cards` de la popup, avec ses conditions ; ne pas recopier cette liste sur le bouton.
 
 Le bouton ajoute une ligne secondaire (13 px, graisse normale, couleur secondaire du thème, interligne commun) et un compteur neutre de 28 px (valeur 14 px, graisse moyenne, chiffres tabulaires). Réserver 54 px à droite pour éviter le chevauchement ; garder l’ellipse sur le résumé et le nom complet dans le titre de survol. Le compteur n’utilise pas une couleur d’alerte. Les thèmes restent résolus en CSS, avec les replis communs. Une source absente donne `—`, une source sans élément donne `0` ; conserver cette distinction.
 
 Les cartes, leurs commandes et leur visibilité restent natives. Le module ne découvre pas de cartes par sélecteur DOM et ne charge pas d’historique. La source utilise `background_update: true` pour être disponible avant la première ouverture. L’Accueil adopte ce comportement sans changer Séjour, Informatique ni les autres vues.
+
+Group 1.0.1 peut masquer une synthèse vide via le contrat natif Home Assistant, sans laisser de case dans la grille et sans déconnecter ses mises à jour. Ne pas ajouter de message vide dans le placeholder de popup en mode édition ; conserver le bouton de synthèse accessible à l’édition. Une source manquante reste distinguée d’une source vide.

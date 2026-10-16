@@ -1,6 +1,6 @@
 # Signature Group
 
-Version **1.0.0**. Module de comportement autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Le bouton conserve sa présentation et ses actions natives ; `signature_compact` fournit l’apparence des exemples.
+Version **1.0.1**. Module de comportement autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Le bouton conserve sa présentation et ses actions natives ; `signature_compact` fournit l’apparence des exemples.
 
 Importer [signature-group.yaml](../dist/signature-group.yaml) dans l’éditeur des modules Bubble. Voir l’[exemple complet](../examples/activities.yaml), contenant les deux cartes séparées par `---`.
 
@@ -37,6 +37,7 @@ button_action:
 modules: [signature_compact, signature_group]
 signature_group:
   max_names: 2
+  hide_empty: true
 ```
 
 L’identifiant est repris de l’action native : inutile de le saisir deux fois. Le bouton de synthèse est un bouton Nom, sans sous-boutons ; placer `signature_group` après son module de présentation. Le module ne remplace aucune action, y compris maintien et double appui.
@@ -45,8 +46,9 @@ L’identifiant est repris de l’action native : inutile de le saisir deux fois
 |---|---|---|
 | `popup` | Destination native de l’action tap | Hash explicite si la source n’est pas la destination tap ; ne modifie pas l’action native |
 | `max_names` | `2` | De 0 à 5 noms, puis `+N` pour les suivants |
+| `hide_empty` | `false` | Masque le bouton et son emplacement lorsqu’aucune carte ne remplit ses conditions, hors mode édition |
 
-Le compteur inclut chaque carte dont les conditions sont remplies, même si l’équipement est au repos. Avec deux noms autorisés : `H2S, Télévision +2`. Sans élément : `0` et « Aucune activité » ; la popup affiche également ce message. Une source absente ou non initialisée affiche `—` et « Popup non initialisée », sans inventer un zéro.
+Le compteur inclut chaque carte dont les conditions sont remplies, même si l’équipement est au repos. Avec deux noms autorisés : `H2S, Télévision +2`. Sans élément : `0` et « Aucune activité » ; la popup affiche également ce message. Avec `hide_empty: true`, une source connue sans élément masque le bouton via le contrat natif Home Assistant (`hidden`, `connectedWhileHidden` et `card-visibility-changed`). Le bouton reste connecté pour recevoir les changements d’état et réapparaître ; aucun helper ni recopie de conditions n’est nécessaire. En mode édition, le bouton reste disponible et la popup conserve uniquement son placeholder natif : le message vide n’y est pas ajouté. Une source absente ou non initialisée affiche `—` et « Popup non initialisée », sans inventer un zéro.
 
 ## Conditions et noms
 
@@ -66,4 +68,5 @@ Modifier `src`, puis lancer `npm run build:modules`, `npm run check:modules`, `n
 
 ## Historique
 
+- **1.0.1** : option de masquage natif des groupes vides, réapparition aux changements d’état et retrait du message vide dans l’éditeur de popup.
 - **1.0.0** : source unique dans une popup, compteur et résumé sur un bouton, conditions natives et états vides, mise à jour avant première ouverture, nettoyage à la suppression.
