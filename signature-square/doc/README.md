@@ -94,6 +94,47 @@ en pleine largeur et en demi-largeur. Les noms longs peuvent toujours revenir
 à la ligne. Le dessin est centré verticalement sur la carte. Les badges actifs/en attente
 d’Alert Manager restent visibles en haut à droite lorsque l’icône est masquée.
 
+### Total du jour depuis les statistiques
+
+Depuis **Square 1.5.0**, la seconde mesure peut afficher la somme des variations
+Recorder depuis minuit, sans créer de capteur. Ce mode est prioritaire sur
+`summary.entity` et conserve exactement la grille et la hauteur du bandeau.
+
+```yaml
+signature_square:
+  summary:
+    name: Coût du jour
+    secondary: Hors abonnement
+    statistics:
+      statistic_ids:
+        - sensor.electricity_off_peak_cost
+        - sensor.electricity_peak_cost
+      unit: €
+      decimals: 2
+      time_zone: Europe/Paris
+```
+
+`statistic_ids` accepte de 1 à 16 identifiants uniques possédant des statistiques
+de somme. Le module interroge `recorder/statistics_during_period`, période
+`5minute`, champ `change`, de minuit local à maintenant. Les changements d’heure
+sont pris en compte ; `time_zone` utilise celui de HA par défaut (sinon UTC).
+Les remises à zéro sont traitées par Recorder, pas par une soustraction des
+états bruts. Les statistiques elles-mêmes gardent leur délai de disponibilité
+HA. `decimals` vaut 2 par défaut (0 à 6) ; `unit` est explicite. Les sources
+sont additionnées sans conversion : utiliser des statistiques de même unité.
+
+Une source manquante/non numérique, une erreur ou une requête en cours avant
+la première réponse affiche `—`. Un zéro réellement enregistré affiche zéro.
+Le module ne remplace jamais les statistiques par les états courants. Le total
+n’a pas d’entité fictive ni d’action more-info ; un secondaire qui désigne une
+entité conserve sa propre action native.
+
+Les mises à jour HA déclenchent au plus une requête par minute par carte,
+sans timer, observateur ou abonnement supplémentaire. Le jour et les sources
+font partie de la clé ; un passage de minuit efface le total précédent et une
+réponse obsolète après désactivation, changement de configuration ou nettoyage
+est ignorée. Les cartes ordinaires ne font aucune nouvelle requête.
+
 ## Couleurs du fond d’icône selon la valeur
 
 `color_thresholds.values` applique une teinte discrète à 16 % au fond du carré et la couleur interpolée du graphe à l’icône. Le même principe s’applique aux badges via `sub_button_styles`. Les fonds suivent la surface claire/sombre du thème ; l’icône conserve toujours la couleur exacte du graphe, sans gestion du contraste. Le texte des badges garde le thème. Avec des seuils actifs, `icon_color` n’écrase pas la couleur numérique ; hors seuils, son comportement reste inchangé. Voir le [guide commun et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
@@ -166,7 +207,7 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 | `auto_height` | `false` | Adapter la hauteur au contenu |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
 | `illustration` | Aucun | Objet `image`, `image_light`, `image_dark`, `columns`, `rows`, `index` ; images externes et sprites facultatifs |
-| `summary` | Aucun | Objet `enabled`, `entity`, `name`, `secondary` ; bandeau de deux lignes, une ou deux mesures |
+| `summary` | Aucun | Objet `enabled`, `entity`, `name`, `secondary`, `statistics` ; bandeau de deux lignes, une ou deux mesures |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
 | `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
@@ -334,3 +375,7 @@ n’ajoute ni ligne ni hauteur et ne déplace pas l’illustration. La présenta
 est ignorée avec plusieurs sous-boutons, un nom/état/attribut/date affiché,
 un type spécialisé, `auto_height`, `controls: measure` ou un bandeau `summary`.
 Aucun nœud, action, abonnement ou écouteur supplémentaire.
+
+### 1.5.0
+
+- Seconde mesure depuis les statistiques du jour, sans helper et sans modifier les dimensions du bandeau.

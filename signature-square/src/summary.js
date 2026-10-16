@@ -2,11 +2,13 @@
 // nodes and use Bubble's existing delegated value actions for a second entity.
 const summary = o.summary && typeof o.summary === 'object' && !Array.isArray(o.summary)
   ? o.summary : {};
-const summaryEntity = String(summary.entity ?? '').trim();
-const summarySingle = summary.enabled === true && summaryEntity === '';
+/* @include signature-square/src/summary-statistics.js */
+const summaryEntity = statisticsEnabled ? '' : String(summary.entity ?? '').trim();
+const summarySingle = !statisticsEnabled && summary.enabled === true && summaryEntity === '';
 const summaryEnabled = !autoHeight && o.controls !== 'measure'
   && summary.enabled !== false
-  && (summarySingle || /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(summaryEntity));
+  && (statisticsEnabled || summarySingle || /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(summaryEntity));
+if (!summaryEnabled || !statisticsEnabled) runtime.summaryStatistics = null;
 attr('data-dp-square-mode', summaryEnabled ? 'summary' : 'standard');
 if (summaryEnabled) attr('data-dp-summary-single', summarySingle ? 'yes' : 'no');
 else root.removeAttribute('data-dp-summary-single');
@@ -28,17 +30,29 @@ if (summaryEnabled && !summarySingle && content) {
   }
   const name = summaryEl.querySelector('.dp-summary-name');
   const state = summaryEl.querySelector('.dp-summary-state');
+  // Source labels also enrol entity changes in Bubble's tracked hass reads.
+  // Recorder remains the only source of the displayed total.
+  if (statisticsEnabled) name.title = statisticIds.map(id =>
+    hass.states[id]?.attributes?.friendly_name || id).join(' + ');
+  else name.removeAttribute('title');
   name.textContent = render(summary.name ?? hass.states[summaryEntity]?.attributes?.friendly_name ?? summaryEntity, summaryEntity).trim();
-  const {value,unit} = displayState(hass.states[summaryEntity], summaryEntity, 'summaryFormat');
-  const signature = value + '\u0001' + unit;
-  if (state.dataset.dpSignature !== signature) {
+  const paintState = ({value,unit}) => {
+    const signature = value + '\u0001' + unit;
+    if (state.dataset.dpSignature === signature) return;
     const val = document.createElement('span');
     val.className = 'dp-value'; val.textContent = value;
     const u = document.createElement('span');
     u.className = 'dp-unit'; u.textContent = unit;
     state.replaceChildren(val,u);
     state.dataset.dpSignature = signature;
-  }
+  };
+  if (statisticsEnabled) dailyStatistics(value => {
+    const decimals = Math.trunc(number(statisticOptions.decimals,2,0,6));
+    paintState({value:value === null ? '—' : formatterFor(hass,
+      {minimumFractionDigits:decimals,maximumFractionDigits:decimals}).format(value),
+      unit:value === null ? '' : String(statisticOptions.unit ?? '')});
+  });
+  else paintState(displayState(hass.states[summaryEntity], summaryEntity, 'summaryFormat'));
   const detailSource = sourceFor(summary.secondary, summaryEntity);
   const detailEntity = detailSource.main ? summaryEntity : detailSource.entity;
   let detail = summaryEl.querySelector('.dp-summary-secondary');
@@ -55,8 +69,12 @@ if (summaryEnabled && !summarySingle && content) {
     detailText = item.value + (item.unit ? ' ' + item.unit : '');
   } else detailText = render(summary.secondary, summaryEntity).trim();
   detail.textContent = detailText;
-  bindAction('summaryName', name, info(summaryEntity));
-  bindAction('summaryState', state, info(summaryEntity));
+  // A calculated total has no single entity: explicitly suppress the parent
+  // card's action so tapping the total cannot open the primary power sensor.
+  const summaryAction = summaryEntity ? info(summaryEntity) : {
+    tapAction:'{"action":"none"}',holdAction:'{"action":"none"}',doubleTapAction:'{"action":"none"}'};
+  bindAction('summaryName', name, summaryAction, !!summaryEntity);
+  bindAction('summaryState', state, summaryAction, !!summaryEntity);
   bindAction('summarySecondary', detailText && detailEntity ? detail : null, info(detailEntity));
 } else {
   summaryEl?.remove(); summaryEl = null;
@@ -66,6 +84,6 @@ runtime.summaryEl = summaryEl;
 runtime.summaryEntity = summaryEntity;
 if (summaryEl && !runtime.summaryCleanup) {
   const dispose = runtime.dispose;
-  runtime.dispose = () => { runtime.summaryEl?.remove(); dispose(); };
+  runtime.dispose = () => { runtime.summaryStatistics = null; runtime.summaryEl?.remove(); dispose(); };
   runtime.summaryCleanup = true;
 }

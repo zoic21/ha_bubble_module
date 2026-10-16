@@ -1,5 +1,5 @@
 name: Signature Square
-version: 1.4.5
+version: 1.5.0
 creator: Loïc
 supported:
   - button
@@ -76,7 +76,7 @@ editor:
           object: {}
         group: Tuile carrée
         group_icon: mdi:card-outline
-        description: "enabled: true sans entity : bandeau à une mesure. entity : seconde mesure facultative ; name : son titre, texte ou Jinja ; secondary : son détail, texte, entité ou Jinja. enabled: false désactive le bandeau. Illustration à droite. Utiliser rows: 2 et show_icon: false ; ne pas combiner avec auto_height ou controls: measure."
+        description: "enabled: true sans entity : bandeau à une mesure. entity : seconde mesure facultative ; name : son titre, texte ou Jinja ; secondary : son détail, texte, entité ou Jinja. statistics : total du jour (statistic_ids, unit, decimals, time_zone), facultatif et prioritaire sur entity ; enabled: false désactive le bandeau. Illustration à droite. Utiliser rows: 2 et show_icon: false ; ne pas combiner avec auto_height ou controls: measure."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       color_background:
         $field: color_background

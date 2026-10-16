@@ -5,6 +5,37 @@ const {render}=require('./fixtures.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-square').code;
 
+test('a daily statistics total uses the same large summary rows as an entity value',async t=>{
+  const page=await fixture(t);
+  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,358,600]){
+    await summary(page,{mode,plain,width});
+    await page.evaluate(()=>{
+      const ctx=window.summaryContext;
+      ctx._hass.config={time_zone:'Europe/Paris'};
+      ctx._hass.callWS=async request=>Object.fromEntries(request.statistic_ids.map(id=>[id,
+        [{start:request.start_time,change:1.8}]]));
+      ctx.elements.nameContainer.querySelector('.bubble-name').textContent='Puissance';
+      ctx.config.signature_square.secondary='';
+      ctx.config.signature_square.summary={name:'Coût du jour',secondary:'Hors abonnement',
+        statistics:{statistic_ids:['sensor.hc_cost','sensor.hp_cost'],unit:'€',decimals:2}};
+      window.refreshSummary();
+    });
+    await page.waitForFunction(()=>window.summaryContext.card.querySelector('.dp-summary-state').textContent==='3,60€');
+    const m=await page.evaluate(()=>{
+      const root=window.summaryContext.card;
+      const rect=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
+      const value=root.querySelector('.dp-summary-state'),other=root.querySelector('.bubble-state');
+      return {height:root.querySelector('.bubble-container').getBoundingClientRect().height,
+        value:rect(value),other:rect(other),font:getComputedStyle(value).fontSize,
+        otherFont:getComputedStyle(other).fontSize,unit:getComputedStyle(value.querySelector('.dp-unit')).fontSize,
+        otherUnit:getComputedStyle(other.querySelector('.dp-unit')).fontSize,
+        clipped:value.scrollWidth>value.clientWidth+1};
+    });
+    assert.equal(m.height,120);assert.equal(m.font,m.otherFont);assert.equal(m.unit,m.otherUnit);
+    assert.equal(m.value.top,m.other.top);assert.ok(m.value.left>=m.other.right+9);assert.equal(m.clipped,false);
+  }
+});
+
 async function summary(page,{width=328,mode='dark',plain=false,solar=false,missing=false,single=false,kind='home',shortNames=false}={}){
   await render(page,{width,mode,plain});
   return page.evaluate(({code,solar,missing,mode,single,kind,shortNames})=>{
