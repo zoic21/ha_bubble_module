@@ -42,6 +42,7 @@ async function build(layout) {
     if (layout === 'compact') chunks.push(shared('value-observer'));
     if (layout === 'room') chunks.push(specific(layout, 'room-temperature'));
     chunks.push(shared('secondary'), shared('actions'));
+    if (layout === 'square') chunks.push(specific(layout, 'summary'));
   } else {
     chunks.push(`
       const compactValue = false;
@@ -62,11 +63,11 @@ async function build(layout) {
   `);
   chunks.push(shared('sub-buttons'));
   const css = [shared('base.css'), specific(layout, 'presentation.css')];
-  if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'));
+  if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'), `(summaryEnabled ? ${specific(layout, 'summary.css')} : '')`);
   if (layout === 'room') css.push(`(roomIllustrated ? ${specific(layout, 'illustration.css')} : '')`);
   css.push(shared('visibility.css'));
   chunks.push(`
-    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline].join('\u0001');
+    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,' : ''}${layout === 'square' ? 'summaryEnabled,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline].join('\u0001');
     if (runtime.styleKey !== styleKey) {
       runtime.styleCSS = ${css.join(' + ')};
       runtime.styleKey = styleKey;

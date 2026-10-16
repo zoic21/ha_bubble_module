@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.1.4**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.1.5**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -75,7 +75,7 @@ Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button
 
 ### Cadrage d’une planche imparfaite
 
-Les nombres **`illustration.offset_x`** et **`offset_y`** déplacent la fenêtre de lecture dans la planche. Unités : pourcentage de la largeur/hauteur **d’une case source**, de −50 à 50 ; 0 par défaut. Une valeur positive lit plus à droite/en bas ; une valeur négative plus à gauche/en haut. La taille de la case, le zoom et la boîte affichée restent identiques. L’axe concerné est ignoré lorsque la planche n’y contient qu’une case ; une valeur invalide revient à 0. Ce cadrage est commun à Square et Room et s’applique aux deux variantes de thème.
+Les nombres ou templates Jinja **`illustration.offset_x`** et **`offset_y`** déplacent la fenêtre de lecture dans la planche. Unités : pourcentage de la largeur/hauteur **d’une case source**, de −50 à 50 ; 0 par défaut. Une valeur positive lit plus à droite/en bas ; une valeur négative plus à gauche/en haut. La taille de la case, le zoom et la boîte affichée restent identiques. L’axe concerné est ignoré lorsque la planche n’y contient qu’une case ; une valeur invalide revient à 0. Ce cadrage est commun à Square et Room et s’applique aux deux variantes de thème.
 
 Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x: 7` et `offset_y: 20.97` dans l’objet `illustration`. Le module déplace le cadrage de 19,6 px à droite et 58,8 px vers le bas dans les PNG de 1 122 × 1 402 px, sans redessiner les illustrations. Ce cadrage tient aussi compte des marges transparentes pour centrer la silhouette visible ; vérifier les cases voisines et les deux variantes de thème. Ne pas ajouter de CSS dans la carte.
 
@@ -117,6 +117,10 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.5 — 16 octobre 2026
+
+- Le helper d’illustration partagé accepte aussi Jinja dans `offset_x` / `offset_y`, afin d’ajuster le cadrage avec un index dynamique. Bornes −50/+50 et repli 0 conservés ; aucun changement des cadrages numériques existants ni des dimensions Room.
 
 ### 1.1.4 — 16 octobre 2026
 

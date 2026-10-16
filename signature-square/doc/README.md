@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.3.3**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.4.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -34,13 +34,62 @@ Les valeurs conservent le format numérique Home Assistant et leur unité. `stat
 
 Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button_styles` est un objet indexé par classe CSS ou numéro natif. Les switches visuels sont disponibles en square/compact, avec des actions toggle compatibles ou des actions lock/unlock explicites ; ils ne créent pas de commande supplémentaire.
 
+## Bandeau à deux mesures
+
+Un objet `summary` avec une `entity` valide active un bandeau large : la mesure
+principale à gauche, une seconde mesure au centre et l’illustration facultative
+à droite. Utiliser `rows: 2`, une largeur complète et `show_icon: false`.
+La hauteur reste celle des deux lignes natives Bubble, soit 120 px avec un pas
+de 56 px et un écart de 8 px. Le module ne l’augmente pas, même lorsque la taille
+d’illustration demandée est supérieure ; le dessin rétrécit pour laisser les
+textes lisibles. Sa taille cible reste `signature-illustration-size`, 80 px.
+
+```yaml
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.battery_available_energy
+name: Disponible
+show_icon: false
+card_layout: large
+rows: 2
+grid_options:
+  columns: full
+  rows: 2
+modules:
+  - signature_square
+signature_square:
+  secondary: sensor.battery_soc
+  summary:
+    entity: sensor.battery_power
+    name: En décharge
+    secondary: "{{ states('sensor.battery_remaining_time') }}"
+  illustration:
+    image: /local/illustrations/battery.png
+```
+
+`summary.name` accepte du texte ou Jinja et utilise le nom de l’entité par défaut.
+`summary.secondary` accepte du texte, une entité ou Jinja, comme le secondaire
+principal. Dans ces templates, `entity` désigne la **seconde** mesure. Les valeurs
+conservent la précision et les unités HA ; une valeur manquante affiche `—`.
+Chaque valeur et détail lié à une entité ouvre ses propres informations via
+le gestionnaire d’actions natif Bubble. Un changement de cible remplace le seul
+nœud concerné pour éviter un ancien gestionnaire mis en cache. Aucun nouveau
+listener, observateur ou abonnement. Le bandeau est ignoré en `auto_height` ou
+`controls: measure` ; les sous-boutons ne sont pas prévus dans ce bandeau.
+
+Les textes peuvent passer sur deux lignes ; les valeurs et unités s’adaptent à
+la largeur. Les deux blocs partagent les mêmes lignes de titre/valeur/détail.
+Le dessin est centré verticalement sur la carte. Les badges actifs/en attente
+d’Alert Manager restent visibles en haut à droite lorsque l’icône est masquée.
+
 ## Couleurs du fond d’icône selon la valeur
 
 `color_thresholds.values` applique une teinte discrète à 16 % au fond du carré et la couleur interpolée du graphe à l’icône. Le même principe s’applique aux badges via `sub_button_styles`. Les fonds suivent la surface claire/sombre du thème ; l’icône conserve toujours la couleur exacte du graphe, sans gestion du contraste. Le texte des badges garde le thème. Avec des seuils actifs, `icon_color` n’écrase pas la couleur numérique ; hors seuils, son comportement reste inchangé. Voir le [guide commun et les exemples graphique/humidité](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 ## Illustration décorative facultative
 
-L’option `illustration` affiche une image en haut à droite de la carte, sans modifier
+En mode classique, l’option `illustration` affiche une image en haut à droite de la carte, sans modifier
 les unités, le secondaire, les actions ou les dimensions de la carte. Utiliser
 `show_icon: false` dans Bubble pour éviter le doublon avec le pictogramme natif.
 Sans cette option, le rendu reste inchangé.
@@ -81,16 +130,16 @@ chaque objet. Elle n’est pas fournie par le module : installer l’image dans
 `config/www/illustrations/` pour la servir sous `/local/illustrations/`.
 Les images doivent être de confiance et accessibles au navigateur.
 
-Le placement utilise seulement CSS : l’image reste ancrée en haut, même lorsque
+Le placement classique utilise seulement CSS : l’image reste ancrée en haut, même lorsque
 la carte affiche un secondaire sous sa valeur. Sa taille cible est partagée avec Room via la variable de thème `signature-illustration-size: 80px` (même repli sans thème). Elle rétrécit avant le titre ou la valeur sur une carte étroite, et selon la hauteur disponible au-dessus du secondaire ; sa boîte reste carrée. Le secondaire conserve toute la largeur et son unité. Le réglage suit le thème sans reconstruire le module ; voir le [thème](../../themes/README.md#shared-module-variables). Elle ne
 capte pas les clics et ne remplace aucun nœud natif. Aucun abonnement, observateur,
 timer ou bibliothèque supplémentaire n’est ajouté.
 
 ### Cadrage d’une planche imparfaite
 
-Les nombres **`illustration.offset_x`** et **`offset_y`** déplacent la fenêtre de lecture dans la planche. Unités : pourcentage de la largeur/hauteur **d’une case source**, de −50 à 50 ; 0 par défaut. Une valeur positive lit plus à droite/en bas ; une valeur négative plus à gauche/en haut. La taille de la case, le zoom et la boîte affichée restent identiques. L’axe concerné est ignoré lorsque la planche n’y contient qu’une case ; une valeur invalide revient à 0. Ce cadrage est commun à Square et Room et s’applique aux deux variantes de thème.
+Les nombres ou templates Jinja **`illustration.offset_x`** et **`offset_y`** déplacent la fenêtre de lecture dans la planche. Unités : pourcentage de la largeur/hauteur **d’une case source**, de −50 à 50 ; 0 par défaut. Une valeur positive lit plus à droite/en bas ; une valeur négative plus à gauche/en haut. La taille de la case, le zoom et la boîte affichée restent identiques. L’axe concerné est ignoré lorsque la planche n’y contient qu’une case ; une valeur invalide revient à 0. Ce cadrage est commun à Square et Room et s’applique aux deux variantes de thème.
 
-Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x: 7` et `offset_y: 4` dans l’objet `illustration`. Le module déplace le cadrage de 19,6 px à droite et 11,2 px vers le bas dans les PNG de 1 122 × 1 402 px, sans redessiner les illustrations. Ne pas ajouter de CSS dans la carte.
+Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` dans l’objet `illustration` déplace le cadrage de 19,6 px à droite et 11,2 px vers le bas dans un PNG de 1 122 × 1 402 px, sans redessiner l’illustration. Pour une suite d’états, les cadrages peuvent être des templates relus en même temps que `index` ; une sortie invalide revient à 0. Ne pas ajouter de CSS dans la carte.
 
 ## Options
 
@@ -106,6 +155,7 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `auto_height` | `false` | Adapter la hauteur au contenu |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
 | `illustration` | Aucun | Objet `image`, `image_light`, `image_dark`, `columns`, `rows`, `index` ; images externes et sprites facultatifs |
+| `summary` | Aucun | Objet `entity`, `name`, `secondary` ; seconde mesure et détail dans un bandeau large de deux lignes |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
 | `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
@@ -130,6 +180,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.0 — 16 octobre 2026
+
+- Bandeau large facultatif à deux mesures via `summary`, illustration centrée à droite et hauteur native de deux lignes conservée.
+- Noms, valeurs/unité et détails alignés, quatre accès more-info indépendants via Bubble ; données et templates relus sans observateur ni listener.
+- Nettoyage des nœuds et des actions à la désactivation, au changement de cible ou de version. Badges d’alerte conservés lorsque l’icône est masquée.
+- Cadrages `illustration.offset_x` / `offset_y` compatibles Jinja pour centrer chaque état d’une planche animée par capteur ; mêmes bornes et replis que les nombres.
 
 ### 1.3.3 — 16 octobre 2026
 

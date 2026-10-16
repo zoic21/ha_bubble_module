@@ -1,5 +1,5 @@
 name: Signature Square
-version: 1.3.3
+version: 1.4.0
 creator: Loïc
 supported:
   - button
@@ -67,7 +67,16 @@ editor:
           object: {}
         group: Tuile carrée
         group_icon: mdi:card-outline
-        description: "image : URL de repli ; image_light/image_dark : variantes facultatives selon le thème HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : cadrage en % de case, de −50 à 50. URLs locales/HTTPS ou Jinja. Images à installer séparément. Masquer l’icône dans Bubble pour éviter le doublon."
+        description: "image : URL de repli ; image_light/image_dark : variantes facultatives selon le thème HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : nombre ou Jinja, cadrage en % de case de −50 à 50. URLs locales/HTTPS ou Jinja. Images à installer séparément. Masquer l’icône dans Bubble pour éviter le doublon."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      summary:
+        label: Seconde mesure du bandeau (objet YAML)
+        default: {}
+        selector:
+          object: {}
+        group: Tuile carrée
+        group_icon: mdi:card-outline
+        description: "entity : entité de la seconde mesure ; name : titre facultatif, texte ou Jinja ; secondary : détail facultatif, texte, entité ou Jinja. Active un bandeau large à deux mesures, avec illustration à droite. Utiliser rows: 2 et show_icon: false ; ne pas combiner avec auto_height ou controls: measure."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       color_background:
         $field: color_background

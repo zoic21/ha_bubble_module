@@ -77,6 +77,18 @@ test('atlas offsets are finite bounded numbers and single-cell axes retain their
   assert.ok(f.run().includes('--dp-illustration-position:0% 0%;'));
 });
 
+test('per-frame Jinja offsets follow a changing sprite without rebuilding layout or trusting invalid text',t=>{
+  const f=fixture({illustration:{image:'/local/atlas.png',columns:2,rows:3,index:'{{ frame }}',offset_x:'{{ x }}',offset_y:'{{ y }}'}});
+  t.after(()=>f.ctx.teardown());
+  let frame='0',x='2',y='10';const template=s=>s==='{{ frame }}'?frame:s==='{{ x }}'?x:s==='{{ y }}'?y:s;
+  let css=f.run(template);const structural=f.ctx._signatureSquareRuntime.styleCSS;
+  assert.ok(css.includes('--dp-illustration-position:2% 5%;'));
+  frame='3';x='-4';y='6';css=f.run(template);
+  assert.ok(css.includes('--dp-illustration-position:96% 53%;'));
+  assert.equal(f.ctx._signatureSquareRuntime.styleCSS,structural);
+  x='bad';y='10%;background:red';assert.ok(f.run(template).includes('--dp-illustration-position:100% 50%;'));
+});
+
 test('Jinja URL/index stay live without rebuilding structural CSS or adding a runtime', t => {
   const f = fixture({illustration:{image:'{{ image }}',columns:4,rows:3,index:'{{ frame }}'}});
   t.after(() => f.ctx.teardown());

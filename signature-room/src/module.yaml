@@ -1,5 +1,5 @@
 name: Signature Room
-version: 1.1.4
+version: 1.1.5
 creator: Loïc
 supported:
   - button
@@ -34,7 +34,7 @@ editor:
         group: Pièce
         group_icon: mdi:sofa-outline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode === 'illustrated')
-        description: "image : URL locale/HTTPS ; image_light/image_dark : variantes facultatives HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : cadrage en % de case, de −50 à 50. Images à installer séparément."
+        description: "image : URL locale/HTTPS ; image_light/image_dark : variantes facultatives HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : nombre ou Jinja, cadrage en % de case de −50 à 50. Images à installer séparément."
       color:
         $field: color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

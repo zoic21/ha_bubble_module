@@ -24,8 +24,8 @@ attr('data-dp-illustration', illustrationEnabled ? 'yes' : 'no');
 if (illustrationEnabled) {
   // Shift the sampled window within an imperfect atlas, not the decoration.
   // Percentages are relative to one source cell; its size remains unchanged.
-  const offsetX = number(illustration.offset_x, 0, -50, 50);
-  const offsetY = number(illustration.offset_y, 0, -50, 50);
+  const offsetX = number(render(illustration.offset_x ?? 0).trim(), 0, -50, 50);
+  const offsetY = number(render(illustration.offset_y ?? 0).trim(), 0, -50, 50);
   const x = columns === 1 ? 0 : ((index % columns) + offsetX / 100) * 100 / (columns - 1);
   const y = rows === 1 ? 0 : (Math.floor(index / columns) + offsetY / 100) * 100 / (rows - 1);
   // Quoting escapes quotes/backslashes in CSS url("..."). Keep this data outside
