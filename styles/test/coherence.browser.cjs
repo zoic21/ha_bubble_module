@@ -16,6 +16,29 @@ const style = (result, id, selector) => {
 const surfaceIds = ['compact', 'compact-standard', 'square', 'room', 'media', 'cover', 'climate', 'number', 'flow', 'weather-ranges', 'weather-ribbon', 'weather-summary', 'wind'];
 const same = (a, b, properties) => properties.forEach(key => assert.equal(a[key], b[key], key));
 
+test('native badge styling follows adding and removing configured controls on every presentation',async t=>{
+  const page=await fixture(t);
+  const codes=Object.fromEntries(['compact','square','room','header'].map(layout=>[layout,loadModule('signature-'+layout).code]));
+  for(const layout of ['compact','square','room','header']){
+    await render(page,{mode:'light'});
+    const result=await page.evaluate(({layout,code})=>{
+      const shell=document.querySelector('[data-id="'+(layout==='room'?'room-no-controls':layout)+'"]'),shadow=shell.shadowRoot;
+      const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
+      shadow.querySelector('style').textContent+='.bubble-sub-button.background-on{background-color:rgb(255,0,0)}';
+      const button=document.createElement('div');button.className='bubble-sub-button bubble-sub-button-1 native-control background-on';
+      ctx.card.querySelector('.bubble-sub-button-container').append(button);
+      const refresh=()=>shadow.querySelectorAll('style')[1].textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
+      const colors=[];
+      for(const withControl of [false,true,false]){
+        ctx.config={...ctx.config,sub_button:{main:withControl?[{entity:'light.demo',css_class:'native-control'}]:[]}};
+        refresh();colors.push(getComputedStyle(button).backgroundColor);
+      }
+      return colors;
+    },{layout,code:codes[layout]});
+    assert.equal(result[0],'rgb(255, 0, 0)');assert.notEqual(result[1],result[0]);assert.equal(result[2],result[0]);
+  }
+});
+
 test('Compact owns the native button radius without dashboard overrides and follows live themes',async t=>{
   const page=await fixture(t);
   for(const mode of ['light','dark'])for(const plain of [false,true]){

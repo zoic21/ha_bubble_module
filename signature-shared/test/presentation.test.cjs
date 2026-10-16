@@ -246,7 +246,7 @@ test('a standard compact tile stays below its CSS budget and preserves native vi
   const css=run(ctx,hass);
   assert.ok(Buffer.byteLength(css) < 7000,'A simple compact tile must not include every optional layout');
   assert.doesNotMatch(css,/data-dp-compact-mode="value"|data-dp-value-trailing|bubble-cover-button|bubble-climate|dp-secondary|pre-line/);
-  assert.match(css,/\.hidden,\s*ha-card\[data-dp-layout\] \[hidden\]\s*\{\s*display:\s*none\s*!important;?\s*\}/);
+  assert.match(css,/ha-card\[data-dp-layout\] :is\(\.hidden,\s*\[hidden\]\)\s*\{\s*display:\s*none\s*!important;?\s*\}/);
   assert.match(css,/data-dp-has-state="no"\] \.bubble-state.hidden\s*\{\s*display:\s*none\s*!important;?\s*\}/);
 });
 

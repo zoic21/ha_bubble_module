@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.4**, **Square 1.4.4**, **Header 1.1.13**, **Room 1.1.5**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.5**, **Square 1.4.5**, **Header 1.1.14**, **Room 1.1.6**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.5.3 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.4.4**, **Square 1.4.4**, **Header 1.1.13** et **Room 1.1.5** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.4.5**, **Square 1.4.5**, **Header 1.1.14** et **Room 1.1.6** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -358,3 +358,24 @@ n’est pas masqué. Garder visibilité et actions natives, hauteur et illustrat
 identiques. Ne pas appliquer ce placement aux boutons nommés, spécialisés,
 multiples, à la hauteur automatique, aux commandes de mesure ou au bandeau
 summary. Ne créer aucun DOM ou écouteur pour ce badge.
+
+### Optimisation des présentations du 16 octobre 2026
+
+Square/Compact 1.4.5, Room 1.1.6 et Header 1.1.14 n’émettent les règles des badges actifs que si la configuration contient des sous-boutons. Le booléen de présence appartient à la clé de cache CSS ; l’ajout/retrait natif d’une commande ne doit jamais garder les anciennes règles. La taille d’unité `.8em` du socle, toujours remplacée par le rôle propre à chaque présentation, est retirée. Les regroupements `:is(.hidden,[hidden])` et du texte multiligne conservent la spécificité de chaque ancien sélecteur.
+
+Avec au moins deux switches, le préfixe de leur géométrie est factorisé par `:is(.bubble-sub-button.classe,...)`. Tous les arguments possèdent deux classes : la spécificité reste identique. Les règles de couleur, d’opacité et de position sont conservées par commande, ainsi que les caches et les actions. Garder le sélecteur direct pour un seul switch. Aucun minificateur par rendu, feuille globale ou lecture de styles supplémentaire. Mesurer les gains après le nettoyage natif Bubble et comparer les styles calculés avant/après ; ces volumes ne prouvent pas un gain de temps de chargement HA.
+
+Mesures UTF-8 après `cleanCSS` de Bubble Card 3.4.1 (`061ed837`), par rapport au commit `18f7bf3`. Fixtures à 600 px, thème Signature clair ; les cartes sans commande utilisent les options de `styles/test/fixtures.cjs`, les switches des classes distinctes avec états/couleurs propres.
+
+| Configuration | Avant | Après | Réduction |
+|---|---:|---:|---:|
+| Compact standard, sans commande | 6 348 | 6 010 | 5,3 % |
+| Square, sans commande | 6 477 | 6 139 | 5,2 % |
+| Room, sans commande | 7 997 | 7 659 | 4,2 % |
+| Header, sans commande | 6 201 | 5 863 | 5,5 % |
+| Compact, un interrupteur | 7 761 | 7 727 | 0,4 % |
+| Compact, deux interrupteurs | 8 576 | 8 304 | 3,2 % |
+| Compact, quatre interrupteurs | 10 210 | 9 392 | 8,0 % |
+| Compact, huit interrupteurs | 13 206 | 11 296 | 14,5 % |
+
+Les quatre distributions YAML totalisent 318 octets de plus : le gain porte sur le CSS émis pour chaque carte, pas sur leur téléchargement. Comparaison des styles calculés et dimensions identique sur 418 rendus de cartes (288/328/358/382/600 px, clair/sombre, avec/sans thème et polices/rayons personnalisés) et 32 configurations de switches (1/2/4/8, Compact/Square, clair/sombre, 288/600 px). Un test navigateur vérifie aussi l’ajout puis le retrait des commandes sur chacune des quatre présentations, en réutilisant le même runtime. Couverture limitée aux fixtures Chromium, sans validation dans HA réel ni Safari/iOS.

@@ -25,8 +25,10 @@ if (layout === 'room' && o.room_auto_colors !== false) roles.forEach(({b,selecto
 if (layout === 'header') flat.forEach((b,i) => paint('ha-card .bubble-sub-button-'+(i+1), b, {background:'color-mix(in srgb, '+accent+' 12%, '+neutralSurface+')'}));
 const visualSwitches = (layout === 'square' || layout === 'compact') && structure.hasSwitches;
 if (visualSwitches && !structure.switchCSS) {
-  const selectors = styles.filter(style => style.visualSwitch).map(style => 'ha-card[data-dp-layout] .bubble-sub-button.'+style.cls);
-  const select = suffix => selectors.map(selector => selector+suffix).join(', ');
+  const targets = styles.filter(style => style.visualSwitch).map(style => '.bubble-sub-button.'+style.cls);
+  // Every target has the same specificity; :is() factors the scope only.
+  const selector = 'ha-card[data-dp-layout] '+(targets.length === 1 ? targets[0] : ':is('+targets.join(',')+')');
+  const select = suffix => selector+suffix;
   // Share geometry within this card; only the track, position and opacity vary per switch.
   structure.switchCSS = `
     ${select('')} {

@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.4.4**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.4.5**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -141,6 +141,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.5 — 16 octobre 2026
+
+- CSS des badges actifs émis uniquement lorsqu’un sous-bouton est configuré ; le cache suit aussi leur ajout/retrait.
+- Sélecteurs de masquage et de texte multiligne regroupés à spécificité identique ; taille d’unité commune redondante retirée, chaque présentation gardant sa taille dédiée.
+- Sélecteurs de géométrie des interrupteurs regroupés avec `:is()` à partir de deux switches ; états et variables restent propres à chaque commande.
 
 ### 1.4.4 — 16 octobre 2026
 
