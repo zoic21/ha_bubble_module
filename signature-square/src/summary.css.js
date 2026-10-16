@@ -46,6 +46,25 @@
       grid-area: 1 / 3 / 4 / 4; width: var(--dp-summary-art-size);
       align-self: center; justify-self: end;
     }
+    /* A single measurement uses the same banner, with no empty metric column. */
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .bubble-container {
+      --dp-summary-art-size: min(var(--signature-illustration-size,80px),max(0px,calc(100cqw - 132px)),max(0px,calc(100cqh - 20px)));
+    }
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .bubble-content-container {
+      grid-template-columns: minmax(0,1fr);
+    }
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-illustration="yes"] .bubble-content-container {
+      grid-template-columns: minmax(0,1fr) var(--dp-summary-art-size);
+    }
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-illustration="yes"] .bubble-content-container::after {
+      grid-area: 1 / 2 / 4 / 3;
+    }
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .bubble-state {
+      font-size: var(--signature-value-font-size,28px) !important;
+    }
+    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .dp-unit {
+      font-size: var(--signature-value-unit-font-size,16px);
+    }
     /* The hidden decorative icon must not conceal an active Alert Manager badge. */
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-icon="no"] .bubble-main-icon-container:has(> .am-alert-badge:is([data-am-state="active"],[data-am-state="pending"])) {
       display: flex !important; position: absolute; grid-area: auto;

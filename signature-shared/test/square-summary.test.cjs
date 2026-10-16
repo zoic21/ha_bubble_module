@@ -74,3 +74,28 @@ test('invalid or incompatible summary settings do not change the regular layout'
   delete f.ctx.config.signature_square.auto_height;f.ctx.config.signature_square.controls='measure';f.run();assert.equal(f.root.querySelector('.dp-summary'),null);
   assert.ok(definition.editor[1].fields.summary.selector.object);
 });
+
+test('a single-measurement banner keeps the native value and secondary without creating a second group',t=>{
+  const f=fixture({enabled:true});t.after(()=>f.ctx.teardown());
+  const before=f.root.querySelectorAll('.dp-summary').length;f.run();
+  assert.equal(f.root.getAttribute('data-dp-square-mode'),'summary');
+  assert.equal(f.root.getAttribute('data-dp-summary-single'),'yes');
+  assert.equal(f.root.querySelectorAll('.dp-summary').length,before);
+  assert.equal(f.ctx._signatureSquareRuntime.summaryEl,null);
+  assert.equal(f.ctx.elements.state,f.state);assert.equal(f.state.textContent,'3,4kWh');
+  assert.equal(f.state.dataset.entity,'sensor.energy');assert.equal(f.root.querySelector('.dp-secondary').dataset.entity,'sensor.soc');
+});
+
+test('switching between one and two measurements restores delegated targets without duplicates',t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());f.run();const old=f.root.querySelector('.dp-summary'),value=old.querySelector('.dp-summary-state');
+  f.ctx.config.signature_square.summary={enabled:true};f.run();
+  assert.equal(f.root.contains(old),false);assert.equal(value.dataset.entity,undefined);
+  assert.equal(f.root.getAttribute('data-dp-summary-single'),'yes');
+  f.ctx.config.signature_square.summary={entity:'sensor.power'};f.run();
+  assert.equal(f.root.getAttribute('data-dp-summary-single'),'no');assert.equal(f.root.querySelectorAll('.dp-summary').length,1);
+  f.ctx.config.signature_square.summary.enabled=false;f.run();
+  assert.equal(f.root.getAttribute('data-dp-square-mode'),'standard');assert.equal(f.root.getAttribute('data-dp-summary-single'),null);
+  assert.equal(f.root.querySelector('.dp-summary'),null);
+  f.ctx.config.signature_square.summary={enabled:true,entity:'invalid'};f.run();
+  assert.equal(f.root.getAttribute('data-dp-square-mode'),'standard');
+});

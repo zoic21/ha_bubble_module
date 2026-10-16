@@ -5,18 +5,18 @@ const {render}=require('./fixtures.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-square').code;
 
-async function summary(page,{width=328,mode='dark',plain=false,solar=false,missing=false}={}){
+async function summary(page,{width=328,mode='dark',plain=false,solar=false,missing=false,single=false,kind='home'}={}){
   await render(page,{width,mode,plain});
-  return page.evaluate(({code,solar,missing,mode})=>{
+  return page.evaluate(({code,solar,missing,mode,single,kind})=>{
     const shadow=document.querySelector('[data-id="square"]').shadowRoot;
     const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
     ctx.config.show_icon=false;ctx.elements.iconContainer.classList.add('hidden');
-    ctx.elements.nameContainer.querySelector('.bubble-name').textContent=solar?'Reste à produire':'Disponible';
+    ctx.elements.nameContainer.querySelector('.bubble-name').textContent=single?(kind==='water'?'Débit total':'Puissance'):solar?'Reste à produire':'Disponible';
     ctx._hass.themes={darkMode:mode==='dark'};
-    ctx._hass.states['sensor.demo']={state:missing?'unavailable':solar?'22.15':'3.4',attributes:{unit_of_measurement:'kWh'}};
+    ctx._hass.states['sensor.demo']={state:missing?'unavailable':single?(kind==='water'?'15.0':kind==='grid'?'-7500':'7500'):solar?'22.15':'3.4',attributes:{unit_of_measurement:single?(kind==='water'?'L/min':'W'):'kWh'}};
     ctx._hass.states['sensor.power']={state:missing?'unavailable':solar?'7500':'385',attributes:{unit_of_measurement:'W'}};
-    ctx.config.signature_square={secondary:solar?'Demain : 4,7 kWh':'Charge globale : 42,0 %',
-      summary:{entity:'sensor.power',name:missing?'Indisponible':solar?'Puissance':'En décharge',secondary:solar?'':missing?'Estimation indisponible':'8 h 47 min restantes'},
+    ctx.config.signature_square={secondary:single?'':solar?'Demain : 4,7 kWh':'Charge globale : 42,0 %',
+      summary:single?{enabled:true}:{entity:'sensor.power',name:missing?'Indisponible':solar?'Puissance':'En décharge',secondary:solar?'':missing?'Estimation indisponible':'8 h 47 min restantes'},
       illustration:{image:'/local/day.png',image_dark:'/local/night.png',columns:2,rows:1,index:solar?1:0}};
     window.summaryContext=ctx;
     window.refreshSummary=()=>{
@@ -28,8 +28,9 @@ async function summary(page,{width=328,mode='dark',plain=false,solar=false,missi
     const content=ctx.elements.contentContainer,art=getComputedStyle(content,'::after');
     return {height:shadow.querySelector('.bubble-container').getBoundingClientRect().height,content:box(content),
       art:{width:parseFloat(art.width),height:parseFloat(art.height)},
-      nodes:selectors.map(selector=>{const el=shadow.querySelector(selector),s=getComputedStyle(el);return{selector,text:el.textContent,box:box(el),scroll:el.scrollWidth,client:el.clientWidth,font:s.fontSize,entity:el.dataset.entity};})};
-  },{code,solar,missing,mode});
+      single:ctx.card.getAttribute('data-dp-summary-single'),groups:shadow.querySelectorAll('.dp-summary').length,
+      nodes:selectors.flatMap(selector=>{const el=shadow.querySelector(selector);if(!el)return[];const s=getComputedStyle(el);return[{selector,text:el.textContent,box:box(el),scroll:el.scrollWidth,client:el.clientWidth,font:s.fontSize,entity:el.dataset.entity}];})};
+  },{code,solar,missing,mode,single,kind});
 }
 
 test('wide energy summaries remain two rows with complete text, both values and centred artwork',async t=>{
@@ -94,4 +95,25 @@ test('active or pending alert badges stay visible despite the hidden main illust
     });
     for(const m of result){assert.equal(m.display,m.state==='none'?'none':'flex');assert.equal(m.main,'none');}
   }
+});
+
+test('single energy banners keep two native rows, full-size values and centred common artwork without an empty second column',async t=>{
+  const page=await fixture(t),cdp=await page.context().newCDPSession(page);
+  try{
+    for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [252,328,600])for(const kind of ['home','grid','water'])for(const missing of [false,true]){
+      const m=await summary(page,{mode,plain,width,kind,missing,single:true});
+      assert.equal(m.height,120);assert.equal(m.single,'yes');assert.equal(m.groups,0);assert.equal(m.art.width,80);assert.equal(m.art.height,80);
+      const name=m.nodes.find(n=>n.selector==='.bubble-name'),value=m.nodes.find(n=>n.selector==='.bubble-state');
+      assert.equal(value.font,'28px');assert.equal(value.entity,'sensor.demo');
+      assert.ok(value.scroll<=value.client+1,JSON.stringify({mode,plain,width,kind,missing,m}));
+      assert.ok(name.box.bottom<=value.box.top);assert.ok(value.box.bottom<=m.content.bottom);
+      const {result}=await cdp.send('Runtime.evaluate',{expression:'window.summaryContext.elements.contentContainer'});
+      const {node}=await cdp.send('DOM.describeNode',{objectId:result.objectId});
+      const {model}=await cdp.send('DOM.getBoxModel',{backendNodeId:node.pseudoElements.find(p=>p.pseudoType==='after').backendNodeId});
+      assert.ok(value.box.right+9<=model.border[0],'art/value intersection '+JSON.stringify(m));
+      assert.ok(Math.abs((model.border[1]+model.border[5])/2-(m.content.top+m.content.bottom)/2)<.1);
+      assert.ok(Math.abs(model.border[2]-m.content.right)<.1);
+      await cdp.send('Runtime.releaseObject',{objectId:result.objectId});
+    }
+  }finally{await cdp.detach();}
 });

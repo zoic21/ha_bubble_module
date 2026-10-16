@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.4.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.4.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -34,7 +34,7 @@ Les valeurs conservent le format numérique Home Assistant et leur unité. `stat
 
 Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button_styles` est un objet indexé par classe CSS ou numéro natif. Les switches visuels sont disponibles en square/compact, avec des actions toggle compatibles ou des actions lock/unlock explicites ; ils ne créent pas de commande supplémentaire.
 
-## Bandeau à deux mesures
+## Bandeau à une ou deux mesures
 
 Un objet `summary` avec une `entity` valide active un bandeau large : la mesure
 principale à gauche, une seconde mesure au centre et l’illustration facultative
@@ -43,6 +43,13 @@ La hauteur reste celle des deux lignes natives Bubble, soit 120 px avec un pas
 de 56 px et un écart de 8 px. Le module ne l’augmente pas, même lorsque la taille
 d’illustration demandée est supérieure ; le dessin rétrécit pour laisser les
 textes lisibles. Sa taille cible reste `signature-illustration-size`, 80 px.
+
+Pour une seule mesure principale, utiliser **`summary: {enabled: true}`**, sans
+`entity` dans cet objet. La colonne de la seconde mesure disparaît et aucun
+nœud n’est créé pour elle ; la valeur et le secondaire natifs restent à gauche,
+avec l’illustration centrée à droite. La valeur conserve sa taille standard de
+28 px et l’unité 16 px (variables Signature). `enabled: false` désactive le
+bandeau, même si une seconde entité est configurée. Un objet vide reste inactif.
 
 ```yaml
 type: custom:bubble-card
@@ -155,7 +162,7 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 | `auto_height` | `false` | Adapter la hauteur au contenu |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
 | `illustration` | Aucun | Objet `image`, `image_light`, `image_dark`, `columns`, `rows`, `index` ; images externes et sprites facultatifs |
-| `summary` | Aucun | Objet `entity`, `name`, `secondary` ; seconde mesure et détail dans un bandeau large de deux lignes |
+| `summary` | Aucun | Objet `enabled`, `entity`, `name`, `secondary` ; bandeau de deux lignes, une ou deux mesures |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
 | `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
@@ -180,6 +187,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.4.1 — 16 octobre 2026
+
+- `summary.enabled: true` sans seconde entité active le même bandeau illustré à une mesure. Valeur et unité standard, aucune colonne vide ni nouveau nœud, hauteur native de deux lignes conservée.
+- Passage une/deux mesures et désactivation explicite nettoient les seuls nœuds et actions possédés. Les objets `summary` existants et les cartes classiques conservent leur comportement.
 
 ### 1.4.0 — 16 octobre 2026
 

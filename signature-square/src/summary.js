@@ -1,17 +1,21 @@
-// An optional second measurement turns Square into a wide summary. Keep the
-// primary native nodes and use Bubble's existing delegated value actions.
+// One or two measurements share the wide summary. Keep the primary native
+// nodes and use Bubble's existing delegated value actions for a second entity.
 const summary = o.summary && typeof o.summary === 'object' && !Array.isArray(o.summary)
   ? o.summary : {};
 const summaryEntity = String(summary.entity ?? '').trim();
+const summarySingle = summary.enabled === true && summaryEntity === '';
 const summaryEnabled = !autoHeight && o.controls !== 'measure'
-  && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(summaryEntity);
+  && summary.enabled !== false
+  && (summarySingle || /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(summaryEntity));
 attr('data-dp-square-mode', summaryEnabled ? 'summary' : 'standard');
+if (summaryEnabled) attr('data-dp-summary-single', summarySingle ? 'yes' : 'no');
+else root.removeAttribute('data-dp-summary-single');
 let summaryEl = runtime.summaryEl;
 if (summaryEl && (!root.contains(summaryEl) || runtime.summaryEntity !== summaryEntity)) {
   summaryEl.remove();
   summaryEl = null;
 }
-if (summaryEnabled && content) {
+if (summaryEnabled && !summarySingle && content) {
   if (!summaryEl) {
     summaryEl = document.createElement('div');
     summaryEl.className = 'dp-summary';
