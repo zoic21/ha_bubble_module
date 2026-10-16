@@ -26,6 +26,7 @@ async function room(page,{width=180,mode='dark',plain=false,controls=4,columns=4
     for(const [i,b] of buttons.entries()) {
       const el=document.createElement('div');el.className='bubble-sub-button bubble-sub-button-'+(i+1)+' '+b.css_class;
       const icon=document.createElement('ha-icon');icon.className='bubble-sub-button-icon';el.append(icon);
+      if(b.show_icon===false)icon.classList.add('hidden');
       if(b.css_class==='room-temperature'||b.css_class==='room-humidity'||b.show_name){
         const label=document.createElement('div');label.className='bubble-sub-button-name-container';
         label.textContent=b.css_class==='room-temperature'?temperature:b.css_class==='room-humidity'?'65 %':['Balcon','Étendage','Portillon','Ambiance','Arrière','Escalier'][i-2];
@@ -40,7 +41,7 @@ async function room(page,{width=180,mode='dark',plain=false,controls=4,columns=4
     const rect=s=>{const el=ctx.card.querySelector(s),r=el.getBoundingClientRect(),c=getComputedStyle(el);return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height,display:c.display,scroll:el.scrollWidth,client:el.clientWidth,fontSize:c.fontSize};};
     const pseudo=getComputedStyle(ctx.elements.contentContainer,'::after'),container=rect('.bubble-container');
     const content=rect('.bubble-content-container');
-    return {container,content,name:rect('.bubble-name'),temperature:rect('.room-temperature'),humidity:rect('.room-humidity'),icon:rect('.bubble-icon-container'),badge:rect('.room-status'),
+    return {container,content,name:rect('.bubble-name'),temperature:rect('.room-temperature'),temperatureLabel:rect('.room-temperature .bubble-sub-button-name-container'),humidity:rect('.room-humidity'),icon:rect('.bubble-icon-container'),badge:rect('.room-status'),
       controls:[...ctx.card.querySelectorAll('[class*="room-control-"]')].map(el=>rect('.'+[...el.classList].find(c=>c.startsWith('room-control-')))),
       art:{width:parseFloat(pseudo.width),x:content.right-parseFloat(pseudo.right)-parseFloat(pseudo.width),y:content.y+parseFloat(pseudo.top),height:parseFloat(pseudo.height),pointer:pseudo.pointerEvents,image:pseudo.backgroundImage,shadow:pseudo.boxShadow},
       radius:getComputedStyle(ctx.card.querySelector('.bubble-container')).borderRadius,shadow:getComputedStyle(ctx.card.querySelector('.bubble-container')).boxShadow,
@@ -54,11 +55,14 @@ test('illustrated rooms preserve title, temperature, status and footer on small 
   for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [142,156,170,180,190,220,288,328,358,382,600]){
     const m=await room(page,{width,mode,plain});
     const hint=JSON.stringify({width,mode,plain,m});
-    assert.equal(m.container.height,176,hint);assert.equal(m.humidity.display,'none');assert.equal(m.icon.display,'none');
+    assert.equal(m.container.height,148,hint);assert.equal(m.humidity.display,'none');assert.equal(m.icon.display,'none');
+    assert.equal(m.temperature.height,36,hint);
     assert.equal(m.radius,'22px');assert.equal(m.text,'22,1 °C');assert.equal(m.mode,'illustrated');assert.equal(m.art.pointer,'none');
     assert.ok(m.temperature.scroll<=m.temperature.client+1,hint);
+    assert.ok(m.temperatureLabel.scroll<=m.temperatureLabel.client+1,hint);
+    assert.ok(m.name.scroll<=m.name.client+1,hint);
     assert.ok(m.temperature.right<=m.art.x+1,hint);
-    assert.ok(m.name.bottom<=m.art.y+1,hint);
+    assert.ok(m.name.right<=m.art.x+1,hint);
     assert.ok(m.art.y+m.art.height<m.controls[0].y,hint);
     assert.ok(m.badge.height>0&&m.badge.y<m.art.y,hint);
     assert.ok(m.art.image.includes(mode==='dark'?'night.png':'day.png'));
@@ -73,12 +77,44 @@ test('garden retains six labelled controls on two rows and enough room above the
   const page=await fixture(t);
   for(const width of [288,328,358,382,600]){
     const m=await room(page,{width,controls:6,columns:3,named:true});
-    assert.equal(m.container.height,224);assert.equal(m.controls.length,6);
+    assert.equal(m.container.height,196);assert.equal(m.controls.length,6);
     assert.ok(m.controls[3].y>m.controls[0].y);
     assert.ok(m.art.y+m.art.height<m.controls[0].y);
     const labels=await page.evaluate(()=>[...window.roomCtx.card.querySelectorAll('[class*="room-control-"] .bubble-sub-button-name-container')].map(el=>({text:el.textContent,scroll:el.scrollWidth,client:el.clientWidth})));
     assert.equal(labels.length,6);
     for(const label of labels)assert.ok(label.scroll<=label.client+1,JSON.stringify({width,label}));
+  }
+});
+
+test('one live theme size controls Square and Room artwork without rebuilding either layout',async t=>{
+  const page=await fixture(t);await room(page,{width:328});
+  const values=await page.evaluate(squareCode=>{
+    const room=window.roomCtx,shadow=document.querySelector('[data-id="square"]').shadowRoot;
+    const square=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
+    square.config.show_icon=false;square.elements.iconContainer.classList.add('hidden');
+    square.config.signature_square={illustration:{image:'/local/atlas.png'}};
+    shadow.querySelectorAll('style')[1].textContent=new Function('hass','onTeardown','renderTemplate','return `'+squareCode+'`;').call(square,square._hass,fn=>square.teardown=fn,x=>x);
+    const layouts=[square._signatureSquareRuntime.styleCSS,room._signatureRoomRuntime.styleCSS];
+    const native=[square.elements.state,room.card.querySelector('.room-control-1')];
+    const samples=[64,80,96].map(size=>{
+      document.body.style.setProperty('--signature-illustration-size',size+'px');
+      const art=ctx=>getComputedStyle(ctx.elements.contentContainer,'::after');
+      const roomContent=room.elements.contentContainer.getBoundingClientRect();
+      return {size,square:parseFloat(art(square).width),room:parseFloat(art(room).width),
+        height:room.card.querySelector('.bubble-container').getBoundingClientRect().height,
+        artBottom:roomContent.top+parseFloat(art(room).top)+parseFloat(art(room).height),
+        controlTop:native[1].getBoundingClientRect().top};
+    });
+    const same=layouts[0]===square._signatureSquareRuntime.styleCSS&&layouts[1]===room._signatureRoomRuntime.styleCSS&&
+      native[0]===square.elements.state&&native[1]===room.card.querySelector('.room-control-1');
+    document.body.style.removeProperty('--signature-illustration-size');
+    return {samples,same};
+  },loadModule('signature-square').code);
+  assert.equal(values.same,true);
+  for(const m of values.samples){
+    assert.equal(m.square,m.size);assert.equal(m.room,m.size);
+    assert.equal(m.height,m.size===96?164:148);
+    assert.ok(m.artBottom<m.controlTop,JSON.stringify(m));
   }
 });
 
@@ -114,7 +150,7 @@ test('mode, theme, hidden badges and unavailable values update without replacing
 test('secondary text, multiple control rows and a missing image retain native visibility and clear targets',async t=>{
   const page=await fixture(t);
   const m=await room(page,{width:180,secondary:'Détail conservé',controls:6});
-  assert.ok(m.container.height>=248);
+  assert.ok(m.container.height>=220);
   const values=await page.evaluate(()=>{
     const ctx=window.roomCtx,secondary=ctx.card.querySelector('.dp-secondary');
     const detail=secondary.getBoundingClientRect();

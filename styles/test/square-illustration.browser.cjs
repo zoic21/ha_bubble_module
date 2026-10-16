@@ -84,6 +84,24 @@ test('long/unavailable values reduce illustration space instead of clipping addi
   }
 });
 
+test('a larger shared size keeps square artwork clear of full-width secondary text',async t=>{
+  const page=await fixture(t);
+  await illustrated(page,{width:328,value:'2.2',unit:'km/h',secondary:'Rafales · 4,0 km/h'});
+  const m=await page.evaluate(()=>{
+    document.body.style.setProperty('--signature-illustration-size','96px');
+    const root=document.querySelector('[data-id="square"]').shadowRoot;
+    const content=root.querySelector('.bubble-content-container'),art=getComputedStyle(content,'::after');
+    const secondary=root.querySelector('.dp-secondary');
+    return {width:parseFloat(art.width),height:parseFloat(art.height),
+      bottom:content.getBoundingClientRect().top+parseFloat(art.height),
+      secondaryTop:secondary.getBoundingClientRect().top,
+      secondaryWidth:secondary.getBoundingClientRect().width,contentWidth:content.getBoundingClientRect().width};
+  });
+  assert.ok(m.width>0&&m.width<96);assert.equal(m.width,m.height);
+  assert.ok(m.bottom<=m.secondaryTop,JSON.stringify(m));
+  assert.equal(m.secondaryWidth,m.contentWidth);
+});
+
 test('illustration keeps a visible native icon clear of the heading when it is not hidden', async t => {
   const page=await fixture(t);
   await illustrated(page,{width:220,icon:true});

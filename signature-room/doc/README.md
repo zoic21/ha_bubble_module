@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.1.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.1.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -51,7 +51,9 @@ signature_room:
     index: 0
 ```
 
-La variante illustrée affiche le nom, la température à gauche, le dessin à droite et les commandes natives en bas. Sa hauteur de base est de **176 px** (+12,8 %), puis augmente de 48 px par rangée de commandes supplémentaire. Les tuiles larges comme Jardin gardent donc leurs deux rangées. Dans les grilles Sections Home Assistant, utiliser `grid_options.rows: auto` pour que le conteneur suive cette hauteur. Ne pas imposer de hauteur ou ajouter du CSS dans la carte.
+La variante illustrée place le nom et la température à gauche, le dessin à droite et les commandes natives en bas. Sa hauteur de base est de **148 px**, soit 28 px de moins que la première version illustrée, puis augmente de 48 px par rangée de commandes supplémentaire. Jardin conserve ses deux rangées dans **196 px**. Dans les grilles Sections Home Assistant, utiliser `grid_options.rows: auto` pour que le conteneur suive cette hauteur. Ne pas imposer de hauteur ou ajouter du CSS dans la carte.
+
+La variable de thème **`signature-illustration-size: 80px`** définit la taille cible des dessins pour Room et Square. Sans thème, la même valeur de 80 px est utilisée. Les petites cartes réduisent le dessin pour préserver les textes ; une taille demandée supérieure à 80 px augmente la hauteur pour garder les commandes dégagées. Le changement suit le thème en CSS, sans reconstruire le module. Voir le [thème](../../themes/README.md#shared-module-variables).
 
 L’humidité et l’icône du titre sont masquées par le module ; conserver leurs configurations pour pouvoir revenir au mode classique. Le badge d’état reste en haut à droite. `icon_border_color` entoure le dessin au lieu de l’icône masquée. `border_color` conserve le contour d’alerte et l’ombre Signature. Les libellés des commandes nommées restent près de leur icône ; leurs actions restent celles de Bubble.
 
@@ -107,6 +109,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.1 — 16 octobre 2026
+
+- Illustration alignée sur la taille cible de Square via `signature-illustration-size` : 80 px par défaut au lieu de 64 px, adaptation aux cartes étroites.
+- Nom et température à gauche du dessin ; hauteur de base ramenée de 176 à 148 px, sans réduire les commandes natives. Jardin à 196 px pour deux rangées.
+- Variable héritée en CSS, compatible avec les caches de présentation et les variantes jour/nuit existantes. Un texte secondaire ou une illustration agrandie adapte la hauteur.
 
 ### 1.1.0 — 16 octobre 2026
 

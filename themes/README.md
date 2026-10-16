@@ -64,6 +64,7 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-divider-color` | Room, Weather and Wind Rose dividers | 8% primary text in transparent |
 | `signature-divider-inset` | Horizontal divider margin from each card edge | `16px` |
 | `signature-icon-border-radius` | Main icon corners | `12px` |
+| `signature-illustration-size` | Shared target artwork size in Square 1.3.2 and illustrated Room 1.1.1 | `80px` |
 | `signature-icon-small-border-radius` | Small Flow icon corners | Main icon radius minus `2px`, at least zero |
 | `signature-control-border-radius` | Signature controls, period groups and native Bubble buttons | `14px` |
 | `signature-control-height` | Period buttons with a fine pointer | `40px` |
@@ -77,6 +78,15 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-weather-cool-color` | Low end of Weather temperature ranges | `#8bc3d2` |
 | `signature-weather-warm-color` | High end of Weather temperature ranges | `#e9ac70` |
 | `signature-wind-rose-color` | Single color for wind direction sectors | `#4db6ac` |
+
+Square and illustrated Room share one target artwork size, including without the theme (80 px fallback). Change it once in the theme YAML:
+
+```yaml
+Signature:
+  signature-illustration-size: 80px
+```
+
+Use a positive CSS length. The image stays square and shrinks when text or a Square secondary line needs room. Room uses a compact 148 px base height with the default size, adds 48 px for each extra control row, and grows if the requested illustration exceeds 80 px. Native command targets keep their size. The variable is inherited live in CSS; no per-card CSS, new observer or module rerender is needed.
 
 Horizontal dividers in Signature room cards, Weather and Wind Rose share a 1 px line with a 16 px inset from each card edge, even without the theme. `signature-divider-inset` changes only the line, not the surrounding text or controls. Weather forecast-row padding is accounted for on desktop and mobile, so the inset is not applied twice. Use a non-negative CSS length such as `24px` for a shorter line, or `0px` to span the card's inner width. Flow and Alert Manager have no horizontal dividers.
 

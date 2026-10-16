@@ -1,5 +1,8 @@
 `/* Artwork is anchored at the top right, independently of optional detail.
     Title/value take priority; narrow cards shrink artwork rather than text. */
+    ha-card[data-dp-layout="square"][data-dp-illustration="yes"]:not([data-dp-auto-height="yes"]) .bubble-container {
+      container-type: size;
+    }
     ha-card[data-dp-layout="square"][data-dp-illustration="yes"] .bubble-content-container {
       grid-template-columns: minmax(0,max-content) minmax(0,1fr);
       column-gap: 0;
@@ -17,7 +20,7 @@
     ha-card[data-dp-layout="square"][data-dp-illustration="yes"] .bubble-content-container::after {
       content: '';
       grid-area: 1 / 2 / 3 / 3;
-      width: min(80px,100%);
+      width: min(var(--signature-illustration-size,80px),100%${!autoHeight ? `,max(0px,calc(100cqh - ${secondary ? '38px' : '18px'}))` : ''});
       aspect-ratio: 1;
       align-self: start;
       justify-self: end;

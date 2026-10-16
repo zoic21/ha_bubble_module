@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.3.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.3.2**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -82,9 +82,7 @@ chaque objet. Elle n’est pas fournie par le module : installer l’image dans
 Les images doivent être de confiance et accessibles au navigateur.
 
 Le placement utilise seulement CSS : l’image reste ancrée en haut, même lorsque
-la carte affiche un secondaire sous sa valeur. Limitée à 80 px, elle rétrécit
-avant le titre ou la valeur sur une carte étroite ; le secondaire conserve toute
-la largeur et son unité. Elle ne
+la carte affiche un secondaire sous sa valeur. Sa taille cible est partagée avec Room via la variable de thème `signature-illustration-size: 80px` (même repli sans thème). Elle rétrécit avant le titre ou la valeur sur une carte étroite, et selon la hauteur disponible au-dessus du secondaire ; sa boîte reste carrée. Le secondaire conserve toute la largeur et son unité. Le réglage suit le thème sans reconstruire le module ; voir le [thème](../../themes/README.md#shared-module-variables). Elle ne
 capte pas les clics et ne remplace aucun nœud natif. Aucun abonnement, observateur,
 timer ou bibliothèque supplémentaire n’est ajouté.
 
@@ -126,6 +124,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.3.2 — 16 octobre 2026
+
+- Taille cible des illustrations partagée avec Room via `signature-illustration-size`, 80 px par défaut, sans CSS dans les cartes.
+- Adaptation à l’espace horizontal et vertical disponible pour préserver les valeurs et le secondaire à pleine largeur, y compris avec une taille demandée plus grande.
+- Variable CSS héritée à chaud ; images, variantes HA, nœuds et actions natifs conservés.
 
 ### 1.3.1 — 16 octobre 2026
 

@@ -1,38 +1,43 @@
-`/* Opt-in illustrated rooms: 176px (+12.8%), with native footer targets.
-    The 38px title row stays full-width; artwork yields space to the temperature. */
+`/* Compact illustrated rooms share Square's target artwork size.
+    The name and value stay to its left, above the unchanged native footer. */
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .bubble-container {
-      height: ${176 + roomExtraHeight}px !important;
-      min-height: ${176 + roomExtraHeight}px !important;
+      height: calc(max(148px,calc(var(--signature-illustration-size,80px) + 68px)) + ${roomExtraHeight}px) !important;
+      min-height: calc(max(148px,calc(var(--signature-illustration-size,80px) + 68px)) + ${roomExtraHeight}px) !important;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .bubble-content-container {
       inset: 12px;
       padding: 0;
       grid-template-columns: minmax(0,1fr);
-      grid-template-rows: 38px 64px;
+      grid-template-rows: 38px 32px;
       gap: 4px 0;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .bubble-name {
       grid-area: 1 / 1;
       align-self: start;
     }
+    ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .bubble-name {
+      max-width: calc(100% - min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) - 8px);
+    }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] :is(.bubble-icon-container,.room-humidity) {
       display: none !important;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .room-temperature {
-      top: 78px;
-      left: 4px;
+      top: 52px;
+      height: 36px;
+      left: 8px;
+      padding-inline: 4px !important;
       max-width: calc(100% - 24px);
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .room-temperature {
       /* Preserve at least 80px for the value; reduce the artwork on tiny tiles. */
-      max-width: calc(100% - min(64px,max(0px,100cqw - 112px)) - 20px);
+      max-width: calc(100% - min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) - 24px);
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .bubble-content-container::after {
       content: '';
       position: absolute;
-      top: 42px;
+      top: -3px;
       right: 0;
-      width: min(64px,max(0px,100cqw - 112px));
+      width: min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px));
       aspect-ratio: 1;
       pointer-events: none;
       border-radius: var(--signature-icon-border-radius,12px);
@@ -47,27 +52,27 @@
       right: 8px;
       top: 8px;
     }
-    ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"]:has(.room-status:not(.hidden):not([hidden])) .bubble-name {
+    ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="no"]:has(.room-status:not(.hidden):not([hidden])) .bubble-name {
       padding-right: 24px;
     }
     /* Preserve optional main/secondary text instead of overlapping artwork. */
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .bubble-state {
       grid-area: 2 / 1;
       align-self: end;
-      max-width: calc(100% - 72px);
+      max-width: calc(100% - min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) - 8px);
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-secondary="yes"] .bubble-container {
       height: auto !important;
-      min-height: ${200 + (roomRows - 1) * 48}px !important;
+      min-height: calc(max(172px,calc(var(--signature-illustration-size,80px) + 92px)) + ${(roomRows - 1) * 48}px) !important;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-secondary="yes"] .bubble-content-container {
       position: relative;
       inset: auto;
-      grid-template-rows: 38px 64px auto;
+      grid-template-rows: 38px max(32px,calc(var(--signature-illustration-size,80px) - 48px)) auto;
       padding: 12px 12px ${68 + (roomRows - 1) * 48}px;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-secondary="yes"] .bubble-content-container::after {
-      top: 54px;
+      top: 8px;
       right: 12px;
     }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .dp-secondary {

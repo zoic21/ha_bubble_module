@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.3**, **Square 1.3.1**, **Header 1.1.13**, **Room 1.1.0**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.3**, **Square 1.3.2**, **Header 1.1.13**, **Room 1.1.1**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.3** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.5.3 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.4.3**, **Square 1.3.1**, **Header 1.1.13** et **Room 1.1.0** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.4.3**, **Square 1.3.2**, **Header 1.1.13** et **Room 1.1.1** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -249,11 +249,11 @@ Une variation de thème ne doit déclencher ni abonnement, ni requête d'histori
 
 ### Illustration facultative de Square
 
-Square 1.3.1 réserve l’illustration aux cartes explicitement configurées. Le
+Square 1.3.2 réserve l’illustration aux cartes explicitement configurées. Le
 pseudo-élément décoratif ne reçoit pas les clics ; valeur et secondaire gardent
 leurs nœuds et actions natifs. Le titre et la valeur prennent leur largeur
-intrinsèque avant celle de l’image (maximum 80 px), laquelle rétrécit sur une
-carte étroite. L’image est ancrée en haut à droite et reste à la même hauteur
+intrinsèque avant celle de l’image (`signature-illustration-size`, 80 px par défaut), laquelle rétrécit sur une
+carte étroite ou lorsque la hauteur disponible au-dessus du secondaire est insuffisante. La boîte reste carrée. L’image est ancrée en haut à droite et reste à la même hauteur
 avec ou sans secondaire. Le secondaire reste sous la valeur sur sa rangée
 dédiée, à pleine largeur et avec son unité.
 Les surfaces, la typographie et les cartes sans illustration sont inchangées.
@@ -270,11 +270,11 @@ Les deux planches partagent exactement leur grille et leur ordre de cases.
 Les couleurs et surfaces héritées restent dans le CSS, sans lecture de style,
 timer, écouteur, abonnement ou image intégrée au module.
 
-### Room illustrée (1.1.0)
+### Room illustrée (1.1.1)
 
-`room_mode: illustrated` est une variante explicite ; le mode classique reste le défaut. Hauteur de base 176 px contre 156 px (+12,8 %), plus 48 px par rangée de commandes supplémentaire. Les mesures d’en-tête sont ignorées dans cette variante pour réserver une vraie zone au dessin et à la température. Un titre sur deux lignes conserve 38 px ; la décoration de 64 px maximum cède de la place sur les cartes étroites. L’humidité et l’icône principale sont masquées sans supprimer leurs configurations natives. Les valeurs, unités, badges conditionnels, actions et cibles de commandes de 44 px sont conservés.
+`room_mode: illustrated` est une variante explicite ; le mode classique reste le défaut. Hauteur de base 148 px (28 px de moins que la première variante illustrée), plus 48 px par rangée de commandes supplémentaire. Le nom sur deux lignes et la température sont à gauche du dessin ; le titre conserve 38 px. Les mesures d’en-tête sont ignorées dans cette variante. La décoration partage `signature-illustration-size` avec Square : 80 px par défaut, réduction sur les cartes étroites pour préserver les textes. Une valeur supérieure à 80 px agrandit la hauteur de base pour dégager les commandes ; le texte secondaire garde sa propre rangée et adapte la hauteur. L’humidité et l’icône principale sont masquées sans supprimer leurs configurations natives. Les valeurs, unités, badges conditionnels, actions et cibles de commandes de 44 px sont conservés.
 
-L’image utilise le même helper que Square : URL locale/HTTPS, sprites, index Jinja, variantes `image_light`/`image_dark` selon HA, sans nouvel observateur ni abonnement. Les images restent extérieures au dépôt des modules. Le badge d’état passe en haut à droite et réserve sa place dans le titre seulement lorsqu’il est visible. L’anneau `icon_border_color` est reporté sur la décoration ; `border_color` garde l’ombre de carte et son contour d’alerte. `sub_button_styles.<classe>.icon_outline_color` conserve un contour de glyphe de 1,5 px avec la couleur RGB configurée, sans CSS dans la carte. Les commandes natives nommées disposent d’une grille icône/libellé dans le module. Les réglages masqués restent enregistrés pour le retour au mode classique.
+L’image utilise le même helper que Square : URL locale/HTTPS, sprites, index Jinja, variantes `image_light`/`image_dark` selon HA, sans nouvel observateur ni abonnement. Les images restent extérieures au dépôt des modules. Le badge d’état passe en haut à droite, au-dessus du dessin ; sans illustration, sa place est réservée dans le titre seulement lorsqu’il est visible. La taille partagée reste une variable CSS héritée et suit le thème sans reconstruire le cache ni lire les styles en JavaScript. L’anneau `icon_border_color` est reporté sur la décoration ; `border_color` garde l’ombre de carte et son contour d’alerte. `sub_button_styles.<classe>.icon_outline_color` conserve un contour de glyphe de 1,5 px avec la couleur RGB configurée, sans CSS dans la carte. Les commandes natives nommées disposent d’une grille icône/libellé dans le module. Les réglages masqués restent enregistrés pour le retour au mode classique.
 
 ## 7. Contrôles obligatoires lors d'une évolution
 

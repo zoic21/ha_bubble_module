@@ -23,6 +23,7 @@ Signature:
   signature-card-border-radius: 22px
   signature-divider-inset: 16px
   signature-icon-border-radius: 12px
+  signature-illustration-size: 80px
   signature-icon-small-border-radius: "max(0px, calc(var(--signature-icon-border-radius) - 2px))"
   signature-control-border-radius: 14px
   signature-control-height: 40px
