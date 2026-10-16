@@ -7,20 +7,23 @@ const code=loadModule('signature-square').code;
 
 test('a daily statistics total uses the same large summary rows as an entity value',async t=>{
   const page=await fixture(t);
-  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,358,600]){
+  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,358,600])for(const percent of [false,true]){
     await summary(page,{mode,plain,width});
-    await page.evaluate(()=>{
+    await page.evaluate(percent=>{
       const ctx=window.summaryContext;
       ctx._hass.config={time_zone:'Europe/Paris'};
       ctx._hass.callWS=async request=>Object.fromEntries(request.statistic_ids.map(id=>[id,
         [{start:request.start_time,change:1.8}]]));
       ctx.elements.nameContainer.querySelector('.bubble-name').textContent='Puissance';
       ctx.config.signature_square.secondary='';
-      ctx.config.signature_square.summary={name:'Coût du jour',secondary:'Hors abonnement',
-        statistics:{statistic_ids:['sensor.hc_cost','sensor.hp_cost'],unit:'€',decimals:2}};
+      ctx.config.signature_square.summary=percent?{name:'Autosuffisance',
+        statistics:{statistic_ids:['sensor.grid','sensor.solar'],part_statistic_ids:['sensor.grid'],
+          operation:'remaining_percentage',unit:'%',decimals:0}}:
+        {name:'Coût du jour',secondary:'Hors abonnement',
+          statistics:{statistic_ids:['sensor.hc_cost','sensor.hp_cost'],unit:'€',decimals:2}};
       window.refreshSummary();
-    });
-    await page.waitForFunction(()=>window.summaryContext.card.querySelector('.dp-summary-state').textContent==='3,60€');
+    },percent);
+    await page.waitForFunction(expected=>window.summaryContext.card.querySelector('.dp-summary-state').textContent===expected,percent?'50%':'3,60€');
     const m=await page.evaluate(()=>{
       const root=window.summaryContext.card;
       const rect=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
@@ -29,10 +32,12 @@ test('a daily statistics total uses the same large summary rows as an entity val
         value:rect(value),other:rect(other),font:getComputedStyle(value).fontSize,
         otherFont:getComputedStyle(other).fontSize,unit:getComputedStyle(value.querySelector('.dp-unit')).fontSize,
         otherUnit:getComputedStyle(other.querySelector('.dp-unit')).fontSize,
-        clipped:value.scrollWidth>value.clientWidth+1};
+        clipped:value.scrollWidth>value.clientWidth+1,
+        detail:root.querySelector('.dp-summary-secondary').textContent};
     });
     assert.equal(m.height,120);assert.equal(m.font,m.otherFont);assert.equal(m.unit,m.otherUnit);
     assert.equal(m.value.top,m.other.top);assert.ok(m.value.left>=m.other.right+9);assert.equal(m.clipped,false);
+    if(percent)assert.equal(m.detail,'');
   }
 });
 

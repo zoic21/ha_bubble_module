@@ -406,3 +406,10 @@ jour/configuration/module et au nettoyage. Le total de plusieurs statistiques
 ne possède pas d’entité more-info fictive ; seules les cibles réellement liées
 à une entité restent interactives. Les formulaires et les autres layouts ne
 changent pas.
+
+
+Square 1.5.1 réutilise ce même bandeau pour `operation: remaining_percentage`.
+Le titre Autosuffisance et le pourcentage gardent les rôles existants, sans
+sous-titre lorsqu’aucun `secondary` n’est configuré. Les sorties d’énergie sont
+soustraites avant le ratio ; un dénominateur nul ou une source manquante reste
+`—`. La formule et les sources entrent dans la clé du cache journalier.

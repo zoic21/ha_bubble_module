@@ -1,11 +1,19 @@
-// Optional daily total. Recorder's change field already accounts for meter
+// Optional daily total or percentage. Recorder's change accounts for meter
 // resets; never subtract or sum the live cumulative entity states.
 const statisticOptions = summary.statistics;
-const statisticIds = Array.isArray(statisticOptions?.statistic_ids)
-  && statisticOptions.statistic_ids.every(id => typeof id === 'string' && id.length <= 200
+const sourceIds = value => Array.isArray(value)
+  && value.every(id => typeof id === 'string' && id.length <= 200
     && /^[a-zA-Z0-9_]+[.:][a-zA-Z0-9_.:-]+$/.test(id))
-  ? [...new Set(statisticOptions.statistic_ids)] : [];
-const statisticsEnabled = statisticIds.length > 0 && statisticIds.length <= 16;
+  ? [...new Set(value)] : null;
+const totalIds = sourceIds(statisticOptions?.statistic_ids);
+const subtractIds = sourceIds(statisticOptions?.subtract_statistic_ids ?? []);
+const partIds = sourceIds(statisticOptions?.part_statistic_ids ?? []);
+const operation = statisticOptions?.operation ?? 'sum';
+const statisticIds = [...new Set([...(totalIds || []),...(subtractIds || []),...(partIds || [])])];
+const statisticsEnabled = !!totalIds?.length && subtractIds !== null && partIds !== null
+  && statisticIds.length <= 16 && subtractIds.every(id => !totalIds.includes(id))
+  && (operation === 'sum' && !partIds.length || operation === 'remaining_percentage'
+    && partIds.length > 0 && partIds.every(id => totalIds.includes(id)));
 const dailyWindow = (stamp, zone) => {
   if (runtime.summaryStatisticsZone !== zone) {
     runtime.summaryStatisticsFormatter = new Intl.DateTimeFormat('en-CA', {timeZone:zone,
@@ -30,7 +38,7 @@ const dailyStatistics = paint => {
   const zone = statisticOptions.time_zone || hass.config?.time_zone || 'UTC';
   let window;
   try { window = dailyWindow(Date.now(),zone); } catch { runtime.summaryStatistics = null; paint(null); return; }
-  const key = JSON.stringify([statisticIds,zone,window.start]);
+  const key = JSON.stringify([totalIds,subtractIds,partIds,operation,zone,window.start]);
   let data = runtime.summaryStatistics;
   if (!data || data.key !== key) data = runtime.summaryStatistics = {key,value:null,lastAttempt:null,pending:false};
   data.paint = paint;
@@ -46,7 +54,7 @@ const dailyStatistics = paint => {
     statistic_ids:statisticIds,period:'5minute',types:['change']};
   Promise.resolve().then(() => hass.callWS(request)).then(result => {
     if (!current()) return;
-    let total = 0;
+    const totals = new Map();
     for (const id of statisticIds) {
       const rows = Array.isArray(result?.[id]) ? result[id] : [];
       const values = rows.filter(row => {
@@ -54,10 +62,14 @@ const dailyStatistics = paint => {
         return time >= window.start && time < window.end
           && typeof row.change === 'number' && Number.isFinite(row.change);
       });
-      // Missing data must not become a partial or invented zero cost.
-      if (!values.length) { total = NaN; break; }
-      for (const row of values) total += row.change;
+      // Never display a partial result when one of the sources is missing.
+      if (!values.length) { data.value = null; return; }
+      totals.set(id,values.reduce((sum,row) => sum+row.change,0));
     }
+    const sum = ids => ids.reduce((value,id) => value+totals.get(id),0);
+    let total = sum(totalIds)-sum(subtractIds);
+    if (operation === 'remaining_percentage') total = total > 0
+      ? Math.max(0,Math.min(100,100*(1-sum(partIds)/total))) : NaN;
     data.value = Number.isFinite(total) && dailyWindow(Date.now(),zone).start === window.start ? total : null;
   }).catch(() => { if (current()) data.value = null; }).finally(() => {
     if (!current()) return;

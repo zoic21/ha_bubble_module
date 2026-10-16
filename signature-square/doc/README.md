@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.4.5**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.5.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -379,3 +379,50 @@ Aucun nœud, action, abonnement ou écouteur supplémentaire.
 ### 1.5.0
 
 - Seconde mesure depuis les statistiques du jour, sans helper et sans modifier les dimensions du bandeau.
+
+
+### Pourcentage restant du jour — 1.5.1
+
+`statistics.operation: remaining_percentage` affiche
+`100 × (1 − part / total)`, borné entre 0 et 100. `statistic_ids` forme le total,
+`subtract_statistic_ids` retire les sorties et `part_statistic_ids` sélectionne
+la part à retirer du pourcentage. Les deux listes facultatives utilisent les
+mêmes identifiants valides ; les sources soustraites doivent être distinctes
+des entrées, et la part doit être un sous-ensemble des entrées. La requête reste
+unique, avec au plus 16 sources au total. `operation` vaut `sum` par défaut ;
+les configurations de coût existantes sont inchangées.
+
+Exemple d’autosuffisance journalière, avec les compteurs d’énergie en kWh :
+
+```yaml
+signature_square:
+  summary:
+    name: Autosuffisance
+    statistics:
+      operation: remaining_percentage
+      statistic_ids:
+        - sensor.grid_import_energy
+        - sensor.solar_production_energy
+        - sensor.battery_discharge_energy
+      subtract_statistic_ids:
+        - sensor.grid_export_energy
+        - sensor.battery_charge_energy
+      part_statistic_ids:
+        - sensor.grid_import_energy
+      unit: '%'
+      decimals: 0
+      time_zone: Europe/Paris
+```
+
+Le dénominateur est import + production + décharge − export − charge :
+l’énergie stockée ou exportée n’est pas comptée comme consommation maison.
+C’est la formule de la [jauge d’autosuffisance HA](https://github.com/home-assistant/frontend/blob/dev/src/panels/lovelace/cards/energy/hui-energy-self-sufficiency-gauge-card.ts).
+Comme cette jauge, elle n’identifie pas l’origine de l’énergie stockée et peut
+afficher 0 % lors d’une recharge importante depuis le réseau. Un total nul ou
+négatif, une source absente ou une erreur donne `—`, jamais une division par
+zéro ou un pourcentage partiel. `secondary` est omis : aucun sous-titre.
+
+### 1.5.1
+
+- Pourcentage restant journalier, avec sorties soustraites et invalidation du cache lors d’un changement de formule.
+- Même bandeau et typographie ; aucune requête ou minuterie supplémentaire.

@@ -104,8 +104,50 @@ test('disabling statistics or tearing down ignores the pending answer and preser
 
 test('disabled and invalid sources do not issue requests',async()=>{
   for(const options of [{enabled:false}, {statistics:{statistic_ids:[]}},
-    {statistics:{statistic_ids:['sensor.hc_cost','bad id']}}, {entity:'sensor.power'}]){
+    {statistics:{statistic_ids:['sensor.hc_cost','bad id']}},
+    {statistics:{statistic_ids:ids,subtract_statistic_ids:['bad id']}},
+    {statistics:{statistic_ids:ids,operation:'unknown'}},
+    {statistics:{statistic_ids:ids,operation:'remaining_percentage'}},
+    {statistics:{statistic_ids:ids,operation:'remaining_percentage',part_statistic_ids:['sensor.other']}},
+    {statistics:{statistic_ids:ids,subtract_statistic_ids:[ids[0]]}}, {entity:'sensor.power'}]){
     const f=fixture();Object.assign(f.summary,options);if(options.entity)delete f.summary.statistics;
     f.run();await flush();assert.equal(f.calls.length,0);f.ctx.teardown();
+  }
+});
+
+test('daily remaining share excludes exports and storage input, without a subtitle',async t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());
+  const inputs=['sensor.grid_hc','sensor.grid_hp','sensor.solar','sensor.battery_out'];
+  const outputs=['sensor.export','sensor.battery_in'];
+  Object.assign(f.summary,{name:'Autosuffisance',statistics:{statistic_ids:inputs,
+    subtract_statistic_ids:outputs,part_statistic_ids:inputs.slice(0,2),
+    operation:'remaining_percentage',unit:'%',decimals:0}});
+  delete f.summary.secondary;
+  // Imports 6, solar 14, discharge 4, export 2, charge 2: house 20, share 70%.
+  const amounts=[2,4,14,4,2,2];
+  f.reply(req=>Object.fromEntries(req.statistic_ids.map((id,i)=>[id,[{start:req.start_time,change:amounts[i]}]])));
+  f.run();await flush();assert.equal(f.value(),'70%');
+  assert.deepEqual(Array.from(f.calls[0].statistic_ids),[...inputs,...outputs]);
+  assert.equal(f.root.querySelector('.dp-summary-name').textContent,'Autosuffisance');
+  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'');
+  assert.equal(JSON.parse(f.root.querySelector('.dp-summary-state').dataset.tapAction).action,'none');
+  // Changing the numerator invalidates the cached result immediately.
+  f.summary.statistics.part_statistic_ids=inputs.slice(0,1);f.run();assert.equal(f.value(),'—');
+  await flush();assert.equal(f.value(),'90%');assert.equal(f.calls.length,2);
+});
+
+test('remaining share handles zero consumption, missing sources and grid battery charging',async t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());
+  f.summary.statistics={statistic_ids:['sensor.grid','sensor.solar'],
+    subtract_statistic_ids:['sensor.charge'],part_statistic_ids:['sensor.grid'],
+    operation:'remaining_percentage',unit:'%',decimals:0};
+  // Respectively: no energy, all grid, all solar, grid charging, negative balance.
+  for(const [i,[amounts,expected]]of [
+    [[0,0,0],'—'],[[6,0,0],'0%'],[[0,6,0],'100%'],[[10,0,8],'0%'],[[0,2,5],'—'],
+    [[6,14,null],'—']].entries()){
+    f.setTime(Date.parse('2026-10-16T10:00:00Z')+i*60000);
+    f.reply(req=>Object.fromEntries(req.statistic_ids.map((id,j)=>[id,
+      amounts[j]===null?[]:[{start:req.start_time,change:amounts[j]}]])));
+    f.run();await flush();assert.equal(f.value(),expected);
   }
 });
