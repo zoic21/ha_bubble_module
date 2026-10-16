@@ -11,10 +11,11 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Flow — six configurable flow slots | 3.6.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.5.4 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
+| Signature Group — popup activity summaries | 1.0.0 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
-The eight Signature modules share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions.
+The nine Signature modules share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions.
 
 Each module has its own folder: `src` contains its editable sources, `dist` contains the generated complete YAML file to import and `doc` contains its documentation. Existing modules keep their own `test` folders; the four standalone presentation modules share behavior and build tests in `signature-shared/test`.
 
@@ -32,7 +33,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_header`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
+The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_header`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
 
 ## Updates and Module Store
 
@@ -44,7 +45,7 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 ## Standalone Signature presentations
 
-Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Section titles keep their native badge group beside the label when it fits, or move the whole group below and wrap its badges within the column, on desktop and mobile. Every wrapped row starts at the left edge; badges keep their natural widths. Compact also styles native media-player cards, preserving their artwork, controls and dimensions. Use one presentation module per card, with optional Alert Manager. The legacy `signature` module has been removed after checking the Home Assistant configuration export. Older installations must migrate every card before deleting their installed copy. Room 1.1.6 provides `room_mode: illustrated`: room artwork, a compact 148 px base height, temperature, native controls and status badges, with humidity and the main icon hidden. Room and Square use the shared `signature-illustration-size` theme key (80 px by default). Artwork stays in your own `/local/` assets, outside this module repository. See the [Room guide](signature-room/doc/README.md). Square 1.4.5 also offers an optional wide one- or two-measurement summary through `summary`, retaining the native two-row height and independent value actions; see the [Square guide](signature-square/doc/README.md#bandeau-à-une-ou-deux-mesures).
+Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Section titles keep their native badge group beside the label when it fits, or move the whole group below and wrap its badges within the column, on desktop and mobile. Every wrapped row starts at the left edge; badges keep their natural widths. Compact also styles native media-player cards, preserving their artwork, controls and dimensions. Use one presentation module per card, with optional Alert Manager. A name button can also add [Signature Group](signature-group/doc/README.md) to summarize the cards of a popup using their existing visibility conditions. The legacy `signature` module has been removed after checking the Home Assistant configuration export. Older installations must migrate every card before deleting their installed copy. Room 1.1.6 provides `room_mode: illustrated`: room artwork, a compact 148 px base height, temperature, native controls and status badges, with humidity and the main icon hidden. Room and Square use the shared `signature-illustration-size` theme key (80 px by default). Artwork stays in your own `/local/` assets, outside this module repository. See the [Room guide](signature-room/doc/README.md). Square 1.4.5 also offers an optional wide one- or two-measurement summary through `summary`, retaining the native two-row height and independent value actions; see the [Square guide](signature-square/doc/README.md#bandeau-à-une-ou-deux-mesures).
 
 See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
 
@@ -56,7 +57,7 @@ Compact and Square support numeric `color_thresholds.values` on their main icons
 
 ## Source maintenance
 
-All nine module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
+All ten module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
 
 ## Configuration
 
@@ -97,3 +98,5 @@ Run `npm run build:modules` after editing any module or common source; `npm run 
 For browser style checks, run `npx playwright install chromium` once, then `npm run test:styles`. These tests load the actual module distributions in a minimal Bubble-shaped DOM and check computed styles, theme switching, keyboard focus, dividers and touch targets. All suites share [browser setup, isolated contexts, error checks and cleanup](styles/README.md). They do not run Home Assistant itself.
 
 GitHub Actions runs the unit tests on Node.js 22 and 24 and browser style checks on Chromium for every push and pull request, and can also be triggered manually. It checks alert sources, filters, caching, translations, numeric controls, metadata, YAML examples, and local documentation links. It does not replace checking the rendered cards in Home Assistant.
+
+Signature Group 1.0.0 links a popup and a name button through their hash. Enable `background_update: true` on the popup, add `signature_group` to both cards, and keep the button’s native navigation action. Its destination is reused by the summary, without a second list of entities or conditions. See the [Group guide](signature-group/doc/README.md).

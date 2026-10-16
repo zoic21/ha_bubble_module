@@ -1,0 +1,34 @@
+# Popup : seule source des cartes et de leurs conditions.
+type: custom:bubble-card
+card_type: pop-up
+hash: '#activites'
+name: Activités
+background_update: true
+modules: [signature_group]
+cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: vacuum.robot
+    name: Aspirateur
+    modules: [signature_compact]
+    visibility:
+      - condition: state
+        entity: vacuum.robot
+        state: cleaning
+---
+# Bouton : destination native utilisée aussi par le module, sans double saisie.
+type: custom:bubble-card
+card_type: button
+button_type: name
+name: Activités
+icon: mdi:pulse
+show_state: false
+scrolling_effect: false
+button_action:
+  tap_action:
+    action: navigate
+    navigation_path: '#activites'
+modules: [signature_compact, signature_group]
+signature_group:
+  max_names: 2

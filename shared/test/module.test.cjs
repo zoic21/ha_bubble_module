@@ -5,8 +5,8 @@ const path=require('node:path');
 const {test}=require('node:test');
 const {loadModule}=require('./module.cjs');
 
-test('all nine standalone distributions resolve by their declared module ID',()=>{
-  for(const folder of ['signature-compact','signature-square','signature-room','signature-header','signature-flow','signature-weather','signature-wind-rose','signature-navigation','alert_manager']) {
+test('all ten standalone distributions resolve by their declared module ID',()=>{
+  for(const folder of ['signature-compact','signature-square','signature-room','signature-header','signature-flow','signature-weather','signature-wind-rose','signature-navigation','signature-group','alert_manager']) {
     const definition=loadModule(folder);assert.ok(definition.name);assert.ok(definition.version);
   }
 });

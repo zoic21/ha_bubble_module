@@ -1,0 +1,32 @@
+ha-card[data-signature-group="summary"] .bubble-wrapper {
+  padding-inline-end: 54px !important;
+}
+ha-card[data-signature-group="summary"] .sg-summary {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  /* @include shared/src/styles/secondary.css */
+  line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2));
+  pointer-events: none;
+}
+ha-card[data-signature-group="summary"] .sg-count {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: 14px;
+  /* @include shared/src/styles/control-surface.css {"PROPERTY":"background"} */
+  color: var(--primary-text-color);
+  font-size: var(--signature-name-font-size, 14px);
+  font-weight: var(--signature-font-weight-medium, 500);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}

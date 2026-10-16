@@ -1,0 +1,26 @@
+name: Signature Group
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+  - pop-up
+description: Résume les cartes visibles d’une popup Bubble. Ajouter le module aux deux cartes et activer background_update sur la popup source. Conditions et cartes restent définies une seule fois dans la popup ; actions et présentation restent natives.
+editor:
+  - type: constant
+    label: "Popup : ajouter les cartes et leurs conditions natives, puis activer l’actualisation en arrière-plan. Bouton Nom : configurer une action native de navigation vers cette popup."
+  - name: popup
+    label: Identifiant de la popup (facultatif)
+    selector:
+      text: {}
+    description: "Par défaut, reprend le hash de la popup ou la destination de l’action native du bouton. Exemple : #activites."
+    visible_if: (!card || card.card_type !== 'pop-up')
+  - name: max_names
+    label: Nombre de noms dans le résumé
+    default: 2
+    selector:
+      number:
+        min: 0
+        max: 5
+        step: 1
+        mode: box
+    visible_if: (!card || card.card_type !== 'pop-up')

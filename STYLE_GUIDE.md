@@ -379,3 +379,12 @@ Mesures UTF-8 après `cleanCSS` de Bubble Card 3.4.1 (`061ed837`), par rapport a
 | Compact, huit interrupteurs | 13 206 | 11 296 | 14,5 % |
 
 Les quatre distributions YAML totalisent 318 octets de plus : le gain porte sur le CSS émis pour chaque carte, pas sur leur téléchargement. Comparaison des styles calculés et dimensions identique sur 418 rendus de cartes (288/328/358/382/600 px, clair/sombre, avec/sans thème et polices/rayons personnalisés) et 32 configurations de switches (1/2/4/8, Compact/Square, clair/sombre, 288/600 px). Un test navigateur vérifie aussi l’ajout puis le retrait des commandes sur chacune des quatre présentations, en réutilisant le même runtime. Couverture limitée aux fixtures Chromium, sans validation dans HA réel ni Safari/iOS.
+
+
+## Groupe de synthèse facultatif
+
+Signature Group 1.0.0 est un module de comportement, compatible avec un bouton Nom et une popup. Il accompagne une présentation existante, sans modifier ses surfaces, entités ou actions. La source est la liste native `cards` de la popup, avec ses conditions ; ne pas recopier cette liste sur le bouton.
+
+Le bouton ajoute une ligne secondaire (13 px, graisse normale, couleur secondaire du thème, interligne commun) et un compteur neutre de 28 px (valeur 14 px, graisse moyenne, chiffres tabulaires). Réserver 54 px à droite pour éviter le chevauchement ; garder l’ellipse sur le résumé et le nom complet dans le titre de survol. Le compteur n’utilise pas une couleur d’alerte. Les thèmes restent résolus en CSS, avec les replis communs. Une source absente donne `—`, une source sans élément donne `0` ; conserver cette distinction.
+
+Les cartes, leurs commandes et leur visibilité restent natives. Le module ne découvre pas de cartes par sélecteur DOM et ne charge pas d’historique. La source utilise `background_update: true` pour être disponible avant la première ouverture. L’Accueil adopte ce comportement sans changer Séjour, Informatique ni les autres vues.
