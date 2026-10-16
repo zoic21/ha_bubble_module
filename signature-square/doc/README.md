@@ -188,6 +188,11 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 
 ## Notes de version
 
+### 1.4.2 — 16 octobre 2026
+
+- `sub_button_styles.<index-ou-classe>.type: badge` place un unique bouton natif iconique au coin inférieur droit d’une tuile classique à hauteur fixe.
+- Visibilité, titre et actions conservés, secondaire dégagé seulement lorsque le badge est visible ; aucune hauteur, DOM ou écouteur ajouté.
+
 ### 1.4.1 — 16 octobre 2026
 
 - `summary.enabled: true` sans seconde entité active le même bandeau illustré à une mesure. Valeur et unité standard, aucune colonne vide ni nouveau nœud, hauteur native de deux lignes conservée.
@@ -277,7 +282,35 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 
 ## Notes de version
 
+### 1.4.2 — 16 octobre 2026
+
+- `sub_button_styles.<index-ou-classe>.type: badge` place un unique bouton natif iconique au coin inférieur droit d’une tuile classique à hauteur fixe.
+- Visibilité, titre et actions conservés, secondaire dégagé seulement lorsque le badge est visible ; aucune hauteur, DOM ou écouteur ajouté.
+
 ### 1.1.1 — 5 October 2026
 
 - Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
 - Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.
+
+## Badge d’état natif dans une tuile
+
+Depuis **1.4.2**, une carte Square classique à hauteur fixe peut afficher un
+unique sous-bouton Bubble de type `default`, avec `show_name: false`, dans le
+coin inférieur droit. Ajouter `type: badge` à son entrée de
+`signature_square.sub_button_styles` (index natif ou `css_class`). Le bouton
+reste natif et garde son titre, son entité, ses actions et sa visibilité.
+
+```yaml
+signature_square:
+  sub_button_styles:
+    1:
+      type: badge
+      color: '#B97918'
+```
+
+Le badge mesure 24 px avec une icône de 16 px. Lorsqu’il est visible, il réserve
+32 px au bout du secondaire ; masqué par Bubble, il libère cette place. Il
+n’ajoute ni ligne ni hauteur et ne déplace pas l’illustration. La présentation
+est ignorée avec plusieurs sous-boutons, un nom/état/attribut/date affiché,
+un type spécialisé, `auto_height`, `controls: measure` ou un bandeau `summary`.
+Aucun nœud, action, abonnement ou écouteur supplémentaire.
