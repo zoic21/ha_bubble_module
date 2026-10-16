@@ -51,6 +51,32 @@ test('all sprite cells use the correct percentage coordinates', t => {
   }
 });
 
+test('atlas offsets move the sampled window without zooming or changing the native nodes',t=>{
+  const illustration={image:'/local/atlas.png',columns:4,rows:5,index:1,offset_x:7,offset_y:4};
+  const f=fixture({illustration});t.after(()=>f.ctx.teardown());
+  let css=f.run();const structural=f.ctx._signatureSquareRuntime.styleCSS,count=f.content.children.length;
+  assert.ok(css.includes('--dp-illustration-size:400% 500%;'));
+  assert.ok(css.includes('--dp-illustration-position:'+107/3+'% 1%;'));
+  illustration.index=15;illustration.offset_x=0;illustration.offset_y=-3;css=f.run();
+  assert.ok(css.includes('--dp-illustration-position:100% '+297/4+'%;'));
+  assert.equal(f.ctx._signatureSquareRuntime.styleCSS,structural);
+  assert.equal(f.content.children.length,count);assert.equal(f.ctx.elements.state,f.value);
+  assert.equal(JSON.parse(f.value.dataset.tapAction).action,'more-info');
+});
+
+test('atlas offsets are finite bounded numbers and single-cell axes retain their placement',t=>{
+  const illustration={image:'/local/atlas.png',columns:4,rows:5,index:1};
+  const f=fixture({illustration});t.after(()=>f.ctx.teardown());
+  for(const offset of ['bad','10%;background:red',NaN,Infinity]){
+    illustration.offset_x=offset;illustration.offset_y=offset;
+    assert.ok(f.run().includes('--dp-illustration-position:'+100/3+'% 0%;'));
+  }
+  illustration.offset_x=1000;illustration.offset_y=-1000;
+  assert.ok(f.run().includes('--dp-illustration-position:50% -12.5%;'));
+  illustration.columns=1;illustration.rows=1;illustration.index=0;
+  assert.ok(f.run().includes('--dp-illustration-position:0% 0%;'));
+});
+
 test('Jinja URL/index stay live without rebuilding structural CSS or adding a runtime', t => {
   const f = fixture({illustration:{image:'{{ image }}',columns:4,rows:3,index:'{{ frame }}'}});
   t.after(() => f.ctx.teardown());

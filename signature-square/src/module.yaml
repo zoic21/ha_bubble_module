@@ -1,5 +1,5 @@
 name: Signature Square
-version: 1.3.2
+version: 1.3.3
 creator: Loïc
 supported:
   - button
@@ -67,7 +67,7 @@ editor:
           object: {}
         group: Tuile carrée
         group_icon: mdi:card-outline
-        description: "image : URL de repli ; image_light/image_dark : variantes facultatives selon le thème HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja. URLs locales/HTTPS ou Jinja. Images à installer séparément. Masquer l’icône dans Bubble pour éviter le doublon."
+        description: "image : URL de repli ; image_light/image_dark : variantes facultatives selon le thème HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : cadrage en % de case, de −50 à 50. URLs locales/HTTPS ou Jinja. Images à installer séparément. Masquer l’icône dans Bubble pour éviter le doublon."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       color_background:
         $field: color_background

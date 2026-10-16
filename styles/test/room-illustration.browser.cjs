@@ -118,6 +118,49 @@ test('one live theme size controls Square and Room artwork without rebuilding ei
   }
 });
 
+test('source framing excludes neighbouring sprite pixels without shrinking the artwork',async t=>{
+  const page=await fixture(t),url='https://signature.test/offset-atlas.svg';
+  // The red object crosses from cell 0 into cell 1, like the reported nightstand.
+  await page.route(url,route=>route.fulfill({contentType:'image/svg+xml',body:
+    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500"><path fill="#f00" d="M75 20h30v60H75z"/><path fill="#05f" d="M125 25h50v50h-50z"/></svg>'}));
+  for(const mode of ['light','dark'])for(const width of [180,328]){
+    await room(page,{mode,width});
+    await page.evaluate(url=>{
+      const ctx=window.roomCtx;
+      ctx.config.signature_room={...ctx.config.signature_room,icon_border_color:'transparent',border_color:'transparent',
+        illustration:{image:url,columns:4,rows:5,index:1}};window.updateRoom();
+    },url);
+    await page.evaluate(async url=>{const image=new Image();image.src=url;await image.decode();},url);
+    const capture=async()=>{
+      const box=await page.evaluate(async()=>{
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+        const content=window.roomCtx.elements.contentContainer,rect=content.getBoundingClientRect(),art=getComputedStyle(content,'::after');
+        return {x:rect.right-parseFloat(art.right)-parseFloat(art.width)+scrollX,
+          y:rect.top+parseFloat(art.top)+scrollY,width:parseFloat(art.width),height:parseFloat(art.height)};
+      });
+      const png=await page.screenshot({clip:box});
+      const pixels=await page.evaluate(async encoded=>{
+        const data=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+        const image=await createImageBitmap(new Blob([data],{type:'image/png'}));
+        const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+        const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);const rgba=ctx.getImageData(0,0,image.width,image.height).data;
+        let red=0,blue=0;for(let i=0;i<rgba.length;i+=4){
+          if(rgba[i]>240&&rgba[i+1]<20&&rgba[i+2]<20)red++;
+          if(rgba[i]<20&&rgba[i+1]>70&&rgba[i+1]<100&&rgba[i+2]>240)blue++;
+        }
+        image.close();return {red,blue};
+      },png.toString('base64'));
+      return {...pixels,width:box.width,height:box.height};
+    };
+    const before=await capture();
+    await page.evaluate(()=>{Object.assign(window.roomCtx.config.signature_room.illustration,{offset_x:7,offset_y:4});window.updateRoom();});
+    const after=await capture();
+    assert.ok(before.red>0,JSON.stringify({mode,width,before}));
+    assert.equal(after.red,0,JSON.stringify({mode,width,after}));
+    assert.ok(before.blue>0&&after.blue>0);assert.equal(after.width,before.width);assert.equal(after.height,before.height);
+  }
+});
+
 test('artwork yields taps to the card while native measure and command targets remain independent',async t=>{
   const page=await fixture(t);await room(page);
   const host=page.locator('[data-id="room"]');

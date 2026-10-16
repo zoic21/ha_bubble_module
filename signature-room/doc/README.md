@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.1.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.1.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -71,6 +71,12 @@ Les valeurs conservent le format numérique Home Assistant et leur unité. `stat
 
 Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button_styles` est un objet indexé par classe CSS ou numéro natif. Les switches visuels sont disponibles en square/compact, avec des actions toggle compatibles ou des actions lock/unlock explicites ; ils ne créent pas de commande supplémentaire.
 
+### Cadrage d’une planche imparfaite
+
+Les nombres **`illustration.offset_x`** et **`offset_y`** déplacent la fenêtre de lecture dans la planche. Unités : pourcentage de la largeur/hauteur **d’une case source**, de −50 à 50 ; 0 par défaut. Une valeur positive lit plus à droite/en bas ; une valeur négative plus à gauche/en haut. La taille de la case, le zoom et la boîte affichée restent identiques. L’axe concerné est ignoré lorsque la planche n’y contient qu’une case ; une valeur invalide revient à 0. Ce cadrage est commun à Square et Room et s’applique aux deux variantes de thème.
+
+Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x: 7` et `offset_y: 4` dans l’objet `illustration`. Le module déplace le cadrage de 19,6 px à droite et 11,2 px vers le bas dans les PNG de 1 122 × 1 402 px, sans redessiner les illustrations. Ne pas ajouter de CSS dans la carte.
+
 ## Options
 
 | Option | Défaut | Usage |
@@ -109,6 +115,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.1.2 — 16 octobre 2026
+
+- Cadrage facultatif `illustration.offset_x` / `offset_y` pour exclure les morceaux des cases voisines d’un atlas imparfait, sans changer la taille de l’illustration ni son zoom.
+- Même calcul partagé Room/Square, relu hors cache structurel ; les planches régulières gardent exactement leurs coordonnées par défaut. Aucun nœud, observateur, abonnement ou CSS dans les cartes ajouté.
 
 ### 1.1.1 — 16 octobre 2026
 
