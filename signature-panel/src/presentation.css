@@ -72,7 +72,9 @@ ha-card[data-dp-layout="panel"] .bubble-container::after {
 }
 ha-card[data-dp-layout="panel"][data-dp-illustration="no"] .bubble-container::after { visibility: hidden; }
 ha-card[data-dp-layout="panel"] .bubble-content-container { pointer-events: none; }
-ha-card[data-dp-layout="panel"] .dp-value-action { pointer-events: auto; cursor: pointer; }
+ha-card[data-dp-layout="panel"] .dp-value-action {
+  position: relative; z-index: 1; pointer-events: auto; cursor: pointer;
+}
 ha-card[data-dp-layout="panel"] :is(.bubble-sub-button-container,.bubble-buttons-container) {
   grid-row: 4; grid-column: 1 / -2; position: static !important; margin: 0 !important;
   padding: 0 !important; width: auto !important; gap: 4px; min-width: 0; justify-content: flex-start;
@@ -87,7 +89,7 @@ ha-card[data-dp-layout="panel"] .bubble-sub-button-name-container {
   white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; line-height: 16px;
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-sub-button-container,.bubble-buttons-container):not(:has(:is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden]))) { display: none; }
-ha-card[data-dp-layout="panel"] .bubble-container:has(:is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden])) {
+ha-card[data-dp-layout="panel"] .bubble-container:has(:is(.bubble-sub-button-container,.bubble-buttons-container) :is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden])) {
   grid-template-rows: 20px minmax(0,1fr) auto auto;
 }
 ${commandStyles.length ? `

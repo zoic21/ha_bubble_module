@@ -58,3 +58,31 @@ test('missing data, disabled entries and calculated labels remain explicit witho
  assert.equal(JSON.parse(states[1].dataset.tapAction).action,'none');
  f.options.information[0].enabled=false;f.run();assert.equal(f.root.getAttribute('data-dp-panel-count'),'2');
 });
+
+test('Panel primary tap override keeps long-press details and the default when removed',t=>{
+ const f=fixture();t.after(()=>f.ctx.teardown());f.run();const state=f.ctx.elements.state;
+ assert.equal(JSON.parse(state.dataset.tapAction).action,'more-info');
+ f.options.tap_action={action:'navigate',navigation_path:'#power'};f.run();
+ assert.equal(f.ctx.elements.state,state);
+ assert.deepEqual(JSON.parse(state.dataset.tapAction),f.options.tap_action);
+ assert.equal(JSON.parse(state.dataset.holdAction).action,'more-info');
+ delete f.options.tap_action;f.run();
+ assert.equal(JSON.parse(state.dataset.tapAction).action,'more-info');
+});
+
+test('Panel title badges move native nodes and restore every home on removal and teardown',t=>{
+ const f=fixture();t.after(()=>f.ctx.teardown());const {Element}=context;
+ const name=new Element();name.className='bubble-name';name.textContent='Equipment';
+ f.ctx.elements.nameContainer.append(name);
+ const group=new Element(),badge=new Element();group.className='bubble-sub-button-group';badge.className='bubble-sub-button status';
+ group.append(badge);f.root.append(group);
+ f.ctx.config.sub_button={main:[{entity:'sensor.temp',css_class:'status',show_name:false,show_state:false}]};
+ f.options.sub_button_styles={status:{type:'badge',color:'teal'}};f.run();
+ assert.equal(f.root.querySelector('.dp-panel-badges').firstElementChild,badge);
+ assert.equal(f.root.querySelector('.dp-panel-heading').firstElementChild,name);
+ delete f.options.sub_button_styles;f.run();
+ assert.equal(badge.parentNode,group);assert.equal(name.parentNode,f.ctx.elements.nameContainer);
+ assert.equal(f.root.querySelector('.dp-panel-heading'),null);
+ f.options.sub_button_styles={status:{type:'badge'}};f.run();f.ctx.teardown();
+ assert.equal(badge.parentNode,group);assert.equal(name.parentNode,f.ctx.elements.nameContainer);
+});

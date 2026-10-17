@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.0.3
+version: 1.1.0
 creator: Loïc
 supported:
   - button
@@ -44,7 +44,7 @@ editor:
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       sub_button_styles:
         $field: sub_button_styles
-        description: "Styles des sous-boutons natifs, par classe ou numéro. type command : icône/libellé, cible 44 px, active/disabled en booléen ou Jinja. Trois commandes visibles au maximum."
+        description: "Styles des sous-boutons natifs, par classe ou numéro. type badge : pastille iconique neutre à côté du titre. type command : icône/libellé, cible 44 px, active/disabled en booléen ou Jinja. Trois commandes visibles au maximum."
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       hover:
         label: Surbrillance au survol
@@ -52,6 +52,12 @@ editor:
         selector:
           boolean: {}
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      tap_action:
+        label: Action sur la valeur principale
+        selector:
+          ui_action: {}
+        description: "Remplace le clic more-info sur la valeur principale. L'action de la carte et les actions des informations supplémentaires restent indépendantes."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       progress:
         label: Progression (objet YAML)
         selector:

@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.0.3**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.1.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -42,6 +42,51 @@ signature_panel:
 `information` : `entity`, `name`, `state`, `secondary`, `icon`, `color`, `tap_action`, `statistics`, `secondary_statistics`. `state`, `name`, `secondary`, `icon` et `color` peuvent être des templates Jinja ; `entity` fournit le format numérique HA, l’unité et la cible de détails. `tap_action` remplace seulement l’action de clic de cette information. Une valeur calculée sans entité ne crée pas de cible more-info fictive. `enabled: false` retire une information supplémentaire. Deux entrées au maximum sont rendues ; ne pas utiliser ce format pour plus de trois informations.
 
 Les sous-boutons natifs restent au pied, à gauche de l’illustration : au plus trois visibles. Leurs entités, conditions et actions restent dans `sub_button`. Le rôle `sub_button_styles.<classe-ou-numéro>.type: command` empile icône et libellé dans une cible de 44 px. `active` et `disabled` acceptent booléen ou Jinja. Une désactivation non résolue bloque la commande, y compris une action déjà mémorisée ou un geste commencé avant l’actualisation. Le garde est commun à Room et Panel ; la géométrie est propre à chaque module. Les boutons informatifs conservent leur densité native de 30 px et les lecteurs leurs contrôles/volume natifs.
+
+## Actions sur les valeurs et badges du titre
+
+`tap_action` dans les options Panel remplace le clic sur la valeur principale.
+Le défaut reste more-info ; l'appui long garde les détails. L'action de la
+carte reste indépendante, tout comme `information[].tap_action` pour chaque
+mesure supplémentaire. Les nombres, unités et icônes reçoivent la même action.
+
+Un sous-bouton iconique natif avec `sub_button_styles.<classe>.type: badge`
+rejoint le titre dans une capsule neutre, comme Room : hauteur 20 px, icône
+14 px, écart de 6 px avec le nom, largeur de 24 px pour un badge. Masquer le
+nom, l'état et le fond individuel ; les templates d'icône et les actions restent
+natifs. `color` règle son accent et `opacity` son état fonctionnel. Le fond
+commun reste neutre. Les badges masqués libèrent leur place ; retirer le rôle
+ou démonter le module restaure les nœuds d'origine. Les informations restent
+alignées et aucun pied de commandes n'est réservé pour un badge du titre.
+
+```yaml
+sub_button:
+  main:
+    - entity: switch.ventilation
+      name: Ventilation
+      icon: "{{ 'mdi:fan' if is_state(entity, 'on') else 'mdi:fan-off' }}"
+      css_class: ventilation-status
+      show_name: false
+      show_state: false
+      show_background: false
+      state_background: false
+      tap_action:
+        action: navigate
+        navigation_path: "#temperature"
+signature_panel:
+  tap_action:
+    action: navigate
+    navigation_path: "#power"
+  sub_button_styles:
+    ventilation-status:
+      type: badge
+      color: "{{ '#29958A' if is_state(entity, 'on') else '#818181' }}"
+      background: transparent
+```
+
+Les commandes `type: command` gardent leurs libellés neutres ; seule l'icône
+active reprend `color`. Les autres icônes restent secondaires et le fond de
+sélection reste teinté. `active` et `disabled` gardent leur comportement.
 
 ## Illustrations et Jinja
 
@@ -135,3 +180,18 @@ Contrôles : build, tests Node et Chromium, dont Bubble 3.4.1 avec backend simul
 largeurs 288–600 px, modes clair/sombre et avec/sans thème. Le test dédié couvre
 des mesures à trois chiffres, l’absence de débordement et le changement de taille
 du thème sans réexécution. Home Assistant réel et Safari/iOS restent à vérifier.
+
+
+## 1.1.0 — 17 octobre 2026 — badges natifs et actions indépendantes
+
+Ajout des badges de titre partagés avec Room, sans changement de son export.
+Action principale explicite et rétablissement des cibles supplémentaires
+au-dessus du fond de carte. Commandes : seul le mode actif colore son icône ;
+les autres icônes et tous les libellés restent neutres. Hauteur de 118 px,
+illustrations et trois valeurs agrandies conservées. Configurer uniquement les
+cartes qui demandent des badges ou un clic principal différent de more-info.
+
+Les tests Chromium utilisent le vrai pipeline Bubble 3.4.1 avec backend simulé :
+clics sur nombres/unités/icônes, actualisations, changements de résultats Jinja,
+états de ventilation, commandes d'alarme, retrait des badges et thèmes. Ces
+contrôles ne constituent pas un essai Home Assistant réel ou Safari/iOS.

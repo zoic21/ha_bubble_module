@@ -17,6 +17,17 @@ class Node {
     }
   }
   appendChild(node) { this.append(node);return node; }
+  insertBefore(node,reference) {
+    if(reference==null)return this.appendChild(node);
+    if(reference.parentNode!==this)throw new Error('Reference is not a child');
+    if(node===reference)return node;
+    Node.prototype.remove.call(node);
+    this.childNodes.splice(this.childNodes.indexOf(reference),0,node);node.parentNode=this;
+    return node;
+  }
+  get nextSibling() {
+    return this.parentNode?.childNodes[this.parentNode.childNodes.indexOf(this)+1] ?? null;
+  }
   replaceChildren(...nodes) {
     for(const child of this.childNodes) child.parentNode=null;
     this.childNodes=[];this.append(...nodes);

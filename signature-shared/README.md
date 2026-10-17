@@ -25,3 +25,9 @@ Les tests vérifient les valeurs, commandes, caches, formulaires, actions, netto
 Les [seuils de couleur numériques](doc/COLOR_THRESHOLDS.md) sont définis dans `shared/src/color-thresholds.js`, puis adaptés aux sources HA dans `signature-shared/src/color-thresholds.js`. L’icône suit l’accent du graphe, son fond mélange 16 % de cette couleur dans la surface du thème. L’ancienne gestion du contraste a été retirée ; les libellés des badges suivent simplement le texte du thème. Les listes sont préparées au changement de configuration ; les valeurs restent lues à chaque passage pour le suivi Bubble. Les surfaces de carte, valeurs principales et actions conservent leurs rôles.
 
 Panel réutilise aussi le cycle de présentation, les valeurs, les actions, les sous-boutons, le lecteur d’illustrations et le garde `commands.js`. Sa grille et ses informations sont sous `signature-panel/src` ; les autres modules ne contiennent plus les variantes de bandeau/d’équipement.
+
+Les badges de titre Room et Panel partagent `src/title-badges.js`, paramétré au
+build pour les classes et l'ancrage de chaque grille. Les paramètres par défaut
+reproduisent l'export Room existant ; Panel utilise sa première rangée et ne
+réserve aucun pied pour ses badges. Garder le déplacement/restauration des
+nœuds natifs et le suivi CSS de leur visibilité.

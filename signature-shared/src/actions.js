@@ -16,7 +16,8 @@ const bindAction = (key, el, data, value = true) => {
   binding.signature = signature;
 };
 const info = id => ({entity:id,tapAction:'{"action":"more-info"}',holdAction:'{"action":"more-info"}',doubleTapAction:'{"action":"none"}'});
-bindAction('state', c.entity ? stateEl : null, info(c.entity));
+bindAction('state', c.entity ? stateEl : null, layout === 'panel' && o.tap_action && typeof o.tap_action === 'object'
+  ? {...info(c.entity),tapAction:JSON.stringify(o.tap_action)} : info(c.entity));
 bindAction('secondary', secondary && secondaryEntity ? secondaryEl : null, info(secondaryEntity));
 if (kind === 'climate') {
   for (const key of ['tempDisplay','lowTempDisplay','highTempDisplay']) bindAction(key,this.elements?.[key],info(c.entity));

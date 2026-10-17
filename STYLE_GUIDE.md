@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.2**, **Panel 1.0.3**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.2**, **Panel 1.1.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -552,3 +552,29 @@ Retraits extérieurs : 12 px horizontalement, 10 px verticalement avec la bordur
 Les URL, index et cadrages sont fournis par la configuration Jinja. Le lecteur de sprites commun choisit seulement la variante du mode HA effectif. Aucun état métier, image embarquée, nouvel observateur ou abonnement. Les requêtes statistiques restent facultatives et testées pour fuseau, minuit, changement d’heure, sources incomplètes et réponses périmées.
 
 Tester 288/328/358/382/600 px, clair/sombre, avec/sans thème, une/deux/trois informations, détails et 0–3 commandes, mises à jour natives et thème seul, clics/désactivation/teardown et média. `styles/test/panel-native.browser.cjs` utilise le vrai Bubble 3.4.1 avec `BUBBLE_NATIVE_SCRIPT_PATH` ; il vérifie le SHA de la source. Le backend HA est simulé ; ne pas déduire une validation HA réelle ou Safari/iOS.
+
+
+### Panel 1.1.0 — badges et actions indépendantes
+
+Panel et Room assemblent le même mécanisme de badges natifs depuis
+`signature-shared/src/title-badges.js`. Les paramètres de build conservent
+exactement la distribution Room 1.4.2. Dans Panel, `type: badge` place un
+bouton iconique natif près du titre, dans la même capsule neutre de 20 px,
+avec icône de 14 px et écart de 6 px. Les classes propres au layout restent
+séparées. Conserver les nœuds, handlers, visibilité et restauration au retrait.
+Un badge du titre ne doit jamais créer une rangée de commandes au pied ni
+changer le centrage des valeurs ou du dessin. Le fond commun suit le thème ;
+les icônes peuvent être colorées ou grises sans colorer la capsule.
+
+`signature_panel.tap_action` remplace uniquement le clic de la valeur
+principale ; le défaut reste more-info. Les actions explicites des informations
+supplémentaires gardent leur priorité et leurs cibles. Les valeurs actionnables
+se placent au-dessus du fond natif Bubble (`z-index: 1`) pour recevoir les vrais
+clics sur le nombre, l'unité et l'icône. Garder les appuis longs more-info et
+le gestionnaire natif ; aucune commande ni événement de service supplémentaire.
+
+Les commandes Panel gardent leurs libellés en texte primaire. Seule l'icône
+`aria-pressed=true` utilise son accent configuré ; les autres icônes utilisent
+le texte secondaire, avec l'opacité fonctionnelle des commandes désactivées.
+Le fond de sélection et les gardes d'action restent conservés. Vérifier les
+couleurs calculées et les clics réels avec Bubble, au-delà des seuls datasets.

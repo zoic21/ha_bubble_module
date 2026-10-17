@@ -15,10 +15,14 @@ ha-card[data-dp-layout="panel"] .bubble-sub-button[data-dp-command] {
   width: auto !important; max-width: none; gap: 2px; padding: 4px 0 !important; box-sizing: border-box;
   transition: none !important;
   border-radius: var(--signature-control-border-radius,14px);
-  background: var(--dp-command-background) !important; color: var(--dp-command-foreground);
+  background: var(--dp-command-background) !important; color: var(--primary-text-color) !important;
 }
 ha-card[data-dp-layout="panel"] [data-dp-command] .bubble-sub-button-icon {
   grid-area: icon; justify-self: center; width: 18px; height: 18px; --mdc-icon-size: 18px;
+  color: var(--secondary-text-color) !important;
+}
+ha-card[data-dp-layout="panel"] [data-dp-command][aria-pressed="true"] .bubble-sub-button-icon {
+  color: var(--dp-command-foreground) !important;
 }
 ha-card[data-dp-layout="panel"] [data-dp-command] .bubble-sub-button-name-container {
   /* @include shared/src/styles/command-label.css */
