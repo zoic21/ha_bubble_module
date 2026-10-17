@@ -37,9 +37,9 @@ async function room(page,{width=288,mode='light',plain=false,classic=false,secon
     ctx.update();window.roomBadges=ctx;window.badgeNativeCount=count;
     window.readBadges=()=>{
       const root=ctx.card,content=ctx.elements.contentContainer;
-      const box=selector=>{const el=root.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height,display:s.display,color:s.color,background:s.backgroundColor,scroll:el.scrollWidth,client:el.clientWidth};};
+      const box=selector=>{const el=root.querySelector(selector);if(!el)return null;const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height,display:s.display,color:s.color,background:s.backgroundColor,scroll:el.scrollWidth,client:el.clientWidth};};
       const c=content.getBoundingClientRect(),p=getComputedStyle(content,'::after');
-      return {motion:box('.room-motion'),window:box('.room-status'),name:box('.bubble-name'),value:box('.room-temperature'),
+      return {capsule:box('.dp-room-badges'),motion:box('.room-motion'),window:box('.room-status'),name:box('.bubble-name'),value:box('.room-temperature'),
         control:root.querySelector('.room-control-1')?box('.room-control-1'):null,card:box('.bubble-container'),
         nodes:root.querySelectorAll('*').length,art:{x:c.right-parseFloat(p.right)-parseFloat(p.width),
           y:c.y+parseFloat(p.top)+new DOMMatrixReadOnly(p.transform).m42,width:parseFloat(p.width),height:parseFloat(p.height)}};
@@ -57,8 +57,10 @@ test('room badges fit beside the native name without changing values, footer or 
     assert.equal(m.card.height,148,hint);assert.equal(m.control.height,44,hint);
     assert.equal(m.motion.width,20,hint);assert.equal(m.window.height,20,hint);
     assert.equal(m.motion.color,'rgb(185, 121, 24)');assert.equal(m.window.color,'rgb(54, 138, 203)');
-    assert.ok(m.motion.right+3<=m.window.x,hint);
-    assert.ok(Math.abs(m.motion.x-m.name.right-6)<.1,hint);
+    assert.equal(m.capsule.height,20,hint);assert.equal(m.capsule.width,44,hint);
+    assert.equal(m.motion.right,m.window.x,hint);
+    assert.equal(m.motion.background,'rgba(0, 0, 0, 0)',hint);assert.equal(m.window.background,'rgba(0, 0, 0, 0)',hint);
+    assert.ok(Math.abs(m.capsule.x-m.name.right-6)<.1,hint);
     assert.ok(Math.abs(m.motion.y+m.motion.height/2-m.name.y-m.name.height/2)<.1,hint);
     assert.ok(!overlap(m.name,m.motion)&&!overlap(m.name,m.window),hint);
     assert.ok(!overlap(m.value,m.motion)&&!overlap(m.value,m.window),hint);
@@ -85,22 +87,30 @@ test('native visibility collapses badge space immediately without rerendering th
   assert.equal(m.single.window.display,'none');assert.equal(m.none.motion.display,'none');
   assert.equal(m.windowOnly.motion.display,'none');assert.equal(m.windowOnly.window.display,'flex');
   assert.ok(m.single.name.width>=both.name.width);assert.ok(m.none.name.width>=m.single.name.width);
-  assert.equal(m.single.motion.x,m.single.name.right+6);
-  assert.equal(m.windowOnly.window.x,m.windowOnly.name.right+6);
+  assert.equal(m.single.capsule.x,m.single.name.right+6);
+  assert.equal(m.single.capsule.width,24);assert.equal(m.none.capsule.display,'none');
+  assert.equal(m.windowOnly.capsule.x,m.windowOnly.name.right+6);
+  assert.equal(m.windowOnly.capsule.width,24);assert.equal(m.restored.capsule.width,44);
   assert.equal(m.restored.name.width,both.name.width);assert.equal(m.restored.nodes,both.nodes);
 });
 
 test('badge colors follow live theme surfaces and explicit overrides, and removal restores room status',async t=>{
   const page=await fixture(t);await room(page);
   const m=await page.evaluate(()=>{
-    const ctx=window.roomBadges,initial=window.readBadges();
+    const ctx=window.roomBadges;ctx.card.querySelectorAll('.room-motion,.room-status').forEach(el=>el.classList.add('background-on'));
+    const initial=window.readBadges();
     document.body.style.setProperty('--signature-card-background','#1c1c1c');const dark=window.readBadges();
+    document.body.style.setProperty('--signature-control-background','#334455');const custom=window.readBadges();
+    document.body.style.removeProperty('--signature-control-background');
     ctx.config={...ctx.config,signature_room:{...ctx.config.signature_room,sub_button_styles:{
       'room-motion':{type:'badge',color:'#E1463E'},'room-status':{type:'badge',color:'#368ACB',background:'#abcdef'}}}};ctx.update();const alarm=window.readBadges();
     ctx.config={...ctx.config,signature_room:{...ctx.config.signature_room,sub_button_styles:{}}};ctx.update();
-    return {initial,dark,alarm,removed:window.readBadges()};
+    return {initial,dark,custom,alarm,removed:window.readBadges()};
   });
-  assert.notEqual(m.dark.motion.background,m.initial.motion.background);
+  assert.notEqual(m.dark.capsule.background,m.initial.capsule.background);
+  assert.equal(m.dark.motion.background,'rgba(0, 0, 0, 0)');
+  assert.equal(m.custom.capsule.background,'rgb(51, 68, 85)');
+  assert.equal(m.alarm.capsule.background,m.dark.capsule.background,'icon colors do not tint the shared capsule');
   assert.equal(m.alarm.motion.color,'rgb(225, 70, 62)');assert.equal(m.alarm.window.background,'rgb(171, 205, 239)');
   assert.notEqual(m.removed.window.y,m.initial.window.y);assert.equal(m.removed.nodes,m.initial.nodes-2);
 });
@@ -143,7 +153,7 @@ test('short titles keep badges immediately after their text, including live name
       window.roomBadges.card.querySelector('.bubble-name').textContent=name;
       return window.readBadges();
     },name);
-    assert.ok(Math.abs(m.motion.x-m.name.right-6)<.1,name);
+    assert.ok(Math.abs(m.capsule.x-m.name.right-6)<.1,name);
     assert.ok(Math.abs(m.motion.y+10-m.name.y-m.name.height/2)<.1,name);
     if(name==='Centre')assert.ok(m.name.width<70,'the name must retain its natural text width');
   }
@@ -197,5 +207,5 @@ test('rooms without artwork do not reserve the legacy status corner beside the n
     return {...window.readBadges(),padding:getComputedStyle(ctx.card.querySelector('.bubble-name')).paddingRight};
   });
   assert.equal(m.padding,'0px');assert.ok(m.name.width<70);
-  assert.equal(m.motion.x,m.name.right+6);
+  assert.equal(m.capsule.x,m.name.right+6);
 });

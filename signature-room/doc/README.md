@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.2.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.2.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -67,11 +67,12 @@ Pour conserver un contour de contraste sur une lampe Hue sans CSS, ajouter `icon
 
 En mode illustré, `sub_button_styles.<classe-ou-numéro>.type: badge` place un
 sous-bouton natif iconique immédiatement après le texte du nom, à gauche de
-l’illustration. Le groupe suit la longueur du nom et centre les badges
-verticalement sur son texte. Une pastille mesure 20 px, son icône 14 px ;
-l’écart avec le nom est de 6 px, puis de 4 px entre les badges, dans l’ordre natif.
-La place du titre et des autres badges se libère
-immédiatement avec les classes `.hidden` ou l’attribut `[hidden]` de Bubble.
+l’illustration. Les icônes de 14 px partagent une capsule neutre haute de
+20 px, centrée verticalement sur le texte et située à 6 px du nom. L’ordre
+reste celui des sous-boutons natifs. Une capsule mesure 44 px avec deux icônes
+et 24 px avec une seule ; l’écart visible entre icônes est de 6 px.
+Elle s’ajuste immédiatement aux classes `.hidden` ou à l’attribut `[hidden]`
+de Bubble, puis disparaît quand tous les badges sont masqués.
 
 ```yaml
 sub_button:
@@ -114,8 +115,11 @@ signature_room:
       color: blue
 ```
 
-Le fond mélange 16 % de la couleur du badge dans la surface neutre du thème.
-`color` et `background` conservent leurs overrides, y compris Jinja. La
+Le fond commun réutilise `signature-control-background`, avec un repli à 5 %
+du texte primaire dans la surface neutre du thème. Les icônes sont colorées
+sans pastille individuelle par défaut. `color` et `background` conservent
+leurs overrides par sous-bouton, y compris Jinja ; `background` peut donc
+explicitement rétablir un fond individuel. La
 visibilité, l’icône, l’entité et les actions sont celles du sous-bouton Bubble ;
 les nœuds natifs gardent leurs handlers. Deux conteneurs de présentation
 réutilisables regroupent le nom et les badges en flex, sans lecture de dimensions,
@@ -185,6 +189,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.2.2 — 17 octobre 2026
+
+- Les icônes d’état partagent une capsule neutre de 20 px de haut après le nom, sans fond coloré individuel par défaut. Surface de contrôle commune et thème suivis en CSS.
+- Largeur adaptée aux badges visibles : 44 px pour deux, 24 px pour un, disparition complète sans état actif. Même largeur totale à deux icônes que les pastilles précédentes.
+- Réutilisation du groupe et des boutons natifs existants, sans nouveau nœud, écouteur ou observateur ; configuration et couleurs des cartes conservées.
 
 ### 1.2.1 — 17 octobre 2026
 

@@ -85,7 +85,11 @@ if (badgeNodes.length && badgeName?.parentNode) {
         flex: 0 1 auto; min-width: 0; max-width: none; padding-right: 0 !important;
         align-self: center;
       }
-      ${scope+' .dp-room-badges'} { display: flex; align-items: center; gap: 4px; flex: none; }
+      ${scope+' .dp-room-badges'} {
+        display: flex; align-items: center; gap: 0; flex: none; height: 20px;
+        padding: 0 2px; border-radius: 999px;
+        /* @include shared/src/styles/control-surface.css {"PROPERTY":"background"} */
+      }
       ${scope+' .dp-room-badges:not(:has(.bubble-sub-button:not(.hidden):not([hidden])))'} { display: none; }
       ${all} {
         position: relative !important; top: auto; right: auto; left: auto; bottom: auto;
@@ -93,7 +97,7 @@ if (badgeNodes.length && badgeName?.parentNode) {
         padding: 0 !important; margin: 0 !important; transform: none !important;
         border-radius: 50%; box-sizing: border-box; z-index: 2; pointer-events: auto;
         color: var(--dp-accent);
-        background: color-mix(in srgb,currentColor 16%,${neutralSurface});
+        background: transparent;
         box-shadow: none; --mdc-icon-size: 14px;
       }
       ${all+' .bubble-sub-button-icon'} { color: inherit; --mdc-icon-size: 14px; }
