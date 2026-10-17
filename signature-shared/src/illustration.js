@@ -14,7 +14,8 @@ const variantImage = modeImage == null ? '' : render(modeImage).trim();
 const illustrationImage = validImage(variantImage) ? variantImage : render(illustration.image).trim();
 const columns = Math.trunc(number(illustration.columns, 1, 1, 16));
 const rows = Math.trunc(number(illustration.rows, 1, 1, 16));
-const illustrationInput = render(illustration.index ?? 0).trim();
+const darkSprite = layout === 'square' && illustrationMode === true;
+const illustrationInput = render((darkSprite ? illustration.index_dark : undefined) ?? illustration.index ?? 0).trim();
 const illustrationIndex = illustrationInput === '' ? NaN : Number(illustrationInput);
 const index = Math.trunc(illustrationIndex);
 // Use ordinary local/HTTP image URLs, never executable URLs or injected CSS.
@@ -25,7 +26,7 @@ if (illustrationEnabled) {
   // Shift the sampled window within an imperfect atlas, not the decoration.
   // Percentages are relative to one source cell; its size remains unchanged.
   const offsetX = number(render(illustration.offset_x ?? 0).trim(), 0, -50, 50);
-  const offsetY = number(render(illustration.offset_y ?? 0).trim(), 0, -50, 50);
+  const offsetY = number(render((darkSprite ? illustration.offset_y_dark : undefined) ?? illustration.offset_y ?? 0).trim(), 0, -50, 50);
   const x = columns === 1 ? 0 : ((index % columns) + offsetX / 100) * 100 / (columns - 1);
   const y = rows === 1 ? 0 : (Math.floor(index / columns) + offsetY / 100) * 100 / (rows - 1);
   // Quoting escapes quotes/backslashes in CSS url("..."). Keep this data outside

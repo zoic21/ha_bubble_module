@@ -4,7 +4,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 1.5.3 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Square — square tiles | 1.6.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.4.6 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Room — room summaries and controls | 1.3.0 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.14 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
@@ -110,3 +110,5 @@ Group’s optional `hide_empty: true` hides an empty summary through the native 
 Square 1.5.1 can display a daily statistics total as the second summary measure, using Home Assistant Recorder changes in the configured timezone; no helper entity is needed. Version 1.5.1 also supports a remaining percentage after subtracting outgoing flows, for daily self-sufficiency.
 
 Square 1.5.2 adds `summary.secondary_statistics` for a daily cost below daily consumption, sharing one Recorder query, plus an explicit positive `factor` for unit conversion.
+
+Square 1.6.0 adds opt-in illustrated two-row activity banners with native sub-buttons or media controls; see its guide.

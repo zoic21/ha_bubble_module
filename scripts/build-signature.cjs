@@ -18,7 +18,7 @@ async function build(layout) {
     ? "['button','cover','climate'].includes(kind) && c.button_type !== 'slider'"
     : layout === 'header'
       ? "kind === 'separator' || (kind === 'button' && c.button_type === 'name')"
-      : "kind === 'button' && !['switch','slider'].includes(c.button_type)";
+      : "(kind === 'button' && !['switch','slider'].includes(c.button_type))" + (layout === 'square' ? " || (kind === 'media-player' && o.activity === true)" : "");
   const chunks = [shared('editor'), `
     const c = this.config;
     const o = c.${id} || {};
@@ -32,6 +32,7 @@ async function build(layout) {
     ? "if (!tileEnabled && !(root && kind === 'media-player')) return '';"
     : "if (!tileEnabled) return '';", shared('helpers'));
   if (layout === 'compact') chunks.push(specific(layout, 'media'));
+  if (layout === 'square') chunks.push(specific(layout, 'media'));
   if (layout !== 'room') chunks.push(shared('color-thresholds'));
   chunks.push(shared('structure'));
   if (layout === 'header') chunks.push(specific(layout, 'title'));
@@ -63,13 +64,13 @@ async function build(layout) {
   `);
   chunks.push(shared('sub-buttons'));
   if (layout === 'room') chunks.push(specific(layout, 'badges'), specific(layout, 'commands'));
-  if (layout === 'square') chunks.push(specific(layout, 'badge'));
+  if (layout === 'square') chunks.push(specific(layout, 'badge'), specific(layout, 'activity'));
   const css = [shared('base.css'), specific(layout, 'presentation.css')];
-  if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'), `(summaryEnabled ? ${specific(layout, 'summary.css')} : '')`);
+  if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'), `(summaryEnabled ? ${specific(layout, 'summary.css')} : '')`, `(o.activity === true ? ${specific(layout, 'activity.css')} : '')`);
   if (layout === 'room') css.push(`(roomIllustrated ? ${specific(layout, 'illustration.css')} : '')`);
   css.push(shared('visibility.css'));
   chunks.push(`
-    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,' : ''}${layout === 'square' ? 'summaryEnabled,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline,flat.length>0].join('\u0001');
+    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,' : ''}${layout === 'square' ? 'summaryEnabled,o.activity===true,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline,flat.length>0].join('\u0001');
     if (runtime.styleKey !== styleKey) {
       runtime.styleCSS = ${css.join(' + ')};
       runtime.styleKey = styleKey;

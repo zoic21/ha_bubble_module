@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.5.3**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.6.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -475,3 +475,54 @@ classiques, illustrées, aux commandes `measure` sans ancien détail réservé e
 aux bandeaux à une mesure. La hauteur native reste inchangée. Les cartes
 `auto_height`, les bandeaux à titres/détails multiligne et les anciens détails
 de mesure réservés conservent leur dimensionnement propre.
+
+
+## Bandeaux activité — 1.6.0
+
+Avec `activity: true`, une carte pleine largeur `rows: 2` conserve 120 px
+avec les dimensions natives standard. Nom/état/détail en haut à gauche,
+illustration à droite (72 px maximum), sous-boutons natifs en bas (30 px).
+Les mesures et commandes doivent être choisies pour tenir sur une ligne ;
+le module ne retire ni ne déplace automatiquement les informations métier.
+Ne pas combiner avec `summary`, `auto_height` ou `controls: measure`.
+Les bandeaux énergie et les cartes sans cette option restent inchangés.
+
+Les cartes `media-player` sont compatibles uniquement avec `activity: true`.
+Le titre, l’artiste, les commandes, leurs masquages et le volume restent
+natifs. L’illustration remplace la pochette native ; aucun contrôle recréé,
+observateur ou abonnement ajouté. Les autres options de tuile (état calculé,
+secondaire, seuils, sous-boutons et statistiques) ne s’appliquent pas au média.
+
+```yaml
+card_type: button
+button_type: state
+rows: 2
+grid_options: {columns: full, rows: 2}
+show_icon: false
+modules: [signature_square]
+signature_square:
+  activity: true
+  illustration:
+    image: /local/illustrations/activities-v1.png?v=1
+    columns: 4
+    rows: 6
+    index: 0
+    index_dark: 12
+    offset_y: 18
+    offset_y_dark: 6
+  progress:
+    value: "{{ states('sensor.progression') if has_value('sensor.progression') else '' }}"
+    color: '#308DCB'
+```
+
+`index_dark` et `offset_y_dark` sont facultatifs, propres à Square et suivent
+le thème HA effectif. Les valeurs habituelles `index`/`offset_y` servent de
+repli. `progress` est facultatif et réservé aux boutons activité ; `value`
+accepte un nombre ou Jinja, est borné de 0 à 100 et masque la barre si vide
+ou invalide. La couleur utilise l’accent de carte par défaut.
+
+### 1.6.0
+
+- Bandeaux activité illustrés avec sous-boutons et médias natifs.
+- Progression facultative, variante sombre dans une même planche.
+- Compatibilité énergie et tuiles existantes conservée.
