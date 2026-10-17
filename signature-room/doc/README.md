@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.1.6**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.2.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -63,6 +63,69 @@ L’objet `illustration` accepte `image` (URL locale/HTTPS), `image_light` et `i
 
 Pour conserver un contour de contraste sur une lampe Hue sans CSS, ajouter `icon_outline_color` dans son entrée `sub_button_styles` : couleur CSS, transparente ou Jinja ; le contour de glyphe fait 1,5 px et ne modifie pas la couleur RGB configurée. Les couleurs d’activité et les commandes restent natives.
 
+### Badges à côté du nom
+
+En mode illustré, `sub_button_styles.<classe-ou-numéro>.type: badge` place un
+sous-bouton natif iconique à côté du nom, à gauche de l’illustration. Plusieurs
+badges suivent l’ordre des sous-boutons natifs. Une pastille mesure 22 px, son
+icône 14 px et leur écart 4 px. La place du titre et des autres badges se libère
+immédiatement avec les classes `.hidden` ou l’attribut `[hidden]` de Bubble.
+
+```yaml
+sub_button:
+  main:
+    # Conserver les mesures et commandes existantes dans cette liste.
+    - entity: binary_sensor.living_room_motion
+      css_class: room-motion
+      icon: mdi:walk
+      show_name: false
+      show_state: false
+      show_background: false
+      state_background: false
+      visibility:
+        - condition: state
+          entity: binary_sensor.living_room_motion
+          state: "on"
+      tap_action:
+        action: more-info
+    - entity: binary_sensor.living_room_window
+      css_class: room-status
+      icon: mdi:window-open
+      show_name: false
+      show_state: false
+      show_background: false
+      state_background: false
+      visibility:
+        - condition: state
+          entity: binary_sensor.living_room_window
+          state: "on"
+      tap_action:
+        action: more-info
+signature_room:
+  room_mode: illustrated
+  sub_button_styles:
+    room-motion:
+      type: badge
+      color: amber
+    room-status:
+      type: badge
+      color: blue
+```
+
+Le fond mélange 16 % de la couleur du badge dans la surface neutre du thème.
+`color` et `background` conservent leurs overrides, y compris Jinja. La
+visibilité, l’icône, l’entité et les actions sont celles du sous-bouton Bubble ;
+aucun nœud, observateur, écouteur ou abonnement supplémentaire n’est créé.
+Les boutons nommés, les états textuels, les types spécialisés et les commandes
+`room-control-N` / `room-climate` ne sont pas transformés.
+
+À 239 px de largeur intérieure ou moins, les badges restent alignés sur le nom
+à droite et le titre utilise toute la largeur restante. Lorsqu’un badge est
+visible, le dessin est limité à 48 px et abaissé au-dessus des commandes pour
+éviter les chevauchements. La carte conserve sa hauteur, sa température et ses
+commandes. Sans badge visible, la géométrie illustrée d’origine est rétablie.
+Le mode classique et les badges existants sans `type: badge` restent inchangés.
+
 ## Compatibilité et comportement
 
 Cartes `button`, hors boutons `switch` et `slider`. Une carte pièce commence à 156 px et peut grandir avec le texte et les rangées de commandes. Une configuration incompatible ne reçoit aucun style de ce module.
@@ -88,7 +151,7 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
-| `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
+| `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; `type: badge` place un bouton iconique près du nom en mode illustré. |
 | `room_mode` | `classic` | Présentation `classic` ou `illustrated` ; le mode classique existant reste inchangé. |
 | `illustration` | `{}` | Image externe, variantes HA, grille de sprites et index ; active dans le mode illustré. |
 | `room_auto_colors` | `true` | true par défaut ; false désactive les couleurs automatiques. |
@@ -117,6 +180,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.2.0 — 17 octobre 2026
+
+- Badges natifs multiples à côté du nom en mode illustré, via `sub_button_styles.<classe>.type: badge`, avec couleur et fond doux configurables.
+- Les badges masqués libèrent leur place en CSS, sans exécution du module ; titre et dessin s’adaptent aux cartes étroites sans changer la hauteur ni les commandes.
+- Aucun CSS requis dans les cartes, nouveau nœud, écouteur ou observateur. Modes classique et illustré sans cette option conservés.
 
 ### 1.1.6 — 16 octobre 2026
 

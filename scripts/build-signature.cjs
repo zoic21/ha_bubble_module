@@ -62,6 +62,7 @@ async function build(layout) {
     const roles = [], roomColumns = 4, roomRows = 1, roomHeaderMeasures = false;
   `);
   chunks.push(shared('sub-buttons'));
+  if (layout === 'room') chunks.push(specific(layout, 'badges'));
   if (layout === 'square') chunks.push(specific(layout, 'badge'));
   const css = [shared('base.css'), specific(layout, 'presentation.css')];
   if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'), `(summaryEnabled ? ${specific(layout, 'summary.css')} : '')`);
