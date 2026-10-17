@@ -526,3 +526,7 @@ ou invalide. La couleur utilise l’accent de carte par défaut.
 - Bandeaux activité illustrés avec sous-boutons et médias natifs.
 - Progression facultative, variante sombre dans une même planche.
 - Compatibilité énergie et tuiles existantes conservée.
+
+### 1.6.1 — Centrage des textes activité
+
+Le nom et l’état sont centrés ensemble dans la zone au-dessus des commandes. Un détail présent garde sa troisième ligne ; un détail absent ne réserve plus une ligne vide dans ce seul mode. Les autres tuiles conservent leur réserve habituelle. Pour les textes longs, activer `scrolling_effect: true` dans Bubble ; un texte calculé qui doit défiler utilise `state_content` natif plutôt que `signature_square.state`. Les lecteurs gardent leur défilement natif. Aucun moteur de défilement ajouté au module.

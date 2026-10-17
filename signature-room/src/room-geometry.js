@@ -19,6 +19,25 @@ const roomExtraHeight = Math.max(0,roomRows - (roomHeaderMeasures ? 2 : 1)) * 48
 const roomControlPitch = roomHeaderMeasures ? 44 : 48;
 const roomControlBottom = roomHeaderMeasures ? 4 : 8;
 const roomDividerBottom = roomControlBottom + 47 + (roomRows - 1) * roomControlPitch;
+// An equipment summary can align its value with up to two native measurements.
+// Keep named action commands on their existing footer, never in a measure row.
+const roomInlineMetrics = roomIllustrated && !roomCompact && o.room_inline_metrics === true
+  && visibleState && !secondary && roles.length > 0 && roles.length <= 2
+  && roles.every(({b}) => b.show_name !== true && (b.show_state === true || b.state_content));
+if (roomInlineMetrics) {
+  const scope = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"]';
+  const columns = roles.length + 1;
+  css += `
+    ${scope+' .bubble-state'} { position: absolute; inset: auto auto -4px 0; height: 44px; width: calc(100% / ${columns}); max-width: calc(100% / ${columns}); display: flex; align-items: center; }
+    ${scope+' .bubble-container::after'} { display: none; }
+  `;
+  roles.forEach(({selector},i) => {
+    const metric = selector.replace('ha-card',scope);
+    css += metric+' { left: calc(12px + '+(i+1)+' * (100% - 24px) / '+columns+'); width: calc((100% - 24px) / '+columns+'); bottom: 8px; gap: 4px; font-size: var(--signature-name-font-size,14px); }';
+    css += metric+' .bubble-sub-button-icon { width: 16px; height: 16px; padding: 0; --mdc-icon-size: 16px; }';
+    css += metric+' .bubble-sub-button-name-container { min-width: 0; }';
+  });
+}
 // Opt-in presentation refinements leave existing room cards unchanged. Emit
 // these outside the structural cache so removing an option restores defaults.
 if (o.room_show_divider === false)

@@ -235,6 +235,7 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
 | `room_state_as_value` | `false` | État principal au format de mesure ; état textuel de 22 px. |
+| `room_inline_metrics` | `false` | Aligne la valeur principale avec 1–2 contrôles de mesure non nommés sur la ligne basse, en mode illustré sans secondaire. |
 | `room_state_centered` | `false` | Centre l’état sous le nom et au-dessus des commandes visibles, en mode illustré sans secondaire. |
 | `room_compact` | `false` | Équipement illustré de 118 px, état et une rangée de 1–3 commandes nommées à gauche du dessin inchangé. |
 | `room_show_divider` | `true` | `false` masque seulement le séparateur décoratif des commandes. |
@@ -411,3 +412,7 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 
 - Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
 - Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.
+
+### 1.3.3 — Mesures sur une ligne
+
+`room_inline_metrics: true` place la valeur principale et un ou deux sous-boutons natifs `room-control-N` (état affiché, sans nom) sur une même ligne basse. La carte illustrée conserve ses 148 px et le dessin de 80 px ; les trois cibles se partagent la largeur avec 12 px de retrait. Les mesures restent hautes de 44 px, avec icônes de 16 px. Le séparateur est masqué dans ce mode. Sans état, avec un secondaire, des commandes nommées ou plus de deux contrôles, le placement habituel est conservé. Aucun nouveau nœud, écouteur ou observateur ; le retrait de l’option restaure les positions natives.

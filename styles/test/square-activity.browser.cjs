@@ -1,6 +1,25 @@
 const assert=require('node:assert/strict');const {test}=require('node:test');
 const {fixture}=require('./browser.cjs');const {render}=require('./fixtures.cjs');const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-square').code;
+test('two activity texts are centered together above the native footer',async t=>{
+ const page=await fixture(t);
+ for(const width of [288,328,600]){
+  await render(page,{width});
+  const m=await page.evaluate(code=>{
+   const ctx=contexts.find(c=>c.card.getRootNode().host.dataset.id==='square');
+   ctx.config.show_icon=false;ctx.elements.iconContainer.classList.add('hidden');
+   ctx.config.signature_square={activity:true,illustration:{image:'/local/printer.png'}};
+   ctx.card.querySelector('.bubble-name').textContent='H2S';
+   ctx.elements.state.textContent='Impression en cours';
+   ctx.config.state_content='state';ctx.config.entity='vacuum.demo';
+   ctx._hass.states['vacuum.demo']={state:'cleaning',attributes:{}};
+   const css=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);ctx.card.getRootNode().querySelectorAll('style')[1].textContent=css;
+   const name=ctx.card.querySelector('.bubble-name').getBoundingClientRect(),state=ctx.elements.state.getBoundingClientRect(),content=ctx.elements.contentContainer.getBoundingClientRect();
+   return{center:(name.top+state.bottom)/2,expected:content.y+content.height/2,bottom:state.bottom,footer:ctx.card.querySelector('.bubble-sub-button-container').getBoundingClientRect().top};
+  },code);
+  assert.ok(Math.abs(m.center-m.expected)<1,JSON.stringify({width,m}));assert.ok(m.bottom<m.footer);
+ }
+});
 test('activity buttons keep lower native actions clear of text and artwork in two rows',async t=>{
  const page=await fixture(t);
  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,358,600]){
