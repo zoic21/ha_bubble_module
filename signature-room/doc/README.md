@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.2.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.2.3**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -128,11 +128,12 @@ retour au mode classique et le teardown restaurent leurs emplacements natifs.
 Les boutons nommés, les états textuels, les types spécialisés et les commandes
 `room-control-N` / `room-climate` ne sont pas transformés.
 
-À 239 px de largeur intérieure ou moins, les badges suivent toujours le texte
-et le titre utilise toute la largeur restante. Lorsqu’un badge est
-visible, le dessin est limité à 48 px et abaissé au-dessus des commandes pour
-éviter les chevauchements. La carte conserve sa hauteur, sa température et ses
-commandes. Sans badge visible, la géométrie illustrée d’origine est rétablie.
+L’apparition d’un badge ne modifie ni la taille ni le centrage de l’illustration,
+y compris sur mobile. Le titre et la capsule partagent l’espace à gauche du
+dessin, avec un nom limité à deux lignes. La réduction responsive ordinaire
+et la taille du thème restent applicables ; aucune réduction supplémentaire
+à 48 px n’est liée aux badges. La carte conserve sa hauteur, sa température
+et ses commandes.
 Le mode classique et les badges existants sans `type: badge` restent inchangés.
 
 ## Compatibilité et comportement
@@ -189,6 +190,11 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.2.3 — 17 octobre 2026
+
+- Suppression de la limite de 48 px et du déplacement de l’illustration lorsqu’un badge est visible sur une carte étroite. Taille et centrage suivent désormais les mêmes règles avec zéro, un ou deux badges.
+- Le titre et la capsule gardent l’espace réservé à gauche du dessin ; géométrie des commandes et hauteur de carte conservées. Régression Chromium sur les changements de visibilité sans nouvelle exécution du module.
 
 ### 1.2.2 — 17 octobre 2026
 

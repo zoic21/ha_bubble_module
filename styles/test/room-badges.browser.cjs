@@ -209,3 +209,22 @@ test('rooms without artwork do not reserve the legacy status corner beside the n
   assert.equal(m.padding,'0px');assert.ok(m.name.width<70);
   assert.equal(m.capsule.x,m.name.right+6);
 });
+
+test('badge visibility never changes artwork size or centering on narrow room cards',async t=>{
+  const page=await fixture(t);
+  for(const width of [170,190,220,240,328])for(const mode of ['light','dark'])for(const secondary of ['', 'Texte secondaire'])for(const controls of [0,6]){
+    const both=await room(page,{width,mode,secondary,controls});
+    const states=await page.evaluate(()=>{
+      const root=window.roomBadges.card,motion=root.querySelector('.room-motion'),status=root.querySelector('.room-status');
+      status.classList.add('hidden');const single=window.readBadges();
+      motion.hidden=true;const none=window.readBadges();
+      status.classList.remove('hidden');motion.hidden=false;
+      return {single,none,restored:window.readBadges()};
+    });
+    const hint=JSON.stringify({width,mode,secondary,controls});
+    assert.deepEqual(both.art,states.none.art,hint);
+    assert.deepEqual(states.single.art,states.none.art,hint);
+    assert.deepEqual(states.restored.art,states.none.art,hint);
+    assert.equal(both.card.height,states.none.card.height,hint);
+  }
+});

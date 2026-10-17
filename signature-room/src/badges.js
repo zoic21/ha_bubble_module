@@ -69,7 +69,6 @@ if (badgeNodes.length && badgeName?.parentNode) {
   });
   if (!structure.roomBadgeCSS) {
     const scope = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"]';
-    const active = scope+':has(.dp-room-badges .bubble-sub-button:not(.hidden):not([hidden]))';
     const all = scope+' .dp-room-badges .bubble-sub-button';
     structure.roomBadgeCSS = `
       ${scope} { --dp-room-badge-art: 0px; }
@@ -101,16 +100,7 @@ if (badgeNodes.length && badgeName?.parentNode) {
         box-shadow: none; --mdc-icon-size: 14px;
       }
       ${all+' .bubble-sub-button-icon'} { color: inherit; --mdc-icon-size: 14px; }
-      @container (max-width: 239px) {
-        ${active+' .dp-room-heading'} { max-width: 100%; }
-        ${active}[data-dp-illustration="yes"] .bubble-content-container::after {
-          width: min(48px,var(--signature-illustration-size,80px),max(0px,100cqw - 112px));
-          top: calc(100% - var(--dp-room-badge-divider) - 12px);
-        }
-        ${active}[data-dp-illustration="yes"][data-dp-secondary="yes"] .bubble-content-container::after { top: 38px; }
-      }
     `;
   }
-  css += 'ha-card[data-dp-room-mode="illustrated"] { --dp-room-badge-divider: '
-    + roomDividerBottom+'px; }'+structure.roomBadgeCSS;
+  css += structure.roomBadgeCSS;
 }
