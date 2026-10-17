@@ -22,7 +22,8 @@ type: custom:bubble-card
 card_type: button
 button_type: name
 name: Activités
-icon: mdi:pulse
+show_icon: false
+show_name: false
 show_state: false
 scrolling_effect: false
 button_action:
@@ -31,5 +32,5 @@ button_action:
     navigation_path: '#activites'
 modules: [signature_compact, signature_group]
 signature_group:
-  max_names: 2
+  presentation: chips
   hide_empty: true

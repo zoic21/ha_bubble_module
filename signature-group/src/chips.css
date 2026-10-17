@@ -1,0 +1,89 @@
+:host([hidden]) { display: none !important; }
+ha-card[data-signature-group="chips"] :is(.bubble-icon-container,.bubble-name-container) {
+  display: none !important;
+}
+ha-card[data-signature-group="chips"] .sg-strip {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 9px;
+  box-sizing: border-box;
+  pointer-events: none;
+  /* @include shared/src/styles/font-family.css */
+  color: var(--primary-text-color);
+  font-size: var(--signature-name-font-size, 14px);
+  font-weight: var(--signature-font-weight-medium, 500);
+}
+ha-card[data-signature-group="chips"] .sg-track {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+ha-card[data-signature-group="chips"] .sg-items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+}
+ha-card[data-signature-group="chips"] :is(.sg-item,.sg-more) {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  height: 36px;
+  border-radius: max(0px, calc(var(--signature-card-border-radius, 22px) - 10px));
+  /* @include shared/src/styles/control-surface.css {"PROPERTY":"background"} */
+}
+ha-card[data-signature-group="chips"] .sg-item {
+  gap: 6px;
+  max-width: 180px;
+  padding: 0 10px 0 4px;
+  white-space: nowrap;
+}
+ha-card[data-signature-group="chips"] .sg-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+ha-card[data-signature-group="chips"] :is(.sg-art,.sg-icon) {
+  display: block;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+}
+ha-card[data-signature-group="chips"] .sg-art {
+  background-repeat: no-repeat;
+}
+ha-card[data-signature-group="chips"] .sg-icon {
+  --mdc-icon-size: 22px;
+  display: grid;
+  place-items: center;
+  color: var(--secondary-text-color);
+}
+ha-card[data-signature-group="chips"] .sg-more {
+  position: absolute;
+  inset-inline-end: 37px;
+  min-width: 36px;
+  padding-inline: 8px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  visibility: hidden;
+}
+ha-card[data-signature-group="chips"] .sg-arrow {
+  display: block;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  --mdc-icon-size: 20px;
+  color: var(--secondary-text-color);
+}
+ha-card[data-signature-group="chips"] .sg-message {
+  /* @include shared/src/styles/secondary.css */
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+ha-card[data-signature-group="chips"] [hidden] { display: none !important; }

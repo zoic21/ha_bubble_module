@@ -537,3 +537,29 @@ vide/non numérique masqué. Aucun état métier ni action n’est créé.
 `room_inline_metrics: true`, uniquement pour un équipement illustré avec état et 1–2 contrôles de mesure non nommés, aligne les centres des trois cibles sur la ligne basse. Conserver les 148 px, les 80 px du dessin et les cibles de mesure de 44 px ; aucun séparateur dans ce mode. Les commandes nommées et les autres pièces gardent leur placement. Retirer l’option restitue les styles précédents.
 
 Le mode `activity` centre le groupe nom/état dans la zone au-dessus des commandes, avec une troisième ligne uniquement lorsqu’un détail existe. Les autres Square gardent leur ligne secondaire réservée. Garder les mêmes nœuds et le défilement natif Bubble (`scrolling_effect`) ; les textes calculés à faire défiler passent par `state_content` natif. Aucun observateur ou timer de défilement supplémentaire.
+
+
+### Synthèse d’activités — Group 1.1.0
+
+`presentation: chips` est facultatif et conserve le cadre natif Compact de
+56 px. Aucun titre, icône principale ni compteur total visible. Pastilles
+neutres de 36 px, illustration fixe de 32 px, nom à 14 px / graisse 500,
+largeur maximale 180 px, écart de 8 px. Rayon concentrique `rayon carte -
+10 px` et surface de contrôle partagée, avec les replis Signature habituels.
+La flèche de 20 px reste à droite, au retrait intérieur de 9 px ; le `+N`
+la précède uniquement si des équipements sont masqués. Les noms suivent
+l’ordre de la popup et les dessins reprennent son cadrage et son thème HA.
+
+La quantité ne dépend pas d’un breakpoint : mesurer la piste et les pastilles
+pour conserver le plus long préfixe complet, en réservant la largeur réelle
+du compteur. Masquer toute pastille qui ne tient pas ; aucune seconde ligne
+ou réduction du dessin. Un seul ResizeObserver propre à ce mode et une
+frame coalescée suivent la largeur, les noms et la police. Le résumé classique
+ne gagne aucun observateur. Nettoyer observer/frame/nœuds au retrait et au
+teardown. Les nœuds natifs, handlers, ripple et conditions restent conservés ;
+la présentation laisse les appuis traverser vers l’action de carte entière.
+
+Vérifier 0/1/2/3/10/17 éléments à 288/328/358/382/600/992 px, clair/sombre,
+avec/sans thème, compteur masqué si tout tient, aucun élément partiel, noms
+longs, changement de taille/police/thème, disparition de source et retrait.
+Les tests de fixtures ne constituent pas un essai Home Assistant ou Safari/iOS.

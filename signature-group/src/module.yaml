@@ -1,5 +1,5 @@
 name: Signature Group
-version: 1.0.1
+version: 1.1.0
 creator: Loïc
 supported:
   - button
@@ -15,7 +15,7 @@ editor:
     description: "Par défaut, reprend le hash de la popup ou la destination de l’action native du bouton. Exemple : #activites."
     visible_if: (!card || card.card_type !== 'pop-up')
   - name: max_names
-    label: Nombre de noms dans le résumé
+    label: Nombre de noms dans le résumé classique
     default: 2
     selector:
       number:
@@ -23,6 +23,19 @@ editor:
         max: 5
         step: 1
         mode: box
+    description: Sans effet sur les pastilles, dont le nombre dépend de la largeur disponible.
+    visible_if: (!card || card.card_type !== 'pop-up')
+  - name: presentation
+    label: Présentation du bouton
+    default: summary
+    selector:
+      select:
+        options:
+          - label: Titre, résumé et compteur
+            value: summary
+          - label: Pastilles illustrées adaptatives
+            value: chips
+    description: Les pastilles reprennent les noms et illustrations des cartes de la popup. Le +N compte uniquement les éléments masqués ; la flèche reste à droite.
     visible_if: (!card || card.card_type !== 'pop-up')
   - name: hide_empty
     label: Masquer le bouton sans activité

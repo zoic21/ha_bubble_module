@@ -2,6 +2,7 @@ const config = this.config || {};
 const options = config.signature_group || {};
 const version = '@@MODULE_VERSION@@';
 const producer = config.card_type === 'pop-up';
+const chips = !producer && options.presentation === 'chips';
 const editing = !!(this.editor || this.detectedEditor || this.inEditorPreview || this._preview || this.preview);
 const supported = producer || (config.card_type === 'button' && config.button_type === 'name');
 const tap = config.button_action?.tap_action || config.tap_action;
@@ -10,7 +11,7 @@ const hash = typeof target === 'string' && /^#?[^/#\s]+$/.test(target.trim()) ? 
 const key = location.pathname + '|' + hash;
 const root = this.card;
 let runtime = this._signatureGroup;
-if (runtime && (runtime.version !== version || runtime.key !== key || runtime.root !== root || runtime.producer !== producer || !supported || !hash)) {
+if (runtime && (runtime.version !== version || runtime.key !== key || runtime.root !== root || runtime.producer !== producer || runtime.chipsMode !== chips || !supported || !hash)) {
   runtime.dispose();
   runtime = null;
 }
@@ -21,7 +22,7 @@ const registry = window[symbol] || (window[symbol] = {sources: new Map(), listen
 const notify = () => registry.listeners.get(key)?.forEach(listener => listener());
 /* @include signature-group/src/items.js */
 if (!runtime) {
-  runtime = this._signatureGroup = {version, key, root, producer, owner: this, disposed: false};
+  runtime = this._signatureGroup = {version, key, root, producer, chipsMode: chips, owner: this, disposed: false};
   const current = runtime;
   current.setHidden = hidden => {
     if (hidden && !current.ownsHidden && !this.hidden) {
@@ -59,6 +60,9 @@ if (!runtime) {
       if (!listeners?.size) registry.listeners.delete(key);
       current.summary?.remove();
       current.badge?.remove();
+      current.resize?.disconnect();
+      if (current.frame != null) cancelAnimationFrame(current.frame);
+      current.strip?.remove();
       root?.removeAttribute('data-signature-group');
     }
     if (this._signatureGroup === current) delete this._signatureGroup;
@@ -101,6 +105,12 @@ const ready = source && !source.disposed && source.owner.isConnected !== false
   && source.owner.config.modules?.includes('signature_group');
 const items = ready ? activeItems(source) : null;
 runtime.setHidden(options.hide_empty === true && items?.length === 0 && !editing);
+if (chips) {
+/* @include signature-group/src/chips.js */
+  return `
+/* @include signature-group/src/chips.css */
+  `;
+}
 const limit = Math.max(0, Math.min(5, Number.isFinite(Number(options.max_names)) ? Math.floor(Number(options.max_names)) : 2));
 const names = items?.slice(0, limit).map(labelFor) || [];
 const remaining = items ? items.length - names.length : 0;

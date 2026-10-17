@@ -1,6 +1,6 @@
 # Signature Group
 
-Version **1.0.1**. Module de comportement autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Le bouton conserve sa présentation et ses actions natives ; `signature_compact` fournit l’apparence des exemples.
+Version **1.1.0**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
 
 Importer [signature-group.yaml](../dist/signature-group.yaml) dans l’éditeur des modules Bubble. Voir l’[exemple complet](../examples/activities.yaml), contenant les deux cartes séparées par `---`.
 
@@ -45,10 +45,55 @@ L’identifiant est repris de l’action native : inutile de le saisir deux fois
 | Option du bouton | Défaut | Rôle |
 |---|---|---|
 | `popup` | Destination native de l’action tap | Hash explicite si la source n’est pas la destination tap ; ne modifie pas l’action native |
-| `max_names` | `2` | De 0 à 5 noms, puis `+N` pour les suivants |
+| `presentation` | `summary` | Résumé classique ou `chips` pour des pastilles illustrées adaptatives |
+| `max_names` | `2` | Résumé classique uniquement : de 0 à 5 noms, puis `+N` pour les suivants |
 | `hide_empty` | `false` | Masque le bouton et son emplacement lorsqu’aucune carte ne remplit ses conditions, hors mode édition |
 
 Le compteur inclut chaque carte dont les conditions sont remplies, même si l’équipement est au repos. Avec deux noms autorisés : `H2S, Télévision +2`. Sans élément : `0` et « Aucune activité » ; la popup affiche également ce message. Avec `hide_empty: true`, une source connue sans élément masque le bouton via le contrat natif Home Assistant (`hidden`, `connectedWhileHidden` et `card-visibility-changed`). Le bouton reste connecté pour recevoir les changements d’état et réapparaître ; aucun helper ni recopie de conditions n’est nécessaire. En mode édition, le bouton reste disponible et la popup conserve uniquement son placeholder natif : le message vide n’y est pas ajouté. Une source absente ou non initialisée affiche `—` et « Popup non initialisée », sans inventer un zéro.
+
+## Pastilles illustrées adaptatives
+
+Sur le même bouton, utiliser :
+
+```yaml
+show_icon: false
+show_name: false
+signature_group:
+  presentation: chips
+  hide_empty: true
+```
+
+Le module masque le titre, l’icône principale et le compteur total de sa
+présentation classique. Les pastilles commencent à gauche ; la flèche reste
+à droite. Leur nombre dépend de la largeur réelle, des noms et de la police,
+sans seuil téléphone/ordinateur ni nombre maximal arbitraire. Si tout tient,
+aucun compteur n’est affiché. Sinon, `+N` compte uniquement les éléments
+masqués et précède la flèche : six pastilles et `+4` représentent dix cartes.
+Une pastille partiellement visible est entièrement masquée ; si aucune ne
+tient, seul `+N` reste à côté de la flèche. L’ordre reste celui de la popup.
+
+Le cadre compact reste haut de 56 px, avec des pastilles de 36 px, des
+illustrations fixes de 32 px et 8 px entre pastilles. Les noms longs sont
+tronqués dans une pastille limitée à 180 px. La liste complète reste dans
+l’infobulle et le libellé accessible. Le message vide ou non initialisé est
+conservé ; `hide_empty` continue de gérer le masquage natif de la carte.
+
+Chaque illustration vient de `signature_square.illustration` ou
+`signature_room.illustration` sur la carte source. Les URL clair/sombre,
+dimensions de planche, index et décalages de cadrage suivent leur contrat
+existant ; Square reprend aussi `index_dark` et `offset_y_dark`. Le thème HA
+effectif sélectionne la variante. Sans image valide, l’icône de la carte ou
+de son entité est utilisée. Les images restent dans les fichiers de
+l’installation ; aucune liste ni illustration n’est copiée dans le bouton.
+
+Toutes les pastilles, le compteur et la flèche sont descriptifs : le clic
+traverse vers la surface native qui ouvre la popup. Aucun appui ne commande
+directement un équipement. Les maintiens et doubles appuis restent natifs.
+Un unique `ResizeObserver` local surveille la piste, la liste et le compteur ;
+les mesures sont regroupées dans une frame. Aucun polling ni écouteur global.
+Le retrait du mode, le remplacement de version et le teardown annulent la
+frame, déconnectent l’observateur et retirent les nœuds ajoutés. Le résumé
+classique reste le défaut, sans observateur de dimension.
 
 ## Conditions et noms
 
@@ -68,5 +113,6 @@ Modifier `src`, puis lancer `npm run build:modules`, `npm run check:modules`, `n
 
 ## Historique
 
+- **1.1.0** : présentation `chips`, illustrations héritées de la popup, adaptation à la largeur réelle, compteur des seuls éléments masqués et flèche fixe ; résumé classique conservé par défaut.
 - **1.0.1** : option de masquage natif des groupes vides, réapparition aux changements d’état et retrait du message vide dans l’éditeur de popup.
 - **1.0.0** : source unique dans une popup, compteur et résumé sur un bouton, conditions natives et états vides, mise à jour avant première ouverture, nettoyage à la suppression.

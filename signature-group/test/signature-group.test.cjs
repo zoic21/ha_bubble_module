@@ -7,7 +7,14 @@ const definition = loadModule('signature-group');
 
 function fixture() {
   const location = {pathname:'/lovelace/home'};
-  const context = vm.createContext({...dom, document:{createElement:tag=>new dom.Element(tag)}, window:{}, location, queueMicrotask});
+  const frames = new Map(); let nextFrame = 0;
+  class ResizeObserver {
+    constructor(callback) { this.callback=callback; this.targets=new Set(); }
+    observe(target) { this.targets.add(target); }
+    disconnect() { this.targets.clear(); }
+  }
+  const context = vm.createContext({...dom, document:{createElement:tag=>new dom.Element(tag)}, window:{}, location, queueMicrotask,
+    ResizeObserver,requestAnimationFrame:callback=>{const id=++nextFrame;frames.set(id,callback);return id;},cancelAnimationFrame:id=>frames.delete(id)});
   const render = vm.runInContext('(function(hass,onTeardown,renderTemplate,checkConditionsMet){return `' + definition.code + '`;})', context);
   const hass = {states:{'vacuum.robot':{state:'cleaning',attributes:{friendly_name:'Robot'}},'sensor.printer':{state:'idle',attributes:{}}}};
   const checks = [];
@@ -29,7 +36,7 @@ function fixture() {
   };
   const producer=cards=>make({card_type:'pop-up',hash:'#activities',modules:['signature_group'],cards});
   const consumer=(options={})=>make({card_type:'button',button_type:'name',signature_group:options,button_action:{tap_action:{action:'navigate',navigation_path:'#activities'}}});
-  return {context,location,hass,make,producer,consumer,checks};
+  return {context,location,hass,make,producer,consumer,checks,frames};
 }
 const robot={type:'custom:bubble-card',card_type:'button',entity:'vacuum.robot',name:'Aspirateur',visibility:[{condition:'state',entity:'vacuum.robot',state:'cleaning'}]};
 
@@ -118,4 +125,51 @@ test('group visibility does not undo a hidden state set by another feature',()=>
   button.ctx.hidden=true;f.hass.states['vacuum.robot'].state='docked';source.run();button.run();
   f.hass.states['vacuum.robot'].state='cleaning';button.run();assert.equal(button.ctx.hidden,true);
   button.ctx.teardown();assert.equal(button.ctx.hidden,true);source.ctx.teardown();
+});
+
+test('chips inherit names and atlas variants, reuse nodes and leave native actions intact',()=>{
+  const f=fixture();f.hass.themes={darkMode:false};
+  const art={image:'/local/atlas.png',columns:4,rows:6,index:0,index_dark:12,offset_y:12.5,offset_y_dark:3.125};
+  const cards=[{type:'tile',entity:'sensor.printer',name:'H2S',signature_square:{illustration:art}}];
+  const original=structuredClone(cards),source=f.producer(cards),button=f.consumer({presentation:'chips',max_names:0});
+  const action=button.ctx.config.button_action;source.run();button.run();
+  const runtime=button.ctx._signatureGroup,node=runtime.nodes[0];
+  assert.equal(node.label.textContent,'H2S');assert.equal(node.art.hidden,false);
+  assert.equal(node.art.style.backgroundPosition,'0% 2.5%');
+  assert.equal(runtime.summary,undefined);assert.equal(runtime.badge,undefined);
+  f.hass.themes.darkMode=true;button.run();assert.equal(runtime.nodes[0],node);
+  assert.equal(node.art.style.backgroundPosition,'0% 60.625%');
+  assert.equal(button.ctx.config.button_action,action);assert.deepEqual(cards,original);
+  const observer=runtime.resize;assert.equal(observer.targets.size,3);assert.equal(f.frames.size,1);
+  button.ctx.config.signature_group.presentation='summary';button.run();
+  assert.equal(observer.targets.size,0);assert.equal(runtime.strip.parentNode,null);assert.equal(f.frames.size,0);
+  assert.equal(button.text,'+1');button.ctx.teardown();source.ctx.teardown();
+});
+
+test('chips display a maximal prefix and only the hidden count, including exact fit and narrow cards',()=>{
+  const f=fixture(),source=f.producer(Array.from({length:10},(_,i)=>({type:'tile',name:'Équipement '+i}))),button=f.consumer({presentation:'chips'});
+  source.run();button.run();const runtime=button.ctx._signatureGroup;
+  let width=500;runtime.track.getBoundingClientRect=()=>({width});
+  runtime.nodes.forEach(node=>node.getBoundingClientRect=()=>({width:80}));
+  runtime.more.getBoundingClientRect=()=>({width:runtime.more.textContent.length>2?44:36});
+  runtime.layout();assert.equal(runtime.visibleCount,5);assert.equal(runtime.more.textContent,'+5');
+  assert.equal(runtime.nodes[5].style.visibility,'hidden');
+  width=872;runtime.layout();assert.equal(runtime.visibleCount,10);assert.equal(runtime.more.style.visibility,'hidden');
+  width=871;runtime.layout();assert.equal(runtime.visibleCount,9);assert.equal(runtime.more.textContent,'+1');
+  width=40;runtime.layout();assert.equal(runtime.visibleCount,0);assert.equal(runtime.more.textContent,'+10');
+  width=0;runtime.layout();assert.equal(runtime.visibleCount,0);
+  button.ctx.teardown();source.ctx.teardown();assert.equal(f.frames.size,0);
+});
+
+test('chips keep untrusted labels literal, reject executable images and reflect source and state changes',async()=>{
+  const f=fixture(),source=f.producer([robot,{type:'tile',name:'<img src=x onerror=alert(1)>',icon:'mdi:printer-3d',signature_square:{illustration:{image:'javascript:alert(1)'}}}]),button=f.consumer({presentation:'chips',hide_empty:true});
+  source.run();button.run();let runtime=button.ctx._signatureGroup;
+  assert.equal(runtime.nodes[1].label.children.length,0);assert.equal(runtime.nodes[1].art.hidden,true);
+  assert.equal(runtime.nodes[1].icon.icon,'mdi:printer-3d');
+  f.hass.states['vacuum.robot'].state='docked';button.run();assert.equal(runtime.nodes.length,1);
+  source.ctx.config={...source.ctx.config,cards:[]};source.run();button.run();assert.equal(button.ctx.hidden,true);
+  assert.equal(runtime.nodes.length,0);assert.equal(runtime.message.textContent,'Aucune activité');
+  source.ctx.teardown();await Promise.resolve();assert.equal(button.ctx.hidden,false);
+  assert.equal(runtime.message.textContent,'Popup non initialisée');
+  button.ctx.teardown();
 });
