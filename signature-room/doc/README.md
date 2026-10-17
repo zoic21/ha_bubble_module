@@ -416,3 +416,7 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 ### 1.3.3 — Mesures sur une ligne
 
 `room_inline_metrics: true` place la valeur principale et un ou deux sous-boutons natifs `room-control-N` (état affiché, sans nom) sur une même ligne basse. La carte illustrée conserve ses 148 px et le dessin de 80 px ; les trois cibles se partagent la largeur avec 12 px de retrait. Les mesures restent hautes de 44 px, avec icônes de 16 px. Le séparateur est masqué dans ce mode. Sans état, avec un secondaire, des commandes nommées ou plus de deux contrôles, le placement habituel est conservé. Aucun nouveau nœud, écouteur ou observateur ; le retrait de l’option restaure les positions natives.
+
+### 1.3.4 — Mesures compactes à côté du dessin
+
+Combiner `room_inline_metrics: true` et `room_compact: true` aligne la valeur principale et les 1–2 sous-boutons de mesure à gauche du dessin, dans une carte de 118 px. Titre en haut sur une ligne, illustration de 80 px centrée à droite, valeurs centrées dans la place sous le titre. Les mesures gardent leurs cibles de 44 px, leurs nœuds, entités et actions. La typographie devient plus compacte sous 360 px. Configurer `rows: 2` et `grid_options.rows: 2`. Sans `room_compact`, la ligne basse de 148 px reste disponible. Les commandes nommées conservent le gabarit compact d’Alarme ; aucune modification des autres pièces.

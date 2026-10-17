@@ -530,3 +530,7 @@ ou invalide. La couleur utilise l’accent de carte par défaut.
 ### 1.6.1 — Centrage des textes activité
 
 Le nom et l’état sont centrés ensemble dans la zone au-dessus des commandes. Un détail présent garde sa troisième ligne ; un détail absent ne réserve plus une ligne vide dans ce seul mode. Les autres tuiles conservent leur réserve habituelle. Pour les textes longs, activer `scrolling_effect: true` dans Bubble ; un texte calculé qui doit défiler utilise `state_content` natif plutôt que `signature_square.state`. Les lecteurs gardent leur défilement natif. Aucun moteur de défilement ajouté au module.
+
+### 1.6.2 — Centrer l’état entre le titre et les informations basses
+
+En activité, le nom reste en haut. L’état est centré verticalement entre le bas du nom et le haut de la ligne basse de sous-boutons, ou du détail lorsqu’il est présent. Le titre et l’état ne sont plus centrés comme un bloc commun. Les lecteurs centrent leur groupe de morceau/artiste dans le même espace disponible ; leurs contrôles et leur défilement restent natifs. Les cartes gardent leurs deux lignes et les images leur taille ; aucun calcul de géométrie JavaScript ajouté.

@@ -4,9 +4,9 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 1.6.1 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Square — square tiles | 1.6.2 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.4.6 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Room — room summaries and controls | 1.3.3 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Room — room summaries and controls | 1.3.4 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.14 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
@@ -120,3 +120,5 @@ Square 1.5.2 adds `summary.secondary_statistics` for a daily cost below daily co
 Square 1.6.0 adds opt-in illustrated two-row activity banners with native sub-buttons or media controls; see its guide.
 
 Room 1.3.3 adds `room_inline_metrics: true` to align an illustrated equipment value with up to two native measure controls. Square 1.6.1 centers activity text groups without reserving an empty detail line. Use Bubble’s native `scrolling_effect: true` and native `state_content` for scrolling text.
+
+Room 1.3.4 supports `room_inline_metrics` with `room_compact`: three values beside the unchanged artwork in a 118px card. Square 1.6.2 keeps the activity name at the top and centers the state between it and the footer; native media information uses the same available middle region.

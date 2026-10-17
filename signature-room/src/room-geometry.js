@@ -37,6 +37,27 @@ if (roomInlineMetrics) {
     css += metric+' .bubble-sub-button-icon { width: 16px; height: 16px; padding: 0; --mdc-icon-size: 16px; }';
     css += metric+' .bubble-sub-button-name-container { min-width: 0; }';
   });
+  // The same measurements can fit beside the artwork in a double-height card.
+  if (o.room_compact === true) {
+    css += `
+      ${scope} { --dp-room-metric-art: 0px; }
+      ${scope}[data-dp-illustration="yes"] { --dp-room-metric-art: calc(min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) + 8px); }
+      ${scope+' .bubble-container'} { height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; min-height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; }
+      ${scope+' .bubble-content-container'} { inset: 8px 12px; grid-template-rows: 20px minmax(0,1fr); row-gap: 0; }
+      ${scope+' .bubble-name'} { white-space: nowrap; max-height: 20px; }
+      ${scope+' .bubble-state'} { grid-area: 1 / 1 / -1 / -1; inset: 20px auto 0 0; height: calc(100% - 20px); width: calc((100% - var(--dp-room-metric-art)) / ${columns}); max-width: calc((100% - var(--dp-room-metric-art)) / ${columns}); font-size: clamp(18px,6cqw,var(--signature-value-font-size,28px)); }
+      ${scope+' .bubble-content-container::after'} { top: 50%; }
+    `;
+    roles.forEach(({selector},i) => {
+      const metric = selector.replace('ha-card',scope);
+      const measured = metric+':has(.bubble-sub-button-name-container:not(:empty):not(.hidden):not([hidden]))';
+      css += metric+' { top: calc(50% - 12px); bottom: auto; left: calc(12px + '+(i+1)+' * (100% - 24px - var(--dp-room-metric-art)) / '+columns+'); width: calc((100% - 24px - var(--dp-room-metric-art)) / '+columns+'); }';
+      css += measured+' { display: flex !important; flex-direction: row-reverse !important; padding: 0 !important; }';
+      css += measured+' .bubble-sub-button-name-container { margin: 0 !important; font-size: inherit; }';
+      css += measured+' .bubble-sub-button-icon { width: 16px; height: 16px; padding: 0; --mdc-icon-size: 16px; }';
+      css += '@container (max-width: 360px) { '+measured+' { font-size: 12px; gap: 3px; } '+measured+' .bubble-sub-button-icon { width: 14px; height: 14px; --mdc-icon-size: 14px; } }';
+    });
+  }
 }
 // Opt-in presentation refinements leave existing room cards unchanged. Emit
 // these outside the structural cache so removing an option restores defaults.

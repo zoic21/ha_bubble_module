@@ -1,10 +1,9 @@
 `/* Opt-in two-row activity: native values above, native actions below. */
     ha-card[data-dp-layout="square"][data-dp-kind="button"] .bubble-content-container {
-      inset: 9px 9px 43px;
+      inset: 9px 9px 37px;
       grid-template-columns: minmax(0,1fr) min(var(--signature-illustration-size,80px),72px);
-      grid-template-rows: ${secondary ? '20px 24px 18px' : '20px 24px'};
-      align-content: center;
-      gap: 2px 10px;
+      grid-template-rows: ${secondary ? '20px minmax(24px,1fr) 18px' : '20px minmax(24px,1fr)'};
+      gap: 0 10px;
     }
     ha-card[data-dp-layout="square"][data-dp-kind="button"] .bubble-name { grid-area: 1 / 1; padding: 0; }
     ha-card[data-dp-layout="square"][data-dp-kind="button"] .bubble-state {

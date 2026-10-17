@@ -13,12 +13,12 @@ if (kind === 'media-player') {
     ha-card .bubble-background { inset: 0; width: auto; height: auto; background: transparent !important; }
     ha-card .bubble-main-icon-container { display: none; }
     ha-card .bubble-content-container { display: contents; }
-    ha-card .bubble-name-container { position: absolute; inset: 15px 94px auto 10px; margin: 0; }
+    ha-card .bubble-name-container { position: absolute; inset: 9px 94px auto 10px; margin: 0; }
     ha-card .bubble-name {
       /* @include shared/src/styles/name.css */
       line-height: 20px; color: var(--primary-text-color);
     }
-    ha-card .bubble-media-info-container { position: absolute; inset: 39px 94px auto 10px; width: auto; margin: 0; }
+    ha-card .bubble-media-info-container { position: absolute; inset: 29px 94px 37px 10px; width: auto; height: auto; margin: 0; justify-content: center; }
     ha-card .bubble-title {
       /* @include shared/src/styles/name.css */
       font-weight: var(--signature-font-weight-normal,400); line-height: 20px; color: var(--primary-text-color);
