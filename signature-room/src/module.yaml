@@ -1,5 +1,5 @@
 name: Signature Room
-version: 1.2.0
+version: 1.2.1
 creator: Loïc
 supported:
   - button
@@ -52,7 +52,7 @@ editor:
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       sub_button_styles:
         $field: sub_button_styles
-        description: "Objet indexé par classe CSS ou numéro natif. type: badge place un sous-bouton default, iconique sans texte, à côté du nom en mode illustré ; color/background personnalisent sa pastille. Visibilité et actions restent natives."
+        description: "Objet indexé par classe CSS ou numéro natif. type: badge place un sous-bouton default, iconique sans texte, immédiatement après le nom (pastille 20 px, écart 6 px) en mode illustré ; color/background personnalisent sa pastille. Visibilité et actions restent natives."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       room_auto_colors:
         label: Coloration automatique des commandes (booléen YAML)

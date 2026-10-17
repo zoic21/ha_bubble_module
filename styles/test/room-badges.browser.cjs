@@ -55,16 +55,18 @@ test('room badges fit beside the native name without changing values, footer or 
   for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [142,170,190,220,240,288,328,358,382,600]){
     const m=await room(page,{width,mode,plain});const hint=JSON.stringify({width,mode,plain,m});
     assert.equal(m.card.height,148,hint);assert.equal(m.control.height,44,hint);
-    assert.equal(m.motion.width,22,hint);assert.equal(m.window.height,22,hint);
+    assert.equal(m.motion.width,20,hint);assert.equal(m.window.height,20,hint);
     assert.equal(m.motion.color,'rgb(185, 121, 24)');assert.equal(m.window.color,'rgb(54, 138, 203)');
     assert.ok(m.motion.right+3<=m.window.x,hint);
+    assert.ok(Math.abs(m.motion.x-m.name.right-6)<.1,hint);
+    assert.ok(Math.abs(m.motion.y+m.motion.height/2-m.name.y-m.name.height/2)<.1,hint);
     assert.ok(!overlap(m.name,m.motion)&&!overlap(m.name,m.window),hint);
     assert.ok(!overlap(m.value,m.motion)&&!overlap(m.value,m.window),hint);
     assert.ok(m.motion.y>=m.card.y&&m.window.right<=m.card.right,hint);
     const art={...m.art,right:m.art.x+m.art.width,bottom:m.art.y+m.art.height};
     assert.ok(!overlap(art,m.motion)&&!overlap(art,m.window),hint);
     assert.ok(art.bottom<m.control.y,hint);
-    assert.equal(m.nodes,await page.evaluate(()=>window.badgeNativeCount),'no new DOM');
+    assert.equal(m.nodes,await page.evaluate(()=>window.badgeNativeCount+2),'two reusable title holders');
   }
   const shell=page.locator('[data-id="room"]');
   await shell.locator('.room-motion').click();await shell.locator('.room-status').click();
@@ -82,8 +84,9 @@ test('native visibility collapses badge space immediately without rerendering th
   });
   assert.equal(m.single.window.display,'none');assert.equal(m.none.motion.display,'none');
   assert.equal(m.windowOnly.motion.display,'none');assert.equal(m.windowOnly.window.display,'flex');
-  assert.ok(m.single.name.width>both.name.width);assert.ok(m.none.name.width>m.single.name.width);
-  assert.equal(m.single.motion.x,both.window.x);assert.equal(m.windowOnly.window.x,both.window.x);
+  assert.ok(m.single.name.width>=both.name.width);assert.ok(m.none.name.width>=m.single.name.width);
+  assert.equal(m.single.motion.x,m.single.name.right+6);
+  assert.equal(m.windowOnly.window.x,m.windowOnly.name.right+6);
   assert.equal(m.restored.name.width,both.name.width);assert.equal(m.restored.nodes,both.nodes);
 });
 
@@ -99,19 +102,19 @@ test('badge colors follow live theme surfaces and explicit overrides, and remova
   });
   assert.notEqual(m.dark.motion.background,m.initial.motion.background);
   assert.equal(m.alarm.motion.color,'rgb(225, 70, 62)');assert.equal(m.alarm.window.background,'rgb(171, 205, 239)');
-  assert.notEqual(m.removed.window.y,m.initial.window.y);assert.equal(m.removed.nodes,m.initial.nodes);
+  assert.notEqual(m.removed.window.y,m.initial.window.y);assert.equal(m.removed.nodes,m.initial.nodes-2);
 });
 
 test('classic, named and specialized controls do not acquire illustrated badge geometry',async t=>{
   const page=await fixture(t);
-  const classic=await room(page,{classic:true});assert.notEqual(classic.motion.width,22);
+  const classic=await room(page,{classic:true});assert.notEqual(classic.motion.width,20);
   for(const option of [{show_name:true},{sub_button_type:'select'},{show_state:true},{show_icon:false}]){
     await room(page);
     const width=await page.evaluate(option=>{
       const ctx=window.roomBadges;
       const buttons=ctx.config.sub_button.main.map(b=>b.css_class==='room-motion'?{...b,...option}:b);
       ctx.config={...ctx.config,sub_button:{main:buttons}};ctx.update();return window.readBadges().motion.width;
-    },option);assert.notEqual(width,22,JSON.stringify(option));
+    },option);assert.notEqual(width,20,JSON.stringify(option));
   }
 });
 
@@ -131,4 +134,68 @@ test('badges remain clear of optional secondary text and two-row or absent contr
       assert.ok(!overlap(art,bounds),hint);
     }
   }
+});
+
+test('short titles keep badges immediately after their text, including live name changes',async t=>{
+  const page=await fixture(t);await room(page,{width:328});
+  for(const name of ['Centre','Entrée','Cuisine','Chambre principale','WC']){
+    const m=await page.evaluate(name=>{
+      window.roomBadges.card.querySelector('.bubble-name').textContent=name;
+      return window.readBadges();
+    },name);
+    assert.ok(Math.abs(m.motion.x-m.name.right-6)<.1,name);
+    assert.ok(Math.abs(m.motion.y+10-m.name.y-m.name.height/2)<.1,name);
+    if(name==='Centre')assert.ok(m.name.width<70,'the name must retain its natural text width');
+  }
+});
+
+test('native nodes and handlers survive repeated renders, native regrouping and option removal',async t=>{
+  const page=await fixture(t);await room(page);
+  const result=await page.evaluate(()=>{
+    const ctx=window.roomBadges,root=ctx.card,original=ctx.config;
+    ctx.config={...original,signature_room:{...original.signature_room,sub_button_styles:{}}};ctx.update();
+    const name=root.querySelector('.bubble-name'),nameParent=name.parentNode;
+    const motion=root.querySelector('.room-motion'),status=root.querySelector('.room-status');
+    const group=document.createElement('div');group.className='bubble-sub-button-group';
+    motion.parentNode.append(group);group.append(motion,status);
+    ctx.config=original;ctx.update();
+    const heading=name.parentNode,badges=motion.parentNode,count=root.querySelectorAll('*').length;
+    for(let i=0;i<20;i++)ctx.update();
+    const stable=name.parentNode===heading&&motion.parentNode===badges&&root.querySelectorAll('*').length===count;
+    // Bubble can reparent its existing native nodes during a configuration update.
+    group.append(motion,status);ctx.update();group.classList.add('hidden');
+    motion.click();status.click();
+    ctx.config={...original,signature_room:{...original.signature_room,sub_button_styles:{}}};ctx.update();
+    const restored=name.parentNode===nameParent&&group.children[0]===motion&&group.children[1]===status;
+    const clean=!root.querySelector('.dp-room-heading')&&!group.classList.contains('hidden');
+    return {stable,restored,clean,clicks:window.badgeClicks};
+  });
+  assert.deepEqual(result,{stable:true,restored:true,clean:true,clicks:['room-motion','room-status']});
+});
+
+test('teardown restores the native title and buttons without retaining title holders',async t=>{
+  const page=await fixture(t);await room(page);
+  const result=await page.evaluate(()=>{
+    const ctx=window.roomBadges,root=ctx.card,original=ctx.config;
+    ctx.config={...original,signature_room:{...original.signature_room,sub_button_styles:{}}};ctx.update();
+    const name=root.querySelector('.bubble-name'),nameParent=name.parentNode;
+    const buttons=[...root.querySelectorAll('.bubble-sub-button')],homes=buttons.map(b=>b.parentNode);
+    ctx.config=original;ctx.update();ctx.teardown();
+    return {nameRestored:name.parentNode===nameParent,
+      buttonsRestored:buttons.every((b,i)=>b.parentNode===homes[i]),
+      order:[...homes[0].children].filter(b=>b.classList.contains('bubble-sub-button')).map(b=>buttons.indexOf(b)),
+      holders:root.querySelectorAll('.dp-room-heading,.dp-room-badges').length};
+  });
+  assert.deepEqual(result,{nameRestored:true,buttonsRestored:true,order:[0,1,2,3],holders:0});
+});
+
+test('rooms without artwork do not reserve the legacy status corner beside the name',async t=>{
+  const page=await fixture(t);await room(page,{width:328});
+  const m=await page.evaluate(()=>{
+    const ctx=window.roomBadges;ctx.card.querySelector('.bubble-name').textContent='Centre';
+    ctx.config={...ctx.config,signature_room:{...ctx.config.signature_room,illustration:{}}};ctx.update();
+    return {...window.readBadges(),padding:getComputedStyle(ctx.card.querySelector('.bubble-name')).paddingRight};
+  });
+  assert.equal(m.padding,'0px');assert.ok(m.name.width<70);
+  assert.equal(m.motion.x,m.name.right+6);
 });

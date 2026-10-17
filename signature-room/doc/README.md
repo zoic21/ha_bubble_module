@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.2.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.2.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -66,9 +66,11 @@ Pour conserver un contour de contraste sur une lampe Hue sans CSS, ajouter `icon
 ### Badges à côté du nom
 
 En mode illustré, `sub_button_styles.<classe-ou-numéro>.type: badge` place un
-sous-bouton natif iconique à côté du nom, à gauche de l’illustration. Plusieurs
-badges suivent l’ordre des sous-boutons natifs. Une pastille mesure 22 px, son
-icône 14 px et leur écart 4 px. La place du titre et des autres badges se libère
+sous-bouton natif iconique immédiatement après le texte du nom, à gauche de
+l’illustration. Le groupe suit la longueur du nom et centre les badges
+verticalement sur son texte. Une pastille mesure 20 px, son icône 14 px ;
+l’écart avec le nom est de 6 px, puis de 4 px entre les badges, dans l’ordre natif.
+La place du titre et des autres badges se libère
 immédiatement avec les classes `.hidden` ou l’attribut `[hidden]` de Bubble.
 
 ```yaml
@@ -115,12 +117,15 @@ signature_room:
 Le fond mélange 16 % de la couleur du badge dans la surface neutre du thème.
 `color` et `background` conservent leurs overrides, y compris Jinja. La
 visibilité, l’icône, l’entité et les actions sont celles du sous-bouton Bubble ;
-aucun nœud, observateur, écouteur ou abonnement supplémentaire n’est créé.
+les nœuds natifs gardent leurs handlers. Deux conteneurs de présentation
+réutilisables regroupent le nom et les badges en flex, sans lecture de dimensions,
+observateur, écouteur ou abonnement supplémentaire. Le retrait de l’option, le
+retour au mode classique et le teardown restaurent leurs emplacements natifs.
 Les boutons nommés, les états textuels, les types spécialisés et les commandes
 `room-control-N` / `room-climate` ne sont pas transformés.
 
-À 239 px de largeur intérieure ou moins, les badges restent alignés sur le nom
-à droite et le titre utilise toute la largeur restante. Lorsqu’un badge est
+À 239 px de largeur intérieure ou moins, les badges suivent toujours le texte
+et le titre utilise toute la largeur restante. Lorsqu’un badge est
 visible, le dessin est limité à 48 px et abaissé au-dessus des commandes pour
 éviter les chevauchements. La carte conserve sa hauteur, sa température et ses
 commandes. Sans badge visible, la géométrie illustrée d’origine est rétablie.
@@ -180,6 +185,12 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.2.1 — 17 octobre 2026
+
+- Pastilles de 20 px, immédiatement après le texte du nom avec 6 px d’écart, centrées verticalement ; le placement suit aussi un changement de nom sans réexécuter le module.
+- Regroupement flex des nœuds natifs dans deux conteneurs réutilisables ; ordre, visibilité et handlers conservés, emplacements restaurés au retrait ou au teardown. Aucun CSS à ajouter aux cartes.
+- Dessin dégagé des titres longs sur les cartes étroites, sans modifier la hauteur ou les commandes.
 
 ### 1.2.0 — 17 octobre 2026
 
