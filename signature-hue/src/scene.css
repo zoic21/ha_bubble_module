@@ -1,12 +1,13 @@
 /* Hue scene preview: illustrative palette; the bridge owns the actual scene. */
 ha-card[data-dp-layout="compact"] .bubble-button-card-container {
+  --sh-scene-label-height: max(40px,calc(2 * max(16px,calc(var(--signature-secondary-font-size,13px) * 1.2))));
   height: 112px !important; min-height: 112px !important;
   position: relative; overflow: hidden !important;
   opacity: var(--signature-hue-opacity);
   pointer-events: var(--signature-hue-pointer);
 }
 ha-card[data-dp-layout="compact"] .bubble-button-card-container::before {
-  content: ''; position: absolute; inset: 0 0 40px;
+  content: ''; position: absolute; inset: 0 0 var(--sh-scene-label-height);
   background: var(--signature-hue-palette); pointer-events: none;
 }
 ha-card[data-dp-layout="compact"] .bubble-wrapper {
@@ -14,7 +15,7 @@ ha-card[data-dp-layout="compact"] .bubble-wrapper {
 }
 ha-card[data-dp-layout="compact"] .bubble-content-container {
   position: absolute; inset: auto 11px 0 !important;
-  height: 40px !important; min-height: 0 !important; padding: 0 !important;
+  height: var(--sh-scene-label-height) !important; min-height: 0 !important; padding: 0 !important;
   width: auto !important; margin: 0 !important; display: flex !important;
   pointer-events: none !important; align-items: center;
 }
@@ -25,8 +26,8 @@ ha-card[data-dp-layout="compact"] .bubble-name-container {
 ha-card[data-dp-layout="compact"] .bubble-name {
   display: -webkit-box !important; -webkit-box-orient: vertical;
   -webkit-line-clamp: 2; white-space: normal !important; overflow: hidden;
-  font-size: 13px !important; line-height: 16px !important;
-  color: var(--primary-text-color); margin: 0 !important;
+  /* @include shared/src/styles/secondary-line.css {"IMPORTANT":" !important","COLOR":"var(--primary-text-color)"} */
+  margin: 0 !important;
 }
 ha-card .bubble-icon-container { display: none !important; }
 ha-card[data-dp-layout="compact"] .bubble-wrapper::after {

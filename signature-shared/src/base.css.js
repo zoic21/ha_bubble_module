@@ -26,13 +26,12 @@ border: 0; box-shadow: none;
     ha-card[data-dp-layout] :is(.bubble-name,.bubble-state,.bubble-sub-button-name-container) { font-family: inherit; }
     /* Secondary color supplies attenuation; ordinary states stay fully opaque. */
     ha-card[data-dp-layout] .bubble-state { font-weight: var(--signature-font-weight-normal, 400); opacity: 1; }
-    ${layout !== 'header' ? `ha-card[data-dp-layout] .dp-unit { letter-spacing: 0; color: var(--secondary-text-color); }
-    ha-card[data-dp-layout] .dp-unit:not(:empty) { margin-inline-start: 4px; }
+    ${layout !== 'header' ? `ha-card[data-dp-layout] .dp-unit:not(:empty) { margin-inline-start: 4px; }
     /* Compound durations keep their original spaces between numbers and units. */
     ha-card[data-dp-layout] .dp-unit.dp-duration-unit { margin-inline-start: 0; }` : ''}
     ${secondary ? `ha-card[data-dp-layout] .dp-secondary {
-      /* @include shared/src/styles/secondary.css */
-      line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; pointer-events: none; }
+      /* @include shared/src/styles/secondary-line.css */
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; pointer-events: none; }
     ha-card[data-dp-layout] .dp-secondary strong { font-weight: var(--signature-font-weight-semibold, 600); color: var(--primary-text-color); }` : ''}
     ${multiline ? `ha-card[data-dp-multiline="yes"] :is(.bubble-state,.dp-secondary) { white-space: pre-line !important; overflow-wrap: anywhere; }` : ''}
     /* Never undo native visibility, including grouped sub-buttons and conditional badges. */

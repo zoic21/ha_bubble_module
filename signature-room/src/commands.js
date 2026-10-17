@@ -25,8 +25,9 @@ if (commandNodes.size) {
       --mdc-icon-size: 18px; border-radius: 0; background: transparent !important;
     }
     ${named+' .bubble-sub-button-name-container'} {
-      justify-self: stretch; text-align: center; font-size: var(--signature-legend-font-size,11px);
-      line-height: 16px; color: var(--dp-command-foreground); margin: 0 !important;
+      /* @include shared/src/styles/command-label.css */
+      justify-self: stretch; text-align: center;
+      color: var(--dp-command-foreground); margin: 0 !important;
     }
     ${scope}[aria-disabled="true"] { cursor: default; }
     ${scope}[aria-disabled="true"][aria-pressed="false"] { opacity: .4; }

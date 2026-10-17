@@ -1,6 +1,6 @@
 # Signature Group
 
-Version **1.1.2**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
+Version **1.1.3**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
 
 Importer [signature-group.yaml](../dist/signature-group.yaml) dans l’éditeur des modules Bubble. Voir l’[exemple complet](../examples/activities.yaml), contenant les deux cartes séparées par `---`.
 
@@ -130,3 +130,9 @@ Le même observateur suit chaque pastille, y compris si leurs largeurs changent
 en conservant le même total ; les cibles supprimées sont libérées immédiatement.
 
 Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
+
+## 1.1.3 — 17 octobre 2026 — cohérence des styles
+
+Interligne du résumé fourni par le fragment secondaire commun. Géométrie des pastilles, marges, observation et contenu conservés.
+
+Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.

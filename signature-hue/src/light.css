@@ -44,11 +44,9 @@ ha-card[data-dp-layout="compact"] .bubble-name {
 }
 ha-card[data-dp-layout="compact"] .bubble-state {
   display: block !important; white-space: nowrap !important;
-  font-size: var(--signature-secondary-font-size, 13px) !important;
-  line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)) !important;
+  /* @include shared/src/styles/secondary-line.css {"IMPORTANT":" !important","COLOR_IMPORTANT":" !important"} */
   width: fit-content !important; max-width: 100%; align-self: center !important;
   text-align: center; margin: 0 auto !important; padding: 0 !important;
-  color: var(--secondary-text-color) !important;
 }
 /* Theme-colored edge keeps pale RGB bulbs readable without recoloring them. */
 ha-card[data-dp-layout="compact"] .bubble-main-icon {

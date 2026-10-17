@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.0.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.0.2**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -104,3 +104,9 @@ Square **2.0.0** supprime les bandeaux `summary` et `activity`. Room **1.4.0** s
 CSS des commandes et du média limité aux cartes concernées. Suppression des tailles/poids écrasés. Statistiques : pas de double remplacement du DOM ; formateurs et début de journée réutilisés.
 
 Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
+
+## 1.0.2 — 17 octobre 2026 — cohérence des styles
+
+Correction des unités : couleur secondaire, graisse normale et espacement nul. Chiffres tabulaires sur les valeurs ; secondaire et rangée de grille suivent la taille du thème. Valeurs avec commandes nommées au token compact (20 px par défaut), interlignes média proportionnels de 1,3. Les libellés de commandes partagent leur source avec Room. Hauteur de 118 px, illustration et retraits conservés.
+
+Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.

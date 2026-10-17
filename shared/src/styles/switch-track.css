@@ -1,0 +1,10 @@
+/* @defaults {"BACKGROUND":"var(--dp-switch-track)"} */
+content: '';
+position: absolute;
+left: 2px;
+top: 3px;
+width: 48px;
+height: 28px;
+border-radius: 14px;
+background: @@BACKGROUND@@;
+pointer-events: none;

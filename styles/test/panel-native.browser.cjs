@@ -61,12 +61,16 @@ async function snapshot(page){
   const labels=nodes.map(el=>{
    const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let text;while(text=walker.nextNode())if(text.textContent.trim())break;
    const range=document.createRange();if(text)range.selectNodeContents(text);
-   return {...box(el),text:text?box(range):null,font:getComputedStyle(el).fontSize,color:getComputedStyle(el).color,overflow:el.scrollWidth-el.clientWidth};
+   const unit=el.querySelector('.dp-unit'),s=unit&&getComputedStyle(unit);
+   return {...box(el),text:text?box(range):null,font:getComputedStyle(el).fontSize,color:getComputedStyle(el).color,numeric:getComputedStyle(el).fontVariantNumeric,
+    unit:s?{weight:s.fontWeight,color:s.color,spacing:s.letterSpacing}:null,overflow:el.scrollWidth-el.clientWidth};
   });
   const commands=[...root.querySelectorAll('[data-dp-command]')].map(e=>({...box(e),disabled:e.getAttribute('aria-disabled'),
    style:e.style.cssText,widthCSS:getComputedStyle(e).width,min:getComputedStyle(e).minWidth,zoom:getComputedStyle(e).zoom,transform:getComputedStyle(e).transform,
    parent:{style:e.parentElement.style.cssText,width:box(e.parentElement).width,display:getComputedStyle(e.parentElement).display}}));
-  return {frame,name:box(root.querySelector('.bubble-name')),labels,commands,
+  const probe=document.createElement('span');probe.style.color='var(--secondary-text-color)';root.append(probe);
+  const secondaryColor=getComputedStyle(probe).color;probe.remove();
+  return {frame,name:box(root.querySelector('.bubble-name')),labels,commands,secondaryColor,
    art:{width:parseFloat(art.width),height:parseFloat(art.height),row:art.gridRow,align:art.alignSelf},
    radius:getComputedStyle(host).borderRadius,background:getComputedStyle(host).backgroundColor,
    media:root.querySelector('.bubble-media-info-container')?box(root.querySelector('.bubble-media-info-container')):null,
@@ -85,6 +89,8 @@ test('Panel aligns one to three information columns in real Bubble, across theme
    assert.equal(m.art.width,80,hint);assert.equal(m.art.height,80,hint);assert.equal(m.art.row,'1 / -1',hint);assert.equal(m.art.align,'center',hint);
    assert.equal(m.labels.length,count,hint);
    for(let i=0;i<count;i++){
+    assert.equal(m.labels[i].numeric,'tabular-nums',hint);
+    if(m.labels[i].unit){assert.equal(m.labels[i].unit.weight,'400',hint);assert.equal(m.labels[i].unit.color,m.secondaryColor,hint);assert.ok(['normal','0px'].includes(m.labels[i].unit.spacing),hint);}
     assert.ok(m.labels[i].overflow<=1,hint);
     assert.equal(m.labels[i].font,m.labels[0].font,hint);
     assert.ok(Math.abs(m.labels[i].text.center-m.labels[0].text.center)<1,hint);
@@ -111,6 +117,16 @@ test('Panel reserves a native command footer, guards disabled gestures and follo
   });
   assert.equal(calls.blocked,0,hint);if(buttons>1)assert.equal(calls.allowed,1,hint);
  }
+ await draw(page,{width:600,buttons:1});
+ const themed=await page.evaluate(()=>{
+  const style=card.lastEvaluatedStyles,node=card.card.querySelector('[data-dp-command]');
+  document.documentElement.style.setProperty('--signature-compact-value-font-size','22px');
+  document.documentElement.style.setProperty('--signature-control-border-radius','9px');
+  document.documentElement.style.setProperty('--signature-card-border-radius','18px');
+  return {value:getComputedStyle(card.card.querySelector('.bubble-state')).fontSize,commandRadius:getComputedStyle(node).borderRadius,
+   commandHeight:node.getBoundingClientRect().height,cardRadius:getComputedStyle(card.card.querySelector('.bubble-container')).borderRadius,unchanged:style===card.lastEvaluatedStyles};
+ });
+ assert.deepEqual(themed,{value:'22px',commandRadius:'9px',commandHeight:44,cardRadius:'18px',unchanged:true});
  await draw(page);const light=(await snapshot(page)).css;
  await page.evaluate(()=>{hass={...hass,themes:{darkMode:true}};card.hass=hass;card.updateBubbleCard()});
  const dark=(await snapshot(page)).css;
@@ -123,5 +139,11 @@ test('Panel keeps native media and controls within the same illustration grid',{
   await draw(page,{width,mode,media:true});const m=await snapshot(page),hint=JSON.stringify({width,mode,m:{...m,css:undefined}});
   assert.equal(m.frame.height,118,hint);assert.ok(m.media.height>0,hint);
   assert.ok(m.media.right<=m.frame.right-80,hint);assert.ok(m.media.top>=m.name.bottom-1,hint);
+  const typography=await page.evaluate(()=>{
+   const read=()=>['.bubble-title','.bubble-artist'].map(s=>{const c=getComputedStyle(card.card.querySelector(s));return [parseFloat(c.fontSize),parseFloat(c.lineHeight)]});
+   const before=read();document.documentElement.style.setProperty('--signature-name-font-size','18px');document.documentElement.style.setProperty('--signature-secondary-font-size','17px');
+   return [before,read()];
+  });
+  for(const pair of typography)for(const [size,line] of pair)assert.ok(Math.abs(line-size*1.3)<.02,hint);
  }
 });

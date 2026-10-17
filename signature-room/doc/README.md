@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.4.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.4.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -389,3 +389,9 @@ Les équipements illustrés double hauteur passent à [Signature Panel](../../si
 Retrait des déclarations de pointeur et d’opacité déjà fournies par le socle, sans modification des géométries ni des commandes.
 
 Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
+
+## 1.4.2 — 17 octobre 2026 — cohérence des styles
+
+Unités en graisse normale, y compris avec `room_state_as_value` ; couleur secondaire et espacement nul centralisés. Libellés des commandes partagés avec Panel. Disposition, retraits et cibles natives conservés.
+
+Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.

@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.4.7**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.4.8**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -261,3 +261,9 @@ signature_compact:
 CSS de la petite valeur émis uniquement lorsque ce style est actif ; regroupement de règles adjacentes. Dimensions et actions inchangées.
 
 Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
+
+## 1.4.8 — 17 octobre 2026 — cohérence des styles
+
+Unités et lignes secondaires assemblées depuis les fragments communs ; géométrie des interrupteurs partagée avec Hue. Rendu, retraits, tailles et actions conservés.
+
+Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.

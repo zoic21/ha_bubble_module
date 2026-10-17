@@ -1,6 +1,6 @@
 # Sources communes et build de tous les modules Bubble
 
-Les dix modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
+Les treize modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
 
 ## Organisation
 
@@ -19,9 +19,9 @@ Les dix modules du dépôt sont générés à partir de sources. Chaque YAML dan
 | `shared/src/dom.js` | Création HTML/SVG et écritures conditionnelles de texte/attributs pour Flow, Weather et Wind Rose |
 | `shared/src/color-thresholds.js` | Échelles numériques et interpolation RGB communes à Compact, Square et Header |
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
-| [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des neuf modules Signature |
-| [signature-shared/src](../signature-shared/src) | Éditeur, comportements et composition CSS des quatre présentations Signature |
-| `signature-shared/src/illustration.js` | Images décoratives externes Square/Room : URL, sprites, index et variantes du thème HA, assemblées au build |
+| [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des modules Signature |
+| [signature-shared/src](../signature-shared/src) | Éditeur, comportements et composition CSS des cinq présentations Signature |
+| `signature-shared/src/illustration.js` | Images décoratives externes Square/Room/Panel : URL, sprites, index et variantes du thème HA, assemblées au build |
 | `signature-*/src` et `alert_manager/src` | Métadonnées, formulaires et code propres à chaque module |
 | [scripts/build-modules.cjs](../scripts/build-modules.cjs) | Build et vérification de toutes les distributions |
 
@@ -44,7 +44,7 @@ npm run test:styles
 2. Augmenter la version dans le `src/module.yaml` de chaque module affecté, puis actualiser son guide et le tableau des versions du README racine.
 3. Régénérer et vérifier les distributions localement pour les tester ; les committer avec les sources, ou laisser le workflow automatique les publier après le push. Les chemins d'installation restent identiques.
 
-`npm run build` est un alias du build complet. `build:signature` et `check:signature` restent disponibles pour les quatre présentations séparées. La CI régénère d'abord les distributions dans son checkout, puis vérifie leur correspondance aux sources et leurs comportements. Les tests de styles utilisent également les modules construits depuis les sources du commit testé, sans attendre le commit automatique. Les fixtures Chromium ne sont pas une exécution Home Assistant ou Safari/iOS.
+`npm run build` est un alias du build complet. `build:signature` et `check:signature` restent disponibles pour les cinq présentations séparées. La CI régénère d'abord les distributions dans son checkout, puis vérifie leur correspondance aux sources et leurs comportements. Les tests de styles utilisent également les modules construits depuis les sources du commit testé, sans attendre le commit automatique. Les fixtures Chromium ne sont pas une exécution Home Assistant ou Safari/iOS.
 
 Les suites navigateur utilisent le même [socle de préparation et nettoyage](../styles/README.md), avec un contexte isolé par fixture. Les exceptions non gérées et les erreurs capturées au rendu font échouer le test dans toutes les suites. `test:styles:split` appelle la suite navigateur complète.
 
@@ -54,7 +54,7 @@ Les suites fonctionnelles partagent également leurs [helpers de test](test/READ
 
 Le workflow [Build module distributions](../.github/workflows/build.yml) démarre après un push qui modifie un fichier `**/src/**`, un script de build, `package.json`, `package-lock.json` ou le workflow lui-même. Il fonctionne sur les branches du dépôt, y compris `main`, et peut aussi être lancé manuellement depuis l'onglet Actions.
 
-Il installe les dépendances, reconstruit les dix modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
+Il installe les dépendances, reconstruit les treize modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
 
 Les builds d'une même branche sont sérialisés. Si un autre commit arrive pendant le build, le script reprend la dernière révision et reconstruit avant de retenter le push, au maximum trois fois, sans push forcé. La publication utilise le `GITHUB_TOKEN` du job avec `contents: write` ; les branches protégées conservent leurs règles. Aucun secret supplémentaire n'est requis. Les commits du bot limités à `dist` ne correspondent pas au filtre des sources ; GitHub ne déclenche pas non plus de nouveau workflow `push` pour un commit publié avec ce token ([documentation GitHub](https://docs.github.com/en/actions/concepts/security/github_token)).
 
@@ -68,13 +68,13 @@ Les fichiers sont inclus par un commentaire placé sur sa propre ligne, avec un 
 /* @include shared/src/editor-options.js */
 ```
 
-L'assembleur développe récursivement les inclusions et conserve leur indentation. Les chemins absents, extérieurs au dépôt ou les cycles interrompent le build. Les six autres modules utilisent `src/code.css` comme enveloppe Bubble, avec `runtime.js`, un éditeur et une feuille `presentation.css` lorsque nécessaire. Le champ `code` conserve le mélange CSS/templates JavaScript attendu par Bubble.
+L'assembleur développe récursivement les inclusions et conserve leur indentation. Les chemins absents, extérieurs au dépôt ou les cycles interrompent le build. Les autres modules utilisent `src/code.css` comme enveloppe Bubble, avec `runtime.js`, un éditeur et une feuille `presentation.css` lorsque nécessaire. Le champ `code` conserve le mélange CSS/templates JavaScript attendu par Bubble.
 
 Les fragments CSS de [src/styles](src/styles/README.md) sont inclus dans les sélecteurs propres aux modules. Une inclusion peut transmettre un objet JSON de paramètres textuels ; la première ligne `/* @defaults {...} */` du fragment fournit ses défauts, remplacés via les marqueurs `@@NOM@@`. Les paramètres restent locaux à l'inclusion et les erreurs interrompent le build. Les priorités CSS, propriétés natives Bubble et accents sont explicites ; les dispositions restent dans chaque module. Flow possède également sa feuille `src/presentation.css`, incluse dans le template mis en cache du runtime. Ces assemblages n'ajoutent ni import CSS ni calcul de style à l'exécution.
 
 Compact, Square, Room, Header, Flow, Weather, Wind Rose et Group utilisent `@@MODULE_VERSION@@` dans leur source de runtime ; le build y injecte la version déclarée dans `module.yaml`. À la première exécution d’une nouvelle distribution sur une carte existante, une version différente ou absente déclenche le nettoyage du runtime précédent et la reconstruction de ses caches. Les caches, abonnements et fonctions de nettoyage restent propres à chaque carte. Les variables du thème restent dans le CSS pour suivre les changements de thème sans reconstruction.
 
-Square, Compact, Room et Header conservent leur assembleur spécialisé : il choisit leurs fragments JavaScript/CSS puis élimine les branches constantes avec Terser. Le build complet appelle cet assembleur et génère les six autres modules.
+Square, Compact, Room, Panel et Header conservent leur assembleur spécialisé : il choisit leurs fragments JavaScript/CSS puis élimine les branches constantes avec Terser. Le build complet appelle cet assembleur et génère les autres modules.
 
 ## Définitions des champs d’éditeur
 
@@ -94,7 +94,7 @@ Une modification du catalogue doit actualiser tous ses consommateurs affectés e
 
 ## Distributions minifiées
 
-Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux dix distributions, y compris dans le workflow automatique GitHub :
+Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux treize distributions, y compris dans le workflow automatique GitHub :
 
 - Terser raccourcit les identifiants locaux, simplifie les expressions et retire les commentaires JavaScript. Les noms des propriétés, options, composants et espaces d'état restent inchangés. Les transformations `unsafe` et les hypothèses de getters purs sont désactivées pour préserver les lectures suivies par Home Assistant.
 - clean-css réduit les espaces et commentaires des feuilles CSS embarquées complètes. Les expressions JavaScript sont remplacées temporairement par des marqueurs de syntaxe valide puis rétablies dans leur ordre initial, sans être exécutées. Les fragments incomplets et les templates taggés ne sont pas transformés. L'ordre des règles, leurs valeurs, leurs unités et les variables CSS restent conservés.

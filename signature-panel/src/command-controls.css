@@ -1,5 +1,7 @@
 ha-card[data-dp-layout="panel"] .bubble-container:has([data-dp-command]) {
-  padding-block: 7px; --dp-panel-value-size: 20px; --dp-panel-value-limit: 20px;
+  padding-block: 7px;
+  --dp-panel-value-size: var(--signature-compact-value-font-size,20px);
+  --dp-panel-value-limit: var(--signature-compact-value-font-size,20px);
 }
 ha-card[data-dp-layout="panel"] .bubble-container:has([data-dp-command]) .bubble-sub-button-container {
   display: flex !important; flex-direction: row !important; align-items: center;
@@ -19,6 +21,6 @@ ha-card[data-dp-layout="panel"] [data-dp-command] .bubble-sub-button-icon {
   grid-area: icon; justify-self: center; width: 18px; height: 18px; --mdc-icon-size: 18px;
 }
 ha-card[data-dp-layout="panel"] [data-dp-command] .bubble-sub-button-name-container {
-  grid-area: label; text-align: center; font-size: var(--signature-legend-font-size,11px);
-  line-height: 16px; color: inherit;
+  /* @include shared/src/styles/command-label.css */
+  grid-area: label; text-align: center; color: inherit;
 }

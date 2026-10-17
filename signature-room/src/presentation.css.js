@@ -26,7 +26,7 @@
     ha-card[data-dp-layout="room"] :is(.room-temperature,.room-humidity) .bubble-sub-button-name-container { margin: 0 !important; white-space: nowrap; line-height: 32px; font-size: inherit; overflow: hidden; text-overflow: ellipsis; }
     ha-card[data-dp-layout="room"] .dp-room-unit {
       /* @include shared/src/styles/unit.css {"SIZE":"var(--signature-temperature-unit-font-size, 13px)"} */
-       letter-spacing: 0; color: var(--secondary-text-color); }
+    }
     ha-card[data-dp-layout="room"][data-dp-room-temperature-text="yes"] .room-temperature { font-size: 15px; letter-spacing: 0; }
     ha-card[data-dp-layout="room"] .room-humidity .bubble-sub-button-icon { --mdc-icon-size: 13px; color: inherit; }
     ${!roomHeaderMeasures ? `/* Narrow tiles keep Compact's 4px bare-value density
@@ -59,5 +59,7 @@ mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox=
     ha-card[data-dp-layout="room"] .bubble-main-icon { color: var(--primary-text-color); opacity: 1; }
     ha-card[data-dp-layout="room"] .room-status .bubble-sub-button-icon { color: inherit; }
 
-    ha-card[data-dp-layout="room"] .dp-unit { font-size: 11px; }
+    ha-card[data-dp-layout="room"] .dp-unit {
+      /* @include shared/src/styles/unit.css {"SIZE":"11px"} */
+    }
     `

@@ -32,23 +32,17 @@ if (visualSwitches && !structure.switchCSS) {
   // Share geometry within this card; only the track, position and opacity vary per switch.
   structure.switchCSS = `
     ${select('')} {
-      position: relative; width: 52px !important; min-width: 52px !important;
-      height: 34px !important; flex: 0 0 52px; padding: 0 !important;
-      border-radius: 17px !important; box-shadow: none !important;
+      /* @include shared/src/styles/switch-target.css */
     }
     ${select(' :is(.bubble-sub-button-icon,.bubble-sub-button-name-container)')} { display: none !important; }
     ${select('::before')} {
-      content: ''; position: absolute; left: 2px; top: 3px;
-      width: 48px; height: 28px; border-radius: 14px;
-      background: var(--dp-switch-track); pointer-events: none;
+      /* @include shared/src/styles/switch-track.css */
       transition: background 160ms ease;
     }
     ${select('::after')} {
-      content: ''; position: absolute; left: 4px; top: 5px;
-      width: 24px; height: 24px; border-radius: 50%; background: #fff;
-      box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+      /* @include shared/src/styles/switch-thumb.css */
       transform: translateX(var(--dp-switch-offset));
-      transition: transform 160ms ease, background 160ms ease; pointer-events: none;
+      transition: transform 160ms ease, background 160ms ease;
     }
     /* Keep the native 52x34 action target; feedback follows the 48x28 track. */
     ${select(' > ha-ripple')} { inset: 3px 2px; border-radius: 14px; }

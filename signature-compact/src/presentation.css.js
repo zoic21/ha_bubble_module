@@ -14,8 +14,8 @@
       /* @include shared/src/styles/name.css */
       line-height: max(16px, calc(var(--signature-name-font-size,14px) * 1.1)); padding-block: 2px; box-sizing: content-box; white-space: normal; }
     ha-card[data-dp-layout="compact"] .bubble-state {
-      /* @include shared/src/styles/secondary.css */
-      line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); white-space: normal; }
+      /* @include shared/src/styles/secondary-line.css */
+      white-space: normal; }
     ${!compactValue ? `/* Two name lines and one state line fit the 56px tile; multiline remains an explicit opt-in. */
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: calc(2 * max(16px, calc(var(--signature-name-font-size,14px) * 1.1))); overflow: hidden; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="standard"] .bubble-state { display: block; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -36,7 +36,9 @@
     ha-card[data-dp-layout="compact"] :is(.bubble-climate-minus-button,.bubble-climate-plus-button) { width: 38px; min-width: 38px; height: 44px; margin: 0; }
     ha-card[data-dp-layout="compact"] .bubble-climate-temp-display { flex: 1; padding: 0 2px; font-size: var(--signature-caption-font-size, 12px); font-weight: var(--signature-font-weight-semibold, 600); }` : ''}
 
-    ha-card[data-dp-layout="compact"] .dp-unit { font-size: 10px; }
+    ha-card[data-dp-layout="compact"] .dp-unit {
+      /* @include shared/src/styles/unit.css {"SIZE":"10px"} */
+    }
 
     ` + (numberEnabled ? `/* Button cards do not load Bubble's climate CSS. Geometry is included above. */
     ha-card[data-dp-controls="number"] .bubble-state { display: none !important; }
@@ -84,7 +86,7 @@ opacity: 1;
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"] .bubble-state { font-size: 16px; font-weight: var(--signature-font-weight-normal, 400); color: var(--secondary-text-color); line-height: 1.3; padding-block: 2px; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"][data-dp-color-background="yes"] .bubble-state { color: var(--dp-accent); }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-unit {
-      /* @include shared/src/styles/unit.css {"SIZE":"var(--signature-secondary-font-size, 13px)"} */
+      font-size: var(--signature-secondary-font-size, 13px);
      }
     ${valueButton ? `/* A small neutral button uses the existing state and its more-info action. */
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-style="button"] .bubble-state {

@@ -1,5 +1,13 @@
 # Signature theme
 
+The [style consistency pass](../docs/STYLE_AUDIT_2026_10.md) fixes Panel unit
+color/weight/tracking and secondary lines, Room main-value unit weight, and
+Hue scene font overrides. It shares unit, secondary-line, command-label and
+visual-switch sources at build time. Panel command values now follow the
+existing compact-value size token, and media line heights follow their fonts.
+Card radii and the distinct layout insets are preserved. Import the affected
+module distributions; this patch adds no theme key and needs no theme reimport.
+
 The [17 October module audit](../docs/MODULE_OPTIMIZATION_2026_10.md) removes
 unused/overridden CSS and avoids repeated work without changing theme keys,
 fallbacks or computed visual roles. No theme reimport is needed for this patch.
@@ -8,7 +16,7 @@ Signature Panel 1.0.0 shares the existing card, name, value, unit, secondary, co
 
 Module distributions are minified during the repository build. Theme variables remain in the shipped CSS and continue to follow live theme changes; their names and fallback values are preserved. See the [build guide](../shared/README.md#distributions-minifiées).
 
-The eight Signature modules also assemble their common CSS declarations from [shared style fragments](../shared/src/styles/README.md). Theme values and CSS rules therefore have common sources, while module layouts remain independent. Every distribution embeds its applicable fragments and requires no extra stylesheet.
+The Signature modules also assemble their common CSS declarations from [shared style fragments](../shared/src/styles/README.md). Theme values and CSS rules therefore have common sources, while module layouts remain independent. Every distribution embeds its applicable fragments and requires no extra stylesheet.
 
 The optional [signature.yaml](signature.yaml) theme provides light and dark modes for Home Assistant, native Bubble cards, and the Signature modules. It keeps Home Assistant's native palette, page backgrounds and card surfaces, while adding system fonts, 22 px card corners, a shared subtle 1 px border and card shadows. The border and control tracks derive from the inherited text color. No card-mod, font download or extra JavaScript is required.
 

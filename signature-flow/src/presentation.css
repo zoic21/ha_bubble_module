@@ -111,8 +111,6 @@
 }
 .sf-unit {
   /* @include shared/src/styles/unit.css */
-  letter-spacing:0;
-  color:var(--secondary-text-color)
 }
 .sf-secondary {
   /* @include shared/src/styles/secondary.css */

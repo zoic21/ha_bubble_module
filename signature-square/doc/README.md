@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **2.0.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.2**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -301,3 +301,9 @@ Les bandeaux pleine largeur `summary` et `activity`, leurs statistiques et les l
 CSS d’illustration émis seulement pour un dessin valide ; le cache suit les activations/désactivations Jinja. Retrait d’une déclaration de pointeur redondante.
 
 Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
+
+## 2.0.2 — 17 octobre 2026 — cohérence des styles
+
+Unités assemblées depuis leur rôle commun, avec leur couleur secondaire et leur espacement nul. Géométrie des interrupteurs partagée avec Hue. Grille, rayons, illustrations et actions conservés.
+
+Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.

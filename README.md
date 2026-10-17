@@ -8,21 +8,21 @@ computed styles. Includes measured CSS sizes, operation counts and import versio
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 2.0.1 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information, control rows and media players | 1.4.7 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.0.1 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
-| Signature Room — room summaries and controls | 1.4.1 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Square — square tiles | 2.0.2 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.4.8 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.0.2 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Room — room summaries and controls | 1.4.2 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.15 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
-| Signature Flow — six configurable flow slots | 3.6.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
-| Signature Weather — forecasts and optional local measurements | 1.3.5 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
+| Signature Flow — six configurable flow slots | 3.6.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Weather — forecasts and optional local measurements | 1.3.6 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.5.5 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
-| Signature Group — popup activity summaries | 1.1.2 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
+| Signature Group — popup activity summaries | 1.1.3 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
-| Signature Hue — native Hue presentation companion | 1.0.0 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
+| Signature Hue — native Hue presentation companion | 1.0.1 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
 | Signature Irrigation — calendar reader and weekday controls | 1.0.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
-The main Signature presentations share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions. Hue and Irrigation are optional companions: keep Compact for the native card frame and add the companion afterwards, only where needed.
+The main Signature presentations share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions. Hue and Irrigation are optional companions: keep Compact for the native card frame and add the companion afterwards, only where needed. The [17 October style audit](docs/STYLE_AUDIT_2026_10.md) fixes the remaining Panel, Room-unit and Hue-label inconsistencies and documents the shared rules and preserved insets.
 
 Each module has its own folder: `src` contains its editable sources, `dist` contains the generated complete YAML file to import and `doc` contains its documentation. Existing modules keep their own `test` folders; the five standalone presentation modules share behavior and build tests in `signature-shared/test`.
 
@@ -68,7 +68,7 @@ Compact and Square support numeric `color_thresholds.values` on their main icons
 
 ## Source maintenance
 
-All ten module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
+All thirteen module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
 
 ## Configuration
 

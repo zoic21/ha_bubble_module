@@ -1,12 +1,15 @@
 # Fragments CSS communs
 
-Les huit modules Signature consomment les fragments utiles à leurs rôles visuels. Le build développe les inclusions dans leurs sources puis minifie le résultat : chaque YAML `dist` reste autonome, sans feuille globale ni fonction de style supplémentaire à exécuter dans Home Assistant.
+Les modules Signature consomment les fragments utiles à leurs rôles visuels. Le build développe les inclusions dans leurs sources puis minifie le résultat : chaque YAML `dist` reste autonome, sans feuille globale ni fonction de style supplémentaire à exécuter dans Home Assistant.
 
 | Fragment | Rôle et consommateurs |
 |---|---|
 | `card-surface.css`, `card-frame.css`, `card-radius.css` | Surfaces et valeurs de secours communes ; propriétés natives Bubble pour Square, Compact, Room et Header, propriétés du conteneur pour Flow/Weather/Wind Rose, surface et rayon pour Navigation |
 | `font-family.css` | Police commune aux huit modules, y compris titres Header et lecteur Compact |
-| `name.css`, `secondary.css`, `value.css`, `unit.css` | Rôles typographiques de Square, Compact, Room, Flow, Weather et Wind Rose ; les tailles particulières restent explicites |
+| `name.css`, `secondary.css`, `value.css`, `unit.css` | Rôles typographiques des présentations, Flow, Weather, Wind Rose et compagnons ; les tailles particulières restent explicites |
+| `secondary-line.css` | Secondaire avec interligne adaptatif des présentations, de Panel, Group et Hue ; `secondary.css` seul garde l'interligne local, notamment dans les lecteurs et diagrammes |
+| `command-label.css` | Libellés contraints de commandes Room/Panel : 11 px, interligne 16 px |
+| `switch-target.css`, `switch-track.css`, `switch-thumb.css` | Géométrie des switches Compact/Square et d'animation Hue ; cible 52 × 34 px, piste 48 × 28 px, poignée 24 px |
 | `divider-color.css`, `divider.css` | Couleur et trait communs à Room, Weather et Wind Rose ; position et visibilité propres au module |
 | `control-surface.css`, `period-tabs.css`, `period-tab.css`, `period-tab-selected.css` | Surfaces et états des onglets Weather/Wind Rose ; répartition et disposition locales |
 | `focus-ring.css` | Anneaux de focus Compact, Flow, Weather, Wind Rose et Navigation ; accent et retrait adaptés au contrôle |
@@ -32,6 +35,14 @@ Les paramètres sont des chaînes JSON sur une ligne. Les noms correspondent aux
 600), comme `value.css` et `unit.css` acceptent une taille. Panel transmet le
 poids normal de son titre média directement, sans émettre un poids ensuite
 écrasé. Ces paramètres ne sont pas de nouvelles options ou variables de thème.
+
+`unit.css` possède aussi la couleur secondaire et l'espacement nul des unités.
+Ne pas les recopier dans les présentations. `secondary.css` accepte `IMPORTANT`
+pour la taille, `COLOR` et `COLOR_IMPORTANT` ; `secondary-line.css` les transmet
+et applique aussi `IMPORTANT` à son interligne adaptatif.
+La couleur primaire des noms de scène Hue reste explicite. Les fragments de
+switch ne définissent ni état, ni couleur active, ni transition ; ces décisions
+restent dans Signature/Hue, avec les actions et nœuds natifs.
 
 Le build refuse les paramètres manquants, inconnus, non textuels, les directives mal formées, les fichiers absents et les cycles. Il ne lit ni n'évalue les variables du thème : les `var(--signature-*)` et leurs replis restent dans le CSS livré.
 

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.7**, **Square 2.0.1**, **Header 1.1.15**, **Room 1.4.1**, **Signature Flow 3.6.1**, **Signature Weather 1.3.5**, **Signature Wind Rose 1.5.5** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.8**, **Square 2.0.2**, **Header 1.1.15**, **Room 1.4.2**, **Panel 1.0.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -126,6 +126,20 @@ Depuis Wind Rose 1.5.3, le blanc des deux plages claires est remplacé par un m�
 Le pied de carte Wind Rose affiche la direction dominante à gauche, sa fréquence au centre et la durée de calme à droite, sur une seule ligne. Sans source de vitesse, la durée de calme est masquée et la fréquence reste à droite. La durée utilise un format compact avec les minutes sur deux chiffres (`1 h 05`) sans retour à la ligne, y compris sur une semaine. Un historique de vitesse exploitable sans calme affiche `0 min` ; des données manquantes affichent `—`. Ses libellés utilisent la légende de 12 px ; ses valeurs utilisent `signature-name-font-size` (14 px), la graisse moyenne 500 et des chiffres tabulaires. La fréquence reprend le pourcentage du secteur dominant hors calme et données manquantes ; la période reste dans le sélecteur supérieur.
 
 ### Interlignes et changements de taille
+
+Panel partage la règle secondaire `max(16px, secondaire * 1.2)`, dans le texte
+et la ligne de grille réservée. Ses valeurs utilisent des chiffres tabulaires ;
+ses unités partagent la couleur secondaire, le poids normal et l'espacement nul
+du fragment `unit.css`, comme les unités de `room_state_as_value`. Les valeurs
+des panneaux avec commandes nommées suivent `signature-compact-value-font-size`
+(20 px). La carte conserve ses 118 px ; les grandes polices combinées à trois
+informations et trois commandes nécessitent toujours de revoir la disposition.
+
+Les noms de scène Hue suivent `signature-secondary-font-size` avec le même
+interligne, tout en gardant leur couleur primaire et leur poids de nom.
+Le bandeau inférieur réserve au moins 40 px ou deux interlignes. La carte
+conserve 112 px : seule la place de la palette décorative s'ajuste. Les petites
+lampes gardent leur nom de 14 px/500 et leurs retraits propres à cette grille.
 
 Le titre du morceau et l'artiste du lecteur média utilisent un interligne sans unité de 1,3, résolu selon leur propre taille de police. Le secondaire Signature utilise `max(16px, secondaire * 1.2)`. La dernière ligne de grille square utilise la même formule. Flow réserve au moins 17 / 34 / 16 px à ses trois lignes, puis augmente chacune selon la taille de son texte multipliée par 1,2. Le nom compact utilise `max(16px, nom * 1.1)` et sa limite de deux lignes suit cet interligne.
 
@@ -367,6 +381,12 @@ Pour un contrôle d'intégration visuelle, importer les distributions et le thè
 Lors d'un changement livré : augmenter la version du module concerné, maintenir sa version interne de runtime lorsqu'elle existe, mettre à jour le tableau du [README](README.md), son guide et ses notes de version. Si une règle commune évolue, modifier ce document et [le guide du thème](themes/README.md) dans le même changement. Vérifier les tests et les jobs GitHub Actions sur le commit publié. Un push GitHub ne met pas à jour les modules déjà importés dans Home Assistant.
 
 ## 8. Performances et volume CSS
+
+La [passe de cohérence des styles](docs/STYLE_AUDIT_2026_10.md) centralise les
+unités, lignes secondaires, libellés de commande Room/Panel et géométrie des
+switches Signature/Hue dans `shared/src/styles`. Les sélecteurs, dispositions,
+couleurs d'état et transitions restent locaux. Les fragments sont développés
+au build ; aucun module commun supplémentaire n'est à activer dans HA.
 
 La [passe du 17 octobre 2026](docs/MODULE_OPTIMIZATION_2026_10.md) conserve les
 styles calculés et les rôles existants. Le CSS d’illustration Square, de petite

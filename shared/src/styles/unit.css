@@ -1,3 +1,5 @@
 /* @defaults {"SIZE":"var(--signature-value-unit-font-size, 16px)"} */
 font-size: @@SIZE@@;
 font-weight: var(--signature-font-weight-normal, 400);
+letter-spacing: 0;
+color: var(--secondary-text-color);

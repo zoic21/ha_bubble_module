@@ -82,9 +82,7 @@
   white-space: nowrap;
 }
 [data-signature-weather] .sw-current-unit {
-  color: var(--secondary-text-color);
   /* @include shared/src/styles/unit.css {"SIZE":"var(--signature-temperature-unit-font-size,13px)"} */
-  letter-spacing: 0;
 }
 [data-signature-weather] .sw-current-metrics {
   display: flex;

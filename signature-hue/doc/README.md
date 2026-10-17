@@ -1,4 +1,4 @@
-# Signature Hue 1.0.0
+# Signature Hue 1.0.1
 
 Compagnon de présentation des commandes Hue natives, sans logique de contrôle.
 Importer `signature-hue/dist/signature-hue.yaml`, puis placer `signature_hue`
@@ -50,3 +50,9 @@ variables CSS, y compris lors d’un changement de thème sans nouveau rendu.
 Extraction des cinq gabarits déjà utilisés dans les dashboards, sans changement
 de dimensions ou de commande. Tests Node et styles Chromium ; Home Assistant
 réel et Safari/iOS restent à vérifier après importation.
+
+## 1.0.1 — 17 octobre 2026 — cohérence des styles
+
+Noms de scène reliés à `signature-secondary-font-size` (13 px par défaut) ; leur bandeau réserve au moins deux interlignes dans les 112 px existants. État des lampes et géométrie des interrupteurs utilisent les fragments partagés. Palettes, couleurs actives, actions et conditions conservées.
+
+Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.

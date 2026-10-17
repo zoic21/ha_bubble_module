@@ -8,8 +8,7 @@ ha-card[data-signature-group="summary"] .sg-summary {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
-  /* @include shared/src/styles/secondary.css */
-  line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2));
+  /* @include shared/src/styles/secondary-line.css */
   pointer-events: none;
 }
 ha-card[data-signature-group="summary"] .sg-count {
