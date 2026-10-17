@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.3.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.3.6**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -239,6 +239,7 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `room_state_centered` | `false` | Centre l’état sous le nom et au-dessus des commandes visibles, en mode illustré sans secondaire. |
 | `room_compact` | `false` | Équipement illustré de 118 px, état et une rangée de 1–3 commandes nommées à gauche du dessin inchangé. |
 | `room_show_divider` | `true` | `false` masque seulement le séparateur décoratif des commandes. |
+| `room_hover` | `true` | `false` retire la surbrillance au survol de cette carte et de ses sous-boutons ; actions et retour d’appui conservés. |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; `type: badge` place un bouton iconique près du nom en mode illustré. |
@@ -432,3 +433,17 @@ graisse, interligne et ligne de base, unités comprises : taille responsive de
 pour son unité et son icône, sans réduire l’image. Les contrôles gardent leurs
 cibles natives de 44 px et leurs actions. Le mode 148 px et les commandes nommées
 d’Alarme restent inchangés. Aucun observateur, listener ou nœud supplémentaire.
+
+### 1.3.6 — Cadre commun des mesures et survol facultatif
+
+En compact avec `room_inline_metrics`, l’état et les mesures sont désormais
+positionnés depuis le même conteneur de carte. Les wrappers natifs restent
+dans le DOM mais n’interposent plus leur propre boîte ou grille : la puissance
+ne dépend plus d’un repère différent de celui des deux sous-boutons. Titre à
+8 px du haut et 12 px de la gauche, hauteur de 118 px, image de 80 px centrée,
+typographie responsive commune et cibles de 44 px conservés.
+
+`room_hover: false` retire uniquement la surbrillance du pointeur sur la carte
+et ses commandes avec `--ha-ripple-hover-opacity: 0`. Les clics et le retour
+d’appui restent natifs ; retirer l’option rétablit le survol. Valeur par défaut :
+`true`. Aucun nœud, écouteur ou observateur supplémentaire.

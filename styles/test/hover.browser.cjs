@@ -294,3 +294,36 @@ test('narrow room measurement targets stay separate with negative, long and miss
       assert.ok(geometry.temperature.left>=geometry.container.left && geometry.humidity.right<=geometry.container.right);
     }
 });
+
+test('room hover can be disabled per card while measurements and navigation keep their actions',async t=>{
+  const page=await fixture(t);
+  await prepare(page,{measures:true,width:500});
+  await page.evaluate(code=>{
+    const ctx=contexts.find(c=>c.card.getRootNode().host.dataset.id==='room-no-controls');
+    const buttons=ctx.config.sub_button.main.slice(0,2);
+    for(const [i,b] of buttons.entries())b.css_class='room-control-'+(i+1);
+    ctx.config={...ctx.config,button_type:'state',show_state:true,sub_button:{main:buttons},signature_room:{room_mode:'illustrated',room_inline_metrics:true,room_compact:true,room_hover:false,room_control_columns:2,illustration:{image:'/local/rack.webp'}}};
+    ctx.elements.state.classList.remove('hidden');
+    const nodes=[...ctx.card.querySelectorAll('.bubble-sub-button')];
+    nodes.slice(2).forEach(e=>e.remove());
+    nodes[0].classList.replace('room-temperature','room-control-1');
+    nodes[1].classList.replace('room-humidity','room-control-2');
+    window.updateRoom=()=>ctx.card.getRootNode().lastElementChild.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);
+    window.hoverRoom=ctx;updateRoom();
+  },definitions.room);
+  for(const selector of ['.bubble-background','.room-control-1','.room-control-2']){
+    await card(page,'room-no-controls').locator(selector).hover({position:{x:selector==='.bubble-background'?30:5,y:5}});
+    assert.equal(await hoverOpacity(page,'room-no-controls',selector),'0');
+  }
+  await card(page,'room').locator('.room-control-light').hover();
+  assert.equal(await hoverOpacity(page,'room','.room-control-light'),'0.08');
+  for(const [selector,entity,action] of [['.bubble-background',undefined,'navigate'],['.bubble-state','sensor.demo','more-info'],['.room-control-1','sensor.demo','more-info'],['.room-control-2','sensor.humidity','more-info']]){
+    await card(page,'room-no-controls').locator(selector).click({position:{x:selector==='.bubble-background'?30:5,y:5}});
+    const click=await page.evaluate(()=>window.clicks.at(-1));
+    assert.equal(JSON.parse(click.action).action,action);
+    if(entity)assert.equal(click.entity,entity);
+  }
+  await page.evaluate(()=>{delete hoverRoom.config.signature_room.room_hover;updateRoom()});
+  await card(page,'room-no-controls').locator('.room-control-1').hover();
+  assert.equal(await hoverOpacity(page,'room-no-controls','.room-control-1'),'0.08');
+});

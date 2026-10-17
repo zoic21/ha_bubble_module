@@ -48,12 +48,14 @@ if (roomInlineMetrics) {
       ${compactScope}[data-dp-illustration="yes"] { --dp-room-metric-art: calc(min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) + 8px); }
       ${compactScope+' .bubble-container'} { height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; min-height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; }
       ${compactScope+' .bubble-wrapper'} { --dp-room-metric-font: clamp(13px,calc(8cqw - 11px),22px); --dp-room-metric-icon: clamp(12px,3.5cqw,18px); }
-      ${compactScope+' .bubble-content-container'} { inset: 8px 12px; height: calc(100% - 16px); min-height: 0; margin: 0 !important; align-self: stretch; box-sizing: border-box; grid-template-rows: 20px minmax(0,1fr); row-gap: 0; }
-      ${compactScope+' .bubble-name-container'} { position: static; margin: 0; }
-      ${compactScope+' .bubble-name'} { white-space: nowrap; max-height: 20px; }
-      ${compactScope+' .bubble-state'} { grid-area: 1 / 1 / -1 / -1; inset: calc(50% - 12px) auto auto 0; height: 44px; width: calc((100% - var(--dp-room-metric-art)) / ${total}); max-width: calc((100% - var(--dp-room-metric-art)) / ${total}); font-size: var(--dp-room-metric-font) !important; line-height: 1.2; font-weight: var(--signature-font-weight-normal,400); letter-spacing: 0 !important; }
+      /* All three native targets use the card as their containing block. A
+         nested grid's absolute-positioning area must not offset just the state. */
+      ${compactScope+' :is(.bubble-wrapper,.bubble-content-container,.bubble-name-container):not(.hidden):not([hidden])'} { display: contents !important; position: static !important; contain: none; transform: none; }
+      ${compactScope+' :is(.hidden,[hidden])'} { display: none !important; }
+      ${compactScope+' .bubble-name'} { position: absolute; inset: 8px auto auto 12px; white-space: nowrap; max-height: 20px; }
+      ${compactScope+' .bubble-state'} { grid-area: auto; inset: calc(50% - 12px) auto auto 12px; height: 44px; margin: 0; padding: 0; box-sizing: border-box; width: calc((100% - 24px - var(--dp-room-metric-art)) / ${total}); max-width: calc((100% - 24px - var(--dp-room-metric-art)) / ${total}); font-size: var(--dp-room-metric-font) !important; line-height: 1.2; font-weight: var(--signature-font-weight-normal,400); letter-spacing: 0 !important; }
       ${compactScope+' .bubble-state .dp-unit'} { font-size: inherit; color: inherit; }
-      ${compactScope+' .bubble-content-container::after'} { top: 50%; }
+      ${compactScope+' .bubble-content-container::after'} { top: 50%; right: 12px; }
     `;
     roles.forEach(({selector},i) => {
       const metric = selector.replace('ha-card',compactScope);
@@ -68,6 +70,9 @@ if (roomInlineMetrics) {
   }
 }
 if (!roomInlineMetrics || o.room_compact !== true) root.removeAttribute('data-dp-room-inline');
+// Keep native actions and press feedback; only suppress the optional mouse halo.
+if (o.room_hover === false)
+  css += 'ha-card[data-dp-layout="room"] ha-ripple { --ha-ripple-hover-opacity: 0; }';
 // Opt-in presentation refinements leave existing room cards unchanged. Emit
 // these outside the structural cache so removing an option restores defaults.
 if (o.room_show_divider === false)

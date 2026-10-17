@@ -16,7 +16,7 @@ const native=`
 .bubble-name,.bubble-state{display:flex;position:relative;white-space:nowrap}
 `;
 
-test('compact metric artwork and all three text lines align with native fixed-top framing',async t=>{
+test('compact metrics use one containing block and text line with native fixed-top framing',async t=>{
  const page=await fixture(t);
  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,500,600])for(const power of [140,1600,"unavailable"]){
   await render(page,{width,mode,plain});
@@ -32,13 +32,22 @@ test('compact metric artwork and all three text lines align with native fixed-to
    container.innerHTML=buttons.map((b,i)=>'<div class="bubble-sub-button bubble-sub-button-'+(i+1)+' '+b.css_class+'"><div class="bubble-sub-button-name-container">'+['29,0 °C','42 %'][i]+'</div><ha-icon class="bubble-sub-button-icon"></ha-icon></div>').join('');
    shadow.querySelectorAll('style')[1].textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
    const box=e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,center:r.y+r.height/2};};
-   const content=ctx.elements.contentContainer.getBoundingClientRect(),art=getComputedStyle(ctx.elements.contentContainer,'::after');
-   const artTop=content.top+parseFloat(art.top)+new DOMMatrixReadOnly(art.transform).m42;
+   const card=ctx.card.querySelector('.bubble-container'),content=card.getBoundingClientRect(),border=parseFloat(getComputedStyle(card).borderTopWidth),art=getComputedStyle(ctx.elements.contentContainer,'::after');
+   const artTop=content.top+border+parseFloat(art.top)+new DOMMatrixReadOnly(art.transform).m42;
    const labels=[ctx.elements.state.querySelector('.dp-value'),...container.querySelectorAll('.bubble-sub-button-name-container')];
-   return{card:box(ctx.card.querySelector('.bubble-container')),art:{center:artTop+parseFloat(art.height)/2,width:parseFloat(art.width),left:content.right-parseFloat(art.right)-parseFloat(art.width)},texts:labels.map(e=>{const range=document.createRange();range.selectNodeContents(e);return {font:getComputedStyle(e).fontSize,box:box(e),text:box(range),scroll:e.scrollWidth,client:e.clientWidth}}),targets:[ctx.elements.state,...container.children].map(box)};
+   const targets=[ctx.elements.state,...container.children];
+   const result={card:box(card),sameContainingBlock:targets.every(e=>e.offsetParent===card),name:box(ctx.card.querySelector('.bubble-name')),art:{center:artTop+parseFloat(art.height)/2,width:parseFloat(art.width),left:content.right-border-parseFloat(art.right)-parseFloat(art.width)},texts:labels.map(e=>{const range=document.createRange();range.selectNodeContents(e);return {font:getComputedStyle(e).fontSize,box:box(e),text:box(range),scroll:e.scrollWidth,client:e.clientWidth}}),targets:targets.map(box)};
+   result.nativeHidden=[...ctx.card.querySelectorAll('.bubble-wrapper,.bubble-content-container,.bubble-name-container')].flatMap(e=>['hidden','class'].map(kind=>{
+    if(kind==='hidden')e.hidden=true;else e.classList.add('hidden');
+    const display=getComputedStyle(e).display;
+    e.hidden=false;e.classList.remove('hidden');return display;
+   }));return result;
   },{code,native,power});
   const hint=JSON.stringify({width,mode,plain,power,m});
   assert.equal(m.card.height,118,hint);assert.equal(m.art.width,80,hint);
+  assert.equal(m.sameContainingBlock,true,hint);
+  assert.ok(m.nativeHidden.every(display=>display==='none'),hint);
+  assert.ok(Math.abs(m.name.top-m.card.top-9)<1,hint);
   assert.ok(Math.abs(m.art.center-m.card.center)<1,hint);
   for(const t of m.texts){assert.equal(t.font,m.texts[0].font,hint);assert.ok(Math.abs(t.text.center-m.texts[0].text.center)<1,hint);assert.ok(t.scroll<=t.client+1,hint);assert.ok(t.text.right<=m.art.left-7,hint);}
   for(let i=1;i<m.targets.length;i++)assert.ok(m.targets[i].left>=m.targets[i-1].right-.5,hint);

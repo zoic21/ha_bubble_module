@@ -21,8 +21,8 @@ test('equipment value and two native measurements share a row without losing tar
    const update=()=>ctx.card.getRootNode().querySelectorAll('style')[1].textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
    update();nodes.forEach(n=>n.click());
    const box=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,center:r.y+r.height/2,height:r.height};};
-   const art=getComputedStyle(ctx.elements.contentContainer,'::after'),content=ctx.elements.contentContainer.getBoundingClientRect();
-   const artLeft=content.right-parseFloat(art.right)-parseFloat(art.width);
+   const art=getComputedStyle(ctx.elements.contentContainer,'::after'),content=(compact?ctx.card.querySelector('.bubble-container'):ctx.elements.contentContainer).getBoundingClientRect();
+   const artLeft=content.right-(compact?parseFloat(getComputedStyle(ctx.card.querySelector('.bubble-container')).borderRightWidth):0)-parseFloat(art.right)-parseFloat(art.width);
    const result={card:box(ctx.card.querySelector('.bubble-container')),state:box(ctx.elements.state),metrics:nodes.map(box),art:{left:artLeft,width:parseFloat(art.width)},clicked,same:nodes.every(n=>container.contains(n)),labels:nodes.map(n=>{const e=n.querySelector('.bubble-sub-button-name-container');const st=getComputedStyle(e),icon=n.querySelector('ha-icon');return {scroll:e.scrollWidth,client:e.clientWidth,margin:st.margin,padding:st.padding,iconWidth:icon.getBoundingClientRect().width,iconMin:getComputedStyle(icon).minWidth,iconPadding:getComputedStyle(icon).padding}})};
    ctx.config.signature_room.room_inline_metrics=false;update();result.restored=Math.abs(box(ctx.elements.state).center-box(nodes[0]).center)>10;
    return result;

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14**, **Room 1.3.5**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14**, **Room 1.3.6**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14** et **Room 1.3.5** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14** et **Room 1.3.6** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -587,3 +587,22 @@ Les suffixes CSS dynamiques ciblant les enfants utilisent un combinateur
 explicite `>` : leur espace descendant initial peut disparaître lors de la
 minification d’un fragment isolé. Vérifier le CSS distribué avec les vraies
 classes natives, les polices calculées et les boîtes des lignes de texte.
+
+### Repère unique des mesures compactes — Room 1.3.6
+
+La nouvelle capture utilisateur montre que la correction 1.3.5 ne suffit pas
+sur son installation. En compact inline, les wrappers de carte/contenu/nom
+utilisent `display: contents` et un positionnement statique : l’état, les deux
+sous-boutons et l’illustration se positionnent depuis `.bubble-container`.
+Le titre a ses propres coordonnées supérieures ; aucune grille intermédiaire
+ne doit créer une origine différente pour la puissance. Vérifier directement
+que les trois `offsetParent` désignent cette même carte, puis comparer les
+boîtes des textes, les tailles, les cibles de 44 px et le centre de l’image.
+Garder les variables de police responsive sur le wrapper descendant du
+conteneur CSS afin que `cqw` utilise la largeur de la carte.
+
+`room_hover: false` est une exception explicite par carte : transmettre
+`--ha-ripple-hover-opacity: 0` aux `ha-ripple` natifs. Ne pas masquer les ripples,
+retirer les actions ou neutraliser le retour d’appui. Sans l’option, survol natif
+conservé. Tester clics carte/valeur/deux mesures, retrait de l’option et carte
+voisine inchangée. Les autres modes Room gardent leur disposition.

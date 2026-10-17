@@ -6,7 +6,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 |---|---|---|---|
 | Signature Square — square tiles | 1.6.2 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.4.6 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Room — room summaries and controls | 1.3.5 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Room — room summaries and controls | 1.3.6 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.14 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
@@ -123,4 +123,4 @@ Room 1.3.3 adds `room_inline_metrics: true` to align an illustrated equipment va
 
 Room 1.3.4 supports `room_inline_metrics` with `room_compact`: three values beside the unchanged artwork in a 118px card. Square 1.6.2 keeps the activity name at the top and centers the state between it and the footer; native media information uses the same available middle region.
 
-Room 1.3.5 resets the native fixed-top content height for compact inline metrics, centers the 80px artwork and gives all three text measurements the same responsive type size and baseline.
+Room 1.3.6 positions all compact inline measurements from the same card containing block, keeping the 118px card and centered 80px artwork. Set `room_hover: false` to suppress pointer highlights on a Room card and its controls while preserving their native actions and press feedback.
