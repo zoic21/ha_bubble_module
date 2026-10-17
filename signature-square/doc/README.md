@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.5.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.5.2**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -134,6 +134,41 @@ sans timer, observateur ou abonnement supplémentaire. Le jour et les sources
 font partie de la clé ; un passage de minuit efface le total précédent et une
 réponse obsolète après désactivation, changement de configuration ou nettoyage
 est ignorée. Les cartes ordinaires ne font aucune nouvelle requête.
+
+### Consommation du jour et coût en sous-titre — 1.5.2
+
+`summary.secondary_statistics` affiche un second total Recorder dans le détail
+sous la grande valeur calculée par `summary.statistics`. Les deux objets
+acceptent les mêmes options. Leurs sources sont regroupées dans **une seule
+requête par minute**, dans le même fuseau, avec au plus 16 sources uniques.
+Le second fuseau peut être omis pour hériter du premier. Un second objet
+invalide ou dans un autre fuseau donne `—` sans bloquer le premier total.
+Chaque total reste indisponible si une de ses propres sources manque ; un coût
+absent ne masque pas la consommation. Ces valeurs calculées n’ont pas de cible
+more-info. Les secondaires texte/entité existants restent inchangés en l’absence
+de `secondary_statistics`.
+
+```yaml
+signature_square:
+  summary:
+    name: Jour
+    statistics:
+      statistic_ids: [sensor.electricity_off_peak, sensor.electricity_peak]
+      unit: kWh
+      decimals: 2
+      time_zone: Europe/Paris
+    secondary_statistics:
+      statistic_ids: [sensor.electricity_off_peak_cost, sensor.electricity_peak_cost]
+      unit: €
+      decimals: 2
+```
+
+`statistics.factor` et `secondary_statistics.factor` multiplient le résultat
+avant formatage (nombre fini strictement positif, 1 par défaut). Pour afficher
+un compteur d’eau en m³ sous forme de litres, utiliser `factor: 1000`, `unit: L`
+et `decimals: 0`. Une unité seule ne convertit pas les sources.
+La hauteur, les styles, les illustrations et les actions des autres valeurs
+restent ceux du bandeau existant. Aucun helper ni abonnement supplémentaire.
 
 ## Couleurs du fond d’icône selon la valeur
 
@@ -426,3 +461,7 @@ zéro ou un pourcentage partiel. `secondary` est omis : aucun sous-titre.
 
 - Pourcentage restant journalier, avec sorties soustraites et invalidation du cache lors d’un changement de formule.
 - Même bandeau et typographie ; aucune requête ou minuterie supplémentaire.
+
+### 1.5.2
+
+- Total journalier supplémentaire en sous-titre et facteur de conversion explicite ; une requête groupée et disponibilité indépendante des deux mesures.

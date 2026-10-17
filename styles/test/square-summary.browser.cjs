@@ -5,6 +5,34 @@ const {render}=require('./fixtures.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-square').code;
 
+test('daily consumption and cost fit the existing banner on mobile and desktop',async t=>{
+  const page=await fixture(t);
+  for(const mode of ['light','dark'])for(const width of [288,358,600])for(const water of [false,true]){
+    await summary(page,{mode,width,single:true,kind:water?'water':'grid'});
+    await page.evaluate(water=>{
+      const ctx=window.summaryContext;
+      ctx._hass.config={time_zone:'Europe/Paris'};
+      ctx._hass.callWS=async req=>Object.fromEntries(req.statistic_ids.map(id=>[id,
+        [{start:req.start_time,change:id==='sensor.cost'?3.6:water?.123:12.34}]]));
+      ctx.config.signature_square.summary={name:'Jour',statistics:{statistic_ids:['sensor.consumption'],
+        unit:water?'L':'kWh',decimals:water?0:2,factor:water?1000:1},
+        secondary_statistics:{statistic_ids:['sensor.cost'],unit:'€',decimals:2}};
+      window.refreshSummary();
+    },water);
+    await page.waitForFunction(()=>window.summaryContext.card.querySelector('.dp-summary-secondary').textContent==='3,60 €');
+    const m=await page.evaluate(()=>{
+      const root=window.summaryContext.card;
+      const state=root.querySelector('.dp-summary-state'),detail=root.querySelector('.dp-summary-secondary');
+      const card=root.querySelector('.bubble-container').getBoundingClientRect();
+      return {height:card.height,value:state.textContent,detail:detail.textContent,
+        overflow:[state,detail].some(el=>el.scrollWidth>el.clientWidth+1||el.getBoundingClientRect().bottom>card.bottom),
+        stateFont:parseFloat(getComputedStyle(state).fontSize),detailFont:parseFloat(getComputedStyle(detail).fontSize)};
+    });
+    assert.equal(m.height,120);assert.equal(m.value,water?'123L':'12,34kWh');assert.equal(m.overflow,false);
+    assert.ok(m.detailFont<m.stateFont);
+  }
+});
+
 test('a daily statistics total uses the same large summary rows as an entity value',async t=>{
   const page=await fixture(t);
   for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,358,600])for(const percent of [false,true]){

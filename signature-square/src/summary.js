@@ -46,14 +46,8 @@ if (summaryEnabled && !summarySingle && content) {
     state.replaceChildren(val,u);
     state.dataset.dpSignature = signature;
   };
-  if (statisticsEnabled) dailyStatistics(value => {
-    const decimals = Math.trunc(number(statisticOptions.decimals,2,0,6));
-    paintState({value:value === null ? '—' : formatterFor(hass,
-      {minimumFractionDigits:decimals,maximumFractionDigits:decimals}).format(value),
-      unit:value === null ? '' : String(statisticOptions.unit ?? '')});
-  });
-  else paintState(displayState(hass.states[summaryEntity], summaryEntity, 'summaryFormat'));
-  const detailSource = sourceFor(summary.secondary, summaryEntity);
+  if (!statisticsEnabled) paintState(displayState(hass.states[summaryEntity], summaryEntity, 'summaryFormat'));
+  const detailSource = sourceFor(secondaryStatisticsMode ? '' : summary.secondary, summaryEntity);
   const detailEntity = detailSource.main ? summaryEntity : detailSource.entity;
   let detail = summaryEl.querySelector('.dp-summary-secondary');
   // Bubble caches handlers on the target: a different entity needs a fresh node.
@@ -64,7 +58,8 @@ if (summaryEnabled && !summarySingle && content) {
   }
   runtime.summaryDetailTarget = detailEntity;
   let detailText;
-  if (detailSource.direct) {
+  if (secondaryStatisticsMode) detailText = '—';
+  else if (detailSource.direct) {
     const item = displayState(hass.states[detailEntity], detailEntity, 'summarySecondaryFormat');
     detailText = item.value + (item.unit ? ' ' + item.unit : '');
   } else detailText = render(summary.secondary, summaryEntity).trim();
@@ -75,7 +70,21 @@ if (summaryEnabled && !summarySingle && content) {
     tapAction:'{"action":"none"}',holdAction:'{"action":"none"}',doubleTapAction:'{"action":"none"}'};
   bindAction('summaryName', name, summaryAction, !!summaryEntity);
   bindAction('summaryState', state, summaryAction, !!summaryEntity);
-  bindAction('summarySecondary', detailText && detailEntity ? detail : null, info(detailEntity));
+  bindAction('summarySecondary', secondaryStatisticsMode ? detail : detailText && detailEntity ? detail : null,
+    secondaryStatisticsMode ? summaryAction : info(detailEntity), !secondaryStatisticsMode);
+  if (statisticsEnabled) dailyStatistics((value,secondaryValue) => {
+    const display = (value,options) => {
+      const decimals = Math.trunc(number(options.decimals,2,0,6));
+      return {value:value === null ? '—' : formatterFor(hass,
+        {minimumFractionDigits:decimals,maximumFractionDigits:decimals}).format(value),
+        unit:value === null ? '' : String(options.unit ?? '')};
+    };
+    paintState(display(value,statisticOptions));
+    if (secondaryStatisticsMode) {
+      const item = display(secondaryValue,summary.secondary_statistics);
+      detail.textContent = item.value + (item.unit ? ' ' + item.unit : '');
+    }
+  });
 } else {
   summaryEl?.remove(); summaryEl = null;
   for (const key of ['summaryName','summaryState','summarySecondary']) bindAction(key, null, {});

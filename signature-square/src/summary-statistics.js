@@ -5,15 +5,28 @@ const sourceIds = value => Array.isArray(value)
   && value.every(id => typeof id === 'string' && id.length <= 200
     && /^[a-zA-Z0-9_]+[.:][a-zA-Z0-9_.:-]+$/.test(id))
   ? [...new Set(value)] : null;
-const totalIds = sourceIds(statisticOptions?.statistic_ids);
-const subtractIds = sourceIds(statisticOptions?.subtract_statistic_ids ?? []);
-const partIds = sourceIds(statisticOptions?.part_statistic_ids ?? []);
-const operation = statisticOptions?.operation ?? 'sum';
-const statisticIds = [...new Set([...(totalIds || []),...(subtractIds || []),...(partIds || [])])];
-const statisticsEnabled = !!totalIds?.length && subtractIds !== null && partIds !== null
-  && statisticIds.length <= 16 && subtractIds.every(id => !totalIds.includes(id))
-  && (operation === 'sum' && !partIds.length || operation === 'remaining_percentage'
-    && partIds.length > 0 && partIds.every(id => totalIds.includes(id)));
+const statisticsConfig = options => {
+  const totalIds = sourceIds(options?.statistic_ids);
+  const subtractIds = sourceIds(options?.subtract_statistic_ids ?? []);
+  const partIds = sourceIds(options?.part_statistic_ids ?? []);
+  const operation = options?.operation ?? 'sum';
+  const factor = options?.factor ?? 1;
+  const ids = [...new Set([...(totalIds || []),...(subtractIds || []),...(partIds || [])])];
+  return !!totalIds?.length && subtractIds !== null && partIds !== null
+    && ids.length <= 16 && subtractIds.every(id => !totalIds.includes(id))
+    && typeof factor === 'number' && Number.isFinite(factor) && factor > 0
+    && (operation === 'sum' && !partIds.length || operation === 'remaining_percentage'
+      && partIds.length > 0 && partIds.every(id => totalIds.includes(id)))
+    ? {totalIds,subtractIds,partIds,operation,factor,ids} : null;
+};
+const primaryStatistics = statisticsConfig(statisticOptions);
+const statisticsEnabled = !!primaryStatistics;
+const statisticsZone = statisticOptions?.time_zone || hass.config?.time_zone || 'UTC';
+const secondaryStatisticsMode = statisticsEnabled && summary.secondary_statistics != null;
+let secondaryStatistics = secondaryStatisticsMode ? statisticsConfig(summary.secondary_statistics) : null;
+if (secondaryStatistics && ((summary.secondary_statistics.time_zone || statisticsZone) !== statisticsZone
+    || new Set([...primaryStatistics.ids,...secondaryStatistics.ids]).size > 16)) secondaryStatistics = null;
+const statisticIds = [...new Set([...(primaryStatistics?.ids || []),...(secondaryStatistics?.ids || [])])];
 const dailyWindow = (stamp, zone) => {
   if (runtime.summaryStatisticsZone !== zone) {
     runtime.summaryStatisticsFormatter = new Intl.DateTimeFormat('en-CA', {timeZone:zone,
@@ -35,14 +48,14 @@ const dailyWindow = (stamp, zone) => {
   return {start,end:stamp};
 };
 const dailyStatistics = paint => {
-  const zone = statisticOptions.time_zone || hass.config?.time_zone || 'UTC';
+  const zone = statisticsZone;
   let window;
-  try { window = dailyWindow(Date.now(),zone); } catch { runtime.summaryStatistics = null; paint(null); return; }
-  const key = JSON.stringify([totalIds,subtractIds,partIds,operation,zone,window.start]);
+  try { window = dailyWindow(Date.now(),zone); } catch { runtime.summaryStatistics = null; paint(null,null); return; }
+  const key = JSON.stringify([primaryStatistics,secondaryStatistics,zone,window.start]);
   let data = runtime.summaryStatistics;
-  if (!data || data.key !== key) data = runtime.summaryStatistics = {key,value:null,lastAttempt:null,pending:false};
+  if (!data || data.key !== key) data = runtime.summaryStatistics = {key,value:null,secondaryValue:null,lastAttempt:null,pending:false};
   data.paint = paint;
-  paint(data.value);
+  paint(data.value,data.secondaryValue);
   // Native hass updates drive refreshes. No timer, listener or observer is
   // added; a displayed summary makes at most one request per minute.
   if (data.pending || (data.lastAttempt !== null && window.end-data.lastAttempt < 60000)
@@ -62,18 +75,24 @@ const dailyStatistics = paint => {
         return time >= window.start && time < window.end
           && typeof row.change === 'number' && Number.isFinite(row.change);
       });
-      // Never display a partial result when one of the sources is missing.
-      if (!values.length) { data.value = null; return; }
-      totals.set(id,values.reduce((sum,row) => sum+row.change,0));
+      totals.set(id,values.length ? values.reduce((sum,row) => sum+row.change,0) : NaN);
     }
-    const sum = ids => ids.reduce((value,id) => value+totals.get(id),0);
-    let total = sum(totalIds)-sum(subtractIds);
-    if (operation === 'remaining_percentage') total = total > 0
-      ? Math.max(0,Math.min(100,100*(1-sum(partIds)/total))) : NaN;
-    data.value = Number.isFinite(total) && dailyWindow(Date.now(),zone).start === window.start ? total : null;
-  }).catch(() => { if (current()) data.value = null; }).finally(() => {
+    const calculate = config => {
+      if (!config || dailyWindow(Date.now(),zone).start !== window.start) return null;
+      // Each measurement is complete or unavailable independently of the other.
+      if (config.ids.some(id => !Number.isFinite(totals.get(id)))) return null;
+      const sum = ids => ids.reduce((value,id) => value+totals.get(id),0);
+      let total = sum(config.totalIds)-sum(config.subtractIds);
+      if (config.operation === 'remaining_percentage') total = total > 0
+        ? Math.max(0,Math.min(100,100*(1-sum(config.partIds)/total))) : NaN;
+      total *= config.factor;
+      return Number.isFinite(total) ? total : null;
+    };
+    data.value = calculate(primaryStatistics);
+    data.secondaryValue = calculate(secondaryStatistics);
+  }).catch(() => { if (current()) data.value = data.secondaryValue = null; }).finally(() => {
     if (!current()) return;
     data.pending = false;
-    data.paint(data.value);
+    data.paint(data.value,data.secondaryValue);
   });
 };

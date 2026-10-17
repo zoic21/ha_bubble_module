@@ -151,3 +151,79 @@ test('remaining share handles zero consumption, missing sources and grid battery
     f.run();await flush();assert.equal(f.value(),expected);
   }
 });
+
+test('daily consumption and cost share one query and stay independent of live indexes',async t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());
+  f.summary.name='Jour';
+  f.summary.statistics={statistic_ids:['sensor.hc','sensor.hp'],unit:'kWh',decimals:2};
+  f.summary.secondary_statistics={statistic_ids:ids,unit:'€',decimals:2};
+  f.summary.secondary='sensor.power';
+  const watched=[];f.hass.states=new Proxy(f.hass.states,{get(target,id){watched.push(id);return target[id];}});
+  f.reply(req=>Object.fromEntries(req.statistic_ids.map((id,i)=>[id,[
+    {start:'2026-10-15T21:55:00Z',change:10000},
+    {start:req.start_time,change:[2.3,4.5,.31,.77][i]},
+    {start:'2026-10-16T11:00:00Z',change:10000}]])));
+  f.run();await flush();
+  const detail=f.root.querySelector('.dp-summary-secondary');
+  assert.equal(f.value(),'6,80kWh');assert.equal(detail.textContent,'1,08 €');
+  assert.equal(f.root.querySelector('.dp-summary-name').textContent,'Jour');
+  assert.equal(JSON.parse(detail.dataset.tapAction).action,'none');assert.equal(detail.dataset.entity,undefined);
+  assert.equal(f.calls.length,1);assert.deepEqual(Array.from(f.calls[0].statistic_ids),['sensor.hc','sensor.hp',...ids]);
+  for(const id of ids)assert.ok(watched.includes(id));
+  for(let i=0;i<5;i++)f.run();await flush();assert.equal(f.calls.length,1);assert.equal(detail.textContent,'1,08 €');
+  delete f.summary.secondary_statistics;f.run();await flush();
+  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'580 W');
+  assert.equal(f.root.querySelector('.dp-summary-secondary').dataset.entity,'sensor.power');
+});
+
+test('water converts daily cubic metres to litres while cost keeps its own unit',async t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());
+  f.summary.statistics={statistic_ids:['sensor.water_total'],unit:'L',decimals:0,factor:1000};
+  f.summary.secondary_statistics={statistic_ids:['sensor.water_cost'],unit:'€',decimals:2};
+  f.reply(req=>({'sensor.water_total':[{start:req.start_time,change:.1234}],
+    'sensor.water_cost':[{start:req.start_time,change:.68}]}));
+  f.run();await flush();assert.equal(f.value(),'123L');
+  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'0,68 €');
+  f.summary.statistics.factor=1;f.run();assert.equal(f.value(),'—');await flush();assert.equal(f.value(),'0L');
+});
+
+test('a missing cost cannot hide consumption and a missing consumption cannot invent a partial total',async t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());
+  f.summary.statistics={statistic_ids:['sensor.hc','sensor.hp'],unit:'kWh',decimals:2};
+  f.summary.secondary_statistics={statistic_ids:ids,unit:'€',decimals:2};
+  const cases=[['sensor.hp_cost','6,00kWh','—'],['sensor.hp','—','2,00 €'],[null,'0,00kWh','0,00 €']];
+  for(const [i,[missing,value,detail]]of cases.entries()){
+    f.setTime(Date.parse('2026-10-16T10:00:00Z')+i*60000);
+    f.reply(req=>Object.fromEntries(req.statistic_ids.filter(id=>id!==missing).map(id=>[id,[
+      {start:req.start_time,change:missing?(ids.includes(id)?1:3):0}]])));
+    f.run();await flush();assert.equal(f.value(),value);
+    assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,detail);
+  }
+  f.setTime('2026-10-16T10:04:00Z');f.reply(()=>Promise.reject(Error('offline')));f.run();await flush();
+  assert.equal(f.value(),'—');assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');
+});
+
+test('changing secondary sources or day rejects stale combined replies',async t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());const pending=[];
+  f.summary.secondary_statistics={statistic_ids:['sensor.cost'],unit:'€'};
+  f.reply(req=>new Promise(resolve=>pending.push(()=>resolve(Object.fromEntries(req.statistic_ids.map(id=>[id,[
+    {start:req.start_time,change:1}]]))))));
+  f.run();await flush();f.summary.secondary_statistics.statistic_ids=['sensor.new_cost'];f.run();await flush();
+  pending[0]();await flush();assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');
+  pending[1]();await flush();assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'1,00 €');
+  f.setTime('2026-10-16T22:00:01Z');f.run();assert.equal(f.value(),'—');
+  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');await flush();
+  pending[2]();await flush();assert.equal(f.value(),'2,00€');
+});
+
+test('invalid factors and secondary statistics do not request unbounded or incompatible sources',async t=>{
+  for(const factor of [0,-1,Infinity,'1000']){
+    const f=fixture();f.summary.statistics.factor=factor;f.run();await flush();assert.equal(f.calls.length,0);f.ctx.teardown();
+  }
+  for(const secondary of [{statistic_ids:['invalid']},{statistic_ids:['sensor.cost'],time_zone:'UTC'},
+    {statistic_ids:Array.from({length:16},(_,i)=>'sensor.cost_'+i)}]){
+    const f=fixture();t.after(()=>f.ctx.teardown());f.summary.secondary_statistics=secondary;
+    f.run();await flush();assert.deepEqual(Array.from(f.calls[0].statistic_ids),ids);
+    assert.equal(f.value(),'2,00€');assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');
+  }
+});
