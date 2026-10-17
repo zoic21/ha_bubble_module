@@ -12,6 +12,20 @@ const roomExtraHeight = Math.max(0,roomRows - (roomHeaderMeasures ? 2 : 1)) * 48
 const roomControlPitch = roomHeaderMeasures ? 44 : 48;
 const roomControlBottom = roomHeaderMeasures ? 4 : 8;
 const roomDividerBottom = roomControlBottom + 47 + (roomRows - 1) * roomControlPitch;
+// Opt-in presentation refinements leave existing room cards unchanged. Emit
+// these outside the structural cache so removing an option restores defaults.
+if (o.room_show_divider === false)
+  css += 'ha-card[data-dp-layout="room"] .bubble-container::after { display: none; }';
+if (roomIllustrated && o.room_state_centered === true && visibleState && !secondary) {
+  const content = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden])) .bubble-content-container';
+  css += `
+    ${content} { bottom: ${roomControlBottom + 44 + (roomRows - 1) * roomControlPitch}px; grid-template-rows: auto minmax(0,1fr); row-gap: 0; }
+    ${content+' .bubble-state'} { align-self: center; }
+  `;
+  // Keep the artwork centred in the original upper region: shortening the
+  // content grid must not move it down into, or up out of, the card.
+  css += content+'::after { top: calc(50% - 8px); }';
+}
 // Preserve the explicit motion/occupancy ring when artwork replaces the icon.
 if (roomIllustrated && String(o.icon_border_color ?? '').trim())
   css += 'ha-card[data-dp-room-mode="illustrated"] .bubble-content-container::after { box-shadow: inset 0 0 0 2px '+color(o.icon_border_color,'transparent')+'; }';

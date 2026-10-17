@@ -112,3 +112,43 @@ test('removing command options and tearing down restores attributes and native h
  await alarm(page);await page.evaluate(()=>window.commandContext.teardown());
  assert.equal(await page.locator('[data-id="room"]').locator('[data-dp-command]').count(),0);
 });
+
+test('optional divider removal and state centering follow the actual title and visible footer without moving artwork',async t=>{
+ const page=await fixture(t);
+ for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,358,382,600]){
+  await alarm(page,{width,mode,plain});
+  const measure=()=>page.evaluate(()=>{
+   const ctx=window.commandContext,box=n=>{const r=n.getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:r.height}};
+   const content=ctx.card.querySelector('.bubble-content-container'),art=getComputedStyle(content,'::after'),r=content.getBoundingClientRect();
+   return {card:box(ctx.card.querySelector('.bubble-container')),name:box(ctx.card.querySelector('.bubble-name')),
+    state:box(ctx.elements.state),commands:[...ctx.card.querySelectorAll('[data-dp-command]')].filter(n=>!n.hidden&&!n.classList.contains('hidden')).map(box),
+    divider:getComputedStyle(ctx.card.querySelector('.bubble-container'),'::after').display,
+    artCenter:r.top+parseFloat(art.top),artWidth:parseFloat(art.width),debug:{rows:getComputedStyle(content).gridTemplateRows,gap:getComputedStyle(content).rowGap,bottom:getComputedStyle(content).bottom,align:getComputedStyle(ctx.elements.state).alignSelf,area:getComputedStyle(ctx.elements.state).gridArea}};
+  });
+  const before=await measure();assert.notEqual(before.divider,'none');
+  await page.evaluate(()=>{Object.assign(window.commandContext.config.signature_room,{room_show_divider:false,room_state_centered:true});window.setCommandState('disarmed')});
+  for(const name of ['Alarme','Alarme de la maison et du garage']){
+   await page.evaluate(name=>{window.commandContext.card.querySelector('.bubble-name').textContent=name},name);
+   const result=await measure(),hint=JSON.stringify({mode,plain,width,name,result});
+   assert.equal(result.divider,'none',hint);assert.equal(result.card.height,148,hint);
+   const top=Math.min(...result.commands.map(r=>r.top));
+   assert.ok(Math.abs((result.state.top+result.state.bottom)/2-(result.name.bottom+top)/2)<1,hint);
+   assert.ok(result.state.top>=result.name.bottom&&result.state.bottom<=top,hint);
+   assert.ok(Math.abs(result.artCenter-before.artCenter)<1,hint);assert.equal(result.artWidth,before.artWidth,hint);
+  }
+  await page.evaluate(()=>{
+   const ctx=window.commandContext;ctx.card.querySelector('.bubble-name').textContent='Alarme';
+   delete ctx.config.signature_room.room_show_divider;delete ctx.config.signature_room.room_state_centered;window.setCommandState('disarmed');
+  });
+  const restored=await measure();assert.notEqual(restored.divider,'none');assert.deepEqual(restored.state,before.state);
+  // Both native hidden forms retain priority; all-hidden falls back to the
+  // ordinary no-footer geometry, even without another module execution.
+  await page.evaluate(()=>{
+   const ctx=window.commandContext;Object.assign(ctx.config.signature_room,{room_show_divider:false,room_state_centered:true});window.setCommandState('disarmed');
+   ctx.card.querySelector('.room-control-1').hidden=true;
+   ctx.card.querySelector('.room-control-2').classList.add('hidden');
+   ctx.card.querySelector('.room-control-3').hidden=true;
+  });
+  const hidden=await measure();assert.equal(hidden.commands.length,0);assert.equal(hidden.state.top,before.state.top);
+ }
+});

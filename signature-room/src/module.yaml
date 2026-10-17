@@ -1,5 +1,5 @@
 name: Signature Room
-version: 1.3.0
+version: 1.3.1
 creator: Loïc
 supported:
   - button
@@ -53,6 +53,24 @@ editor:
         group_icon: mdi:sofa-outline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
         description: Valeur numérique et unité selon le rôle de mesure ; état textuel de 22 px. Ne modifie pas les actions natives.
+      room_state_centered:
+        label: Centrer l’état entre le nom et les commandes
+        default: false
+        selector:
+          boolean: {}
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode === 'illustrated') && (String(item.secondary || '').trim() === '')
+        description: En mode illustré sans secondaire, centre l’état dans l’espace réel entre le titre et les commandes visibles. Aucun effet sans commandes.
+      room_show_divider:
+        label: Afficher le trait au-dessus des commandes
+        default: true
+        selector:
+          boolean: {}
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: false masque seulement le séparateur décoratif ; positions et actions restent natives.
       secondary_bold:
         $field: secondary_bold
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() !== '')

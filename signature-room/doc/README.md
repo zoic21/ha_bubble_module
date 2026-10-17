@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.3.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.3.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -180,6 +180,15 @@ une sortie explicite `false` la réactive. Sans expression, l’action reste nat
 Cette option réutilise les nœuds, formatages et actions de valeur existants ;
 les états habituels des pièces restent à 17 px sans l’option.
 
+`room_show_divider: false` retire uniquement le trait décoratif au-dessus des
+commandes. `room_state_centered: true` centre l’état entre le bas réel du nom
+(une ou deux lignes) et le haut des cibles de commandes. Ce centrage concerne
+le mode illustré sans secondaire, avec état et commandes visibles ; les autres
+cas gardent leur placement habituel. L’illustration, la hauteur et les cibles
+de 44 px ne bougent pas. Les deux options sont indépendantes et désactivées
+par défaut ; leur retrait restaure le rendu existant, sans nouveau nœud,
+mesure JavaScript, écouteur ou observateur.
+
 Cartes `button`, hors boutons `switch` et `slider`. Une carte pièce commence à 156 px et peut grandir avec le texte et les rangées de commandes. Une configuration incompatible ne reçoit aucun style de ce module.
 
 Les classes natives sont `room-temperature`, `room-humidity`, `room-status`, `room-control-N` et `room-climate`. `room_control_columns` va de 1 à 6. `room_auto_colors: false` désactive les couleurs automatiques. `room_measures_position: header` place les mesures dans l’en-tête quand l’état principal et le secondaire ne prennent pas cette place. Un état principal affiché masque les mesures redondantes.
@@ -202,6 +211,8 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
 | `room_state_as_value` | `false` | État principal au format de mesure ; état textuel de 22 px. |
+| `room_state_centered` | `false` | Centre l’état sous le nom et au-dessus des commandes visibles, en mode illustré sans secondaire. |
+| `room_show_divider` | `true` | `false` masque seulement le séparateur décoratif des commandes. |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; `type: badge` place un bouton iconique près du nom en mode illustré. |
@@ -233,6 +244,15 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.3.1 — 17 octobre 2026
+
+- Options `room_show_divider: false` et `room_state_centered: true` pour alléger
+  une carte illustrée et centrer son statut entre le titre réel et les commandes.
+- Géométrie du dessin, hauteur, commandes et cartes existantes préservées.
+  Retrait réversible, conditions natives prioritaires, aucun runtime ajouté.
+- Régressions Chromium clair/sombre avec/sans thème, 288–600 px, nom sur une
+  ou deux lignes, retrait des options et masquage des commandes.
 
 ### 1.3.0 — 17 octobre 2026
 

@@ -6,7 +6,7 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 |---|---|---|---|
 | Signature Square — square tiles | 1.6.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.4.6 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Room — room summaries and controls | 1.3.0 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Room — room summaries and controls | 1.3.1 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.14 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
@@ -50,6 +50,8 @@ Square, Compact, Room and Header are separate, autonomous modules with French fo
 Room 1.3.0 also places native icon-only sub-buttons beside the room name through `sub_button_styles.<class-or-index>.type: badge`. The icons share one subtle neutral capsule, 20px high, immediately after the text with a 6px gap. It shrinks to the visible icons and disappears when none remain. Showing or hiding badges preserves the artwork size and centering, including on mobile. Multiple badges keep native visibility and actions; hidden badges release their space in CSS. See the [Room badge configuration](signature-room/doc/README.md#badges-à-côté-du-nom).
 
 Room 1.3.0 adds opt-in `type: command` controls with an icon above the native label, stable 44px targets and template-driven `active` / `disabled` states. Disabled commands retain their place and block native actions, including cached or in-flight gestures, without replacing nodes or service targets. `room_state_as_value` displays equipment values or alarm states using the same illustrated layout. Existing room controls keep their default presentation. See the [command guide](signature-room/doc/README.md#commandes-illustrées-avec-libellé).
+
+Room 1.3.1 optionally removes the footer divider with `room_show_divider: false` and centres the main state between the actual title and visible commands with `room_state_centered: true` (illustrated mode without secondary text). Existing cards and artwork geometry remain unchanged by default.
 
 See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
 
