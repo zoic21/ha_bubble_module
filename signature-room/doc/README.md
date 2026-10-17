@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.3.6**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.3.7**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -447,3 +447,31 @@ typographie responsive commune et cibles de 44 px conservés.
 et ses commandes avec `--ha-ripple-hover-opacity: 0`. Les clics et le retour
 d’appui restent natifs ; retirer l’option rétablit le survol. Valeur par défaut :
 `true`. Aucun nœud, écouteur ou observateur supplémentaire.
+
+### 1.3.7 — Grille dédiée et pipeline de texte Bubble
+
+La cause du décalage restant est reproduite avec le composant Bubble complet :
+avec le défilement désactivé, son pipeline de texte écrit `display: -webkit-box`
+directement sur l’état. Cette règle en ligne remplaçait le `display: flex` du
+module et plaçait la puissance en haut de sa cible de 44 px.
+
+Le compact inline utilise désormais uniquement `src/inline-metrics.css.js`,
+à la place des géométries Room classique et illustrée. Une seule grille contient
+le titre, la rangée commune des mesures et le dessin sur les deux rangées.
+Les précédentes surcharges de coordonnées compactes sont supprimées ; la
+typographie de grande valeur ne se superpose plus à ce mode. Le
+`display: flex !important` des mesures neutralise précisément le style natif en ligne.
+Les transitions natives de hauteur/police ne décalent plus les sous-boutons
+pendant une actualisation. Hauteur, dessin, couleurs, nœuds et actions conservés.
+Le cache distingue ce mode et les sélecteurs de ses colonnes ; retirer l’option
+restaure le gabarit normal. Les autres variantes Room restent inchangées.
+
+La fixture minimale reproduit désormais le style natif multiligne. Un test
+d’intégration facultatif charge le vrai `dist/bubble-card.js` de Bubble 3.4.1,
+commit `061ed8376134307ba1086446869d0ab736265fcf`, vérifié par son SHA Git
+`5fe8799e8070e3169e1b2889c6d5d268632f9082`. Il couvre le nettoyage CSS natif,
+96 configurations et une actualisation par cas, puis les gestes délégués.
+Fournir ce fichier via `BUBBLE_NATIVE_SCRIPT_PATH` à `npm run test:styles`.
+Ce test échoue avec Room 1.3.6 et reproduit le décalage visible sur la capture.
+Le backend Home Assistant et les composants HA de base restent simulés ;
+ce n’est pas un essai de l’installation réelle ou de Safari/iOS.

@@ -65,12 +65,13 @@ async function build(layout) {
   chunks.push(shared('sub-buttons'));
   if (layout === 'room') chunks.push(specific(layout, 'badges'), specific(layout, 'commands'));
   if (layout === 'square') chunks.push(specific(layout, 'badge'), specific(layout, 'activity'));
-  const css = [shared('base.css'), specific(layout, 'presentation.css')];
+  const css = [shared('base.css')];
+  if (layout === 'room') css.push(`(roomInlineCompact ? ${specific(layout, 'inline-metrics.css')} : ${specific(layout, 'presentation.css')} + (roomIllustrated ? ${specific(layout, 'illustration.css')} : ''))`);
+  else css.push(specific(layout, 'presentation.css'));
   if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'), `(summaryEnabled ? ${specific(layout, 'summary.css')} : '')`, `(o.activity === true ? ${specific(layout, 'activity.css')} : '')`);
-  if (layout === 'room') css.push(`(roomIllustrated ? ${specific(layout, 'illustration.css')} : '')`);
   css.push(shared('visibility.css'));
   chunks.push(`
-    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,' : ''}${layout === 'square' ? 'summaryEnabled,o.activity===true,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline,flat.length>0].join('\u0001');
+    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,roomInlineCompact,roomInlineCompact ? roles.map(r=>r.selector).join(",") : "",' : ''}${layout === 'square' ? 'summaryEnabled,o.activity===true,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline,flat.length>0].join('\u0001');
     if (runtime.styleKey !== styleKey) {
       runtime.styleCSS = ${css.join(' + ')};
       runtime.styleKey = styleKey;

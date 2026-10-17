@@ -99,7 +99,7 @@ if (commandNodes.size) {
     ${scope} > ha-ripple { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
   `;
 }
-if (o.room_state_as_value === true) css += `
+if (o.room_state_as_value === true && !roomInlineCompact) css += `
   ha-card[data-dp-layout="room"] .bubble-state {
     font-size: var(--signature-value-font-size,28px); line-height: 1.15;
     font-weight: var(--signature-font-weight-medium,500); letter-spacing: -.7px;

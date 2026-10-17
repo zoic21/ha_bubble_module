@@ -16,7 +16,7 @@ const native=`
 .bubble-name,.bubble-state{display:flex;position:relative;white-space:nowrap}
 `;
 
-test('compact metrics use one containing block and text line with native fixed-top framing',async t=>{
+test('compact metrics share one grid row despite native multiline inline styles',async t=>{
  const page=await fixture(t);
  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,500,600])for(const power of [140,1600,"unavailable"]){
   await render(page,{width,mode,plain});
@@ -28,16 +28,17 @@ test('compact metrics use one containing block and text line with native fixed-t
    ctx.config={...ctx.config,button_type:'state',show_state:true,show_icon:false,sub_button:{main:buttons},signature_room:{room_mode:'illustrated',room_state_as_value:true,room_inline_metrics:true,room_compact:true,room_auto_colors:false,room_control_columns:2,illustration:{image:'/local/rack.webp'}}};
    ctx._hass.states['sensor.demo']={state:String(power),attributes:{unit_of_measurement:'W'}};
    ctx.elements.state.classList.remove('hidden');ctx.elements.iconContainer.classList.add('hidden');
+   ctx.elements.state.style.cssText='white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:ellipsis;overflow:hidden';
    const container=ctx.card.querySelector('.bubble-sub-button-container');
    container.innerHTML=buttons.map((b,i)=>'<div class="bubble-sub-button bubble-sub-button-'+(i+1)+' '+b.css_class+'"><div class="bubble-sub-button-name-container">'+['29,0 °C','42 %'][i]+'</div><ha-icon class="bubble-sub-button-icon"></ha-icon></div>').join('');
    shadow.querySelectorAll('style')[1].textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
    const box=e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,center:r.y+r.height/2};};
-   const card=ctx.card.querySelector('.bubble-container'),content=card.getBoundingClientRect(),border=parseFloat(getComputedStyle(card).borderTopWidth),art=getComputedStyle(ctx.elements.contentContainer,'::after');
-   const artTop=content.top+border+parseFloat(art.top)+new DOMMatrixReadOnly(art.transform).m42;
+   const card=ctx.card.querySelector('.bubble-container'),wrapper=ctx.card.querySelector('.bubble-wrapper'),content=wrapper.getBoundingClientRect(),frame=getComputedStyle(wrapper),art=getComputedStyle(ctx.elements.contentContainer,'::after');
+   const artCenter=content.top+content.height/2;
    const labels=[ctx.elements.state.querySelector('.dp-value'),...container.querySelectorAll('.bubble-sub-button-name-container')];
    const targets=[ctx.elements.state,...container.children];
-   const result={card:box(card),sameContainingBlock:targets.every(e=>e.offsetParent===card),name:box(ctx.card.querySelector('.bubble-name')),art:{center:artTop+parseFloat(art.height)/2,width:parseFloat(art.width),left:content.right-border-parseFloat(art.right)-parseFloat(art.width)},texts:labels.map(e=>{const range=document.createRange();range.selectNodeContents(e);return {font:getComputedStyle(e).fontSize,box:box(e),text:box(range),scroll:e.scrollWidth,client:e.clientWidth}}),targets:targets.map(box)};
-   result.nativeHidden=[...ctx.card.querySelectorAll('.bubble-wrapper,.bubble-content-container,.bubble-name-container')].flatMap(e=>['hidden','class'].map(kind=>{
+   const result={card:box(card),grid:frame.display,sameContainingBlock:targets.every(e=>e.offsetParent===wrapper),stateDisplay:getComputedStyle(ctx.elements.state).display,name:box(ctx.card.querySelector('.bubble-name')),art:{center:artCenter,width:parseFloat(art.width),left:content.right-parseFloat(frame.paddingRight)-parseFloat(art.width),row:art.gridRow,align:art.alignSelf},texts:labels.map(e=>{const range=document.createRange();range.selectNodeContents(e);return {font:getComputedStyle(e).fontSize,box:box(e),text:box(range),scroll:e.scrollWidth,client:e.clientWidth}}),targets:targets.map(box)};
+   result.nativeHidden=[...ctx.card.querySelectorAll('.bubble-wrapper,.bubble-content-container,.bubble-name-container,.bubble-sub-button-container')].flatMap(e=>['hidden','class'].map(kind=>{
     if(kind==='hidden')e.hidden=true;else e.classList.add('hidden');
     const display=getComputedStyle(e).display;
     e.hidden=false;e.classList.remove('hidden');return display;
@@ -46,6 +47,8 @@ test('compact metrics use one containing block and text line with native fixed-t
   const hint=JSON.stringify({width,mode,plain,power,m});
   assert.equal(m.card.height,118,hint);assert.equal(m.art.width,80,hint);
   assert.equal(m.sameContainingBlock,true,hint);
+  assert.equal(m.grid,'grid',hint);assert.equal(m.stateDisplay,'flex',hint);
+  assert.equal(m.art.row,'1 / -1',hint);assert.equal(m.art.align,'center',hint);
   assert.ok(m.nativeHidden.every(display=>display==='none'),hint);
   assert.ok(Math.abs(m.name.top-m.card.top-9)<1,hint);
   assert.ok(Math.abs(m.art.center-m.card.center)<1,hint);

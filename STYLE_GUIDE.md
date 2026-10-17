@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14**, **Room 1.3.6**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14**, **Room 1.3.7**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14** et **Room 1.3.6** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14** et **Room 1.3.7** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -606,3 +606,34 @@ conteneur CSS afin que `cqw` utilise la largeur de la carte.
 retirer les actions ou neutraliser le retour d’appui. Sans l’option, survol natif
 conservé. Tester clics carte/valeur/deux mesures, retrait de l’option et carte
 voisine inchangée. Les autres modes Room gardent leur disposition.
+
+### Pipeline natif et grille unique — Room 1.3.7
+
+La capture suivante rejette encore 1.3.6. Le rendu du composant Bubble complet
+reproduit cette fois le défaut : le pipeline non défilant applique un style
+en ligne `display: -webkit-box` à l’état. Les cibles étaient alignées mais la
+puissance n’était plus flex, donc son texte restait en haut. Comparer seulement
+les boîtes parentes ou reproduire uniquement les CSS natifs ne suffit pas.
+
+Pour le compact inline, sélectionner `signature-room/src/inline-metrics.css.js`
+**à la place** des présentations classique/illustrée, pas après celles-ci.
+Conserver une grille à deux rangées, des wrappers structurels sans boîte et les
+nœuds natifs comme enfants de grille. Les trois mesures partagent la rangée 2,
+la même hauteur de 44 px et le même centrage flex ; le dessin occupe les deux
+rangées dans la dernière colonne. L’état a un `display: flex !important` ciblé
+contre le style natif en ligne. Éviter les transitions natives de hauteur et
+de police sur ces cibles pour garder le placement stable dès le rafraîchissement.
+Ne pas réintroduire de coordonnées absolues, de grille Room sous-jacente ni
+de surcharges de grande valeur dans ce mode. Le cache inclut la variante
+compacte et ses colonnes ; les autres variantes gardent leur CSS existant.
+
+Le test `styles/test/room-native-runtime.browser.cjs` charge le vrai Bubble
+3.4.1 (`061ed837`, SHA blob vérifié), son pipeline de texte et son nettoyage CSS.
+Définir `BUBBLE_NATIVE_SCRIPT_PATH=/chemin/vers/dist/bubble-card.js` pour l’exécuter ;
+sans ce fichier externe, il est signalé ignoré. Le faux backend doit retourner
+des ressources non vides à `frontend/get_icons`, sinon Bubble relance indéfiniment
+la requête et le rendu. Les 96 configurations couvrent quatre largeurs,
+clair/sombre, avec/sans thème, défilement activé/désactivé et trois états de
+puissance ; chaque cas est revérifié après un rafraîchissement natif. Garder
+la preuve d’échec sur 1.3.6, les centres des textes et les gestes natifs, pas
+seulement le nombre de tests. Le navigateur de ces essais reste Chromium.

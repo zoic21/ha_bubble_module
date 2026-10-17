@@ -24,52 +24,25 @@ const roomDividerBottom = roomControlBottom + 47 + (roomRows - 1) * roomControlP
 const roomInlineMetrics = roomIllustrated && !roomCompact && o.room_inline_metrics === true
   && visibleState && !secondary && roles.length > 0 && roles.length <= 2
   && roles.every(({b}) => b.show_name !== true && (b.show_state === true || b.state_content));
-if (roomInlineMetrics) {
+const roomInlineCompact = roomInlineMetrics && o.room_compact === true && flat.length === roles.length;
+if (roomInlineCompact) attr('data-dp-room-inline','compact');
+else root.removeAttribute('data-dp-room-inline');
+// The full-height variant keeps its footer. Compact equipment uses a separate
+// grid stylesheet, never the regular room/footer geometry plus overrides.
+if (roomInlineMetrics && !roomInlineCompact) {
   const scope = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"]';
   const columns = roles.length + 1;
   css += `
-    ${scope+' .bubble-state'} { position: absolute; inset: auto auto -4px 0; height: 44px; width: calc(100% / ${columns}); max-width: calc(100% / ${columns}); display: flex; align-items: center; }
+    ${scope+' .bubble-state'} { position: absolute; inset: auto auto -4px 0; height: 44px; width: calc(100% / ${columns}); max-width: calc(100% / ${columns}); display: flex !important; align-items: center; }
     ${scope+' .bubble-container::after'} { display: none; }
   `;
   roles.forEach(({selector},i) => {
     const metric = selector.replace('ha-card',scope);
     css += metric+' { left: calc(12px + '+(i+1)+' * (100% - 24px) / '+columns+'); width: calc((100% - 24px) / '+columns+'); bottom: 8px; gap: 4px; font-size: var(--signature-name-font-size,14px); }';
-    css += metric+' .bubble-sub-button-icon { width: 16px; height: 16px; padding: 0; --mdc-icon-size: 16px; }';
-    css += metric+' .bubble-sub-button-name-container { min-width: 0; }';
+    css += metric+' > .bubble-sub-button-icon { width: 16px; height: 16px; padding: 0; --mdc-icon-size: 16px; }';
+    css += metric+' > .bubble-sub-button-name-container { min-width: 0; }';
   });
-  // The same measurements can fit beside the artwork in a double-height card.
-  if (o.room_compact === true) {
-    const compactScope = scope+'[data-dp-room-inline="compact"]';
-    const weights = roles.length === 2 ? [1,1.4,1] : [1,1];
-    const total = weights.reduce((a,b) => a+b,0);
-    attr('data-dp-room-inline','compact');
-    css += `
-      ${compactScope} { --dp-room-metric-art: 0px; }
-      ${compactScope}[data-dp-illustration="yes"] { --dp-room-metric-art: calc(min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) + 8px); }
-      ${compactScope+' .bubble-container'} { height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; min-height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; }
-      ${compactScope+' .bubble-wrapper'} { --dp-room-metric-font: clamp(13px,calc(8cqw - 11px),22px); --dp-room-metric-icon: clamp(12px,3.5cqw,18px); }
-      /* All three native targets use the card as their containing block. A
-         nested grid's absolute-positioning area must not offset just the state. */
-      ${compactScope+' :is(.bubble-wrapper,.bubble-content-container,.bubble-name-container):not(.hidden):not([hidden])'} { display: contents !important; position: static !important; contain: none; transform: none; }
-      ${compactScope+' :is(.hidden,[hidden])'} { display: none !important; }
-      ${compactScope+' .bubble-name'} { position: absolute; inset: 8px auto auto 12px; white-space: nowrap; max-height: 20px; }
-      ${compactScope+' .bubble-state'} { grid-area: auto; inset: calc(50% - 12px) auto auto 12px; height: 44px; margin: 0; padding: 0; box-sizing: border-box; width: calc((100% - 24px - var(--dp-room-metric-art)) / ${total}); max-width: calc((100% - 24px - var(--dp-room-metric-art)) / ${total}); font-size: var(--dp-room-metric-font) !important; line-height: 1.2; font-weight: var(--signature-font-weight-normal,400); letter-spacing: 0 !important; }
-      ${compactScope+' .bubble-state .dp-unit'} { font-size: inherit; color: inherit; }
-      ${compactScope+' .bubble-content-container::after'} { top: 50%; right: 12px; }
-    `;
-    roles.forEach(({selector},i) => {
-      const metric = selector.replace('ha-card',compactScope);
-      const measured = metric+':has(.bubble-sub-button-name-container:not(:empty):not(.hidden):not([hidden]))';
-      const start = weights.slice(0,i+1).reduce((a,b) => a+b,0);
-      css += metric+' { top: calc(50% - 12px); bottom: auto; left: calc(12px + '+start+' * (100% - 24px - var(--dp-room-metric-art)) / '+total+'); width: calc('+weights[i+1]+' * (100% - 24px - var(--dp-room-metric-art)) / '+total+'); font-size: var(--dp-room-metric-font); font-weight: var(--signature-font-weight-normal,400); font-variant-numeric: tabular-nums; letter-spacing: 0; }';
-      css += measured+' { display: flex !important; flex-direction: row-reverse !important; padding: 0 !important; gap: 3px; }';
-      // An explicit combinator survives minification of the dynamic CSS suffix.
-      css += measured+' > .bubble-sub-button-name-container { margin: 0 !important; font-size: var(--dp-room-metric-font); line-height: 1.2; font-weight: var(--signature-font-weight-normal,400); }';
-      css += measured+' > .bubble-sub-button-icon { width: var(--dp-room-metric-icon); height: var(--dp-room-metric-icon); padding: 0; --mdc-icon-size: var(--dp-room-metric-icon); }';
-    });
-  }
 }
-if (!roomInlineMetrics || o.room_compact !== true) root.removeAttribute('data-dp-room-inline');
 // Keep native actions and press feedback; only suppress the optional mouse halo.
 if (o.room_hover === false)
   css += 'ha-card[data-dp-layout="room"] ha-ripple { --ha-ripple-hover-opacity: 0; }';
@@ -77,7 +50,7 @@ if (o.room_hover === false)
 // these outside the structural cache so removing an option restores defaults.
 if (o.room_show_divider === false)
   css += 'ha-card[data-dp-layout="room"] .bubble-container::after { display: none; }';
-if (roomIllustrated && !roomCompact && o.room_state_centered === true && visibleState && !secondary) {
+if (roomIllustrated && !roomCompact && !roomInlineCompact && o.room_state_centered === true && visibleState && !secondary) {
   const content = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden])) .bubble-content-container';
   css += `
     ${content} { bottom: ${roomControlBottom + 44 + (roomRows - 1) * roomControlPitch}px; grid-template-rows: auto minmax(0,1fr); row-gap: 0; }
