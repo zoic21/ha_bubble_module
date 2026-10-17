@@ -73,13 +73,14 @@ if (commands) {
 if (commandNodes.size) {
   const scope = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] :is([class*="room-control-"],.room-climate)[data-dp-command]';
   const named = scope+':has(.bubble-sub-button-name-container:not(:empty):not(.hidden):not([hidden]))';
+  const commandSpace = roomCompact ? '100% - 16px - var(--dp-room-compact-art,0px)' : '100% - 16px';
   css += `
     ${named} {
       display: grid !important; grid-template-columns: minmax(0,1fr);
       grid-template-rows: 18px 16px; grid-template-areas: 'icon' 'label';
-      gap: 2px; padding: 4px 2px !important;
-      left: calc(11px + var(--room-control-column,var(--dp-room-column,0)) * (100% - 16px) / ${roomColumns});
-      width: calc((100% - 16px) / ${roomColumns} - 6px);
+      gap: 2px; padding: 4px ${roomCompact ? .5 : 2}px !important;
+      left: calc(${roomCompact ? 9.5 : 11}px + var(--room-control-column,var(--dp-room-column,0)) * (${commandSpace}) / ${roomColumns});
+      width: calc((${commandSpace}) / ${roomColumns} - ${roomCompact ? 3 : 6}px);
       border-radius: var(--signature-control-border-radius,14px);
       background: var(--dp-command-background) !important;
       color: var(--dp-command-foreground);
@@ -89,7 +90,7 @@ if (commandNodes.size) {
       --mdc-icon-size: 18px; border-radius: 0; background: transparent !important;
     }
     ${named+' .bubble-sub-button-name-container'} {
-      justify-self: stretch; text-align: center; font-size: var(--signature-legend-font-size,11px);
+      justify-self: stretch; text-align: center; font-size: ${roomCompact ? 'min(var(--signature-legend-font-size,11px),11px)' : 'var(--signature-legend-font-size,11px)'};
       line-height: 16px; color: var(--dp-command-foreground); margin: 0 !important;
     }
     ${scope}[aria-disabled="true"] { cursor: default; }

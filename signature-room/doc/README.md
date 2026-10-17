@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.3.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.3.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -189,6 +189,30 @@ de 44 px ne bougent pas. Les deux options sont indépendantes et désactivées
 par défaut ; leur retrait restaure le rendu existant, sans nouveau nœud,
 mesure JavaScript, écouteur ou observateur.
 
+### Équipement double hauteur
+
+`room_compact: true` ramène la carte illustrée à **118 px**, avec l’image de
+**80 × 80 px** inchangée, centrée verticalement à droite. Le nom reste sur une
+ligne ; l’état est centré entre ce nom et les commandes. Les trois commandes
+occupent seulement l’espace à gauche de l’image, avec des écarts de 3 px et
+un padding horizontal réduit et des libellés de 11 px au maximum.
+Elles gardent leurs nœuds, libellés, icônes et
+cibles natives de **44 px de haut**, sans transformation ou réduction d’échelle.
+À 288 px de carte et avec les variables du thème par défaut, les trois cibles
+restent supérieures à 44 px de large et les libellés Désarmer/Armer/Nuit sont
+entiers. Pour l’alignement dans Sections, utiliser `rows: 2` et
+`grid_options: {columns: 12, rows: 2}`.
+
+Cette option exige un état principal, aucun secondaire et une seule rangée
+de une à trois commandes natives nommées `type: command`, avec au plus trois
+colonnes. Sinon le gabarit habituel reste utilisé. Le mode classique et les
+pièces existantes ne changent pas. Les noms longs sont ellipsés sur une ligne ;
+utiliser le gabarit normal lorsqu’un titre sur deux lignes est nécessaire.
+Le dessin conserve la taille CSS partagée ; au-delà de 102 px personnalisés,
+la hauteur augmente pour ne pas le tronquer. Un dessin absent libère sa
+réservation horizontale ; des commandes masquées libèrent le pied en CSS.
+Retirer l’option restaure le gabarit de 148 px.
+
 Cartes `button`, hors boutons `switch` et `slider`. Une carte pièce commence à 156 px et peut grandir avec le texte et les rangées de commandes. Une configuration incompatible ne reçoit aucun style de ce module.
 
 Les classes natives sont `room-temperature`, `room-humidity`, `room-status`, `room-control-N` et `room-climate`. `room_control_columns` va de 1 à 6. `room_auto_colors: false` désactive les couleurs automatiques. `room_measures_position: header` place les mesures dans l’en-tête quand l’état principal et le secondaire ne prennent pas cette place. Un état principal affiché masque les mesures redondantes.
@@ -212,6 +236,7 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
 | `room_state_as_value` | `false` | État principal au format de mesure ; état textuel de 22 px. |
 | `room_state_centered` | `false` | Centre l’état sous le nom et au-dessus des commandes visibles, en mode illustré sans secondaire. |
+| `room_compact` | `false` | Équipement illustré de 118 px, état et une rangée de 1–3 commandes nommées à gauche du dessin inchangé. |
 | `room_show_divider` | `true` | `false` masque seulement le séparateur décoratif des commandes. |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
@@ -244,6 +269,15 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.3.2 — 17 octobre 2026
+
+- Option `room_compact` pour une carte équipement double hauteur de 118 px,
+  sans réduire l’illustration de 80 px ni les cibles de 44 px.
+- Pied plus étroit à gauche du dessin, espaces verticaux réduits, statut
+  centré et nom sur une ligne. Cartes Room existantes inchangées.
+- Contrôles clair/sombre avec/sans thème à 288–600 px, libellés entiers,
+  absence de chevauchement, états et retrait de l’option ; fixtures Chromium.
 
 ### 1.3.1 — 17 octobre 2026
 

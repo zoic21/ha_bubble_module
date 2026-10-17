@@ -4,6 +4,13 @@ const roomColumns = Math.round(number(o.room_control_columns,4,1,6));
 const roomRows = Math.max(1,Math.ceil(roles.length / roomColumns));
 const roomIllustrated = o.room_mode === 'illustrated';
 attr('data-dp-room-mode',roomIllustrated ? 'illustrated' : 'classic');
+// A double-height equipment card keeps the artwork beside, not above, the
+// footer. Restrict this opt-in to a single row of at most three named commands.
+const roomCompact = roomIllustrated && o.room_compact === true && visibleState && !secondary
+  && roomColumns <= 3 && roles.length > 0 && roles.length <= roomColumns
+  && roles.every(({b}) => b.show_name === true && (!b.sub_button_type || b.sub_button_type === 'default')
+    && styles.some(style => style.b === b && style.spec.type === 'command'));
+attr('data-dp-room-density',roomCompact ? 'compact' : 'standard');
 // Header measures free the second row for controls without enlarging the room tile.
 // A main state or secondary still needs the regular content rows.
 const roomHeaderMeasures = layout === 'room' && !roomIllustrated && o.room_measures_position === 'header' && !visibleState && !secondary;
@@ -16,7 +23,7 @@ const roomDividerBottom = roomControlBottom + 47 + (roomRows - 1) * roomControlP
 // these outside the structural cache so removing an option restores defaults.
 if (o.room_show_divider === false)
   css += 'ha-card[data-dp-layout="room"] .bubble-container::after { display: none; }';
-if (roomIllustrated && o.room_state_centered === true && visibleState && !secondary) {
+if (roomIllustrated && !roomCompact && o.room_state_centered === true && visibleState && !secondary) {
   const content = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden])) .bubble-content-container';
   css += `
     ${content} { bottom: ${roomControlBottom + 44 + (roomRows - 1) * roomControlPitch}px; grid-template-rows: auto minmax(0,1fr); row-gap: 0; }
@@ -25,6 +32,19 @@ if (roomIllustrated && o.room_state_centered === true && visibleState && !second
   // Keep the artwork centred in the original upper region: shortening the
   // content grid must not move it down into, or up out of, the card.
   css += content+'::after { top: calc(50% - 8px); }';
+}
+if (roomCompact) {
+  const scope = 'ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-room-density="compact"]';
+  css += `
+    ${scope} { --dp-room-compact-art: 0px; }
+    ${scope}[data-dp-illustration="yes"] { --dp-room-compact-art: calc(min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) + 8px); }
+    ${scope+' .bubble-container'} { height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; min-height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; }
+    ${scope+' .bubble-content-container'} { inset: 8px 12px; padding: 0; box-sizing: border-box; grid-template-rows: 19px minmax(0,1fr); row-gap: 0; }
+    ${scope+' .bubble-container:has(:is([class*="room-control-"],.room-climate):not(.hidden):not([hidden])) .bubble-content-container'} { padding-bottom: 44px; }
+    ${scope+' .bubble-name'} { white-space: nowrap; max-height: 19px; }
+    ${scope+' .bubble-state'} { align-self: center; }
+    ${scope+' .bubble-content-container::after'} { top: 50%; }
+  `;
 }
 // Preserve the explicit motion/occupancy ring when artwork replaces the icon.
 if (roomIllustrated && String(o.icon_border_color ?? '').trim())
