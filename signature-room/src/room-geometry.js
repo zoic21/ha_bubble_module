@@ -39,26 +39,35 @@ if (roomInlineMetrics) {
   });
   // The same measurements can fit beside the artwork in a double-height card.
   if (o.room_compact === true) {
+    const compactScope = scope+'[data-dp-room-inline="compact"]';
+    const weights = roles.length === 2 ? [1,1.4,1] : [1,1];
+    const total = weights.reduce((a,b) => a+b,0);
+    attr('data-dp-room-inline','compact');
     css += `
-      ${scope} { --dp-room-metric-art: 0px; }
-      ${scope}[data-dp-illustration="yes"] { --dp-room-metric-art: calc(min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) + 8px); }
-      ${scope+' .bubble-container'} { height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; min-height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; }
-      ${scope+' .bubble-content-container'} { inset: 8px 12px; grid-template-rows: 20px minmax(0,1fr); row-gap: 0; }
-      ${scope+' .bubble-name'} { white-space: nowrap; max-height: 20px; }
-      ${scope+' .bubble-state'} { grid-area: 1 / 1 / -1 / -1; inset: 20px auto 0 0; height: calc(100% - 20px); width: calc((100% - var(--dp-room-metric-art)) / ${columns}); max-width: calc((100% - var(--dp-room-metric-art)) / ${columns}); font-size: clamp(18px,6cqw,var(--signature-value-font-size,28px)); }
-      ${scope+' .bubble-content-container::after'} { top: 50%; }
+      ${compactScope} { --dp-room-metric-art: 0px; }
+      ${compactScope}[data-dp-illustration="yes"] { --dp-room-metric-art: calc(min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) + 8px); }
+      ${compactScope+' .bubble-container'} { height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; min-height: max(118px,calc(var(--signature-illustration-size,80px) + 16px)) !important; }
+      ${compactScope+' .bubble-wrapper'} { --dp-room-metric-font: clamp(13px,calc(8cqw - 11px),22px); --dp-room-metric-icon: clamp(12px,3.5cqw,18px); }
+      ${compactScope+' .bubble-content-container'} { inset: 8px 12px; height: calc(100% - 16px); min-height: 0; margin: 0 !important; align-self: stretch; box-sizing: border-box; grid-template-rows: 20px minmax(0,1fr); row-gap: 0; }
+      ${compactScope+' .bubble-name-container'} { position: static; margin: 0; }
+      ${compactScope+' .bubble-name'} { white-space: nowrap; max-height: 20px; }
+      ${compactScope+' .bubble-state'} { grid-area: 1 / 1 / -1 / -1; inset: calc(50% - 12px) auto auto 0; height: 44px; width: calc((100% - var(--dp-room-metric-art)) / ${total}); max-width: calc((100% - var(--dp-room-metric-art)) / ${total}); font-size: var(--dp-room-metric-font) !important; line-height: 1.2; font-weight: var(--signature-font-weight-normal,400); letter-spacing: 0 !important; }
+      ${compactScope+' .bubble-state .dp-unit'} { font-size: inherit; color: inherit; }
+      ${compactScope+' .bubble-content-container::after'} { top: 50%; }
     `;
     roles.forEach(({selector},i) => {
-      const metric = selector.replace('ha-card',scope);
+      const metric = selector.replace('ha-card',compactScope);
       const measured = metric+':has(.bubble-sub-button-name-container:not(:empty):not(.hidden):not([hidden]))';
-      css += metric+' { top: calc(50% - 12px); bottom: auto; left: calc(12px + '+(i+1)+' * (100% - 24px - var(--dp-room-metric-art)) / '+columns+'); width: calc((100% - 24px - var(--dp-room-metric-art)) / '+columns+'); }';
-      css += measured+' { display: flex !important; flex-direction: row-reverse !important; padding: 0 !important; }';
-      css += measured+' .bubble-sub-button-name-container { margin: 0 !important; font-size: inherit; }';
-      css += measured+' .bubble-sub-button-icon { width: 16px; height: 16px; padding: 0; --mdc-icon-size: 16px; }';
-      css += '@container (max-width: 360px) { '+measured+' { font-size: 12px; gap: 3px; } '+measured+' .bubble-sub-button-icon { width: 14px; height: 14px; --mdc-icon-size: 14px; } }';
+      const start = weights.slice(0,i+1).reduce((a,b) => a+b,0);
+      css += metric+' { top: calc(50% - 12px); bottom: auto; left: calc(12px + '+start+' * (100% - 24px - var(--dp-room-metric-art)) / '+total+'); width: calc('+weights[i+1]+' * (100% - 24px - var(--dp-room-metric-art)) / '+total+'); font-size: var(--dp-room-metric-font); font-weight: var(--signature-font-weight-normal,400); font-variant-numeric: tabular-nums; letter-spacing: 0; }';
+      css += measured+' { display: flex !important; flex-direction: row-reverse !important; padding: 0 !important; gap: 3px; }';
+      // An explicit combinator survives minification of the dynamic CSS suffix.
+      css += measured+' > .bubble-sub-button-name-container { margin: 0 !important; font-size: var(--dp-room-metric-font); line-height: 1.2; font-weight: var(--signature-font-weight-normal,400); }';
+      css += measured+' > .bubble-sub-button-icon { width: var(--dp-room-metric-icon); height: var(--dp-room-metric-icon); padding: 0; --mdc-icon-size: var(--dp-room-metric-icon); }';
     });
   }
 }
+if (!roomInlineMetrics || o.room_compact !== true) root.removeAttribute('data-dp-room-inline');
 // Opt-in presentation refinements leave existing room cards unchanged. Emit
 // these outside the structural cache so removing an option restores defaults.
 if (o.room_show_divider === false)

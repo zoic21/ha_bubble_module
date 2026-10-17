@@ -420,3 +420,15 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 ### 1.3.4 — Mesures compactes à côté du dessin
 
 Combiner `room_inline_metrics: true` et `room_compact: true` aligne la valeur principale et les 1–2 sous-boutons de mesure à gauche du dessin, dans une carte de 118 px. Titre en haut sur une ligne, illustration de 80 px centrée à droite, valeurs centrées dans la place sous le titre. Les mesures gardent leurs cibles de 44 px, leurs nœuds, entités et actions. La typographie devient plus compacte sous 360 px. Configurer `rows: 2` et `grid_options.rows: 2`. Sans `room_compact`, la ligne basse de 148 px reste disponible. Les commandes nommées conservent le gabarit compact d’Alarme ; aucune modification des autres pièces.
+
+### 1.3.5 — Alignement natif des mesures compactes
+
+Le mode compact avec `room_inline_metrics` conserve 118 px et l’image de 80 px.
+La zone de contenu a une hauteur explicite ; les règles natives `fixed-top`
+ne peuvent plus remonter le dessin ni décaler la valeur principale. Le dessin
+est centré dans toute la carte. Les trois mesures partagent taille de texte,
+graisse, interligne et ligne de base, unités comprises : taille responsive de
+13 à 22 px. La mesure intermédiaire dispose d’une colonne un peu plus large
+pour son unité et son icône, sans réduire l’image. Les contrôles gardent leurs
+cibles natives de 44 px et leurs actions. Le mode 148 px et les commandes nommées
+d’Alarme restent inchangés. Aucun observateur, listener ou nœud supplémentaire.

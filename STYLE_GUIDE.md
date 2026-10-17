@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14**, **Room 1.3.4**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14**, **Room 1.3.5**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14** et **Room 1.3.4** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14** et **Room 1.3.5** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -569,3 +569,21 @@ Les tests de fixtures ne constituent pas un essai Home Assistant ou Safari/iOS.
 `room_inline_metrics` combiné à `room_compact` place les trois valeurs à gauche du dessin, sur une carte de 118 px. Le titre reste en haut, le dessin à droite mesure 80 px, les cibles de mesure 44 px. La valeur principale et les deux contrôles partagent le centre de la zone sous le titre. Les mesures seules ne doivent pas hériter de la grille des commandes nommées. Conserver les nœuds et les couleurs ; la version 148 px reste disponible sans compact.
 
 En activité Square, centrer uniquement l’état entre le bas du titre fixe et le haut des informations basses. Si un détail est présent, sa ligne constitue la borne basse du centrage. Les lecteurs centrent le groupe morceau/artiste dans la zone entre titre et commandes. Conserver les 120 px natifs, les dessins, les sous-boutons et le défilement Bubble. Aucun nouveau nœud, timer ou observateur. Vérifier les centres réels, au lieu de centrer le bloc titre/état entier.
+
+### Cadre natif des mesures Room compactes — 1.3.5
+
+Tester le mode `room_inline_metrics` + `room_compact` avec le contrat natif
+Bubble `fixed-top` et un conteneur de nom positionné. Une fixture qui omet
+`align-self: flex-start`, `min-height: 54px` et ce wrapper ne reproduit pas le
+cadre réellement rendu. Fixer explicitement la hauteur intérieure du contenu,
+son alignement et ses marges ; retirer le positionnement relatif du wrapper
+sans boîte (`display: contents`). L’image de 80 px se centre dans les 118 px.
+Les trois cibles partagent le centre de la zone sous le titre et leurs textes
+la même typographie 13–22 px, graisse normale, interligne 1,2, unités comprises.
+La colonne intermédiaire est plus large pour l’unité et l’icône. Préserver les
+entités, couleurs, actions et les autres modes Room.
+
+Les suffixes CSS dynamiques ciblant les enfants utilisent un combinateur
+explicite `>` : leur espace descendant initial peut disparaître lors de la
+minification d’un fragment isolé. Vérifier le CSS distribué avec les vraies
+classes natives, les polices calculées et les boîtes des lignes de texte.
