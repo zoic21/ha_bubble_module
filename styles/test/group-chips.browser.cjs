@@ -88,3 +88,14 @@ test('very long labels, literal HTML, source removal and hidden cards stay bound
  await page.evaluate(()=>{demo.source.config={...demo.source.config,cards:[{type:'tile',name:'Nouveau'}]};demo.run(demo.source);});await settle(page);
  assert.equal(await page.evaluate(()=>demo.ctx.hidden),false);assert.equal((await geometry(page)).visible,1);
 });
+
+test('individual chip resizing repacks even when total list width is unchanged',async t=>{
+ const page=await fixture(t,{prepare:null});await setup(page,{width:288,count:3});
+ await page.evaluate(()=>demo.ctx._signatureGroup.nodes.forEach(node=>node.style.width='100px'));await settle(page);
+ const before=await geometry(page),width=await page.evaluate(()=>demo.ctx._signatureGroup.list.getBoundingClientRect().width);
+ assert.equal(before.visible,1);
+ await page.evaluate(()=>demo.ctx._signatureGroup.nodes.forEach((node,index)=>node.style.width=[80,80,140][index]+'px'));await settle(page);
+ const after=await geometry(page);
+ assert.equal(await page.evaluate(()=>demo.ctx._signatureGroup.list.getBoundingClientRect().width),width);
+ assert.equal(after.visible,2);assert.equal(after.moreText,'+1');
+});

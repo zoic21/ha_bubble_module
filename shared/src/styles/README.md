@@ -28,6 +28,11 @@ Une directive occupe sa propre ligne dans un bloc CSS, y compris à l'intérieur
 
 Les paramètres sont des chaînes JSON sur une ligne. Les noms correspondent aux marqueurs `@@NOM@@` du fragment. La première ligne `/* @defaults {...} */` fournit les valeurs par défaut ; un paramètre transmis remplace seulement la valeur de cette inclusion. Les fragments peuvent inclure d'autres fragments en leur passant explicitement des paramètres. Les valeurs par défaut et directives disparaissent du résultat.
 
+`name.css` accepte `WEIGHT` au build (défaut `signature-font-weight-semibold`,
+600), comme `value.css` et `unit.css` acceptent une taille. Panel transmet le
+poids normal de son titre média directement, sans émettre un poids ensuite
+écrasé. Ces paramètres ne sont pas de nouvelles options ou variables de thème.
+
 Le build refuse les paramètres manquants, inconnus, non textuels, les directives mal formées, les fichiers absents et les cycles. Il ne lit ni n'évalue les variables du thème : les `var(--signature-*)` et leurs replis restent dans le CSS livré.
 
 `card-frame.css` permet de nommer les propriétés de rayon, bordure et ombre pour les conteneurs ou les variables natives `--bubble-*`. `IMPORTANT` et `SHADOW_IMPORTANT` restent séparés pour préserver la cascade de Flow. La remise à zéro `font: inherit` de Wind Rose reste avant le fragment d'onglet ; les chiffres tabulaires de Weather restent après sa remise à zéro native.

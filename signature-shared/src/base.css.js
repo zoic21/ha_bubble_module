@@ -26,10 +26,10 @@ border: 0; box-shadow: none;
     ha-card[data-dp-layout] :is(.bubble-name,.bubble-state,.bubble-sub-button-name-container) { font-family: inherit; }
     /* Secondary color supplies attenuation; ordinary states stay fully opaque. */
     ha-card[data-dp-layout] .bubble-state { font-weight: var(--signature-font-weight-normal, 400); opacity: 1; }
-    ha-card[data-dp-layout] .dp-unit { letter-spacing: 0; color: var(--secondary-text-color); }
+    ${layout !== 'header' ? `ha-card[data-dp-layout] .dp-unit { letter-spacing: 0; color: var(--secondary-text-color); }
     ha-card[data-dp-layout] .dp-unit:not(:empty) { margin-inline-start: 4px; }
     /* Compound durations keep their original spaces between numbers and units. */
-    ha-card[data-dp-layout] .dp-unit.dp-duration-unit { margin-inline-start: 0; }
+    ha-card[data-dp-layout] .dp-unit.dp-duration-unit { margin-inline-start: 0; }` : ''}
     ${secondary ? `ha-card[data-dp-layout] .dp-secondary {
       /* @include shared/src/styles/secondary.css */
       line-height: max(16px, calc(var(--signature-secondary-font-size, 13px) * 1.2)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; pointer-events: none; }
@@ -48,8 +48,8 @@ color: var(--primary-text-color);
     }` : ''}
 
     /* Only the displayed value catches the pointer; surrounding space belongs to the tile. */
-    ha-card[data-dp-layout] .dp-value-action { pointer-events: auto; cursor: pointer; }
+    ${layout !== 'header' ? `ha-card[data-dp-layout] .dp-value-action { pointer-events: auto; cursor: pointer; }
     ha-card[data-dp-layout] .bubble-state.dp-value-action { width: fit-content; max-width: 100%; }
-    ${secondary ? `ha-card[data-dp-layout] .dp-secondary.dp-value-action { width: fit-content; max-width: 100%; }` : ''}
+    ${secondary ? `ha-card[data-dp-layout] .dp-secondary.dp-value-action { width: fit-content; max-width: 100%; }` : ''}` : ''}
     ${compactValue ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-state.dp-value-action { justify-self: end; }` : ''}
     `

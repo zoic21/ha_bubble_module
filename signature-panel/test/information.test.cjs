@@ -13,6 +13,17 @@ function fixture(){
  let icon='mdi:thermometer';
  return {ctx,root,hass,options,run:()=>render.call(ctx,hass,fn=>ctx.teardown=fn,v=>v==='{{ icon }}'?icon:v),setIcon:value=>icon=value};
 }
+test('Panel emits command and media CSS only for their active native configuration',t=>{
+ const f=fixture();t.after(()=>f.ctx.teardown());
+ const base=f.run();assert.doesNotMatch(base,/grid-template-areas:'icon' 'label'|bubble-media-info-container/);
+ f.ctx.config.sub_button=[{entity:'sensor.power',show_name:true,css_class:'command'}];
+ f.options.sub_button_styles={command:{type:'command'}};
+ assert.match(f.run(),/grid-template-areas:'icon' 'label'/);
+ delete f.options.sub_button_styles;
+ assert.doesNotMatch(f.run(),/grid-template-areas:'icon' 'label'/);
+ f.ctx.config.card_type='media-player';
+ assert.match(f.run(),/bubble-media-info-container/);
+});
 test('three information columns preserve native primary value, independent details and explicit navigation',t=>{
  const f=fixture();t.after(()=>f.ctx.teardown());f.run();
  const states=f.root.querySelectorAll('.dp-panel-state');

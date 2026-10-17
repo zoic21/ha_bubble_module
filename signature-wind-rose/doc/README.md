@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.5.4** · Module ID: `signature_wind_rose`
+**Version: 1.5.5** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions with four speed shades, unlabelled guide rings, a compact speed legend, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction, its frequency and recorded calm duration when a speed source is configured. Hover a sector to see its percentage, recorded duration, time-weighted mean and maximum recorded speed. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -216,3 +216,10 @@ Named colors such as `blue` use the same theme palette as Signature and Flow. Us
 Les styles communs sont définis dans [shared/src/styles](../../shared/src/styles/README.md) et inclus au build. Les dispositions restent propres au module ; la distribution demeure autonome et minifiée.
 
 Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.
+
+
+## 1.5.5 — 17 octobre 2026
+
+Hover and selection reuse sector paths and descriptions. History, locale, units and band-mode changes rebuild the derived view; requests, actions and visible data stay unchanged.
+
+Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).

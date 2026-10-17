@@ -66,6 +66,7 @@ if (!runtime.strip) {
 }
 const labels = items?.map(labelFor) || [];
 const message = !items ? 'Popup non initialisée' : !items.length ? 'Aucune activité' : '';
+let layoutChanged = runtime.message.textContent !== message || runtime.nodes?.length !== labels.length;
 runtime.message.textContent = message;
 runtime.message.hidden = !message;
 runtime.strip.setAttribute('aria-label', items
@@ -73,7 +74,9 @@ runtime.strip.setAttribute('aria-label', items
   : message);
 runtime.strip.title = labels.join(', ') || message;
 runtime.nodes ||= [];
-while (runtime.nodes.length > labels.length) runtime.nodes.pop().remove();
+while (runtime.nodes.length > labels.length) {
+  const chip = runtime.nodes.pop(); runtime.resize?.unobserve(chip); chip.remove();
+}
 const number = (value, fallback, min, max) => {
   const raw = String(value ?? fallback).trim();
   const n = raw === '' ? NaN : Number(raw);
@@ -96,8 +99,11 @@ for (let i = 0; i < labels.length; i++) {
     chip.art = art; chip.icon = icon; chip.label = label;
     runtime.list.appendChild(chip);
     runtime.nodes.push(chip);
+    // Individual widths can change while their total stays the same (fonts).
+    // Reuse the one observer and release each target when its chip disappears.
+    runtime.resize?.observe(chip,{box:'border-box'});
   }
-  if (chip.label.textContent !== labels[i]) chip.label.textContent = labels[i];
+  if (chip.label.textContent !== labels[i]) { chip.label.textContent = labels[i]; layoutChanged = true; }
   // Reuse the popup card's illustration contract, including its atlas crop and
   // effective HA theme. No second list of equipment or installation-specific art.
   const square = card.signature_panel || card.signature_square;
@@ -128,4 +134,6 @@ for (let i = 0; i < labels.length; i++) {
   }
 }
 root.setAttribute('data-signature-group', 'chips');
-runtime.scheduleLayout();
+// ResizeObserver already follows fonts, theme geometry and available width.
+// Without it, retain the render-driven fallback for older environments.
+if (layoutChanged || !runtime.resize) runtime.scheduleLayout();

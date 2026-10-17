@@ -46,6 +46,19 @@ function history(f,direction=135,speed=3) {
 }
 const result=f=>f.r.cache.get(f.r.period).data;
 
+test('hover and selection reuse sector paths, but locale and history changes rebuild them',async t=>{
+  const f=fixture(t,{speed_entity:'sensor.speed'});await f.resolve(history(f,135,12));
+  let paths=0;const path=f.r.sectorPath;
+  f.r.sectorPath=(...args)=>{paths++;return path(...args);};
+  for(let i=0;i<20;i++){f.r.sectors[6].event('pointerenter',{pointerType:'mouse'});f.r.sectors[6].event('pointerleave');}
+  f.r.sectors[6].click();assert.equal(paths,0);assert.match(f.r.tooltip.textContent,/Moyenne : 12 km\/h/);
+  const cached=f.r.sectorDetails;
+  f.hass.locale={language:'en',number_format:'comma_decimal'};f.run();
+  assert.ok(paths>0);assert.notEqual(f.r.sectorDetails,cached);assert.match(f.r.tooltip.textContent,/Mean : 12 km\/h/);
+  paths=0;f.r.sectors[6].click();assert.equal(paths,0);
+  await f.advance(300001);await f.resolve(history(f,90,8));assert.ok(paths>0);
+});
+
 test('calm footer distinguishes zero duration from missing data, hides without speed and follows cached periods',async t=>{
   const f=fixture(t,{speed_entity:'sensor.speed'});
   assert.equal(f.r.calm.hidden,false);assert.equal(f.r.calmValue.textContent,'—');
@@ -130,7 +143,7 @@ test('speed details relocalize cached data and unit changes discard pending and 
 });
 
 test('distribution and documented examples compile with the standalone module',()=>{
-  assert.equal(definition.version,'1.5.4');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.version,'1.5.5');assert.deepEqual(definition.supported,['button']);
   for(const file of fs.readdirSync(path.join(base,'examples'))){
     const example=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
     assert.deepEqual(example.modules,['signature_wind_rose']);assert.equal(example.grid_options.rows,'auto');assert.equal(example.button_type,'state');

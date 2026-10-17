@@ -1,13 +1,13 @@
 `/* A room has a stable height and only explicitly identified roles are moved. */
     ha-card[data-dp-layout="room"] .bubble-container { height: ${156 + roomExtraHeight}px !important; min-height: ${156 + roomExtraHeight}px !important; container-type: inline-size; }
     ha-card[data-dp-layout="room"] .bubble-wrapper { position: static !important; }
-    ha-card[data-dp-layout="room"] .bubble-content-container { position: absolute; inset: 12px; display: grid !important; grid-template-columns: 38px minmax(0,1fr); grid-template-rows: 38px 32px; gap: 10px 10px; margin: 0 !important; pointer-events: none; }
+    ha-card[data-dp-layout="room"] .bubble-content-container { position: absolute; inset: 12px; display: grid !important; grid-template-columns: 38px minmax(0,1fr); grid-template-rows: 38px 32px; gap: 10px 10px; margin: 0 !important; }
     ha-card[data-dp-layout="room"] .bubble-name-container { display: contents !important; }
     ha-card[data-dp-layout="room"] .bubble-icon-container { grid-area: 1 / 1; width: 38px; height: 38px; min-width: 38px !important; min-height: 38px !important; margin: 0 !important; background: var(--bubble-icon-background-color); --mdc-icon-size: 24px; pointer-events: auto; }
     ha-card[data-dp-layout="room"] .bubble-name { grid-area: 1 / 2; align-self: center;
       /* @include shared/src/styles/name.css {"SIZE_IMPORTANT":" !important"} */
       line-height: 19px; white-space: normal; max-height: 38px; overflow: hidden; }
-    ha-card[data-dp-layout="room"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center; font-size: 17px; line-height: 22px; opacity: 1; }
+    ha-card[data-dp-layout="room"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center; font-size: 17px; line-height: 22px; }
     ${secondary ? `/* Secondary text gets its own row; reserve the footer even when it wraps. */
     ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-container { height: auto !important; min-height: ${180 + (roomRows - 1) * 48}px !important; }
     ha-card[data-dp-layout="room"][data-dp-secondary="yes"] .bubble-wrapper { display: block !important; height: auto !important; }

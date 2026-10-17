@@ -1,5 +1,9 @@
 # Signature theme
 
+The [17 October module audit](../docs/MODULE_OPTIMIZATION_2026_10.md) removes
+unused/overridden CSS and avoids repeated work without changing theme keys,
+fallbacks or computed visual roles. No theme reimport is needed for this patch.
+
 Signature Panel 1.0.0 shares the existing card, name, value, unit, secondary, control and illustration tokens. It adds no theme key. Its two-step full-width grid, responsive information columns and native command targets are documented in the [Panel guide](../signature-panel/doc/README.md).
 
 Module distributions are minified during the repository build. Theme variables remain in the shipped CSS and continue to follow live theme changes; their names and fallback values are preserved. See the [build guide](../shared/README.md#distributions-minifiées).

@@ -22,7 +22,7 @@ const roles = [], roomColumns = 3;
 /* @include signature-panel/src/commands.js */
 /* @include signature-panel/src/progress.js */
 if (o.hover === false) css += 'ha-card[data-dp-layout="panel"] ha-ripple { --ha-ripple-hover-opacity: 0; }';
-const styleKey = [kind, surface, !!secondary, information.length, flat.length].join('\u0001');
+const styleKey = [kind, surface, !!secondary, information.length, flat.length, commandStyles.length > 0].join('\u0001');
 if (runtime.styleKey !== styleKey) {
   runtime.styleCSS = `
     /* @include signature-panel/src/presentation.css */

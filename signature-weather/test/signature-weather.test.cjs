@@ -48,7 +48,7 @@ const daily=[
 const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
 
 test('distribution compiles and all examples use the same standalone module',()=>{
-  assert.equal(definition.name,'Signature Weather');assert.equal(definition.version,'1.3.4');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Weather');assert.equal(definition.version,'1.3.5');assert.deepEqual(definition.supported,['button']);
   const layouts=[];
   for(const file of fs.readdirSync(path.join(base,'examples'))) {
     const card=YAML.parse(fs.readFileSync(path.join(base,'examples',file),'utf8'));
@@ -75,6 +75,20 @@ test('only one active subscription is started across unrelated style passes',t=>
   for(let i=0;i<10;i++) {hass.states['sensor.unrelated']=state(i);run();}
   assert.equal(hass.connection.calls.length,1);assert.equal(r.entries[0],entry);
   const cached=r.formatters.get('number|0');run();assert.equal(r.formatters.get('number|0'),cached);
+});
+test('forecast sorting is reused for selection/local changes and invalidated by data, clock and options',t=>{
+  const previous=now;t.after(()=>now=previous);
+  const f=fixture(t,{layout:'summary'});f.emit(daily.map(item=>({...item})));
+  const first=f.r.recordCache;
+  f.r.entries[1].el.click();assert.equal(f.r.recordCache,first);
+  f.hass.states['weather.home']={...f.hass.states['weather.home'],attributes:{...f.hass.states['weather.home'].attributes,temperature:24}};
+  f.run();assert.equal(f.r.recordCache,first);
+  f.hass.locale={language:'en',number_format:'comma_decimal',time_format:'24'};f.run();assert.equal(f.r.recordCache,first);
+  f.ctx.config.signature_weather.count=2;f.run();assert.notEqual(f.r.recordCache,first);assert.equal(f.r.records.length,2);
+  const countCache=f.r.recordCache;now='2026-10-04T12:01:00Z';f.run();assert.notEqual(f.r.recordCache,countCache);
+  const data=f.r.forecasts.daily;data[0]={...data[0],temperature:30};f.emit(data);
+  assert.equal(f.r.entries[0].high.textContent,'30°','A new WS event invalidates even an array reused by the provider');
+  const timeCache=f.r.recordCache;f.hass.config.time_zone='America/New_York';f.run();assert.notEqual(f.r.recordCache,timeCache);
 });
 test('summary switches supported periods and rejects late events from the old period',async t=>{
   const {r,hass,emit}=fixture(t,{layout:'summary'});emit(daily);await flush();

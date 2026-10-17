@@ -37,12 +37,14 @@ const dailyWindow = (stamp, zone) => {
     runtime.summaryStatisticsFormatter = new Intl.DateTimeFormat('en-CA', {timeZone:zone,
     year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
     runtime.summaryStatisticsZone = zone;
+    runtime.summaryStatisticsDay = null;
   }
   const formatter = runtime.summaryStatisticsFormatter;
   const parts = time => Object.fromEntries(formatter.formatToParts(time)
     .filter(part => part.type !== 'literal').map(part => [part.type,Number(part.value)]));
   const current = parts(stamp);
   const midnight = Date.UTC(current.year,current.month-1,current.day);
+  if (runtime.summaryStatisticsDay === midnight) return {start:runtime.summaryStatisticsStart,end:stamp};
   let start = midnight;
   // Resolve local midnight with its own offset, including DST transition days.
   for (let i=0;i<3;i++) {
@@ -50,6 +52,8 @@ const dailyWindow = (stamp, zone) => {
     const offset = Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second)-start;
     start = midnight-offset;
   }
+  runtime.summaryStatisticsDay = midnight;
+  runtime.summaryStatisticsStart = start;
   return {start,end:stamp};
 };
 const dailyStatistics = paint => {
@@ -82,8 +86,9 @@ const dailyStatistics = paint => {
       });
       totals.set(id,values.length ? values.reduce((sum,row) => sum+row.change,0) : NaN);
     }
+    const sameDay = dailyWindow(Date.now(),zone).start === window.start;
     const calculate = config => {
-      if (!config || dailyWindow(Date.now(),zone).start !== window.start) return null;
+      if (!config || !sameDay) return null;
       // Each measurement is complete or unavailable independently of the other.
       if (config.ids.some(id => !Number.isFinite(totals.get(id)))) return null;
       const sum = ids => ids.reduce((value,id) => value+totals.get(id),0);

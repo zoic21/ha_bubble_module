@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **2.0.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.1**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -294,3 +294,10 @@ de mesure réservés conservent leur dimensionnement propre.
 ## Migration 2.0.0
 
 Les bandeaux pleine largeur `summary` et `activity`, leurs statistiques et les lecteurs illustrés sont déplacés dans [Signature Panel](../../signature-panel/doc/README.md). Square conserve les tuiles de mesure, leurs illustrations, badges et contrôles. Installer Panel et migrer les cartes concernées avant de mettre à jour Square.
+
+
+## 2.0.1 — 17 octobre 2026
+
+CSS d’illustration émis seulement pour un dessin valide ; le cache suit les activations/désactivations Jinja. Retrait d’une déclaration de pointeur redondante.
+
+Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).

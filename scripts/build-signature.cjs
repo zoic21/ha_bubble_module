@@ -73,10 +73,15 @@ async function build(layout) {
   const css = [shared('base.css')];
   if (layout === 'room') css.push(specific(layout, 'presentation.css'), `(roomIllustrated ? ${specific(layout, 'illustration.css')} : '')`);
   else css.push(specific(layout, 'presentation.css'));
-  if (layout === 'square') css.push(specific(layout, 'extras.css'), specific(layout, 'illustration.css'));
+  if (layout === 'square') css.push(specific(layout, 'extras.css'), `(illustrationEnabled ? ${specific(layout, 'illustration.css')} : '')`);
   css.push(shared('visibility.css'));
+  const layoutStyleKeys = {
+    room: 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,',
+    square: 'illustrationEnabled,',
+    compact: 'valueButton,'
+  }[layout] || '';
   chunks.push(`
-    const styleKey = [layout,kind,surface,${layout === 'room' ? 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,' : ''}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline,flat.length>0].join('\u0001');
+    const styleKey = [layout,kind,surface,${layoutStyleKeys}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline,flat.length>0].join('\u0001');
     if (runtime.styleKey !== styleKey) {
       runtime.styleCSS = ${css.join(' + ')};
       runtime.styleKey = styleKey;

@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.4.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.4.1**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -382,3 +382,10 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 ## Migration 1.4.0
 
 Les équipements illustrés double hauteur passent à [Signature Panel](../../signature-panel/doc/README.md). `room_compact`, `room_inline_metrics` et `room_state_centered` sont retirés, avec leurs anciennes feuilles de style. Les Rooms de pièces, classiques ou illustrées, gardent leur géométrie et leurs commandes. Installer Panel et migrer les équipements avant la mise à jour de Room.
+
+
+## 1.4.1 — 17 octobre 2026
+
+Retrait des déclarations de pointeur et d’opacité déjà fournies par le socle, sans modification des géométries ni des commandes.
+
+Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).

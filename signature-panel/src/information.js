@@ -39,7 +39,8 @@ information.forEach((spec, index) => {
   const name = item.el.querySelector('.dp-panel-name');
   const state = item.el.querySelector('.dp-panel-state');
   let detail = item.el.querySelector('.dp-panel-secondary');
-  name.textContent = render(spec.name ?? '', entity).trim();
+  const nameText = render(spec.name ?? '', entity).trim();
+  if (name.textContent !== nameText) name.textContent = nameText;
   const paintState = ({value,unit}) => {
     const key = JSON.stringify([value,unit,spec.icon]);
     // Templates/icons remain live even if the measured value is unchanged.
@@ -54,31 +55,41 @@ information.forEach((spec, index) => {
     }
     item.stateKey = key + icon;
   };
-  const raw = spec.state == null ? null : render(spec.state,entity).trim();
-  const parts = raw?.match(/^([+\-−]?[\d .,\u00a0\u202f]+)\s*([\p{L}°%€$£][^\d\s]*)$/u);
-  paintState(raw === null ? displayState(hass.states[entity],entity,'panelFormat' + index)
-    : {value:parts ? parts[1].trim() : raw, unit:parts ? parts[2] : ''});
+  if (!spec.statistics) {
+    const raw = spec.state == null ? null : render(spec.state,entity).trim();
+    const parts = raw?.match(/^([+\-−]?[\d .,\u00a0\u202f]+)\s*([\p{L}°%€$£][^\d\s]*)$/u);
+    paintState(raw === null ? displayState(hass.states[entity],entity,'panelFormat' + index)
+      : {value:parts ? parts[1].trim() : raw, unit:parts ? parts[2] : ''});
+  }
   const source = sourceFor(spec.secondary,entity);
   const detailEntity = spec.statistics && spec.secondary_statistics ? '' : source.main ? entity : source.entity;
   if (item.detailEntity !== detailEntity) {
     const next = document.createElement('div'); next.className = detail.className;
     detail.replaceWith(next); detail = next; item.detailEntity = detailEntity;
   }
-  const display = source.direct ? displayState(hass.states[detailEntity],detailEntity,'panelDetailFormat' + index) : null;
-  detail.textContent = display ? display.value + (display.unit ? ' ' + display.unit : '') : render(spec.secondary,entity).trim();
+  if (!(spec.statistics && spec.secondary_statistics)) {
+    const display = source.direct ? displayState(hass.states[detailEntity],detailEntity,'panelDetailFormat' + index) : null;
+    const detailText = display ? display.value + (display.unit ? ' ' + display.unit : '') : render(spec.secondary,entity).trim();
+    if (detail.textContent !== detailText) detail.textContent = detailText;
+  }
   const action = entity ? {...info(entity), ...(spec.tap_action ? {tapAction:JSON.stringify(spec.tap_action)} : {})}
     : {tapAction:'{"action":"none"}',holdAction:'{"action":"none"}',doubleTapAction:'{"action":"none"}'};
   bindAction('panelName'+index,name,action,!!entity);
   bindAction('panelState'+index,state,action,!!entity);
   bindAction('panelDetail'+index,detail,detailEntity ? info(detailEntity) : action,!!detailEntity);
   if (spec.statistics) dailyPanelStatistics(spec,item,(value,secondaryValue) => {
-    const format = (n,options) => ({value:n === null ? '—' : formatterFor(hass,{
-      minimumFractionDigits:number(options.decimals,2,0,6),maximumFractionDigits:number(options.decimals,2,0,6)
-    }).format(n),unit:n === null ? '' : String(options.unit || '')});
-    paintState(format(value,spec.statistics));
+    const format = (n,options,slot) => {
+      if (n === null) return {value:'—',unit:''};
+      const digits = number(options.decimals,2,0,6);
+      const key = [localeFor(hass),hass.locale?.number_format,digits].join('|');
+      if (item[slot]?.key !== key) item[slot] = {key,formatter:formatterFor(hass,{minimumFractionDigits:digits,maximumFractionDigits:digits})};
+      return {value:item[slot].formatter.format(n),unit:String(options.unit || '')};
+    };
+    paintState(format(value,spec.statistics,'statisticsFormat'));
     if (spec.secondary_statistics) {
-      const next = format(secondaryValue,spec.secondary_statistics);
-      detail.textContent = next.value + (next.unit ? ' ' + next.unit : '');
+      const next = format(secondaryValue,spec.secondary_statistics,'secondaryStatisticsFormat');
+      const detailText = next.value + (next.unit ? ' ' + next.unit : '');
+      if (detail.textContent !== detailText) detail.textContent = detailText;
     }
   });
   else item.summaryStatistics = null;

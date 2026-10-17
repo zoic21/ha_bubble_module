@@ -112,7 +112,8 @@ if (chips) {
   `;
 }
 const limit = Math.max(0, Math.min(5, Number.isFinite(Number(options.max_names)) ? Math.floor(Number(options.max_names)) : 2));
-const names = items?.slice(0, limit).map(labelFor) || [];
+const labels = items?.map(labelFor) || [];
+const names = labels.slice(0, limit);
 const remaining = items ? items.length - names.length : 0;
 const summary = !items ? 'Popup non initialisée' : !items.length ? 'Aucune activité'
   : names.join(', ') + (remaining ? (names.length ? ' +' : '+') + remaining : '');
@@ -128,7 +129,7 @@ const attach = (slot, className, parent) => {
 const summaryEl = attach('summary', 'sg-summary', this.elements.nameContainer);
 const badge = attach('badge', 'sg-count', this.elements.mainContainer || root);
 if (summaryEl.textContent !== summary) summaryEl.textContent = summary;
-summaryEl.title = items?.map(labelFor).join(', ') || summary;
+summaryEl.title = labels.join(', ') || summary;
 badge.textContent = items ? String(items.length) : '—';
 badge.setAttribute('aria-label', items ? items.length + ' activité' + (items.length === 1 ? '' : 's') : 'Popup non initialisée');
 root.setAttribute('data-signature-group', 'summary');

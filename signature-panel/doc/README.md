@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.0.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.0.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -97,3 +97,10 @@ Les sources sont séparées en présentation, informations, statistiques, comman
 Installer Panel avant d’importer les cartes migrées. Remplacer `signature_square` ou `signature_room` dans `modules` et dans la clé d’options par `signature_panel`. `summary` devient `information: [ancien_summary]`. Retirer `activity`, `room_compact`, `room_inline_metrics`, `room_state_centered` et les autres réglages géométriques Room. Conserver `rows: 2` et `grid_options: {columns: full, rows: 2}`. Les Rooms de pièces et les Squares en demi-largeur restent sur leurs modules.
 
 Square **2.0.0** supprime les bandeaux `summary` et `activity`. Room **1.4.0** supprime la géométrie d’équipement double hauteur. Group **1.1.1** sait lire les illustrations Panel des activités pour ses pastilles. Ces mises à jour et la migration des cartes doivent être installées ensemble.
+
+
+## 1.0.1 — 17 octobre 2026
+
+CSS des commandes et du média limité aux cartes concernées. Suppression des tailles/poids écrasés. Statistiques : pas de double remplacement du DOM ; formateurs et début de journée réutilisés.
+
+Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).

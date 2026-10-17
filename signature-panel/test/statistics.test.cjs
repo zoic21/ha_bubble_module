@@ -6,10 +6,10 @@ const definition = loadModule('signature-panel');
 const ids = ['sensor.hc_cost','sensor.hp_cost'];
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
-function fixture() {
+function fixture(intl = Intl) {
   let stamp = Date.parse('2026-10-16T10:00:00Z');
   class Clock extends Date { static now() { return stamp; } }
-  const context = vm.createContext({...require('../../signature-shared/test/dom.cjs'),Intl,Date:Clock,setTimeout,clearTimeout});
+  const context = vm.createContext({...require('../../signature-shared/test/dom.cjs'),Intl:intl,Date:Clock,setTimeout,clearTimeout});
   const render = vm.runInContext('(function(hass,onTeardown,renderTemplate){return `' + definition.code + '`;})',context);
   const {Element} = context,root = new Element(),content = new Element(),names = new Element(),state = new Element();
   content.className = 'bubble-content-container'; names.className = 'bubble-name-container'; state.className = 'bubble-state';
@@ -28,6 +28,24 @@ function fixture() {
     setTime:time=>stamp=typeof time==='number'?time:Date.parse(time),reply:fn=>reply=fn,
     value:()=>root.querySelector('.dp-panel-state')?.textContent};
 }
+
+test('cached daily totals keep their DOM and formatters and only read current date parts',async t=>{
+  let numberFormats=0,dateParts=0;
+  class NumberFormat extends Intl.NumberFormat {constructor(...args){super(...args);numberFormats++;}}
+  class DateTimeFormat extends Intl.DateTimeFormat {formatToParts(...args){dateParts++;return super.formatToParts(...args);}}
+  const f=fixture({NumberFormat,DateTimeFormat});t.after(()=>f.ctx.teardown());
+  f.run();await flush();
+  const state=f.root.querySelector('.dp-panel-state');let writes=0;
+  const replace=state.replaceChildren.bind(state);state.replaceChildren=(...args)=>{writes++;return replace(...args);};
+  const formats=numberFormats,parts=dateParts;
+  for(let i=0;i<30;i++)f.run();
+  assert.equal(writes,0);assert.equal(numberFormats,formats);assert.equal(dateParts-parts,30);
+  assert.equal(f.calls.length,1);assert.equal(f.value(),'2,00€');
+  f.hass.locale={language:'en',number_format:'comma_decimal'};f.run();
+  assert.equal(f.value(),'2.00€');assert.ok(numberFormats>formats);
+  f.summary.statistics.decimals=1;f.run();assert.equal(f.value(),'2.0€');
+  assert.equal(f.calls.length,1);
+});
 
 test('daily summary adds Recorder changes, filters the time window and never uses live meter states',async t=>{
   const f=fixture();t.after(()=>f.ctx.teardown());

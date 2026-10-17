@@ -207,25 +207,35 @@
         (r.speedEntity ? ' · '+r.labels.calmShort+' '+(data.covered > 0 ? r.duration(data.calm) : '—') : '') : '');
       attr(footer,'aria-description',footer.getAttribute('title'));
       if (!ready) return;
-      const maximum = Math.max(...data.bins);
-      sectors.forEach((el,index) => {
-        const duration = data.bins[index], percent = duration/data.wind*100;
-        const title = r.labels.directions[index]+' · '+r.format(percent)+' %';
-        const speedDetail = r.speedEntity && duration ? '\n'+r.labels.mean+' : '+r.format(data.speedTotals[index]/duration)+(r.speedUnit ? ' '+r.speedUnit : '')+
-          '\n'+r.labels.maximum+' : '+r.format(data.speedMaxima[index])+(r.speedUnit ? ' '+r.speedUnit : '') : '';
-        const description = title+' · '+r.duration(duration)+speedDetail;
-        let cumulative = 0;
-        const radius = amount => Math.sqrt(36+(118*118-36)*amount/maximum);
-        bands[index].forEach((band,bandIndex) => {
-          const amount = showBands ? data.speedBins[index][bandIndex] : 0;
-          attr(band,'d',amount ? r.sectorPath(index,radius(cumulative+amount),radius(cumulative)) : '');
-          cumulative += amount;
+      // Hover/selection only changes emphasis and the tooltip. Reuse the paths
+      // and descriptions until history, locale or speed-band mode changes.
+      const chartKey = r.formatKey+'|'+r.speedUnit+'|'+Boolean(showBands);
+      if (r.chartData !== data || r.chartKey !== chartKey) {
+        r.chartData = data; r.chartKey = chartKey;
+        const maximum = Math.max(...data.bins);
+        r.sectorDetails = sectors.map((el,index) => {
+          const duration = data.bins[index], percent = duration/data.wind*100;
+          const title = r.labels.directions[index]+' · '+r.format(percent)+' %';
+          const speedDetail = r.speedEntity && duration ? '\n'+r.labels.mean+' : '+r.format(data.speedTotals[index]/duration)+(r.speedUnit ? ' '+r.speedUnit : '')+
+            '\n'+r.labels.maximum+' : '+r.format(data.speedMaxima[index])+(r.speedUnit ? ' '+r.speedUnit : '') : '';
+          const description = title+' · '+r.duration(duration)+speedDetail;
+          let cumulative = 0;
+          const radius = amount => Math.sqrt(36+(118*118-36)*amount/maximum);
+          bands[index].forEach((band,bandIndex) => {
+            const amount = showBands ? data.speedBins[index][bandIndex] : 0;
+            attr(band,'d',amount ? r.sectorPath(index,radius(cumulative+amount),radius(cumulative)) : '');
+            cumulative += amount;
+          });
+          attr(el,'d',duration ? r.sectorPath(index,Math.sqrt(36+(118*118-36)*duration/maximum)) : '');
+          attr(el,'tabindex',duration ? 0 : -1); attr(el,'aria-hidden',!duration);
+          attr(el,'aria-label',description);
+          return speedDetail ? title+'\n'+r.labels.duration+' : '+r.duration(duration)+speedDetail : description;
         });
-        attr(el,'d',duration ? r.sectorPath(index,Math.sqrt(36+(118*118-36)*duration/maximum)) : '');
-        attr(el,'tabindex',duration ? 0 : -1); attr(el,'aria-hidden',!duration);
-        attr(el,'aria-label',description); attr(el,'aria-pressed',r.selected === index);
-        if ((r.hovered ?? r.selected) === index && duration) {
-          text(tooltip,speedDetail ? title+'\n'+r.labels.duration+' : '+r.duration(duration)+speedDetail : description); tooltip.hidden = false;
+      }
+      sectors.forEach((el,index) => {
+        attr(el,'aria-pressed',r.selected === index);
+        if ((r.hovered ?? r.selected) === index && data.bins[index]) {
+          text(tooltip,r.sectorDetails[index]); tooltip.hidden = false;
         }
       });
     };

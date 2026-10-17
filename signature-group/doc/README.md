@@ -1,6 +1,6 @@
 # Signature Group
 
-Version **1.1.1**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
+Version **1.1.2**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
 
 Importer [signature-group.yaml](../dist/signature-group.yaml) dans l’éditeur des modules Bubble. Voir l’[exemple complet](../examples/activities.yaml), contenant les deux cartes séparées par `---`.
 
@@ -120,3 +120,13 @@ Modifier `src`, puis lancer `npm run build:modules`, `npm run check:modules`, `n
 ### 1.1.1
 
 Les pastilles reprennent aussi `signature_panel.illustration`, y compris les variantes sombres et le cadrage, après migration des cartes activité.
+
+
+## 1.1.2 — 17 octobre 2026
+
+Les noms sont rendus une seule fois par passage. Sans changement de contenu, les pastilles laissent ResizeObserver gérer la géométrie au lieu de programmer une mesure à chaque état HA.
+
+Le même observateur suit chaque pastille, y compris si leurs largeurs changent
+en conservant le même total ; les cibles supprimées sont libérées immédiatement.
+
+Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).

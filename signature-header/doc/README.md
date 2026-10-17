@@ -1,6 +1,6 @@
 # Signature Header
 
-Version **1.1.14**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.1.15**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -163,3 +163,10 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 
 - Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
 - Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.
+
+
+## 1.1.15 — 17 octobre 2026
+
+Retrait des styles d’unités et d’actions de valeur jamais créées par Header. Titres, pastilles et actions natives inchangés.
+
+Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).

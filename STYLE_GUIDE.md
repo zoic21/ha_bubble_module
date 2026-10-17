@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.6**, **Square 2.0.0**, **Header 1.1.14**, **Room 1.4.0**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.7**, **Square 2.0.1**, **Header 1.1.15**, **Room 1.4.1**, **Signature Flow 3.6.1**, **Signature Weather 1.3.5**, **Signature Wind Rose 1.5.5** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -367,6 +367,21 @@ Pour un contrôle d'intégration visuelle, importer les distributions et le thè
 Lors d'un changement livré : augmenter la version du module concerné, maintenir sa version interne de runtime lorsqu'elle existe, mettre à jour le tableau du [README](README.md), son guide et ses notes de version. Si une règle commune évolue, modifier ce document et [le guide du thème](themes/README.md) dans le même changement. Vérifier les tests et les jobs GitHub Actions sur le commit publié. Un push GitHub ne met pas à jour les modules déjà importés dans Home Assistant.
 
 ## 8. Performances et volume CSS
+
+La [passe du 17 octobre 2026](docs/MODULE_OPTIMIZATION_2026_10.md) conserve les
+styles calculés et les rôles existants. Le CSS d’illustration Square, de petite
+valeur Compact et de commande/média Panel n’est émis que pour l’option active ;
+les booléens correspondants doivent invalider la clé du cache. Les templates et
+lectures suivies ne sont pas mémorisés à leur place. Ne pas retirer les gardes
+de visibilité, les replis ou une règle seulement parce qu’une fixture ne la rencontre pas.
+
+Les caches de prévisions Weather, de chemins/descriptions Wind Rose et de
+formatage/minuit Panel restent propres au runtime et suivent données, locale,
+options et temps nécessaires. Survol/sélection ne recalcule pas un historique
+inchangé. Group laisse son ResizeObserver suivre la géométrie des pastilles
+inchangées ; conserver la mesure sur contenu modifié et le repli sans observer.
+Les versions concernées et les mesures de CSS après nettoyage Bubble sont
+précisées dans le bilan ; elles ne mesurent pas la fluidité dans HA réel.
 
 Signature Hue 1.0.0 centralise les cinq gabarits des popups Hue en complément de
 Compact, sans service, seuil ou sélection de scène codés dans le module. Les

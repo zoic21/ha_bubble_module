@@ -64,6 +64,7 @@
       r.connection.subscribeMessage(event => {
         if (!s.active || r.disposed) return;
         r.forecasts[r.period] = Array.isArray(event.forecast) ? event.forecast : [];
+        r.recordInputs = null;
         r.phase = 'ready'; r.render(true);
       },{type:'weather/subscribe_forecast',forecast_type:r.period,entity_id:r.entity}).then(unsubscribe => {
         if (s.active) s.unsubscribe = unsubscribe;
@@ -181,16 +182,20 @@
       attr(r.tabs,'aria-label',r.labels.forecast);
       const temperatureUnit = r.weather?.attributes?.temperature_unit || r.hass.config?.unit_system?.temperature || '';
       const today = r.date(now,'key');
-      const records = (['loading','ready'].includes(r.phase) ? r.forecasts[r.period] || [] : []).map(item => ({...item,date:new Date(item.datetime)}))
-        .filter(item => Number.isFinite(item.date.getTime()) && (r.period === 'hourly' ? item.date.getTime() >= Math.floor(now.getTime()/3600000)*3600000 : r.date(item.date,'key') >= today))
-        .sort((a,b) => a.date-b.date).slice(0,r.count);
+      const recordInputs = [r.forecasts[r.period],r.period,r.timeZone,r.count,Math.floor(now.getTime()/3600000),['loading','ready'].includes(r.phase)];
+      if (!r.recordInputs || recordInputs.some((value,index) => value !== r.recordInputs[index])) {
+        const records = (recordInputs[5] ? r.forecasts[r.period] || [] : []).map(item => ({...item,date:new Date(item.datetime)}))
+          .filter(item => Number.isFinite(item.date.getTime()) && (r.period === 'hourly' ? item.date.getTime() >= Math.floor(now.getTime()/3600000)*3600000 : r.date(item.date,'key') >= today))
+          .sort((a,b) => a.date-b.date).slice(0,r.count);
+        const temperatures = records.flatMap(item => [numeric(item.temperature),numeric(item.templow)]).filter(value => value !== null);
+        r.recordInputs = recordInputs;
+        r.recordCache = {records,minimum:temperatures.length ? Math.min(...temperatures)-1 : 0,maximum:temperatures.length ? Math.max(...temperatures)+1 : 1};
+      }
+      const {records,minimum,maximum} = r.recordCache;
       if (r.selectedDate) { const index = records.findIndex(item => item.datetime === r.selectedDate); r.selected = index < 0 ? 0 : index; }
       r.selected = Math.min(r.selected,Math.max(0,records.length-1));
       r.selectedDate = records[r.selected]?.datetime || null;
       r.records = records;
-      const temperatures = records.flatMap(item => [numeric(item.temperature),numeric(item.templow)]).filter(value => value !== null);
-      const minimum = temperatures.length ? Math.min(...temperatures)-1 : 0;
-      const maximum = temperatures.length ? Math.max(...temperatures)+1 : 1;
       const span = maximum-minimum;
       records.forEach((item,index) => {
         let node = r.entries[index];

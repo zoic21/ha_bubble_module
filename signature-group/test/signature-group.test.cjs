@@ -11,6 +11,7 @@ function fixture() {
   class ResizeObserver {
     constructor(callback) { this.callback=callback; this.targets=new Set(); }
     observe(target) { this.targets.add(target); }
+    unobserve(target) { this.targets.delete(target); }
     disconnect() { this.targets.clear(); }
   }
   const context = vm.createContext({...dom, document:{createElement:tag=>new dom.Element(tag)}, window:{}, location, queueMicrotask,
@@ -140,7 +141,7 @@ test('chips inherit names and atlas variants, reuse nodes and leave native actio
   f.hass.themes.darkMode=true;button.run();assert.equal(runtime.nodes[0],node);
   assert.equal(node.art.style.backgroundPosition,'0% 60.625%');
   assert.equal(button.ctx.config.button_action,action);assert.deepEqual(cards,original);
-  const observer=runtime.resize;assert.equal(observer.targets.size,3);assert.equal(f.frames.size,1);
+  const observer=runtime.resize;assert.equal(observer.targets.size,4);assert.equal(f.frames.size,1);
   button.ctx.config.signature_group.presentation='summary';button.run();
   assert.equal(observer.targets.size,0);assert.equal(runtime.strip.parentNode,null);assert.equal(f.frames.size,0);
   assert.equal(button.text,'+1');button.ctx.teardown();source.ctx.teardown();
@@ -158,6 +159,21 @@ test('chips display a maximal prefix and only the hidden count, including exact 
   width=871;runtime.layout();assert.equal(runtime.visibleCount,9);assert.equal(runtime.more.textContent,'+1');
   width=40;runtime.layout();assert.equal(runtime.visibleCount,0);assert.equal(runtime.more.textContent,'+10');
   width=0;runtime.layout();assert.equal(runtime.visibleCount,0);
+  button.ctx.teardown();source.ctx.teardown();assert.equal(f.frames.size,0);
+});
+test('unchanged chips schedule no layout frame while resize and label changes still do',()=>{
+  const f=fixture(),source=f.producer([robot]),button=f.consumer({presentation:'chips'});
+  source.run();button.run();const runtime=button.ctx._signatureGroup;
+  runtime.track.getBoundingClientRect=()=>({width:500});
+  runtime.nodes.forEach(node=>node.getBoundingClientRect=()=>({width:100}));
+  runtime.more.getBoundingClientRect=()=>({width:36});
+  const flushFrames=()=>{for(const [id,fn]of [...f.frames]){f.frames.delete(id);fn();}};
+  flushFrames();
+  for(let i=0;i<30;i++)button.run();assert.equal(f.frames.size,0);
+  runtime.resize.callback();assert.equal(f.frames.size,1);flushFrames();
+  source.ctx.config.cards=[{...robot,name:'Aspirateur du séjour'}];source.run();button.run();assert.equal(f.frames.size,1);
+  assert.equal(runtime.resize.targets.has(runtime.nodes[0]),true);
+  source.ctx.config.cards=[];source.run();button.run();assert.equal(runtime.resize.targets.size,3);
   button.ctx.teardown();source.ctx.teardown();assert.equal(f.frames.size,0);
 });
 

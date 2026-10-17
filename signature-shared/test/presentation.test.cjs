@@ -37,6 +37,23 @@ function fixture(t,extra={},options={controls:'number'},config={}) {
   return {ctx,hass};
 }
 
+test('optional CSS follows live artwork and value-button changes without retaining unused branches',t=>{
+  const square=fixture(t,{}, {layout:'square',illustration:{image:'{{ image }}'}});
+  assert.doesNotMatch(run(square.ctx,square.hass,()=>''),/\.bubble-content-container::after/);
+  assert.match(run(square.ctx,square.hass,()=>'/local/day.webp'),/\.bubble-content-container::after/);
+  const css=runtimeField(square.ctx,'Runtime').styleCSS;
+  run(square.ctx,square.hass,()=>'/local/night.webp');assert.equal(runtimeField(square.ctx,'Runtime').styleCSS,css);
+  assert.doesNotMatch(run(square.ctx,square.hass,()=>''),/\.bubble-content-container::after/);
+  const compact=fixture(t,{}, {compact_mode:'value'});
+  assert.doesNotMatch(run(compact.ctx,compact.hass),/min-width:\s*36px;\s*height:\s*36px;\s*padding:\s*0 10px/);
+  compact.ctx.config.presentation.value_style='button';
+  assert.match(run(compact.ctx,compact.hass),/min-width:\s*36px;\s*height:\s*36px;\s*padding:\s*0 10px/);
+  delete compact.ctx.config.presentation.value_style;
+  assert.doesNotMatch(run(compact.ctx,compact.hass),/min-width:\s*36px;\s*height:\s*36px;\s*padding:\s*0 10px/);
+  const header=fixture(t,{}, {layout:'header'},{button_type:'name'});
+  assert.doesNotMatch(run(header.ctx,header.hass),/dp-unit|dp-value-action/);
+});
+
 test('native translations label all controls and preserve numeric service calls',async t => {
   const labels={'ui.card.counter.actions.decrement':'Verringern','ui.dialogs.more_info_control.details':'Details anzeigen','ui.card.counter.actions.increment':'Erhöhen'};
   let service;

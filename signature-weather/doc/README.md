@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.3.4** · Module ID: `signature_weather`
+**Version: 1.3.5** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -251,3 +251,10 @@ From version 1.1.1, horizontal dividers share a 16 px inset from each card edge 
 Les styles communs sont définis dans [shared/src/styles](../../shared/src/styles/README.md) et inclus au build. Les dispositions restent propres au module ; la distribution demeure autonome et minifiée.
 
 Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.
+
+
+## 1.3.5 — 17 octobre 2026
+
+Parsed/sorted forecasts and their temperature bounds are reused for selection and local measurements. New events, periods, timezones, hours and counts invalidate this cache.
+
+Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
