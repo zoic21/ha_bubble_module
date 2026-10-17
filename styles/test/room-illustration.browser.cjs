@@ -134,7 +134,7 @@ test('room artwork is vertically centred above the actual divider, including liv
   }finally{await cdp.detach();}
 });
 
-test('one live theme size controls Square and Room artwork without rebuilding either layout',async t=>{
+test('one live theme size controls Square and Room artwork within each layout height without rebuilding',async t=>{
   const page=await fixture(t);await room(page,{width:328});
   const values=await page.evaluate(squareCode=>{
     const room=window.roomCtx,shadow=document.querySelector('[data-id="square"]').shadowRoot;
@@ -160,7 +160,8 @@ test('one live theme size controls Square and Room artwork without rebuilding ei
   },loadModule('signature-square').code);
   assert.equal(values.same,true);
   for(const m of values.samples){
-    assert.equal(m.square,m.size);assert.equal(m.room,m.size);
+    // A fixed Square reserves its detail line even when it is currently empty.
+    assert.equal(m.square,Math.min(m.size,80));assert.equal(m.room,m.size);
     assert.equal(m.height,m.size===96?164:148);
     assert.ok(m.artBottom<m.controlTop,JSON.stringify(m));
   }

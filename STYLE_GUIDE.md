@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.5**, **Square 1.5.0**, **Header 1.1.14**, **Room 1.2.3**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.6**, **Square 1.5.3**, **Header 1.1.14**, **Room 1.2.3**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -16,7 +16,7 @@ Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `s
 
 ## Modules de présentation autonomes
 
-**Signature Compact 1.4.5**, **Square 1.5.0**, **Header 1.1.14** et **Room 1.2.3** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
+**Signature Compact 1.4.6**, **Square 1.5.3**, **Header 1.1.14** et **Room 1.2.3** reprennent les présentations historiques et appliquent ce même contrat, y compris sans thème et pendant un changement de mode. Un seul module de présentation est utilisé par carte ; le module historique `signature` a été retiré. Toutes les distributions du dépôt sont générées à partir de leurs `src`, des [sources communes de présentation](signature-shared/README.md) et des [fonctions communes](shared/README.md). Ne pas modifier directement `dist` ; utiliser `npm run build:modules` et `npm run check:modules`. Les présentations gardent leur assembleur spécialisé.
 
 Les nouveaux formulaires n’exposent pas `layout` : ils proposent uniquement les options propres au module et suivent les types natifs compatibles. Header choisit l’en-tête ou le titre d’après `button/name` ou `separator`. Conserver l’éditeur direct et les rayons natifs des groupes. Compact prend aussi en charge `media-player` : seuls `color` et `color_background` s’appliquent et sont exposés dans son formulaire. Son habillage média conserve les contrôles, actions, pochette et dimensions natifs, sans imposer la hauteur de 56 px, sans transformation de tuile et sans observateur supplémentaire.
 
@@ -275,7 +275,7 @@ timer, écouteur, abonnement ou image intégrée au module.
 
 ### Bandeau Square à une ou deux mesures (1.4.1)
 
-Depuis Square 1.4.4, un bandeau à une seule mesure sans secondaire utilise deux rangées de texte, sans réservation vide en bas. Les positions du nom et de la valeur sont identiques à celles du Square classique sans secondaire. L’illustration reste centrée dans le bandeau de 120 px. L’interligne secondaire vaut au moins 16 px ou 1,2 fois sa taille CSS effective ; il suit le thème sans nouveau rendu JavaScript.
+Depuis Square 1.5.3, le Square fixe et le bandeau à une seule mesure conservent trois rangées de texte, y compris sans secondaire. Les positions du nom et de la valeur restent identiques lorsque le secondaire apparaît ou disparaît. L’illustration reste centrée dans le bandeau de 120 px. L’interligne secondaire vaut au moins 16 px ou 1,2 fois sa taille CSS effective ; il suit le thème sans nouveau rendu JavaScript.
 
 Depuis Square 1.4.3, la rangée des noms reprend les 36 px du Square classique, avec le même interligne de 20 px et un centrage vertical. Un nom sur une ligne commence ainsi à 18 px du bord extérieur (bordure 1 px + retrait 9 px + centrage 8 px), en pleine largeur comme en demi-largeur. Les noms longs peuvent toujours agrandir cette rangée ; conserver la hauteur totale de 120 px et le centrage de l’illustration.
 
@@ -446,3 +446,21 @@ Le titre Autosuffisance et le pourcentage gardent les rôles existants, sans
 sous-titre lorsqu’aucun `secondary` n’est configuré. Les sorties d’énergie sont
 soustraites avant le ratio ; un dénominateur nul ou une source manquante reste
 `—`. La formule et les sources entrent dans la clé du cache journalier.
+
+### Alignement des mesures — Square 1.5.3 et Compact 1.4.6
+
+Le Square fixe réserve toujours sa ligne secondaire de `max(16px, secondaire ×
+1.2)` ; les tuiles classiques, illustrées et les bandeaux à une mesure gardent
+leur valeur sur la même ligne avec ou sans détail. Le dessin d’un Square
+classique utilise le même plafond vertical dans les deux états. Ne pas
+augmenter la hauteur native ; préserver le dimensionnement naturel de
+`auto_height`, les titres/détails multiligne des bandeaux et l’ancien détail
+réservé des commandes `measure`.
+
+Le rôle Compact `sub_button_styles.*.type: metric` réserve des colonnes
+identiques : 80 px, 72 px jusqu’à 382 px de carte, ou la variable CSS héritée
+`signature-metric-width`. Padding horizontal 4 px, icône 16 px et chiffres
+tabulaires ; aucune couleur ou action remplacée. Les templates natifs
+`state_content` gardent la responsabilité du texte, des décimales et des
+unités. Le masquage natif et le retrait de l’option restent réversibles sans
+remplacement de nœud ni observateur ajouté.

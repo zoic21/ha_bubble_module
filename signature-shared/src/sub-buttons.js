@@ -61,6 +61,24 @@ if (visualSwitches) css += structure.switchCSS;
 styles.forEach(({cls,b,spec,visualSwitch,lock}) => {
   const opacity = paint('ha-card .'+cls,b,spec,layout === 'room' && o.room_auto_colors !== false && roleSet.has(b));
   if (layout !== 'room' && !visualSwitch) css += subThresholdCSS('ha-card .'+cls,b,spec,structure.thresholdScales.get(spec));
+  // Measurement columns are opt-in; keep every native node, action and visibility.
+  if (layout === 'compact' && spec.type === 'metric'
+      && (!b.sub_button_type || b.sub_button_type === 'default')) {
+    css += `
+      ha-card[data-dp-layout="compact"] .${cls} {
+        width: var(--signature-metric-width, 80px); min-width: var(--signature-metric-width, 80px) !important;
+        flex: 0 0 var(--signature-metric-width, 80px); padding: 0 4px;
+        box-sizing: border-box; white-space: nowrap; font-variant-numeric: tabular-nums;
+      }
+      ha-card[data-dp-layout="compact"] .${cls} .bubble-sub-button-icon { --mdc-icon-size: 16px; }
+      @container (max-width: 382px) {
+        ha-card[data-dp-layout="compact"] .${cls} {
+          width: var(--signature-metric-width, 72px); min-width: var(--signature-metric-width, 72px) !important;
+          flex-basis: var(--signature-metric-width, 72px);
+        }
+      }
+    `;
+  }
   if (spec.type === 'mode' && layout === 'compact'
       && (!b.sub_button_type || b.sub_button_type === 'default')) {
     css += `

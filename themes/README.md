@@ -160,3 +160,10 @@ Compact 1.4.3 uses 8 px between values, badges and native action groups, matchin
 Compact 1.4.4 also maps the native button-specific radius to the Signature card radius; local copies of `--bubble-button-border-radius` are unnecessary. Square 1.4.4 removes the empty detail row from single-measurement banners and derives secondary leading from its effective font size. These changes require module imports; no theme YAML update is needed.
 
 Square/Compact 1.4.5, Room 1.1.6 and Header 1.1.14 reduce repeated or unused per-card CSS without changing theme variables or fallbacks. Reimport the modules; the theme YAML is unchanged.
+
+Pour les colonnes numériques explicitement activées dans Compact 1.4.6
+(`sub_button_styles.*.type: metric`), `signature-metric-width` peut remplacer
+la largeur responsive de 80/72 px. Cette variable reste dans le CSS ; les
+couleurs et surfaces existantes du thème sont conservées. Square 1.5.3 réserve
+sa ligne secondaire sur les tuiles fixes pour stabiliser la valeur, sans
+modifier leur hauteur native.

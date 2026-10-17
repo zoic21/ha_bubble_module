@@ -53,19 +53,11 @@
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .bubble-content-container {
       grid-template-columns: minmax(0,1fr);
     }
-    /* No detail means the same two text rows as a classic illustrated tile. */
-    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-secondary="no"] .bubble-content-container {
-      grid-template-rows: minmax(36px,max-content) minmax(0,1fr);
-      row-gap: 6px;
-    }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-illustration="yes"] .bubble-content-container {
       grid-template-columns: minmax(0,1fr) var(--dp-summary-art-size);
     }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-illustration="yes"] .bubble-content-container::after {
       grid-area: 1 / 2 / 4 / 3;
-    }
-    ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"][data-dp-secondary="no"][data-dp-illustration="yes"] .bubble-content-container::after {
-      grid-row-end: 3;
     }
     ha-card[data-dp-layout="square"][data-dp-square-mode="summary"][data-dp-summary-single="yes"] .bubble-state {
       font-size: var(--signature-value-font-size,28px) !important;

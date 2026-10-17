@@ -20,7 +20,7 @@
     ha-card[data-dp-layout="square"][data-dp-illustration="yes"] .bubble-content-container::after {
       content: '';
       grid-area: 1 / 2 / 3 / 3;
-      width: min(var(--signature-illustration-size,80px),100%${!autoHeight ? `,max(0px,calc(100cqh - ${secondary ? '38px' : '18px'}))` : ''});
+      width: min(var(--signature-illustration-size,80px),100%${!autoHeight ? `,max(0px,calc(100cqh - 38px))` : ''});
       aspect-ratio: 1;
       align-self: start;
       justify-self: end;

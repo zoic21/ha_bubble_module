@@ -1,6 +1,6 @@
 # Signature Compact
 
-Version **1.4.5**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.4.6**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -232,3 +232,25 @@ Espacement de 8 px entre les valeurs, badges et groupes de commandes, quel que s
 
 - Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
 - Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.
+
+## Colonnes de mesures — 1.4.6
+
+`sub_button_styles.<classe-ou-index>.type: metric` aligne un sous-bouton natif
+`default` dans une colonne de 80 px, réduite à 72 px lorsque la carte fait au
+plus 382 px. `--signature-metric-width` permet une largeur explicite. Le
+rembourrage vaut 4 px par côté, l’icône 16 px et les chiffres sont tabulaires ;
+les fonds, couleurs, visibilité, libellés et actions restent natifs. Aucun
+nœud, observateur, abonnement ou formatage JavaScript supplémentaire.
+
+Le nombre de décimales reste configuré dans le `state_content` natif Bubble
+(Jinja), indépendamment des couleurs et des unités. Ce rôle ne s’applique pas
+aux switches, sliders, sélecteurs ou aux autres présentations.
+
+```yaml
+signature_compact:
+  sub_button_styles:
+    1:
+      type: metric
+    2:
+      type: metric
+```

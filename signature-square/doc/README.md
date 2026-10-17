@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.5.2**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **1.5.3**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -48,8 +48,8 @@ Pour une seule mesure principale, utiliser **`summary: {enabled: true}`**, sans
 `entity` dans cet objet. La colonne de la seconde mesure disparaît et aucun
 nœud n’est créé pour elle ; la valeur et le secondaire natifs restent à gauche,
 avec l’illustration centrée à droite. La valeur conserve sa taille standard de
-28 px et l’unité 16 px (variables Signature). Sans secondaire, la rangée
-vide disparaît et la valeur reprend le placement d’une tuile classique. `enabled: false` désactive le
+28 px et l’unité 16 px (variables Signature). La rangée secondaire reste réservée, même vide : la valeur garde le même
+alignement vertical que les autres tuiles de même hauteur. `enabled: false` désactive le
 bandeau, même si une seconde entité est configurée. Un objet vide reste inactif.
 
 ```yaml
@@ -465,3 +465,13 @@ zéro ou un pourcentage partiel. `secondary` est omis : aucun sous-titre.
 ### 1.5.2
 
 - Total journalier supplémentaire en sous-titre et facteur de conversion explicite ; une requête groupée et disponibilité indépendante des deux mesures.
+
+## Alignement des valeurs — 1.5.3
+
+Les tuiles de hauteur fixe réservent toujours leur troisième ligne, même sans
+`secondary`. Ajouter, retirer ou rendre vide le secondaire ne déplace donc ni
+la valeur principale ni l’illustration. La règle est commune aux tuiles
+classiques, illustrées, aux commandes `measure` sans ancien détail réservé et
+aux bandeaux à une mesure. La hauteur native reste inchangée. Les cartes
+`auto_height`, les bandeaux à titres/détails multiligne et les anciens détails
+de mesure réservés conservent leur dimensionnement propre.
