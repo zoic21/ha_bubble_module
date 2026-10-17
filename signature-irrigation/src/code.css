@@ -1,0 +1,22 @@
+${(() => {
+const config = this.config.signature_irrigation;
+if (this.config.card_type === 'button' && config?.role === 'weekdays') {
+this._signatureIrrigation?.cleanup();
+return `
+  /* @include signature-irrigation/src/weekdays.css */
+`;
+}
+if (this.config.card_type !== 'button' || !config || !['next','history','empty'].includes(config.role)) {
+this._signatureIrrigation?.cleanup();
+return '';
+}
+/* @include signature-irrigation/src/runtime.js */
+let css = '';
+if (config.role === 'next') css = `
+  /* @include signature-irrigation/src/next.css */
+`;
+else if (config.role === 'history') css = `
+  /* @include signature-irrigation/src/history.css */
+`;
+return css;
+})()}

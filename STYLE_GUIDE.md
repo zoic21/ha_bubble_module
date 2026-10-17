@@ -368,6 +368,19 @@ Lors d'un changement livré : augmenter la version du module concerné, mainteni
 
 ## 8. Performances et volume CSS
 
+Signature Hue 1.0.0 centralise les cinq gabarits des popups Hue en complément de
+Compact, sans service, seuil ou sélection de scène codés dans le module. Les
+actions et conditions restent natives, la disponibilité et la coche restent
+configurables en Jinja. Conserver les dimensions et rôles de texte existants.
+Son CSS de mode est réutilisé par carte ; les variables de thème restent en CSS.
+
+Signature Irrigation 1.0.0 centralise le lecteur calendrier et les jours natifs,
+sans commande physique. Ses événements/vues et formateurs sont partagés et
+bornés ; la recherche du prochain départ utilise toujours l’heure actuelle.
+Préserver l’historique, les départs de durée nulle, le fuseau HA et le masquage
+des wrappers de grille. Le dernier démontage arrête immédiatement le timer ;
+les réponses API obsolètes ne réactivent pas des données indisponibles.
+
 Le build du 5 octobre 2026 minifie toutes les distributions avec Terser et clean-css, puis compacte les métadonnées YAML. Les noms de propriétés externes, les getters, les unités, les variables de thème et l'ordre des règles sont conservés. Les expressions des templates CSS sont protégées pendant le traitement, puis rétablies sans exécution. Cette passe diminue le volume importé ; elle ne fonctionne jamais dans les cartes et ne constitue pas une mesure de fluidité. Voir le [guide du build](shared/README.md#distributions-minifiées).
 
 Les neuf YAML passent de 385 797 à 250 046 octets UTF-8, soit 35,2 % de réduction par rapport au commit `1e041ce`. Les styles calculés restent identiques dans les 152 rendus comparés sur fixtures Chromium (clair/sombre, avec/sans thème, 328/600 px). Les tests d'import conservent les métadonnées et les valeurs des formulaires. Home Assistant réel et Safari/iOS ne sont pas couverts par cette comparaison.

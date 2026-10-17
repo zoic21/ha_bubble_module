@@ -1,0 +1,39 @@
+name: Signature Irrigation
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+description: Prochain départ et historique OpenSprinkler depuis l’API calendrier HA, en complément de Signature Compact. Lecture et cache partagés par connexion/calendrier, aucune commande d’arrosage ni nouvelle entité.
+editor:
+  - name: calendar
+    label: Calendrier
+    selector:
+      entity:
+        domain: calendar
+  - name: role
+    label: Rôle de la carte
+    selector:
+      select:
+        options:
+          - {label: Prochain départ, value: next}
+          - {label: Tableau d’historique, value: history}
+          - {label: État sans historique, value: empty}
+          - {label: Commandes des jours, value: weekdays}
+  - name: stations
+    label: Noms exacts des stations (liste YAML)
+    selector:
+      object: {}
+    description: Liste des noms/alias du calendrier, sans distinction de casse.
+  - name: popup
+    label: Hash de la popup active
+    selector:
+      text: {}
+  - name: logging_entity
+    label: Entité portant la journalisation
+    selector:
+      entity: {}
+  - name: logging_attribute
+    label: Attribut de journalisation
+    selector:
+      text: {}
+    description: "Défaut : logging_enabled."

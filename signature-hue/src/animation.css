@@ -1,0 +1,23 @@
+/* Hue animation: native actions; track reflects the requested direction. */
+ha-card[data-dp-layout="compact"] :is(.hue-animation-start,.hue-animation-stop,.hue-animation-disabled) {
+  position: relative; width: 52px !important; min-width: 52px !important;
+  height: 34px !important; padding: 0 !important; flex: 0 0 52px;
+  border-radius: 17px !important; background: transparent !important;
+  box-shadow: none !important;
+}
+ha-card :is(.hue-animation-start,.hue-animation-stop,.hue-animation-disabled) :is(.bubble-sub-button-icon,.bubble-sub-button-name-container) { display: none !important; }
+ha-card :is(.hue-animation-start,.hue-animation-stop,.hue-animation-disabled)::before {
+  content: ''; position: absolute; left: 2px; top: 3px; width: 48px; height: 28px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary-text-color) 18%, var(--signature-card-background, var(--ha-card-background, var(--card-background-color))));
+  pointer-events: none;
+}
+ha-card :is(.hue-animation-start,.hue-animation-stop,.hue-animation-disabled)::after {
+  content: ''; position: absolute; left: 4px; top: 5px; width: 24px; height: 24px;
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .15);
+  pointer-events: none;
+}
+ha-card .hue-animation-stop::before { background: #B97918; }
+ha-card .hue-animation-stop::after { transform: translateX(20px); }
+ha-card .hue-animation-disabled { opacity: .4; pointer-events: none; }
+ha-card :is(.hue-animation-start,.hue-animation-stop,.hue-animation-disabled) > ha-ripple { inset: 3px 2px; border-radius: 14px; }

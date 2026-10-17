@@ -1,0 +1,38 @@
+/* Hue scene preview: illustrative palette; the bridge owns the actual scene. */
+ha-card[data-dp-layout="compact"] .bubble-button-card-container {
+  height: 112px !important; min-height: 112px !important;
+  position: relative; overflow: hidden !important;
+  opacity: var(--signature-hue-opacity);
+  pointer-events: var(--signature-hue-pointer);
+}
+ha-card[data-dp-layout="compact"] .bubble-button-card-container::before {
+  content: ''; position: absolute; inset: 0 0 40px;
+  background: var(--signature-hue-palette); pointer-events: none;
+}
+ha-card[data-dp-layout="compact"] .bubble-wrapper {
+  height: 100% !important; min-height: 0 !important; position: relative;
+}
+ha-card[data-dp-layout="compact"] .bubble-content-container {
+  position: absolute; inset: auto 11px 0 !important;
+  height: 40px !important; min-height: 0 !important; padding: 0 !important;
+  width: auto !important; margin: 0 !important; display: flex !important;
+  pointer-events: none !important; align-items: center;
+}
+ha-card[data-dp-layout="compact"] .bubble-name-container {
+  display: block !important; min-width: 0 !important; margin: 0 !important;
+  width: 100%; padding: 0 !important;
+}
+ha-card[data-dp-layout="compact"] .bubble-name {
+  display: -webkit-box !important; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; white-space: normal !important; overflow: hidden;
+  font-size: 13px !important; line-height: 16px !important;
+  color: var(--primary-text-color); margin: 0 !important;
+}
+ha-card .bubble-icon-container { display: none !important; }
+ha-card[data-dp-layout="compact"] .bubble-wrapper::after {
+  content: '✓'; position: absolute; top: 8px; right: 8px;
+  width: 24px; height: 24px; display: grid; place-items: center;
+  border-radius: 50%; background: rgb(0 0 0 / .7); color: white;
+  font-size: 16px; font-weight: 700; opacity: var(--signature-hue-selected);
+  pointer-events: none;
+}

@@ -14,11 +14,13 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 | Signature Wind Rose — wind direction frequencies | 1.5.4 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Signature Group — popup activity summaries | 1.1.1 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
+| Signature Hue — native Hue presentation companion | 1.0.0 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
+| Signature Irrigation — calendar reader and weekday controls | 1.0.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
-The nine Signature modules share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions.
+The main Signature presentations share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions. Hue and Irrigation are optional companions: keep Compact for the native card frame and add the companion afterwards, only where needed.
 
-Each module has its own folder: `src` contains its editable sources, `dist` contains the generated complete YAML file to import and `doc` contains its documentation. Existing modules keep their own `test` folders; the four standalone presentation modules share behavior and build tests in `signature-shared/test`.
+Each module has its own folder: `src` contains its editable sources, `dist` contains the generated complete YAML file to import and `doc` contains its documentation. Existing modules keep their own `test` folders; the five standalone presentation modules share behavior and build tests in `signature-shared/test`.
 
 The suites share [test helpers](shared/test/README.md) for DOM fixtures, isolated editor environments and distribution loading. Module-specific simulations and assertions stay in their own suites.
 
@@ -34,7 +36,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_panel`, `signature_header`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
+The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_panel`, `signature_header`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group`, `signature_hue`, `signature_irrigation` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
 
 ## Updates and Module Store
 

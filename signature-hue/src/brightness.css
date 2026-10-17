@@ -1,0 +1,23 @@
+/* One native control row: brightness commands, then Signature's power switch. */
+ha-card[data-dp-layout="compact"] .bubble-name {
+  white-space: nowrap !important;
+}
+ha-card[data-dp-layout="compact"] :is(.bubble-sub-button-container,.bubble-sub-button-group,.bubble-sub-button-alignment-lane) {
+  gap: 4px !important;
+}
+ha-card[data-dp-layout="compact"] .hue-brightness-step {
+  width: 36px !important; min-width: 36px !important; flex: 0 0 36px;
+  height: 36px !important; padding: 0 !important;
+}
+ha-card[data-dp-layout="compact"] .hue-brightness-value {
+  width: 44px !important; min-width: 44px !important; flex: 0 0 44px;
+  height: 36px !important; padding: 0 !important;
+}
+ha-card[data-dp-layout="compact"] .hue-brightness-step .bubble-sub-button-icon {
+  --mdc-icon-size: 22px;
+}
+@container (max-width: 320px) {
+  ha-card[data-dp-layout="compact"] .bubble-icon-container {
+    display: none !important;
+  }
+}

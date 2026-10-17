@@ -1,0 +1,48 @@
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-container {
+  height: auto !important;
+}
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-wrapper {
+  position: relative !important;
+  height: auto !important;
+  flex-direction: column;
+  align-items: stretch !important;
+  padding: 12px !important;
+  gap: 8px;
+}
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-content-container {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-name {
+  font-size: var(--signature-caption-font-size, 12px) !important;
+  font-weight: var(--signature-font-weight-normal, 400) !important;
+  color: var(--secondary-text-color) !important;
+}
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-name-container {
+  width: 100%;
+  text-align: left !important;
+}
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-sub-button-container {
+  inset-inline-end: 0;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-sub-button-group {
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-sub-button {
+  flex: 1 0 34px;
+  min-width: 34px;
+  padding-inline: 5px;
+  font-size: var(--signature-caption-font-size, 12px);
+}
+@media (pointer: coarse) {
+  ha-card[data-dp-layout="compact"][data-dp-icon="no"] .bubble-sub-button {
+    flex-basis: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

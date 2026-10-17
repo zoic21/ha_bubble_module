@@ -1,0 +1,37 @@
+name: Signature Hue
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+  - pop-up
+description: Présentation commune des popups Hue, en complément de Signature Compact. Les entités, actions, conditions natives et templates de sélection restent dans la carte. Aucun contrôle Hue, abonnement ou observateur ajouté.
+editor:
+  - name: mode
+    label: Présentation
+    selector:
+      select:
+        options:
+          - {label: Lampe individuelle, value: light}
+          - {label: Aperçu de scène, value: scene}
+          - {label: Ligne de luminosité, value: brightness}
+          - {label: Interrupteur d’animation, value: animation}
+          - {label: Popup, value: popup}
+  - name: available
+    label: Disponible (booléen ou Jinja)
+    selector:
+      text: {}
+    description: "Défaut : true. Une expression non résolue ne réactive pas une commande."
+  - name: selected
+    label: Scène sélectionnée (booléen ou Jinja)
+    selector:
+      text: {}
+  - name: palette
+    label: Trois couleurs de l’aperçu
+    selector:
+      text: {}
+    description: "Trois couleurs #RRGGBB séparées par des virgules, ou un template Jinja. Ne commande pas les lampes."
+  - name: status
+    label: Disponibilité et sélection partagées (JSON ou Jinja)
+    selector:
+      text: {}
+    description: "Optionnel : objet JSON avec available et selected. Prioritaire sur les deux champs séparés ; permet un seul template HA."

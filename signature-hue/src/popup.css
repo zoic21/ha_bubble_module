@@ -1,0 +1,13 @@
+/* Popup corners follow the Signature theme. */
+.bubble-pop-up {
+  --bubble-pop-up-border-radius: var(--signature-card-border-radius, 22px);
+  --bubble-pop-up-content-border-radius: var(--signature-card-border-radius, 22px);
+}
+
+/* The third child is the individual-lamp grid; scene grids keep their columns. */
+.bubble-pop-up-container { container-type: inline-size; }
+@container (max-width: 320px) {
+  .bubble-cards-container > .card:nth-child(3) hui-grid-card {
+    --grid-card-column-count: 3 !important;
+  }
+}

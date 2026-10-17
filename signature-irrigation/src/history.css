@@ -1,0 +1,7 @@
+ha-card .bubble-container { display: none !important; }
+ha-card { height: auto !important; min-height: 0 !important; background: transparent !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; }
+.arrosage-history { width: 100%; border-spacing: 0; table-layout: auto; color: var(--primary-text-color); font-size: var(--signature-secondary-font-size, 13px); }
+.arrosage-history td { padding: 8px 6px; border-top: 1px solid var(--divider-color); vertical-align: middle; }
+.arrosage-history td:first-child, .arrosage-history td:nth-child(2), .arrosage-history td:last-child { white-space: nowrap; }
+.arrosage-history td:nth-child(3) { overflow-wrap: anywhere; }
+.arrosage-history td:last-child { text-align: right; }

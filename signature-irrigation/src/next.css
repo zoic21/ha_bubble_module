@@ -1,0 +1,8 @@
+ha-card[data-dp-layout="compact"] .bubble-state { width: max-content !important; min-width: calc(var(--signature-compact-value-font-size, 20px) * 3.2) !important; max-width: none !important; flex-shrink: 0 !important; }
+ha-card[data-arrosage-future="true"] .bubble-state .dp-value {
+  display: block; white-space: pre;
+  font-size: var(--signature-compact-value-font-size, 20px); color: var(--primary-text-color);
+}
+ha-card[data-arrosage-future="true"] .bubble-state .dp-value::first-line {
+  font-size: var(--signature-secondary-font-size, 13px); color: var(--secondary-text-color);
+}
