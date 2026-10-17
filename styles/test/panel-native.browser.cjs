@@ -133,6 +133,41 @@ test('Panel reserves a native command footer, guards disabled gestures and follo
  assert.ok(light.includes('/local/day.webp'));assert.ok(dark.includes('/local/night.webp'));
 });
 
+test('three Panel measurements stay large on phones and fit together on narrow cards',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,358,366,382,388,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await draw(page,{width,mode,plain,count:3});
+  for(const values of [[140,28.8,41],[999,42.5,100]]){
+   await page.evaluate(values=>{
+    for(const [index,entity] of ['sensor.power','sensor.temperature','sensor.humidity'].entries())
+     hass.states[entity]={...hass.states[entity],state:String(values[index])};
+    hass={...hass,states:{...hass.states}};card.hass=hass;card.updateBubbleCard();
+   },values);
+   const m=await snapshot(page),hint=JSON.stringify({width,mode,plain,values,m:{...m,css:undefined}});
+   assert.equal(m.frame.height,118,hint);assert.equal(m.art.width,80,hint);
+   const size=parseFloat(m.labels[0].font);
+   assert.ok(size>=13 && size<=24,hint);
+   if(width>=366)assert.ok(size>=22,hint);
+   if(width>=382)assert.equal(size,24,hint);
+   for(let i=0;i<3;i++){
+    assert.equal(m.labels[i].font,m.labels[0].font,hint);
+    assert.ok(Math.abs(m.labels[i].text.center-m.labels[0].text.center)<1,hint);
+    assert.ok(m.labels[i].overflow<=1,hint);
+    if(i)assert.ok(m.labels[i].left>=m.labels[i-1].right+7,hint);
+   }
+   assert.ok(m.labels[2].right<=m.frame.right-92,hint);
+  }
+  const live=await page.evaluate(()=>{
+   const css=card.lastEvaluatedStyles;
+   document.documentElement.style.setProperty('--signature-value-font-size','18px');
+   const values=[...card.card.querySelectorAll('.bubble-state,.dp-panel-state')].map(e=>parseFloat(getComputedStyle(e).fontSize));
+   return {values,unchanged:css===card.lastEvaluatedStyles};
+  });
+  assert.equal(live.unchanged,true);
+  assert.ok(live.values.every(value=>value===live.values[0] && value<=18));
+ }
+});
+
 test('Panel keeps native media and controls within the same illustration grid',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [288,328,600])for(const mode of ['light','dark']){

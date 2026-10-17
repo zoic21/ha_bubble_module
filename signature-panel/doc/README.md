@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.0.2**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.0.3**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -88,6 +88,18 @@ Recorder fournit les variations du jour, y compris les remises à zéro. Un rés
 
 Surfaces, textes, police et rayons utilisent les tokens Signature, y compris sans son thème : carte 22 px, contrôles 14 px, nom 14 px/600, valeur 28 px/500, unité 16 px/400, secondaire 13 px/400. Les états textuels sont limités à 22 px. Avec trois informations, la taille commune s’adapte à la largeur ; avec les commandes nommées, le rôle de valeur est de 20 px. Le texte reste primaire, les unités/détails secondaires ; les icônes gardent leurs accents. Retraits extérieurs des textes : 12 px horizontalement, 10 px verticalement, bordure comprise ; 8 px entre les colonnes. Les commandes de 44 px utilisent un retrait vertical de 8 px pour conserver les deux pas.
 
+Avec trois informations, les trois nombres conservent la même taille et le même
+alignement. Depuis 1.0.3, ils atteignent environ **22–24 px sur les cartes de
+366–382 px** et restent à 24 px au-delà, avec les tokens par défaut. La taille
+diminue progressivement jusqu’à 13 px sur les cartes très étroites. Les unités
+restent secondaires, de 11 à 13 px ; les icônes de mesure passent à 14 px avec
+2 px avant le nombre, et l’unité garde 3 px de séparation. La hauteur de 118 px,
+le dessin de 80 px et les retraits extérieurs restent identiques. Les panneaux
+à une ou deux informations gardent leurs règles. Ce comportement est automatique
+avec deux entrées supplémentaires dans `information`, sans option ni CSS local.
+Les tailles plus petites du thème et le plafond des commandes restent prioritaires.
+Des valeurs ou unités particulièrement longues peuvent nécessiter une autre disposition.
+
 `hover: false` supprime le survol, pas les actions ni le retour d’appui. `progress: {value: 0..100, color: ...}` ajoute une piste décorative ; une valeur invalide la masque. L’état principal garde le défilement natif Bubble via `state_content` et `scrolling_effect`.
 
 Les sources sont séparées en présentation, informations, statistiques, commandes et progression. Modifier `src`, puis `npm run build:modules`, `npm run check:modules`, `npm test` et `npm run test:styles`. Le test `panel-native.browser.cjs` charge Bubble **3.4.1** lorsque `BUBBLE_NATIVE_SCRIPT_PATH` pointe vers son script (SHA contrôlé). Cette couverture Chromium avec backend simulé ne valide ni l’installation Home Assistant réelle ni Safari/iOS.
@@ -110,3 +122,16 @@ Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. 
 Correction des unités : couleur secondaire, graisse normale et espacement nul. Chiffres tabulaires sur les valeurs ; secondaire et rangée de grille suivent la taille du thème. Valeurs avec commandes nommées au token compact (20 px par défaut), interlignes média proportionnels de 1,3. Les libellés de commandes partagent leur source avec Room. Hauteur de 118 px, illustration et retraits conservés.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## 1.0.3 — 17 octobre 2026 — trois mesures plus lisibles
+
+Échelle CSS des valeurs à trois colonnes agrandie sur téléphone courant,
+unités et icônes resserrées. Les trois mesures restent de même taille et
+alignées sur une seule ligne. Aucun nouveau nœud, observateur, calcul de taille
+JavaScript ou option à configurer. Les autres formats, actions, illustrations
+et dimensions restent conservés.
+
+Contrôles : build, tests Node et Chromium, dont Bubble 3.4.1 avec backend simulé,
+largeurs 288–600 px, modes clair/sombre et avec/sans thème. Le test dédié couvre
+des mesures à trois chiffres, l’absence de débordement et le changement de taille
+du thème sans réexécution. Home Assistant réel et Safari/iOS restent à vérifier.

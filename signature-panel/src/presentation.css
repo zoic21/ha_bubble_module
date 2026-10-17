@@ -103,8 +103,14 @@ ha-card[data-dp-layout="panel"] :is(.hidden,[hidden]) { display: none !important
 ha-card[data-dp-layout="panel"][data-dp-panel-count="3"] .bubble-container {
   grid-template-columns: repeat(3,minmax(0,max-content)) min(var(--signature-illustration-size,80px),80px);
   justify-content: space-between;
-  --dp-panel-value-size: clamp(13px,4.4cqw,var(--dp-panel-value-limit,var(--signature-value-font-size,28px)));
-  --dp-panel-unit-size: clamp(11px,3cqw,var(--signature-value-unit-font-size,16px));
+  --dp-panel-value-size: clamp(13px,calc(12.5cqw - 20px),min(var(--dp-panel-value-limit,var(--signature-value-font-size,28px)),24px));
+  --dp-panel-unit-size: clamp(11px,3.7cqw,min(var(--signature-secondary-font-size,13px),var(--signature-value-unit-font-size,16px)));
+}
+ha-card[data-dp-layout="panel"][data-dp-panel-count="3"] .dp-panel-icon {
+  --mdc-icon-size: 14px; flex-basis: 14px; margin-inline-end: 2px;
+}
+ha-card[data-dp-layout="panel"][data-dp-panel-count="3"] .dp-unit {
+  margin-inline-start: 3px;
 }
 ha-card[data-dp-layout="panel"][data-dp-panel-count="2"] .bubble-container {
   --dp-panel-value-size: clamp(18px,7cqw,var(--dp-panel-value-limit,var(--signature-value-font-size,28px)));
