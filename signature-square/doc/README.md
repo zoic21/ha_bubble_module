@@ -1,8 +1,19 @@
 # Signature Square
 
-Version **2.0.2**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.3**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
+
+2.0.3 retire les trois conditions d'éditeur encore liées à l'ancien mode
+`activity` sur lecteur média. Le formulaire et le runtime acceptent les mêmes
+cartes bouton ; les lecteurs gardent Compact ou Panel. Le rappel de hauteur
+minimale est affiché dans l'éditeur. Le CSS et le rendu des Squares sont conservés.
+
+Pour une Square de hauteur fixe, indiquer **`rows: 2` au minimum** dans la
+configuration native Bubble, comme dans l'exemple. Sans ce réglage, Bubble
+peut réserver une seule ligne de 56 px et couper la valeur. La hauteur native
+de deux lignes est de 120 px avec le pas standard ; `auto_height` conserve
+son adaptation au contenu. Le module ne modifie pas les options de grille HA.
 
 ## Installation et exemple
 

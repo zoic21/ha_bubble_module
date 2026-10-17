@@ -105,6 +105,11 @@ opacity: 1;
     }` : ''}
     ${secondary ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .dp-secondary { grid-area: 2 / 1; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 1; }` : ''}
+    ${twoLineName ? `ha-card[data-dp-layout="compact"][data-dp-name-lines="2"] .bubble-name {
+      white-space: normal !important; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+      max-height: calc(2 * max(16px,calc(var(--signature-name-font-size,14px) * 1.1)));
+    }` : ''}
     ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep the native state node, formatting and action bindings. */
     ha-card[data-dp-value-trailing="yes"] .bubble-wrapper {
 display: grid !important;

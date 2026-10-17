@@ -1,8 +1,34 @@
 # Signature Header
 
-Version **1.1.15**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+## 1.2.0 — 17 octobre 2026 — cohérence des dashboards
+
+Boutons d'en-tête reliés au rôle secondaire de 13 px ; rôle `type: metric`
+pour les petites mesures des séparateurs. Les règles de retour à la ligne,
+couleurs, conditions et actions restent natives. Les mesures SolarFlow
+peuvent retirer leur CSS local. Tests de thème et de disposition inclus.
+
+Version **1.2.0**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
+
+Les boutons des grands en-têtes utilisent le rôle secondaire Signature :
+`signature-secondary-font-size` (13 px), graisse normale, texte primaire.
+Leurs hauteurs, arrondis et règles de retour à la ligne restent propres au
+header ; une police personnalisée suit le thème sans nouvelle exécution.
+
+Sur un séparateur de section, `sub_button_styles.<classe-ou-numéro>.type: metric`
+affiche une mesure discrète : `signature-caption-font-size` (12 px), interligne
+`max(16px, légende × 1,2)` et padding horizontal de 4 px. Le rôle est limité au
+séparateur ; couleurs, seuils, conditions et actions natives sont conservés.
+Il remplace le CSS local des mesures SolarFlow, sans modifier leurs données.
+
+```yaml
+signature_header:
+  sub_button_styles:
+    temperature:
+      type: metric
+      icon_color: teal
+```
 
 ## Installation et exemple
 

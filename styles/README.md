@@ -15,6 +15,13 @@ npm run test:styles
 
 ## Ajouter un contrôle
 
+`dashboard-roles.browser.cjs` vérifie les rôles adoptés dans les dashboards :
+noms Compact sur deux lignes suivant la police, durées avec deux-points mises
+à jour par le DOM natif, boutons Header au rôle secondaire et mesures de
+section au rôle de légende. Les nœuds et actions sont conservés ; les variables
+doivent réagir sans réexécution du module. Ces cas complètent les fixtures
+Bubble natif de Panel et les contrôles de survol existants.
+
 [test/browser.cjs](test/browser.cjs) centralise le lancement et la fermeture de Chromium. Node isole les fichiers de tests ; chaque suite possède son navigateur, chaque appel à `fixture` crée un contexte neuf. Les cookies, pages et éléments personnalisés ne passent pas d’une fixture à l’autre.
 
 ```js

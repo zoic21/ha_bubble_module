@@ -14,7 +14,8 @@ if (compactValue && stateEl) {
       const text = (valueNode || stateEl).textContent.trim().replace(/\s+/g, ' ');
       // Decimal/grouping separators, signs and a unit (°C, kWh, µS/cm…) stay large.
       const numeric = /^[+\-−]?(?:\d+(?:[ .,'’]\d+)*|[.,]\d+)(?:[eE][+\-]?\d+)?(?:\s*[^\d\s]+)?$/.test(text);
-      if (!text || numeric || text === '—' || stateEl.querySelector('.dp-duration-unit')) root.removeAttribute('data-dp-value-text');
+      const clock = /^\d+:[0-5]\d(?::[0-5]\d)?$/.test(text);
+      if (!text || numeric || clock || text === '—' || stateEl.querySelector('.dp-duration-unit')) root.removeAttribute('data-dp-value-text');
       else attr('data-dp-value-text', 'yes');
     };
     const observer = new MutationObserver(update);

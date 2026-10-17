@@ -30,6 +30,8 @@ width: auto !important; min-width: 0; margin: 0 !important; gap: 8px !important;
     ha-card[data-dp-layout="header"] .bubble-sub-button-container:not(.hidden):not([hidden]) { display: flex !important; }
     ha-card[data-dp-layout="header"] .bubble-sub-button-group:not(.hidden):not([hidden]) { display: contents !important; }
     ha-card[data-dp-layout="header"] .bubble-sub-button {
+font-size: var(--signature-secondary-font-size,13px);
+font-weight: var(--signature-font-weight-normal,400);
 transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease !important;
 height: 44px !important; min-width: 0 !important; padding: 0 14px !important;
 border-radius: var(--signature-header-button-border-radius, 24px) !important; border: none !important; box-shadow: none !important;

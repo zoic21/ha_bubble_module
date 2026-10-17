@@ -205,6 +205,7 @@ test('module forms expose only their useful fields and preserve mixed YAML types
       assert.doesNotThrow(()=>visible({}, {},undefined));
       assert.equal(visible({}, {},{card_type:'pop-up'}),false);
       assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel' || layout==='compact'&&['color','color_background'].includes(name));
+      if(layout==='square')assert.equal(visible({activity:true}, {},{card_type:'media-player'}),false,'retired activity options must not expose unsupported Square media fields');
     }
   }
   assert.deepEqual(definitions.compact.editor[1].fields.controls.selector.select.options.map(o=>o.value),['native','number']);

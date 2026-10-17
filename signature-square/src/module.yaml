@@ -1,19 +1,19 @@
 name: Signature Square
-version: 2.0.2
+version: 2.0.3
 creator: Loïc
 supported:
   - button
 description: Module autonome square ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte.
 editor:
   - type: constant
-    label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.
+    label: Utiliser au moins rows 2 pour une Square fixe. Entité, hauteur, actions et sous-boutons restent dans les réglages Bubble natifs.
   - name: ""
     label: Réglages square
     type: signature_options
     fields:
       color:
         $field: color
-        visible_if: (!card || (card.card_type === 'media-player' && item.activity === true) || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       secondary:
         $field: secondary
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
@@ -68,10 +68,10 @@ editor:
         group: Tuile carrée
         group_icon: mdi:card-outline
         description: "image : URL de repli ; image_light/image_dark : variantes facultatives selon le thème HA ; columns/rows : grille de sprites ; index/index_dark : cases jour/nuit Square ; offset_y_dark : cadrage sombre facultatif ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : nombre ou Jinja, cadrage en % de case de −50 à 50. URLs locales/HTTPS ou Jinja. Images à installer séparément. Masquer l’icône dans Bubble pour éviter le doublon."
-        visible_if: (!card || (card.card_type === 'media-player' && item.activity === true) || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       color_background:
         $field: color_background
-        visible_if: (!card || (card.card_type === 'media-player' && item.activity === true) || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       icon_color:
         $field: icon_color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

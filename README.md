@@ -2,17 +2,21 @@
 
 Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
+[Global dashboard consistency audit](docs/GLOBAL_COHERENCE_2026_10.md): shared
+Header button typography, optional Compact two-line names, clock-duration
+values and section metrics, with coordinated dashboard updates.
+
 [17 October code/performance audit](docs/MODULE_OPTIMIZATION_2026_10.md): optional
 CSS only when used, fewer repeated chart/statistics calculations, unchanged
 computed styles. Includes measured CSS sizes, operation counts and import versions.
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 2.0.2 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information, control rows and media players | 1.4.8 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Square — square tiles | 2.0.3 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.5.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Panel — illustrated full-width panels | 1.0.2 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.2 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
-| Signature Header — page headers and section titles | 1.1.15 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
+| Signature Header — page headers and section titles | 1.2.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.6 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.5.5 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |

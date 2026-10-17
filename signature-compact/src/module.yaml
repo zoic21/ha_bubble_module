@@ -1,5 +1,5 @@
 name: Signature Compact
-version: 1.4.8
+version: 1.5.0
 creator: Loïc
 supported:
   - button
@@ -61,6 +61,19 @@ editor:
       state:
         $field: state
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      name_lines:
+        label: Lignes du nom en mode valeur
+        default: 1
+        selector:
+          number:
+            min: 1
+            max: 2
+            step: 1
+            mode: box
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        description: Deux lignes au maximum, avec une hauteur qui suit la taille de police du thème.
+        visible_if: item.compact_mode === 'value' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
       fill:
         label: Remplissage proportionnel (objet YAML)
         default: {}

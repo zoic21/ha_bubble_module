@@ -1,6 +1,13 @@
 # Signature Compact
 
-Version **1.4.8**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+## 1.5.0 — 17 octobre 2026 — cohérence des dashboards
+
+Option `name_lines: 2` avec limite de hauteur liée au thème ; durées `h:mm`
+et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
+piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
+actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
+
+Version **1.5.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -24,6 +31,18 @@ signature_compact:
 ```
 
 ## Compatibilité et comportement
+
+`name_lines: 2` permet deux lignes pour le nom en mode valeur, sans CSS local.
+La limite de hauteur suit `signature-name-font-size` et son interligne,
+`2 × max(16px, nom × 1,1)`. Le défaut reste une ligne en mode valeur ; le mode
+standard garde ses deux lignes existantes. Le nom, la valeur et leurs actions
+restent natifs. Une forte augmentation de police dans une carte étroite de
+56 px reste contrainte par l'espace disponible.
+
+Les textes `h:mm` ou `h:mm:ss` valides gardent le rôle numérique de 20 px/500
+et les chiffres tabulaires, y compris si Bubble actualise le texte de façon
+asynchrone. Aucun formatage de durée n'est imposé : le texte reste choisi dans
+la carte. Un état textuel ordinaire conserve son rôle de 16 px/400.
 
 Cartes `button` hors `slider`, ainsi que `cover`, `climate` et `media-player`. Les commandes natives restent intactes. `compact_mode: value` concerne les boutons État, ou Nom avec une option `state` personnalisée. Une configuration incompatible ne reçoit aucun style de ce module.
 

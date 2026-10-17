@@ -92,5 +92,12 @@ if (c.card_type === 'separator') {
       overflow: visible;
       overflow-wrap: anywhere;
     }
-  ` + styles.map(({cls,b,spec,thresholdScale}) => subThresholdCSS('ha-card .'+cls,b,spec,thresholdScale)).join('') + headerTextCSS;
+  ` + styles.map(({cls,b,spec,thresholdScale}) => subThresholdCSS('ha-card .'+cls,b,spec,thresholdScale)
+    + (spec.type === 'metric' ? `
+      ha-card .bubble-sub-button.${cls} { padding: 0 4px; min-width: 0 !important; }
+      ha-card .bubble-sub-button.${cls} .bubble-sub-button-name-container {
+        font-size: var(--signature-caption-font-size,12px);
+        line-height: max(16px,calc(var(--signature-caption-font-size,12px) * 1.2));
+      }
+    ` : '')).join('') + headerTextCSS;
 }

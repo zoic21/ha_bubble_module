@@ -44,6 +44,7 @@ async function build(layout) {
   if (layout === 'header') chunks.push(specific(layout, 'title'));
   if (layout !== 'header') {
     chunks.push(shared('value-config'));
+    if (layout === 'compact') chunks.push(specific(layout, 'name'));
     chunks.push(layout === 'compact' ? specific(layout, 'number') : 'const numberEnabled = false;');
     chunks.push(shared('value-render'));
     if (layout === 'compact') chunks.push(shared('value-observer'));
@@ -78,7 +79,7 @@ async function build(layout) {
   const layoutStyleKeys = {
     room: 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,',
     square: 'illustrationEnabled,',
-    compact: 'valueButton,'
+    compact: 'valueButton,twoLineName,'
   }[layout] || '';
   chunks.push(`
     const styleKey = [layout,kind,surface,${layoutStyleKeys}autoHeight,numberEnabled,o.controls === 'measure',compactValue,valueTrailing,!!secondary,multiline,flat.length>0].join('\u0001');

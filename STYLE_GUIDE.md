@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.8**, **Square 2.0.2**, **Header 1.1.15**, **Room 1.4.2**, **Panel 1.0.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.2**, **Panel 1.0.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -95,6 +95,12 @@ Le texte secondaire ordinaire utilise `secondary-text-color` avec **`opacity: 1`
 
 Dans Header, tous les libellés de sous-boutons et les valeurs `.bubble-range-value` utilisent `primary-text-color`, y compris sans seuils, dans le grand en-tête comme dans les titres de section. La règle porte sur le texte enfant : conserver la couleur du parent pour les icônes et les fonds utilisant `currentColor`. Les styles manuels, templates et couleurs de seuils gardent leurs rôles d’accent ; aucune adaptation de contraste ou branche nuit supplémentaire.
 
+Depuis Header 1.2.0, les boutons des grands en-têtes utilisent le rôle secondaire
+de 13 px et le poids normal, avec leur couleur primaire. La taille native Bubble
+de 12 px ne doit plus contourner le thème. Les sections gardent leur densité ;
+`sub_button_styles.*.type: metric` y centralise les petites mesures à 12 px,
+interligne `max(16px, légende × 1,2)` et padding horizontal de 4 px.
+
 Conserver les opacités qui expriment un état fonctionnel : icône désactivée, indisponibilité, interrupteur ou option explicite de l'utilisateur. Une règle destinée au texte ne doit pas réactiver un élément masqué ni rendre une commande indisponible active.
 
 Le thème livré hérite des couleurs de texte et des surfaces Home Assistant. Le contraste dépend donc de la palette native ou personnalisée active ; contrôler la couleur finalement composée, particulièrement sur les surfaces teintées.
@@ -126,6 +132,12 @@ Depuis Wind Rose 1.5.3, le blanc des deux plages claires est remplacé par un m�
 Le pied de carte Wind Rose affiche la direction dominante à gauche, sa fréquence au centre et la durée de calme à droite, sur une seule ligne. Sans source de vitesse, la durée de calme est masquée et la fréquence reste à droite. La durée utilise un format compact avec les minutes sur deux chiffres (`1 h 05`) sans retour à la ligne, y compris sur une semaine. Un historique de vitesse exploitable sans calme affiche `0 min` ; des données manquantes affichent `—`. Ses libellés utilisent la légende de 12 px ; ses valeurs utilisent `signature-name-font-size` (14 px), la graisse moyenne 500 et des chiffres tabulaires. La fréquence reprend le pourcentage du secteur dominant hors calme et données manquantes ; la période reste dans le sélecteur supérieur.
 
 ### Interlignes et changements de taille
+
+Compact 1.5.0 fournit `name_lines: 2` en mode valeur : le nom garde son nœud,
+son interligne commun et une limite de deux interlignes, au lieu d'une hauteur
+locale fixe de 32 px. Le défaut reste une ligne dans ce mode. Les textes de
+durée `h:mm` et `h:mm:ss` valides utilisent le rôle numérique compact sans
+réécriture de leur texte ; un libellé ou une date complète garde le rôle textuel.
 
 Panel partage la règle secondaire `max(16px, secondaire * 1.2)`, dans le texte
 et la ligne de grille réservée. Ses valeurs utilisent des chiffres tabulaires ;

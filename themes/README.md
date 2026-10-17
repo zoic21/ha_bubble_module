@@ -1,5 +1,11 @@
 # Signature theme
 
+The global dashboard pass uses the existing secondary token for Header page
+buttons (13 px), caption tokens for optional section metrics, and live name
+line heights for two-line Compact labels. Compact 1.5.0 and Header 1.2.0 add
+no theme variable. Import those modules before the coordinated dashboard
+updates; the theme file itself is unchanged.
+
 The [style consistency pass](../docs/STYLE_AUDIT_2026_10.md) fixes Panel unit
 color/weight/tracking and secondary lines, Room main-value unit weight, and
 Hue scene font overrides. It shares unit, secondary-line, command-label and
