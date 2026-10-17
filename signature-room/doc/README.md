@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.2.3**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.3.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -138,6 +138,48 @@ Le mode classique et les badges existants sans `type: badge` restent inchangés.
 
 ## Compatibilité et comportement
 
+### Commandes illustrées avec libellé
+
+En mode illustré, `sub_button_styles.<classe-ou-numéro>.type: command`
+empile l’icône et le nom d’un sous-bouton natif `default`, nommé et classé
+`room-control-N`. Les colonnes et les cibles de 44 px restent celles de Room ;
+la carte conserve sa hauteur de 148 px. Le retour de pression suit le rayon
+du contrôle. Sans cette option, les commandes des pièces restent inchangées.
+
+```yaml
+signature_room:
+  room_mode: illustrated
+  room_state_as_value: true
+  room_control_columns: 3
+  sub_button_styles:
+    room-control-1:
+      type: command
+      color: blue
+      active: "{{ is_state(entity, 'disarmed') }}"
+      disabled: "{{ states(entity) in ['disarmed', 'unknown', 'unavailable'] }}"
+```
+
+Configurer l’entité, `show_name: true`, le libellé et les actions dans le
+sous-bouton Bubble. `active` et `disabled` acceptent des booléens ou Jinja.
+Le mode actif utilise un fond doux ; `color` et `background` explicites restent
+prioritaires. Une commande désactivée non active est atténuée. Les commandes
+restent visibles et à leur place ; leur visibilité native reste prioritaire.
+
+`disabled` bloque pointeur, toucher, clic clavier et événement `hass-action`
+sur le nœud natif. Ce dernier contrôle empêche aussi un geste commencé avant
+la désactivation d’envoyer une action mise en cache par Bubble. Les services,
+cibles, jeux de données et handlers Bubble ne sont ni réécrits ni remplacés.
+Un seul garde délégué local est installé quand des commandes sont présentes ;
+aucun timer, observateur ou abonnement n’est ajouté. Les attributs ARIA et le
+garde sont restaurés au retrait de l’option, changement de mode et teardown.
+Une expression `disabled` en attente ou invalide désactive la commande ; seule
+une sortie explicite `false` la réactive. Sans expression, l’action reste native.
+
+`room_state_as_value: true` affiche l’état principal avec le rôle de mesure
+(28 px et unité de 13 px par défaut), ou 22 px pour un état sans unité.
+Cette option réutilise les nœuds, formatages et actions de valeur existants ;
+les états habituels des pièces restent à 17 px sans l’option.
+
 Cartes `button`, hors boutons `switch` et `slider`. Une carte pièce commence à 156 px et peut grandir avec le texte et les rangées de commandes. Une configuration incompatible ne reçoit aucun style de ce module.
 
 Les classes natives sont `room-temperature`, `room-humidity`, `room-status`, `room-control-N` et `room-climate`. `room_control_columns` va de 1 à 6. `room_auto_colors: false` désactive les couleurs automatiques. `room_measures_position: header` place les mesures dans l’en-tête quand l’état principal et le secondaire ne prennent pas cette place. Un état principal affiché masque les mesures redondantes.
@@ -159,6 +201,7 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `color` | `blue` | Couleur de la palette, couleur CSS ou template Jinja. Valeurs : `blue`, `light-blue`, `teal`, `cyan`, `green`, `orange`, `amber`, `yellow`, `red`, `pink`, `indigo`, `purple`, `grey`. |
 | `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
+| `room_state_as_value` | `false` | État principal au format de mesure ; état textuel de 22 px. |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; `type: badge` place un bouton iconique près du nom en mode illustré. |
@@ -190,6 +233,19 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 1.3.0 — 17 octobre 2026
+
+- Commandes illustrées facultatives `type: command`, icône au-dessus du libellé,
+  trois emplacements stables, cibles de 44 px et hauteur Room conservées.
+- `active` et `disabled` pilotables par Jinja ; garde local des actions natives,
+  y compris les commandes mises en cache ou les gestes en cours, sans modifier
+  les services/cibles. Nettoyage des attributs et du garde au retrait/teardown.
+- `room_state_as_value` pour les états d’alarme et mesures d’équipement ;
+  les cartes Room existantes gardent leur présentation par défaut.
+- Contrôles sur fixtures Chromium en clair/sombre avec/sans thème,
+  désarmement/absence/nuit/transitions/indisponibilité, clavier et retrait.
+  Aucun essai dans Home Assistant réel ou Safari/iOS.
 
 ### 1.2.3 — 17 octobre 2026
 

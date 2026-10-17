@@ -1,5 +1,5 @@
 name: Signature Room
-version: 1.2.3
+version: 1.3.0
 creator: Loïc
 supported:
   - button
@@ -44,6 +44,15 @@ editor:
       state:
         $field: state
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      room_state_as_value:
+        label: État principal en grande valeur
+        default: false
+        selector:
+          boolean: {}
+        group: Pièce
+        group_icon: mdi:sofa-outline
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: Valeur numérique et unité selon le rôle de mesure ; état textuel de 22 px. Ne modifie pas les actions natives.
       secondary_bold:
         $field: secondary_bold
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() !== '')
@@ -52,7 +61,7 @@ editor:
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       sub_button_styles:
         $field: sub_button_styles
-        description: "Objet indexé par classe CSS ou numéro natif. type: badge place un sous-bouton default, iconique sans texte, dans une capsule commune après le nom (hauteur 20 px, écart 6 px) en mode illustré ; color personnalise chaque icône, background reste un override individuel. Visibilité et actions restent natives."
+        description: "Objet indexé par classe CSS ou numéro natif. type: badge place un sous-bouton iconique après le nom. type: command empile icône et libellé d’une commande room-control-N illustrée ; active et disabled acceptent un booléen ou Jinja. Les commandes désactivées restent visibles et ne transmettent aucune action. color/background conservent leurs overrides."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       room_auto_colors:
         label: Coloration automatique des commandes (booléen YAML)
