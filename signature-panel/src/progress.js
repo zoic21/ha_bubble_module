@@ -1,5 +1,5 @@
 // Progress is only decorative. Existing actions and clocks stay in the card.
-if (o.activity === true && kind === 'button' && o.progress && typeof o.progress === 'object') {
+if (kind === 'button' && o.progress && typeof o.progress === 'object') {
   const input = render(o.progress.value).trim();
   const progress = input === '' ? NaN : Number(input);
   if (Number.isFinite(progress)) {

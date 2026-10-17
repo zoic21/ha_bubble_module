@@ -1,0 +1,16 @@
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.power
+name: Puissance
+show_icon: false
+show_state: true
+rows: 2
+grid_options:
+  columns: full
+  rows: 2
+modules:
+  - signature_panel
+signature_panel:
+  illustration:
+    image: /local/illustrations/network.webp

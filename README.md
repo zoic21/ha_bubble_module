@@ -4,14 +4,15 @@ Reusable modules for [Bubble Card](https://github.com/Clooos/Bubble-Card).
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 1.6.2 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Square — square tiles | 2.0.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.4.6 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Room — room summaries and controls | 1.3.7 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.0.0 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Room — room summaries and controls | 1.4.0 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.1.14 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.1 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.4 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.5.4 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
-| Signature Group — popup activity summaries | 1.1.0 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
+| Signature Group — popup activity summaries | 1.1.1 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
@@ -33,7 +34,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_header`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
+The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_panel`, `signature_header`, `signature_flow`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
 
 ## Updates and Module Store
 
@@ -45,15 +46,11 @@ For a manual installation, import the updated YAML file again. For a store relea
 
 ## Standalone Signature presentations
 
-Square, Compact, Room and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Section titles keep their native badge group beside the label when it fits, or move the whole group below and wrap its badges within the column, on desktop and mobile. Every wrapped row starts at the left edge; badges keep their natural widths. Compact also styles native media-player cards, preserving their artwork, controls and dimensions. Use one presentation module per card, with optional Alert Manager. A name button can also add [Signature Group](signature-group/doc/README.md) to summarize the cards of a popup using their existing visibility conditions. The legacy `signature` module has been removed after checking the Home Assistant configuration export. Older installations must migrate every card before deleting their installed copy. Room 1.3.0 provides `room_mode: illustrated`: room artwork, a compact 148 px base height, temperature, native controls and status badges, with humidity and the main icon hidden. Room and Square use the shared `signature-illustration-size` theme key (80 px by default). Artwork stays in your own `/local/` assets, outside this module repository. See the [Room guide](signature-room/doc/README.md). Square 1.5.1 also offers an optional wide one- or two-measurement summary through `summary`, retaining the native two-row height and independent value actions; see the [Square guide](signature-square/doc/README.md#bandeau-à-une-ou-deux-mesures).
+Square, Compact, Room, Panel and Header are separate, autonomous modules with French forms limited to their own options. Their module choice replaces `layout`; Header selects page/header or section/title from the native card type. Section titles keep their native badge group beside the label when it fits, or move the whole group below and wrap its badges within the column, on desktop and mobile. Every wrapped row starts at the left edge; badges keep their natural widths. Compact also styles native media-player cards, preserving their artwork, controls and dimensions. Use one presentation module per card, with optional Alert Manager. A name button can also add [Signature Group](signature-group/doc/README.md) to summarize the cards of a popup using their existing visibility conditions. The legacy `signature` module has been removed after checking the Home Assistant configuration export. Older installations must migrate every card before deleting their installed copy. Room 1.3.0 provides `room_mode: illustrated`: room artwork, a compact 148 px base height, temperature, native controls and status badges, with humidity and the main icon hidden. Room and Square use the shared `signature-illustration-size` theme key (80 px by default). Artwork stays in your own `/local/` assets, outside this module repository. See the [Room guide](signature-room/doc/README.md). Full-width equipment and energy summaries use [Signature Panel](signature-panel/doc/README.md).
 
 Room 1.3.0 also places native icon-only sub-buttons beside the room name through `sub_button_styles.<class-or-index>.type: badge`. The icons share one subtle neutral capsule, 20px high, immediately after the text with a 6px gap. It shrinks to the visible icons and disappears when none remain. Showing or hiding badges preserves the artwork size and centering, including on mobile. Multiple badges keep native visibility and actions; hidden badges release their space in CSS. See the [Room badge configuration](signature-room/doc/README.md#badges-à-côté-du-nom).
 
 Room 1.3.0 adds opt-in `type: command` controls with an icon above the native label, stable 44px targets and template-driven `active` / `disabled` states. Disabled commands retain their place and block native actions, including cached or in-flight gestures, without replacing nodes or service targets. `room_state_as_value` displays equipment values or alarm states using the same illustrated layout. Existing room controls keep their default presentation. See the [command guide](signature-room/doc/README.md#commandes-illustrées-avec-libellé).
-
-Room 1.3.1 optionally removes the footer divider with `room_show_divider: false` and centres the main state between the actual title and visible commands with `room_state_centered: true` (illustrated mode without secondary text). Existing cards and artwork geometry remain unchanged by default.
-
-Room 1.3.2 adds opt-in `room_compact: true` for a double-height 118px equipment card: one-line name, main state and up to three named commands beside the unchanged 80px artwork. Native targets remain 44px high. Other room cards retain their normal height.
 
 See the [migration guide](signature-shared/doc/MIGRATION.md) and [shared-source build instructions](signature-shared/README.md).
 
@@ -101,26 +98,20 @@ npm test
 
 Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose`, `npm run test:signature-navigation` or `npm run test:alert-manager` to test a single existing module. Shared editor round-trip and condition tests are in `editors/test` and read the actual YAML distributions. YAML, Terser and Playwright are development dependencies; none is needed in Home Assistant.
 
-Run `npm run build:modules` after editing any module or common source; `npm run check:modules` rejects stale distributions for all nine modules. See the [shared-source build guide](shared/README.md). `build:signature` and `check:signature` remain available for the four standalone presentations. `npm run test:signature-split` checks the standalone presentation behaviors, editor forms and documentation. `npm run test:styles:split` is a compatibility alias for the full browser suite.
+Run `npm run build:modules` after editing any module or common source; `npm run check:modules` rejects stale distributions for all eleven modules. See the [shared-source build guide](shared/README.md). `build:signature` and `check:signature` remain available for the five standalone presentations. `npm run test:signature-split` checks the standalone presentation behaviors, editor forms and documentation. `npm run test:styles:split` is a compatibility alias for the full browser suite.
 
 For browser style checks, run `npx playwright install chromium` once, then `npm run test:styles`. These tests load the actual module distributions in a minimal Bubble-shaped DOM and check computed styles, theme switching, keyboard focus, dividers and touch targets. All suites share [browser setup, isolated contexts, error checks and cleanup](styles/README.md). They do not run Home Assistant itself.
 
 GitHub Actions runs the unit tests on Node.js 22 and 24 and browser style checks on Chromium for every push and pull request, and can also be triggered manually. It checks alert sources, filters, caching, translations, numeric controls, metadata, YAML examples, and local documentation links. It does not replace checking the rendered cards in Home Assistant.
 
-Signature Group 1.1.0 links a popup and a name button through their hash. Enable `background_update: true` on the popup, add `signature_group` to both cards, and keep the button’s native navigation action. Its destination is reused by the summary, without a second list of entities or conditions. See the [Group guide](signature-group/doc/README.md).
+Signature Group 1.1.1 links a popup and a name button through their hash. Enable `background_update: true` on the popup, add `signature_group` to both cards, and keep the button’s native navigation action. Its destination is reused by the summary, without a second list of entities or conditions. See the [Group guide](signature-group/doc/README.md).
 
 Group’s optional `presentation: chips` replaces the visible title and total count with equipment pills inherited from the popup cards. Actual available width determines how many fit; `+N` counts only hidden items and precedes the fixed right arrow. Names, atlas crops and HA light/dark artwork follow the popup, without duplicate configuration.
 
 Group’s optional `hide_empty: true` hides an empty summary through the native Home Assistant visibility contract while retaining state updates. Editor previews stay available; popup placeholders receive no extra empty-state block.
 
-Square 1.5.1 can display a daily statistics total as the second summary measure, using Home Assistant Recorder changes in the configured timezone; no helper entity is needed. Version 1.5.1 also supports a remaining percentage after subtracting outgoing flows, for daily self-sufficiency.
+## Full-width illustrated panels
 
-Square 1.5.2 adds `summary.secondary_statistics` for a daily cost below daily consumption, sharing one Recorder query, plus an explicit positive `factor` for unit conversion.
+Signature Panel 1.0.0 owns the two-step (118px) full-width format: 80px artwork at the right, one to three information columns with details, and up to three visible native commands. URLs, sprite indexes and conditions remain in the card, with Jinja support. Media keeps its native track, volume and controls. Daily energy/consumption/cost calculations retain Recorder's timezone and reset handling.
 
-Square 1.6.0 adds opt-in illustrated two-row activity banners with native sub-buttons or media controls; see its guide.
-
-Room 1.3.3 adds `room_inline_metrics: true` to align an illustrated equipment value with up to two native measure controls. Square 1.6.1 centers activity text groups without reserving an empty detail line. Use Bubble’s native `scrolling_effect: true` and native `state_content` for scrolling text.
-
-Room 1.3.4 supports `room_inline_metrics` with `room_compact`: three values beside the unchanged artwork in a 118px card. Square 1.6.2 keeps the activity name at the top and centers the state between it and the footer; native media information uses the same available middle region.
-
-Room 1.3.7 replaces the accumulated compact inline overrides with a dedicated grid, selected instead of regular Room geometry. It also handles Bubble's inline multiline text styles, which overrode the power value's flex alignment. The 118px card, 80px artwork and native actions remain. Set `room_hover: false` to suppress pointer highlights while keeping press feedback.
+Square 2.0.0 removes `summary` and `activity`; Room 1.4.0 removes equipment-only `room_compact`, `room_inline_metrics` and `room_state_centered`. Room remains for room summaries, Square for measurement tiles. Install Panel and migrate wide equipment cards before upgrading these modules. Group 1.1.1 reads Panel illustrations for its activity chips. See the [Panel migration guide](signature-panel/doc/README.md#migration).

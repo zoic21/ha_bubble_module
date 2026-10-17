@@ -2,21 +2,21 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const {test} = require('node:test');
 const {loadModule} = require('../../shared/test/module.cjs');
-const definition = loadModule('signature-square');
+const definition = loadModule('signature-panel');
 const ids = ['sensor.hc_cost','sensor.hp_cost'];
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
 function fixture() {
   let stamp = Date.parse('2026-10-16T10:00:00Z');
   class Clock extends Date { static now() { return stamp; } }
-  const context = vm.createContext({...require('./dom.cjs'),Intl,Date:Clock,setTimeout,clearTimeout});
+  const context = vm.createContext({...require('../../signature-shared/test/dom.cjs'),Intl,Date:Clock,setTimeout,clearTimeout});
   const render = vm.runInContext('(function(hass,onTeardown,renderTemplate){return `' + definition.code + '`;})',context);
   const {Element} = context,root = new Element(),content = new Element(),names = new Element(),state = new Element();
   content.className = 'bubble-content-container'; names.className = 'bubble-name-container'; state.className = 'bubble-state';
   root.append(content); content.append(names); names.append(state);
   const summary = {name:'Coût du jour',secondary:'Hors abonnement',statistics:{statistic_ids:ids,unit:'€',decimals:2}};
   const ctx = {card:root,config:{card_type:'button',button_type:'state',entity:'sensor.power',show_icon:false,
-    signature_square:{summary}},elements:{state,contentContainer:content,nameContainer:names}};
+    signature_panel:{information:[summary]}},elements:{state,contentContainer:content,nameContainer:names}};
   const calls = [];
   let reply = () => Object.fromEntries(ids.map(id => [id,[{start:'2026-10-15T22:00:00Z',change:1}]]));
   const hass = {config:{time_zone:'Europe/Paris'},locale:{language:'fr-FR',number_format:'space_comma'},states:{
@@ -26,7 +26,7 @@ function fixture() {
     callWS:request => { calls.push(request); return reply(request); }};
   return {ctx,root,hass,summary,calls,run:()=>render.call(ctx,hass,fn=>ctx.teardown=fn,x=>x),
     setTime:time=>stamp=typeof time==='number'?time:Date.parse(time),reply:fn=>reply=fn,
-    value:()=>root.querySelector('.dp-summary-state')?.textContent};
+    value:()=>root.querySelector('.dp-panel-state')?.textContent};
 }
 
 test('daily summary adds Recorder changes, filters the time window and never uses live meter states',async t=>{
@@ -41,9 +41,9 @@ test('daily summary adds Recorder changes, filters the time window and never use
   assert.deepEqual(JSON.parse(JSON.stringify(f.calls[0])),{type:'recorder/statistics_during_period',
     start_time:'2026-10-15T22:00:00.000Z',end_time:'2026-10-16T10:00:00.000Z',
     statistic_ids:ids,period:'5minute',types:['change']});
-  assert.equal(f.root.querySelector('.dp-summary-state').dataset.entity,undefined);
-  assert.equal(JSON.parse(f.root.querySelector('.dp-summary-state').dataset.tapAction).action,'none');
-  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'Hors abonnement');
+  assert.equal(f.root.querySelector('.dp-panel-state').dataset.entity,undefined);
+  assert.equal(JSON.parse(f.root.querySelector('.dp-panel-state').dataset.tapAction).action,'none');
+  assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'Hors abonnement');
   f.hass.states[ids[0]].state='0';f.hass.states[ids[1]].state='0';f.run();await flush();
   assert.equal(f.value(),'2,00€');assert.equal(f.calls.length,1);
 });
@@ -94,8 +94,8 @@ test('midnight clears the old day and stale requests cannot restore it',async t=
 test('disabling statistics or tearing down ignores the pending answer and preserves normal summaries',async()=>{
   for(const teardown of [false,true]){
     const f=fixture();let resolve;f.reply(()=>new Promise(done=>resolve=done));f.run();await flush();
-    const old=f.root.querySelector('.dp-summary');
-    if(teardown)f.ctx.teardown();else{f.ctx.config.signature_square.summary={entity:'sensor.power',name:'Power'};f.run();}
+    const old=f.root.querySelector('.dp-panel-information');
+    if(teardown)f.ctx.teardown();else{f.ctx.config.signature_panel.information[0]={entity:'sensor.power',name:'Power'};f.run();}
     resolve(Object.fromEntries(ids.map(id=>[id,[{start:'2026-10-15T22:00:00Z',change:99}]])));
     await flush();assert.equal(f.root.contains(old),false);
     if(!teardown){assert.equal(f.value(),'580W');f.ctx.teardown();}
@@ -128,9 +128,9 @@ test('daily remaining share excludes exports and storage input, without a subtit
   f.reply(req=>Object.fromEntries(req.statistic_ids.map((id,i)=>[id,[{start:req.start_time,change:amounts[i]}]])));
   f.run();await flush();assert.equal(f.value(),'70%');
   assert.deepEqual(Array.from(f.calls[0].statistic_ids),[...inputs,...outputs]);
-  assert.equal(f.root.querySelector('.dp-summary-name').textContent,'Autosuffisance');
-  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'');
-  assert.equal(JSON.parse(f.root.querySelector('.dp-summary-state').dataset.tapAction).action,'none');
+  assert.equal(f.root.querySelector('.dp-panel-name').textContent,'Autosuffisance');
+  assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'');
+  assert.equal(JSON.parse(f.root.querySelector('.dp-panel-state').dataset.tapAction).action,'none');
   // Changing the numerator invalidates the cached result immediately.
   f.summary.statistics.part_statistic_ids=inputs.slice(0,1);f.run();assert.equal(f.value(),'—');
   await flush();assert.equal(f.value(),'90%');assert.equal(f.calls.length,2);
@@ -164,16 +164,16 @@ test('daily consumption and cost share one query and stay independent of live in
     {start:req.start_time,change:[2.3,4.5,.31,.77][i]},
     {start:'2026-10-16T11:00:00Z',change:10000}]])));
   f.run();await flush();
-  const detail=f.root.querySelector('.dp-summary-secondary');
+  const detail=f.root.querySelector('.dp-panel-secondary');
   assert.equal(f.value(),'6,80kWh');assert.equal(detail.textContent,'1,08 €');
-  assert.equal(f.root.querySelector('.dp-summary-name').textContent,'Jour');
+  assert.equal(f.root.querySelector('.dp-panel-name').textContent,'Jour');
   assert.equal(JSON.parse(detail.dataset.tapAction).action,'none');assert.equal(detail.dataset.entity,undefined);
   assert.equal(f.calls.length,1);assert.deepEqual(Array.from(f.calls[0].statistic_ids),['sensor.hc','sensor.hp',...ids]);
   for(const id of ids)assert.ok(watched.includes(id));
   for(let i=0;i<5;i++)f.run();await flush();assert.equal(f.calls.length,1);assert.equal(detail.textContent,'1,08 €');
   delete f.summary.secondary_statistics;f.run();await flush();
-  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'580 W');
-  assert.equal(f.root.querySelector('.dp-summary-secondary').dataset.entity,'sensor.power');
+  assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'580 W');
+  assert.equal(f.root.querySelector('.dp-panel-secondary').dataset.entity,'sensor.power');
 });
 
 test('water converts daily cubic metres to litres while cost keeps its own unit',async t=>{
@@ -183,7 +183,7 @@ test('water converts daily cubic metres to litres while cost keeps its own unit'
   f.reply(req=>({'sensor.water_total':[{start:req.start_time,change:.1234}],
     'sensor.water_cost':[{start:req.start_time,change:.68}]}));
   f.run();await flush();assert.equal(f.value(),'123L');
-  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'0,68 €');
+  assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'0,68 €');
   f.summary.statistics.factor=1;f.run();assert.equal(f.value(),'—');await flush();assert.equal(f.value(),'0L');
 });
 
@@ -197,10 +197,10 @@ test('a missing cost cannot hide consumption and a missing consumption cannot in
     f.reply(req=>Object.fromEntries(req.statistic_ids.filter(id=>id!==missing).map(id=>[id,[
       {start:req.start_time,change:missing?(ids.includes(id)?1:3):0}]])));
     f.run();await flush();assert.equal(f.value(),value);
-    assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,detail);
+    assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,detail);
   }
   f.setTime('2026-10-16T10:04:00Z');f.reply(()=>Promise.reject(Error('offline')));f.run();await flush();
-  assert.equal(f.value(),'—');assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');
+  assert.equal(f.value(),'—');assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'—');
 });
 
 test('changing secondary sources or day rejects stale combined replies',async t=>{
@@ -209,10 +209,10 @@ test('changing secondary sources or day rejects stale combined replies',async t=
   f.reply(req=>new Promise(resolve=>pending.push(()=>resolve(Object.fromEntries(req.statistic_ids.map(id=>[id,[
     {start:req.start_time,change:1}]]))))));
   f.run();await flush();f.summary.secondary_statistics.statistic_ids=['sensor.new_cost'];f.run();await flush();
-  pending[0]();await flush();assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');
-  pending[1]();await flush();assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'1,00 €');
+  pending[0]();await flush();assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'—');
+  pending[1]();await flush();assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'1,00 €');
   f.setTime('2026-10-16T22:00:01Z');f.run();assert.equal(f.value(),'—');
-  assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');await flush();
+  assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'—');await flush();
   pending[2]();await flush();assert.equal(f.value(),'2,00€');
 });
 
@@ -224,6 +224,6 @@ test('invalid factors and secondary statistics do not request unbounded or incom
     {statistic_ids:Array.from({length:16},(_,i)=>'sensor.cost_'+i)}]){
     const f=fixture();t.after(()=>f.ctx.teardown());f.summary.secondary_statistics=secondary;
     f.run();await flush();assert.deepEqual(Array.from(f.calls[0].statistic_ids),ids);
-    assert.equal(f.value(),'2,00€');assert.equal(f.root.querySelector('.dp-summary-secondary').textContent,'—');
+    assert.equal(f.value(),'2,00€');assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'—');
   }
 });

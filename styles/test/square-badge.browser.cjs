@@ -74,14 +74,13 @@ test('native hiding releases the detail row, and removing badge mode restores na
 
 test('badge mode leaves named, multiple or specialized native controls in their normal layout',async t=>{
   const page=await fixture(t);
-  for(const variant of ['name','multiple','select','summary','auto','measure']){
+  for(const variant of ['name','multiple','select','auto','measure']){
     await card(page);
     const position=await page.evaluate(variant=>{
       const ctx=window.badgeContext,main=ctx.config.sub_button.main;
       if(variant==='name')main[0]={...main[0],show_name:true};
       if(variant==='multiple')main.push({entity:'sensor.other'});
       if(variant==='select')main[0]={...main[0],sub_button_type:'select'};
-      if(variant==='summary')ctx.config.signature_square.summary={enabled:true};
       if(variant==='auto')ctx.config.signature_square.auto_height=true;
       if(variant==='measure')ctx.config.signature_square.controls='measure';
       ctx.config={...ctx.config,sub_button:{main:[...main]}};ctx.update();

@@ -1,5 +1,7 @@
 # Signature theme
 
+Signature Panel 1.0.0 shares the existing card, name, value, unit, secondary, control and illustration tokens. It adds no theme key. Its two-step full-width grid, responsive information columns and native command targets are documented in the [Panel guide](../signature-panel/doc/README.md).
+
 Module distributions are minified during the repository build. Theme variables remain in the shipped CSS and continue to follow live theme changes; their names and fallback values are preserved. See the [build guide](../shared/README.md#distributions-minifiées).
 
 The eight Signature modules also assemble their common CSS declarations from [shared style fragments](../shared/src/styles/README.md). Theme values and CSS rules therefore have common sources, while module layouts remain independent. Every distribution embeds its applicable fragments and requires no extra stylesheet.

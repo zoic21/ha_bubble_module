@@ -14,7 +14,7 @@ const variantImage = modeImage == null ? '' : render(modeImage).trim();
 const illustrationImage = validImage(variantImage) ? variantImage : render(illustration.image).trim();
 const columns = Math.trunc(number(illustration.columns, 1, 1, 16));
 const rows = Math.trunc(number(illustration.rows, 1, 1, 16));
-const darkSprite = layout === 'square' && illustrationMode === true;
+const darkSprite = ['square','panel'].includes(layout) && illustrationMode === true;
 const illustrationInput = render((darkSprite ? illustration.index_dark : undefined) ?? illustration.index ?? 0).trim();
 const illustrationIndex = illustrationInput === '' ? NaN : Number(illustrationInput);
 const index = Math.trunc(illustrationIndex);

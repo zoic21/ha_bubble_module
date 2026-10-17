@@ -1,0 +1,32 @@
+/* @include signature-shared/src/editor.js */
+const c = this.config, o = c.signature_panel || {}, root = this.card;
+const layout = 'panel', kind = c.card_type || 'button';
+const tileEnabled = root && (kind === 'media-player'
+  || kind === 'button' && !['switch','slider'].includes(c.button_type));
+/* @include signature-shared/src/lifecycle.js */
+if (!tileEnabled) return '';
+/* @include signature-shared/src/helpers.js */
+/* @include signature-shared/src/color-thresholds.js */
+/* @include signature-shared/src/structure.js */
+const numberEnabled = false;
+/* @include signature-shared/src/value-config.js */
+/* @include signature-shared/src/value-render.js */
+/* @include signature-shared/src/secondary.js */
+/* @include signature-shared/src/actions.js */
+/* @include signature-shared/src/appearance.js */
+/* @include signature-shared/src/illustration.js */
+const roles = [], roomColumns = 3;
+/* @include signature-shared/src/sub-buttons.js */
+/* @include signature-panel/src/statistics.js */
+/* @include signature-panel/src/information.js */
+/* @include signature-panel/src/commands.js */
+/* @include signature-panel/src/progress.js */
+if (o.hover === false) css += 'ha-card[data-dp-layout="panel"] ha-ripple { --ha-ripple-hover-opacity: 0; }';
+const styleKey = [kind, surface, !!secondary, information.length, flat.length].join('\u0001');
+if (runtime.styleKey !== styleKey) {
+  runtime.styleCSS = `
+    /* @include signature-panel/src/presentation.css */
+  `;
+  runtime.styleKey = styleKey;
+}
+return runtime.styleCSS + css;

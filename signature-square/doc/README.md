@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **1.6.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -33,142 +33,6 @@ Cartes `button`, hors boutons `switch` et `slider`. Les volets et thermostats ut
 Les valeurs conservent le format numérique Home Assistant et leur unité. `state` personnalise l’état affiché avec du texte ou Jinja. `secondary` accepte du texte, une entité directe ou Jinja ; l’entité directe fournit l’unité. La première référence d’entité détectée dans un template définit la cible des détails, sans analyser quelle branche Jinja est affichée. `secondary_bold: true` autorise `**texte**`, sans interpréter du HTML.
 
 Les sous-boutons gardent les entités, conditions et actions Bubble. `sub_button_styles` est un objet indexé par classe CSS ou numéro natif. Les switches visuels sont disponibles en square/compact, avec des actions toggle compatibles ou des actions lock/unlock explicites ; ils ne créent pas de commande supplémentaire.
-
-## Bandeau à une ou deux mesures
-
-Un objet `summary` avec une `entity` valide active un bandeau large : la mesure
-principale à gauche, une seconde mesure au centre et l’illustration facultative
-à droite. Utiliser `rows: 2`, une largeur complète et `show_icon: false`.
-La hauteur reste celle des deux lignes natives Bubble, soit 120 px avec un pas
-de 56 px et un écart de 8 px. Le module ne l’augmente pas, même lorsque la taille
-d’illustration demandée est supérieure ; le dessin rétrécit pour laisser les
-textes lisibles. Sa taille cible reste `signature-illustration-size`, 80 px.
-
-Pour une seule mesure principale, utiliser **`summary: {enabled: true}`**, sans
-`entity` dans cet objet. La colonne de la seconde mesure disparaît et aucun
-nœud n’est créé pour elle ; la valeur et le secondaire natifs restent à gauche,
-avec l’illustration centrée à droite. La valeur conserve sa taille standard de
-28 px et l’unité 16 px (variables Signature). La rangée secondaire reste réservée, même vide : la valeur garde le même
-alignement vertical que les autres tuiles de même hauteur. `enabled: false` désactive le
-bandeau, même si une seconde entité est configurée. Un objet vide reste inactif.
-
-```yaml
-type: custom:bubble-card
-card_type: button
-button_type: state
-entity: sensor.battery_available_energy
-name: Disponible
-show_icon: false
-card_layout: large
-rows: 2
-grid_options:
-  columns: full
-  rows: 2
-modules:
-  - signature_square
-signature_square:
-  secondary: sensor.battery_soc
-  summary:
-    entity: sensor.battery_power
-    name: En décharge
-    secondary: "{{ states('sensor.battery_remaining_time') }}"
-  illustration:
-    image: /local/illustrations/battery.png
-```
-
-`summary.name` accepte du texte ou Jinja et utilise le nom de l’entité par défaut.
-`summary.secondary` accepte du texte, une entité ou Jinja, comme le secondaire
-principal. Dans ces templates, `entity` désigne la **seconde** mesure. Les valeurs
-conservent la précision et les unités HA ; une valeur manquante affiche `—`.
-Chaque valeur et détail lié à une entité ouvre ses propres informations via
-le gestionnaire d’actions natif Bubble. Un changement de cible remplace le seul
-nœud concerné pour éviter un ancien gestionnaire mis en cache. Aucun nouveau
-listener, observateur ou abonnement. Le bandeau est ignoré en `auto_height` ou
-`controls: measure` ; les sous-boutons ne sont pas prévus dans ce bandeau.
-
-Les textes peuvent passer sur deux lignes ; les valeurs et unités s’adaptent à
-la largeur. Les deux blocs partagent les mêmes lignes de titre/valeur/détail.
-Les titres reprennent la rangée de 36 px, l’interligne de 20 px et le centrage
-vertical des cartes classiques : le même titre garde le même retrait supérieur
-en pleine largeur et en demi-largeur. Les noms longs peuvent toujours revenir
-à la ligne. Le dessin est centré verticalement sur la carte. Les badges actifs/en attente
-d’Alert Manager restent visibles en haut à droite lorsque l’icône est masquée.
-
-### Total du jour depuis les statistiques
-
-Depuis **Square 1.5.0**, la seconde mesure peut afficher la somme des variations
-Recorder depuis minuit, sans créer de capteur. Ce mode est prioritaire sur
-`summary.entity` et conserve exactement la grille et la hauteur du bandeau.
-
-```yaml
-signature_square:
-  summary:
-    name: Coût du jour
-    secondary: Hors abonnement
-    statistics:
-      statistic_ids:
-        - sensor.electricity_off_peak_cost
-        - sensor.electricity_peak_cost
-      unit: €
-      decimals: 2
-      time_zone: Europe/Paris
-```
-
-`statistic_ids` accepte de 1 à 16 identifiants uniques possédant des statistiques
-de somme. Le module interroge `recorder/statistics_during_period`, période
-`5minute`, champ `change`, de minuit local à maintenant. Les changements d’heure
-sont pris en compte ; `time_zone` utilise celui de HA par défaut (sinon UTC).
-Les remises à zéro sont traitées par Recorder, pas par une soustraction des
-états bruts. Les statistiques elles-mêmes gardent leur délai de disponibilité
-HA. `decimals` vaut 2 par défaut (0 à 6) ; `unit` est explicite. Les sources
-sont additionnées sans conversion : utiliser des statistiques de même unité.
-
-Une source manquante/non numérique, une erreur ou une requête en cours avant
-la première réponse affiche `—`. Un zéro réellement enregistré affiche zéro.
-Le module ne remplace jamais les statistiques par les états courants. Le total
-n’a pas d’entité fictive ni d’action more-info ; un secondaire qui désigne une
-entité conserve sa propre action native.
-
-Les mises à jour HA déclenchent au plus une requête par minute par carte,
-sans timer, observateur ou abonnement supplémentaire. Le jour et les sources
-font partie de la clé ; un passage de minuit efface le total précédent et une
-réponse obsolète après désactivation, changement de configuration ou nettoyage
-est ignorée. Les cartes ordinaires ne font aucune nouvelle requête.
-
-### Consommation du jour et coût en sous-titre — 1.5.2
-
-`summary.secondary_statistics` affiche un second total Recorder dans le détail
-sous la grande valeur calculée par `summary.statistics`. Les deux objets
-acceptent les mêmes options. Leurs sources sont regroupées dans **une seule
-requête par minute**, dans le même fuseau, avec au plus 16 sources uniques.
-Le second fuseau peut être omis pour hériter du premier. Un second objet
-invalide ou dans un autre fuseau donne `—` sans bloquer le premier total.
-Chaque total reste indisponible si une de ses propres sources manque ; un coût
-absent ne masque pas la consommation. Ces valeurs calculées n’ont pas de cible
-more-info. Les secondaires texte/entité existants restent inchangés en l’absence
-de `secondary_statistics`.
-
-```yaml
-signature_square:
-  summary:
-    name: Jour
-    statistics:
-      statistic_ids: [sensor.electricity_off_peak, sensor.electricity_peak]
-      unit: kWh
-      decimals: 2
-      time_zone: Europe/Paris
-    secondary_statistics:
-      statistic_ids: [sensor.electricity_off_peak_cost, sensor.electricity_peak_cost]
-      unit: €
-      decimals: 2
-```
-
-`statistics.factor` et `secondary_statistics.factor` multiplient le résultat
-avant formatage (nombre fini strictement positif, 1 par défaut). Pour afficher
-un compteur d’eau en m³ sous forme de litres, utiliser `factor: 1000`, `unit: L`
-et `decimals: 0`. Une unité seule ne convertit pas les sources.
-La hauteur, les styles, les illustrations et les actions des autres valeurs
-restent ceux du bandeau existant. Aucun helper ni abonnement supplémentaire.
 
 ## Couleurs du fond d’icône selon la valeur
 
@@ -242,7 +106,6 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 | `auto_height` | `false` | Adapter la hauteur au contenu |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
 | `illustration` | Aucun | Objet `image`, `image_light`, `image_dark`, `columns`, `rows`, `index` ; images externes et sprites facultatifs |
-| `summary` | Aucun | Objet `enabled`, `entity`, `name`, `secondary`, `statistics` ; bandeau de deux lignes, une ou deux mesures |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
 | `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
@@ -416,56 +279,6 @@ Aucun nœud, action, abonnement ou écouteur supplémentaire.
 - Seconde mesure depuis les statistiques du jour, sans helper et sans modifier les dimensions du bandeau.
 
 
-### Pourcentage restant du jour — 1.5.1
-
-`statistics.operation: remaining_percentage` affiche
-`100 × (1 − part / total)`, borné entre 0 et 100. `statistic_ids` forme le total,
-`subtract_statistic_ids` retire les sorties et `part_statistic_ids` sélectionne
-la part à retirer du pourcentage. Les deux listes facultatives utilisent les
-mêmes identifiants valides ; les sources soustraites doivent être distinctes
-des entrées, et la part doit être un sous-ensemble des entrées. La requête reste
-unique, avec au plus 16 sources au total. `operation` vaut `sum` par défaut ;
-les configurations de coût existantes sont inchangées.
-
-Exemple d’autosuffisance journalière, avec les compteurs d’énergie en kWh :
-
-```yaml
-signature_square:
-  summary:
-    name: Autosuffisance
-    statistics:
-      operation: remaining_percentage
-      statistic_ids:
-        - sensor.grid_import_energy
-        - sensor.solar_production_energy
-        - sensor.battery_discharge_energy
-      subtract_statistic_ids:
-        - sensor.grid_export_energy
-        - sensor.battery_charge_energy
-      part_statistic_ids:
-        - sensor.grid_import_energy
-      unit: '%'
-      decimals: 0
-      time_zone: Europe/Paris
-```
-
-Le dénominateur est import + production + décharge − export − charge :
-l’énergie stockée ou exportée n’est pas comptée comme consommation maison.
-C’est la formule de la [jauge d’autosuffisance HA](https://github.com/home-assistant/frontend/blob/dev/src/panels/lovelace/cards/energy/hui-energy-self-sufficiency-gauge-card.ts).
-Comme cette jauge, elle n’identifie pas l’origine de l’énergie stockée et peut
-afficher 0 % lors d’une recharge importante depuis le réseau. Un total nul ou
-négatif, une source absente ou une erreur donne `—`, jamais une division par
-zéro ou un pourcentage partiel. `secondary` est omis : aucun sous-titre.
-
-### 1.5.1
-
-- Pourcentage restant journalier, avec sorties soustraites et invalidation du cache lors d’un changement de formule.
-- Même bandeau et typographie ; aucune requête ou minuterie supplémentaire.
-
-### 1.5.2
-
-- Total journalier supplémentaire en sous-titre et facteur de conversion explicite ; une requête groupée et disponibilité indépendante des deux mesures.
-
 ## Alignement des valeurs — 1.5.3
 
 Les tuiles de hauteur fixe réservent toujours leur troisième ligne, même sans
@@ -477,60 +290,7 @@ aux bandeaux à une mesure. La hauteur native reste inchangée. Les cartes
 de mesure réservés conservent leur dimensionnement propre.
 
 
-## Bandeaux activité — 1.6.0
 
-Avec `activity: true`, une carte pleine largeur `rows: 2` conserve 120 px
-avec les dimensions natives standard. Nom/état/détail en haut à gauche,
-illustration à droite (72 px maximum), sous-boutons natifs en bas (30 px).
-Les mesures et commandes doivent être choisies pour tenir sur une ligne ;
-le module ne retire ni ne déplace automatiquement les informations métier.
-Ne pas combiner avec `summary`, `auto_height` ou `controls: measure`.
-Les bandeaux énergie et les cartes sans cette option restent inchangés.
+## Migration 2.0.0
 
-Les cartes `media-player` sont compatibles uniquement avec `activity: true`.
-Le titre, l’artiste, les commandes, leurs masquages et le volume restent
-natifs. L’illustration remplace la pochette native ; aucun contrôle recréé,
-observateur ou abonnement ajouté. Les autres options de tuile (état calculé,
-secondaire, seuils, sous-boutons et statistiques) ne s’appliquent pas au média.
-
-```yaml
-card_type: button
-button_type: state
-rows: 2
-grid_options: {columns: full, rows: 2}
-show_icon: false
-modules: [signature_square]
-signature_square:
-  activity: true
-  illustration:
-    image: /local/illustrations/activities-v1.png?v=1
-    columns: 4
-    rows: 6
-    index: 0
-    index_dark: 12
-    offset_y: 18
-    offset_y_dark: 6
-  progress:
-    value: "{{ states('sensor.progression') if has_value('sensor.progression') else '' }}"
-    color: '#308DCB'
-```
-
-`index_dark` et `offset_y_dark` sont facultatifs, propres à Square et suivent
-le thème HA effectif. Les valeurs habituelles `index`/`offset_y` servent de
-repli. `progress` est facultatif et réservé aux boutons activité ; `value`
-accepte un nombre ou Jinja, est borné de 0 à 100 et masque la barre si vide
-ou invalide. La couleur utilise l’accent de carte par défaut.
-
-### 1.6.0
-
-- Bandeaux activité illustrés avec sous-boutons et médias natifs.
-- Progression facultative, variante sombre dans une même planche.
-- Compatibilité énergie et tuiles existantes conservée.
-
-### 1.6.1 — Centrage des textes activité
-
-Le nom et l’état sont centrés ensemble dans la zone au-dessus des commandes. Un détail présent garde sa troisième ligne ; un détail absent ne réserve plus une ligne vide dans ce seul mode. Les autres tuiles conservent leur réserve habituelle. Pour les textes longs, activer `scrolling_effect: true` dans Bubble ; un texte calculé qui doit défiler utilise `state_content` natif plutôt que `signature_square.state`. Les lecteurs gardent leur défilement natif. Aucun moteur de défilement ajouté au module.
-
-### 1.6.2 — Centrer l’état entre le titre et les informations basses
-
-En activité, le nom reste en haut. L’état est centré verticalement entre le bas du nom et le haut de la ligne basse de sous-boutons, ou du détail lorsqu’il est présent. Le titre et l’état ne sont plus centrés comme un bloc commun. Les lecteurs centrent leur groupe de morceau/artiste dans le même espace disponible ; leurs contrôles et leur défilement restent natifs. Les cartes gardent leurs deux lignes et les images leur taille ; aucun calcul de géométrie JavaScript ajouté.
+Les bandeaux pleine largeur `summary` et `activity`, leurs statistiques et les lecteurs illustrés sont déplacés dans [Signature Panel](../../signature-panel/doc/README.md). Square conserve les tuiles de mesure, leurs illustrations, badges et contrôles. Installer Panel et migrer les cartes concernées avant de mettre à jour Square.

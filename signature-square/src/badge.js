@@ -1,6 +1,6 @@
 // A single native icon-only status button can occupy the detail row's corner.
 // Bubble still owns its visibility, title and handlers. No extra DOM or listener.
-const cornerBadge = !autoHeight && !summaryEnabled && o.controls !== 'measure'
+const cornerBadge = !autoHeight && o.controls !== 'measure'
   && flat.length === 1 && styles.find(({b,spec}) => spec.type === 'badge'
     && b === flat[0] && (!b.sub_button_type || b.sub_button_type === 'default')
     && b.show_name === false && b.show_state !== true && b.show_attribute !== true

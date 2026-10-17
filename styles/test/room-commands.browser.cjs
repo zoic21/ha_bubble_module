@@ -5,9 +5,9 @@ const {render}=require('./fixtures.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-room').code;
 
-async function alarm(page,{width=288,mode='light',plain=false,compact=false}={}) {
+async function alarm(page,{width=288,mode='light',plain=false}={}) {
  await render(page,{width,mode,plain});
- await page.evaluate(({code,compact})=>{
+ await page.evaluate(({code})=>{
   const shadow=document.querySelector('[data-id="room"]').shadowRoot;
   const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
   const choices=['disarmed','armed_away','armed_night'];
@@ -16,7 +16,7 @@ async function alarm(page,{width=288,mode='light',plain=false,compact=false}={})
    css_class:'room-control-'+(i+1),tap_action:{action:'perform-action',perform_action:['alarm_control_panel.alarm_disarm','alarm_control_panel.alarm_arm_away','alarm_control_panel.alarm_arm_night'][i],target:{entity_id:'alarm_control_panel.demo'}},hold_action:{action:'more-info'}}));
   ctx.config={...ctx.config,entity:'alarm_control_panel.demo',button_type:'state',show_state:true,show_icon:false,
    sub_button:{main:buttons},signature_room:{room_mode:'illustrated',room_auto_colors:false,room_state_as_value:true,
-    room_control_columns:3,room_compact:compact,room_state_centered:compact,room_show_divider:!compact,state:'{{ value }}',illustration:{image:'/local/illustration.webp'},
+    room_control_columns:3,state:'{{ value }}',illustration:{image:'/local/illustration.webp'},
     sub_button_styles:Object.fromEntries(buttons.map((b,i)=>[b.css_class,{type:'command',color:'#368ACB',active:'{{ active'+i+' }}',disabled:'{{ disabled'+i+' }}'}]))}};
   ctx.card.querySelector('.bubble-name').textContent='Alarme';
   ctx.elements.state.classList.remove('hidden');
@@ -47,7 +47,7 @@ async function alarm(page,{width=288,mode='light',plain=false,compact=false}={})
    shadow.querySelectorAll('style')[1].textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,template);
   };
   window.setCommandState('disarmed');
- },{code,compact});
+ },{code});
 }
 
 test('three native command positions and labels fit every alarm state without changing illustrated height',async t=>{
@@ -106,80 +106,10 @@ test('removing command options and tearing down restores attributes and native h
   ctx.config.signature_room={...ctx.config.signature_room,sub_button_styles:{}};window.setCommandState('disarmed');
   return {same:buttons.every(b=>ctx.card.contains(b)),commands:ctx.card.querySelectorAll('[data-dp-command]').length,
    attrs:buttons.map(b=>b.getAttribute('aria-disabled')),actions:buttons.map(b=>b.dataset.tapAction),original:actions,
-   nodes:ctx.card.querySelectorAll('*').length,originalNodes:nodes,disposed:!runtime.roomCommands};
+   nodes:ctx.card.querySelectorAll('*').length,originalNodes:nodes,disposed:!runtime.commandControls};
  });
  assert.ok(result.same&&result.disposed);assert.equal(result.commands,0);assert.deepEqual(result.attrs,[null,null,null]);assert.deepEqual(result.actions,result.original);assert.equal(result.nodes,result.originalNodes);
  await page.locator('[data-id="room"]').locator('.room-control-1').click();assert.equal((await page.evaluate(()=>window.commandActions)).length,1);
  await alarm(page);await page.evaluate(()=>window.commandContext.teardown());
  assert.equal(await page.locator('[data-id="room"]').locator('[data-dp-command]').count(),0);
-});
-
-test('optional divider removal and state centering follow the actual title and visible footer without moving artwork',async t=>{
- const page=await fixture(t);
- for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,358,382,600]){
-  await alarm(page,{width,mode,plain});
-  const measure=()=>page.evaluate(()=>{
-   const ctx=window.commandContext,box=n=>{const r=n.getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:r.height}};
-   const content=ctx.card.querySelector('.bubble-content-container'),art=getComputedStyle(content,'::after'),r=content.getBoundingClientRect();
-   return {card:box(ctx.card.querySelector('.bubble-container')),name:box(ctx.card.querySelector('.bubble-name')),
-    state:box(ctx.elements.state),commands:[...ctx.card.querySelectorAll('[data-dp-command]')].filter(n=>!n.hidden&&!n.classList.contains('hidden')).map(box),
-    divider:getComputedStyle(ctx.card.querySelector('.bubble-container'),'::after').display,
-    artCenter:r.top+parseFloat(art.top),artWidth:parseFloat(art.width),debug:{rows:getComputedStyle(content).gridTemplateRows,gap:getComputedStyle(content).rowGap,bottom:getComputedStyle(content).bottom,align:getComputedStyle(ctx.elements.state).alignSelf,area:getComputedStyle(ctx.elements.state).gridArea}};
-  });
-  const before=await measure();assert.notEqual(before.divider,'none');
-  await page.evaluate(()=>{Object.assign(window.commandContext.config.signature_room,{room_show_divider:false,room_state_centered:true});window.setCommandState('disarmed')});
-  for(const name of ['Alarme','Alarme de la maison et du garage']){
-   await page.evaluate(name=>{window.commandContext.card.querySelector('.bubble-name').textContent=name},name);
-   const result=await measure(),hint=JSON.stringify({mode,plain,width,name,result});
-   assert.equal(result.divider,'none',hint);assert.equal(result.card.height,148,hint);
-   const top=Math.min(...result.commands.map(r=>r.top));
-   assert.ok(Math.abs((result.state.top+result.state.bottom)/2-(result.name.bottom+top)/2)<1,hint);
-   assert.ok(result.state.top>=result.name.bottom&&result.state.bottom<=top,hint);
-   assert.ok(Math.abs(result.artCenter-before.artCenter)<1,hint);assert.equal(result.artWidth,before.artWidth,hint);
-  }
-  await page.evaluate(()=>{
-   const ctx=window.commandContext;ctx.card.querySelector('.bubble-name').textContent='Alarme';
-   delete ctx.config.signature_room.room_show_divider;delete ctx.config.signature_room.room_state_centered;window.setCommandState('disarmed');
-  });
-  const restored=await measure();assert.notEqual(restored.divider,'none');assert.deepEqual(restored.state,before.state);
-  // Both native hidden forms retain priority; all-hidden falls back to the
-  // ordinary no-footer geometry, even without another module execution.
-  await page.evaluate(()=>{
-   const ctx=window.commandContext;Object.assign(ctx.config.signature_room,{room_show_divider:false,room_state_centered:true});window.setCommandState('disarmed');
-   ctx.card.querySelector('.room-control-1').hidden=true;
-   ctx.card.querySelector('.room-control-2').classList.add('hidden');
-   ctx.card.querySelector('.room-control-3').hidden=true;
-  });
-  const hidden=await measure();assert.equal(hidden.commands.length,0);assert.equal(hidden.state.top,before.state.top);
- }
-});
-
-test('compact equipment cards fit 118px with unchanged 80px art and three readable 44px native command targets',async t=>{
- const page=await fixture(t);
- for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,358,382,600]){
-  await alarm(page,{width,mode,plain,compact:true});
-  for(const state of ['disarmed','armed_away','armed_night','triggered','arming','unknown','unavailable']){
-   const m=await page.evaluate(state=>{
-    window.setCommandState(state);const ctx=window.commandContext;
-    const box=n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
-    const content=ctx.elements.contentContainer,cr=content.getBoundingClientRect(),art=getComputedStyle(content,'::after');
-    const a={width:parseFloat(art.width),height:parseFloat(art.height),x:cr.right-parseFloat(art.right)-parseFloat(art.width),center:cr.y+parseFloat(art.top)};
-    return {card:box(ctx.card.querySelector('.bubble-container')),name:box(ctx.card.querySelector('.bubble-name')),state:box(ctx.elements.state),art:a,
-     controls:[...ctx.card.querySelectorAll('[data-dp-command]')].map(node=>{const label=node.querySelector('.bubble-sub-button-name-container'),range=document.createRange();range.selectNodeContents(label);return {box:box(node),label:box(label),textWidth:range.getBoundingClientRect().width,scroll:label.scrollWidth,client:label.clientWidth}}),
-     divider:getComputedStyle(ctx.card.querySelector('.bubble-container'),'::after').display};
-   },state);
-   const hint=JSON.stringify({mode,plain,width,state,m});
-   assert.equal(m.card.height,118,hint);assert.equal(m.art.width,80,hint);assert.equal(m.art.height,80,hint);assert.equal(m.divider,'none',hint);
-   assert.ok(Math.abs(m.art.center-(m.card.y+m.card.height/2))<1,hint);
-   const footer=m.controls[0].box.y;
-   assert.ok(m.state.y>=m.name.bottom+2&&m.state.bottom<=footer-2,hint);
-   assert.ok(Math.abs((m.state.y+m.state.bottom)/2-(m.name.bottom+footer)/2)<1,hint);
-   m.controls.forEach((control,i)=>{
-    assert.equal(control.box.height,44,hint);assert.ok(control.box.width>=44,hint);assert.ok(control.scroll<=control.client+1,hint);assert.ok(control.textWidth<=control.label.width+.1,hint);
-    assert.ok(control.box.right<=m.art.x-4,hint);if(i)assert.ok(m.controls[i-1].box.right<control.box.x,hint);
-   });
-  }
-  const restored=await page.evaluate(()=>{const ctx=window.commandContext;delete ctx.config.signature_room.room_compact;window.setCommandState('disarmed');return {height:ctx.card.querySelector('.bubble-container').getBoundingClientRect().height,density:ctx.card.getAttribute('data-dp-room-density')}});
-  assert.equal(restored.height,148);assert.equal(restored.density,'standard');
- }
 });

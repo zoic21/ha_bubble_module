@@ -15,14 +15,13 @@ test('fixed Square values retain their baseline when optional detail appears or 
    const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
    const style=shadow.querySelectorAll('style')[1];
    const out=[];
-   for(const variant of ['classic','illustrated','summary','measure']){
+   for(const variant of ['classic','illustrated','measure']){
     const samples=[];
-    for(const secondary of ['', variant==='summary'?'65 %':'Rafales · 3,2 km/h', '']){
+    for(const secondary of ['', 'Rafales · 3,2 km/h', '']){
      ctx.config.show_icon=variant==='classic'||variant==='measure';
      ctx.elements.iconContainer.classList.toggle('hidden',!ctx.config.show_icon);
      ctx.config.signature_square={secondary,
       ...(variant==='illustrated'?{illustration:{image:'/local/room.png'}}:{}),
-      ...(variant==='summary'?{summary:{enabled:true},illustration:{image:'/local/room.png'}}:{}),
       ...(variant==='measure'?{controls:'measure'}:{})};
      style.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;')
       .call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);
@@ -48,7 +47,7 @@ test('fixed Square values retain their baseline when optional detail appears or 
    assert.ok(samples[1].detailBottom<=samples[1].cardBottom,'detail leaves the card');
    if(variant==='illustrated')assert.equal(samples[0].artWidth,samples[1].artWidth,'art resizes with detail');
   }
-  assert.equal(results[0].samples[0].top,results[3].samples[0].top,'measurement controls move the baseline');
+  assert.equal(results[0].samples[0].top,results[2].samples[0].top,'measurement controls move the baseline');
  }
 });
 

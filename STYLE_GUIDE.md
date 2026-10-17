@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.4.6**, **Square 1.6.2**, **Header 1.1.14**, **Room 1.3.7**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.4.6**, **Square 2.0.0**, **Header 1.1.14**, **Room 1.4.0**, **Signature Flow 3.6.1**, **Signature Weather 1.3.4**, **Signature Wind Rose 1.5.4** et **Signature Navigation 1.0.8**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -273,16 +273,6 @@ Les nombres ou templates Jinja `illustration.offset_x` et `offset_y` corrigent u
 Les couleurs et surfaces héritées restent dans le CSS, sans lecture de style,
 timer, écouteur, abonnement ou image intégrée au module.
 
-### Bandeau Square à une ou deux mesures (1.4.1)
-
-Depuis Square 1.6.0, le Square fixe et le bandeau à une seule mesure conservent trois rangées de texte, y compris sans secondaire. Les positions du nom et de la valeur restent identiques lorsque le secondaire apparaît ou disparaît. L’illustration reste centrée dans le bandeau de 120 px. L’interligne secondaire vaut au moins 16 px ou 1,2 fois sa taille CSS effective ; il suit le thème sans nouveau rendu JavaScript.
-
-Depuis Square 1.4.3, la rangée des noms reprend les 36 px du Square classique, avec le même interligne de 20 px et un centrage vertical. Un nom sur une ligne commence ainsi à 18 px du bord extérieur (bordure 1 px + retrait 9 px + centrage 8 px), en pleine largeur comme en demi-largeur. Les noms longs peuvent toujours agrandir cette rangée ; conserver la hauteur totale de 120 px et le centrage de l’illustration.
-
-Un objet `summary` avec `entity` valide active deux colonnes de mesures, plus une colonne décorative facultative. Il conserve le nombre de lignes natif : deux lignes de 56 px et leur écart de 8 px donnent 120 px, sans hauteur minimale ajoutée. L’illustration suit `signature-illustration-size` mais rétrécit sur les cartes étroites ou trop basses ; elle est centrée verticalement. Les titres, valeurs et détails des deux mesures partagent les trois lignes de grille ; les textes secondaires peuvent revenir à la ligne. Les nombres utilisent `clamp(18px,7cqw,valeur)` et les unités `clamp(12px,4cqw,unité)` pour préserver les quantités sur mobile. Garder les quatre cibles de détails et le gestionnaire délégué Bubble, sans listener/observateur supplémentaire. Les badges d’alerte restent visibles au-dessus de l’illustration lorsque l’icône est masquée. Le bandeau ne s’applique pas à `auto_height` ou `controls: measure` ; utiliser une carte sans sous-boutons.
-
-Un objet `summary: {enabled: true}` sans `entity` utilise le même bandeau avec une seule mesure et sans colonne intermédiaire ni nouveau nœud. La valeur/unité gardent les tailles standard de 28/16 px ; la taille cible de l’image et la hauteur restent les mêmes. `enabled: false` désactive le bandeau. Un objet vide ou une seconde entité invalide ne l’active pas. Les valeurs, unités, actions et secondaires existants sont conservés.
-
 ### Room illustrée (1.1.5)
 
 `room_mode: illustrated` est une variante explicite ; le mode classique reste le défaut. Hauteur de base 148 px (28 px de moins que la première variante illustrée), plus 48 px par rangée de commandes supplémentaire. Le nom sur deux lignes et la température sont à gauche du dessin ; le titre conserve 38 px. Les mesures d’en-tête sont ignorées dans cette variante. La décoration partage `signature-illustration-size` avec Square : 80 px par défaut, réduction sur les cartes étroites pour préserver les textes. Une valeur supérieure à 80 px agrandit la hauteur de base pour dégager les commandes ; le texte secondaire garde sa propre rangée et adapte la hauteur. L’humidité et l’icône principale sont masquées sans supprimer leurs configurations natives. Les valeurs, unités, badges conditionnels, actions et cibles de commandes de 44 px sont conservés.
@@ -345,31 +335,6 @@ expression disabled non résolue ne doit pas activer une commande.
 13 px, texte sans unité de 22 px au maximum ; états Room ordinaires à 17 px.
 Tester positions, états longs, largeur 288–600 px, clair/sombre, avec/sans thème,
 clic/clavier/actions en cache et en cours, changements d’état et retrait.
-
-Room 1.3.1 permet `room_show_divider: false` : seule la ligne décorative est
-masquée. `room_state_centered: true` utilise une première rangée intrinsèque
-pour le titre (au plus deux lignes), puis centre l’état dans l’espace jusqu’au
-haut des cibles natives visibles. Opt-in illustré sans secondaire, sans effet
-sans état ou commandes visibles. Le dessin conserve exactement sa taille et
-son centre antérieurs ; ne pas le centrer dans la nouvelle grille raccourcie.
-Hauteur, cibles, badges, actions, modes par défaut et secondaire restent
-inchangés. Vérifier les deux longueurs de titre, les commandes masquées par
-classe/attribut et le retrait des options. CSS seulement, aucune mesure ou
-surveillance JavaScript supplémentaire.
-
-Room 1.3.2 propose `room_compact` pour un équipement illustré avec état, sans
-secondaire et une rangée de une à trois commandes nommées `type: command`.
-Hauteur 118 px, image carrée toujours à 80 px, centrée dans toute la carte ;
-nom sur une ligne et état centré dans l’espace jusqu’aux commandes. La zone
-des commandes s’arrête à gauche du dessin, au lieu d’en réserver la hauteur.
-Espacement de 3 px entre contrôles, padding horizontal de 0,5 px, libellés de
-11 px au maximum (rôle de légende compact), cibles hautes
-de 44 px, largeur supérieure à 44 px dès 288 px avec les variables par défaut.
-Conserver les libellés entiers Désarmer/Armer/Nuit et le blocage des commandes.
-L’image absente libère sa largeur et les masquages natifs libèrent le pied.
-Une configuration incompatible revient au gabarit normal ; ne pas compresser
-les pièces, leurs deux lignes de nom ou leurs mesures par défaut. Aucun
-scale, nouveau nœud, mesure JavaScript ou surveillance.
 
 Depuis la racine, avec Node.js 22 ou plus récent :
 
@@ -472,28 +437,6 @@ Les cartes, leurs commandes et leur visibilité restent natives. Le module ne d�
 Group 1.0.1 peut masquer une synthèse vide via le contrat natif Home Assistant, sans laisser de case dans la grille et sans déconnecter ses mises à jour. Ne pas ajouter de message vide dans le placeholder de popup en mode édition ; conserver le bouton de synthèse accessible à l’édition. Une source manquante reste distinguée d’une source vide.
 
 
-### Seconde mesure issue des statistiques — Square 1.5.0
-
-`summary.statistics` utilise les mêmes nœuds, styles, 28/16 px et grille de deux
-lignes que la seconde mesure classique. Aucun style ou DOM distinct pour le
-coût : illustration à droite, hauteur native de 120 px et lignes de titres,
-valeurs et secondaires communes. Les statistiques manquantes/en erreur restent
-`—`, jamais un total partiel ou l’état cumulé brut. La source est facultative ;
-les cartes sans statistiques ne font aucune requête. Une requête Recorder au
-plus par minute est déclenchée par les mises à jour HA, sans timer, observateur
-ou abonnement ajouté. Les réponses périmées sont ignorées au changement de
-jour/configuration/module et au nettoyage. Le total de plusieurs statistiques
-ne possède pas d’entité more-info fictive ; seules les cibles réellement liées
-à une entité restent interactives. Les formulaires et les autres layouts ne
-changent pas.
-
-
-Square 1.5.1 réutilise ce même bandeau pour `operation: remaining_percentage`.
-Le titre Autosuffisance et le pourcentage gardent les rôles existants, sans
-sous-titre lorsqu’aucun `secondary` n’est configuré. Les sorties d’énergie sont
-soustraites avant le ratio ; un dénominateur nul ou une source manquante reste
-`—`. La formule et les sources entrent dans la clé du cache journalier.
-
 ### Alignement des mesures — Square 1.6.0 et Compact 1.4.6
 
 Le Square fixe réserve toujours sa ligne secondaire de `max(16px, secondaire ×
@@ -511,32 +454,6 @@ tabulaires ; aucune couleur ou action remplacée. Les templates natifs
 `state_content` gardent la responsabilité du texte, des décimales et des
 unités. Le masquage natif et le retrait de l’option restent réversibles sans
 remplacement de nœud ni observateur ajouté.
-
-
-### Bandeaux activité — Square 1.6.0
-
-`activity: true` réserve la partie basse d’un bouton aux sous-boutons natifs,
-sans modifier leurs conditions ou actions. Utiliser deux lignes natives et
-une pleine largeur (120 px avec le pas standard). Le nom, l’état et le détail
-restent en haut à gauche ; l’illustration à droite est limitée à 72 px pour
-laisser une rangée de commandes de 30 px. Ce format est opt-in et ne modifie
-pas les synthèses énergie. Les cartes media-player nécessitent aussi cette
-option ; elles gardent leurs nœuds natifs, piste de volume et gestionnaires.
-La pochette native masquée est remplacée par l’illustration décorative ; les
-informations de morceau restent natives. Aucune commande n’est recréée.
-
-Sur Square, `illustration.index_dark` et `offset_y_dark` permettent de lire
-une variante sombre dans la même planche. Sans ces options, les valeurs
-`index` et `offset_y` restent utilisées. Choix selon le thème HA effectif,
-sans abonnement supplémentaire. `progress.value` et `progress.color`
-affichent une piste de 3 px sur les boutons d’activité : valeur bornée 0–100,
-vide/non numérique masqué. Aucun état métier ni action n’est créé.
-
-### Alignements équipements et activité — Room 1.3.3 / Square 1.6.1
-
-`room_inline_metrics: true`, uniquement pour un équipement illustré avec état et 1–2 contrôles de mesure non nommés, aligne les centres des trois cibles sur la ligne basse. Conserver les 148 px, les 80 px du dessin et les cibles de mesure de 44 px ; aucun séparateur dans ce mode. Les commandes nommées et les autres pièces gardent leur placement. Retirer l’option restitue les styles précédents.
-
-Le mode `activity` centre le groupe nom/état dans la zone au-dessus des commandes, avec une troisième ligne uniquement lorsqu’un détail existe. Les autres Square gardent leur ligne secondaire réservée. Garder les mêmes nœuds et le défilement natif Bubble (`scrolling_effect`) ; les textes calculés à faire défiler passent par `state_content` natif. Aucun observateur ou timer de défilement supplémentaire.
 
 
 ### Synthèse d’activités — Group 1.1.0
@@ -564,76 +481,14 @@ avec/sans thème, compteur masqué si tout tient, aucun élément partiel, noms
 longs, changement de taille/police/thème, disparition de source et retrait.
 Les tests de fixtures ne constituent pas un essai Home Assistant ou Safari/iOS.
 
-### Retouche des mesures compactes et du centrage activité — Room 1.3.4 / Square 1.6.2
+## Signature Panel 1.0.0
 
-`room_inline_metrics` combiné à `room_compact` place les trois valeurs à gauche du dessin, sur une carte de 118 px. Le titre reste en haut, le dessin à droite mesure 80 px, les cibles de mesure 44 px. La valeur principale et les deux contrôles partagent le centre de la zone sous le titre. Les mesures seules ne doivent pas hériter de la grille des commandes nommées. Conserver les nœuds et les couleurs ; la version 148 px reste disponible sans compact.
+Le format pleine largeur de deux pas appartient exclusivement à Panel : 118 px visibles, illustration de 80 px à droite centrée sur toute la carte, une à trois informations et jusqu’à trois boutons visibles. Square conserve ses tuiles et Room ses pièces. Ne pas réintroduire leurs variantes d’équipement ou bandeau.
 
-En activité Square, centrer uniquement l’état entre le bas du titre fixe et le haut des informations basses. Si un détail est présent, sa ligne constitue la borne basse du centrage. Les lecteurs centrent le groupe morceau/artiste dans la zone entre titre et commandes. Conserver les 120 px natifs, les dessins, les sous-boutons et le défilement Bubble. Aucun nouveau nœud, timer ou observateur. Vérifier les centres réels, au lieu de centrer le bloc titre/état entier.
+La grille unique appartient à `.bubble-container` ; les wrappers natifs sont sans boîte. Titres, valeurs et détails utilisent les mêmes lignes. Garder `display: flex !important` pour l’état contre le pipeline natif Bubble `-webkit-box`. Les noms partagent 14 px/600, les valeurs 28 px/500, les unités 16 px/400, les secondaires 13 px/400, les états textuels au plus 22 px. Avec trois informations la valeur commune est responsive (13–28 px) et l’unité 11–16 px ; avec commandes nommées, valeur 20 px. Conserver les tokens de police, poids, surface, texte et rayon sans thème et lors de changements de thème.
 
-### Cadre natif des mesures Room compactes — 1.3.5
+Retraits extérieurs : 12 px horizontalement, 10 px verticalement avec la bordure ; 8 px entre les colonnes. Avec commandes nommées, retrait vertical 8 px, cibles de 44 px et légende commune 11 px. Pas de séparateur ajouté. Carte 22 px, contrôles 14 px. Les textes restent primaires, unités/détails secondaires, icônes accentuées. Les valeurs supplémentaires utilisent les actions déléguées Bubble ; seules les commandes désactivables installent le garde commun testé avec Room.
 
-Tester le mode `room_inline_metrics` + `room_compact` avec le contrat natif
-Bubble `fixed-top` et un conteneur de nom positionné. Une fixture qui omet
-`align-self: flex-start`, `min-height: 54px` et ce wrapper ne reproduit pas le
-cadre réellement rendu. Fixer explicitement la hauteur intérieure du contenu,
-son alignement et ses marges ; retirer le positionnement relatif du wrapper
-sans boîte (`display: contents`). L’image de 80 px se centre dans les 118 px.
-Les trois cibles partagent le centre de la zone sous le titre et leurs textes
-la même typographie 13–22 px, graisse normale, interligne 1,2, unités comprises.
-La colonne intermédiaire est plus large pour l’unité et l’icône. Préserver les
-entités, couleurs, actions et les autres modes Room.
+Les URL, index et cadrages sont fournis par la configuration Jinja. Le lecteur de sprites commun choisit seulement la variante du mode HA effectif. Aucun état métier, image embarquée, nouvel observateur ou abonnement. Les requêtes statistiques restent facultatives et testées pour fuseau, minuit, changement d’heure, sources incomplètes et réponses périmées.
 
-Les suffixes CSS dynamiques ciblant les enfants utilisent un combinateur
-explicite `>` : leur espace descendant initial peut disparaître lors de la
-minification d’un fragment isolé. Vérifier le CSS distribué avec les vraies
-classes natives, les polices calculées et les boîtes des lignes de texte.
-
-### Repère unique des mesures compactes — Room 1.3.6
-
-La nouvelle capture utilisateur montre que la correction 1.3.5 ne suffit pas
-sur son installation. En compact inline, les wrappers de carte/contenu/nom
-utilisent `display: contents` et un positionnement statique : l’état, les deux
-sous-boutons et l’illustration se positionnent depuis `.bubble-container`.
-Le titre a ses propres coordonnées supérieures ; aucune grille intermédiaire
-ne doit créer une origine différente pour la puissance. Vérifier directement
-que les trois `offsetParent` désignent cette même carte, puis comparer les
-boîtes des textes, les tailles, les cibles de 44 px et le centre de l’image.
-Garder les variables de police responsive sur le wrapper descendant du
-conteneur CSS afin que `cqw` utilise la largeur de la carte.
-
-`room_hover: false` est une exception explicite par carte : transmettre
-`--ha-ripple-hover-opacity: 0` aux `ha-ripple` natifs. Ne pas masquer les ripples,
-retirer les actions ou neutraliser le retour d’appui. Sans l’option, survol natif
-conservé. Tester clics carte/valeur/deux mesures, retrait de l’option et carte
-voisine inchangée. Les autres modes Room gardent leur disposition.
-
-### Pipeline natif et grille unique — Room 1.3.7
-
-La capture suivante rejette encore 1.3.6. Le rendu du composant Bubble complet
-reproduit cette fois le défaut : le pipeline non défilant applique un style
-en ligne `display: -webkit-box` à l’état. Les cibles étaient alignées mais la
-puissance n’était plus flex, donc son texte restait en haut. Comparer seulement
-les boîtes parentes ou reproduire uniquement les CSS natifs ne suffit pas.
-
-Pour le compact inline, sélectionner `signature-room/src/inline-metrics.css.js`
-**à la place** des présentations classique/illustrée, pas après celles-ci.
-Conserver une grille à deux rangées, des wrappers structurels sans boîte et les
-nœuds natifs comme enfants de grille. Les trois mesures partagent la rangée 2,
-la même hauteur de 44 px et le même centrage flex ; le dessin occupe les deux
-rangées dans la dernière colonne. L’état a un `display: flex !important` ciblé
-contre le style natif en ligne. Éviter les transitions natives de hauteur et
-de police sur ces cibles pour garder le placement stable dès le rafraîchissement.
-Ne pas réintroduire de coordonnées absolues, de grille Room sous-jacente ni
-de surcharges de grande valeur dans ce mode. Le cache inclut la variante
-compacte et ses colonnes ; les autres variantes gardent leur CSS existant.
-
-Le test `styles/test/room-native-runtime.browser.cjs` charge le vrai Bubble
-3.4.1 (`061ed837`, SHA blob vérifié), son pipeline de texte et son nettoyage CSS.
-Définir `BUBBLE_NATIVE_SCRIPT_PATH=/chemin/vers/dist/bubble-card.js` pour l’exécuter ;
-sans ce fichier externe, il est signalé ignoré. Le faux backend doit retourner
-des ressources non vides à `frontend/get_icons`, sinon Bubble relance indéfiniment
-la requête et le rendu. Les 96 configurations couvrent quatre largeurs,
-clair/sombre, avec/sans thème, défilement activé/désactivé et trois états de
-puissance ; chaque cas est revérifié après un rafraîchissement natif. Garder
-la preuve d’échec sur 1.3.6, les centres des textes et les gestes natifs, pas
-seulement le nombre de tests. Le navigateur de ces essais reste Chromium.
+Tester 288/328/358/382/600 px, clair/sombre, avec/sans thème, une/deux/trois informations, détails et 0–3 commandes, mises à jour natives et thème seul, clics/désactivation/teardown et média. `styles/test/panel-native.browser.cjs` utilise le vrai Bubble 3.4.1 avec `BUBBLE_NATIVE_SCRIPT_PATH` ; il vérifie le SHA de la source. Le backend HA est simulé ; ne pas déduire une validation HA réelle ou Safari/iOS.

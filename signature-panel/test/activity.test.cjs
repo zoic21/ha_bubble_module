@@ -3,8 +3,8 @@ const vm = require('node:vm');
 const {test} = require('node:test');
 const {loadModule} = require('../../shared/test/module.cjs');
 
-const definition = loadModule('signature-square');
-const context = vm.createContext({...require('./dom.cjs'), Intl, setTimeout, clearTimeout});
+const definition = loadModule('signature-panel');
+const context = vm.createContext({...require('../../signature-shared/test/dom.cjs'), Intl, setTimeout, clearTimeout});
 const render = vm.runInContext('(function(hass,onTeardown,renderTemplate){return `' + definition.code + '`;})', context);
 
 function fixture(options = {}, native = {}) {
@@ -17,7 +17,7 @@ function fixture(options = {}, native = {}) {
   content.append(icon,names); names.append(value);
   const entity = 'sensor.demo';
   const ctx = {card:root, elements:{state:value,nameContainer:names,contentContainer:content,iconContainer:icon},
-    config:{card_type:'button',button_type:'state',entity,show_icon:false,signature_square:options,...native}};
+    config:{card_type:'button',button_type:'state',entity,show_icon:false,signature_panel:options,...native}};
   const hass = {locale:{language:'fr-FR',number_format:'space_comma'},
     states:{[entity]:{state:'2.2',attributes:{unit_of_measurement:'km/h'}}}};
   const run = (template = x => x) => render.call(ctx,hass,fn => ctx.teardown = fn,template);
@@ -26,7 +26,7 @@ function fixture(options = {}, native = {}) {
 
 test('activity progress is opt-in, bounded and disappears for invalid input',t=>{
   const f=fixture({activity:true,progress:{value:25,color:'#308DCB'}});t.after(()=>f.ctx.teardown());
-  const options=f.ctx.config.signature_square;
+  const options=f.ctx.config.signature_panel;
   for(const [value,expected] of [[-2,0],[25,25],[120,100]]){
     options.progress.value=value;const css=f.run();
     assert.ok(css.includes(' * '+expected+' / 100)'));
@@ -36,7 +36,7 @@ test('activity progress is opt-in, bounded and disappears for invalid input',t=>
     options.progress.value=value;assert.ok(!f.run().includes(' * NaN / 100)'));
     assert.ok(!f.run().includes('.bubble-wrapper::after'));
   }
-  options.activity=false;options.progress.value=50;
+  delete options.progress;
   assert.ok(!f.run().includes('.bubble-wrapper::after'));
 });
 
@@ -45,15 +45,15 @@ test('day/night sprite positions update on the same activity and media nodes',t=
   const f=fixture({activity:true,illustration:{image:'/local/atlas.png',columns:4,rows:6,index:1,index_dark:13,offset_y:18,offset_y_dark:6}},{card_type:kind});
   t.after(()=>f.ctx.teardown());f.hass.themes={darkMode:false};
   const children=f.content.children.length;
-  const day=f.run();const runtime=f.ctx._signatureSquareRuntime;
+  const day=f.run();const runtime=f.ctx._signaturePanelRuntime;
   f.hass.themes.darkMode=true;const dark=f.run();
   assert.ok(day.includes('--dp-illustration-position:33.333333333333336% 3.6%;'));
   assert.ok(dark.includes('--dp-illustration-position:33.333333333333336% 61.2%;'));
-  assert.equal(f.ctx._signatureSquareRuntime,runtime);
+  assert.equal(f.ctx._signaturePanelRuntime,runtime);
   assert.equal(f.ctx.elements.state,f.value);assert.equal(f.content.children.length,children);
   if(kind==='media-player'){
-    assert.equal(f.root.getAttribute('data-dp-layout'),null,'native media never gets tile layout');
-    f.ctx.config.signature_square.activity=false;assert.equal(f.run(),'');
+    assert.equal(f.root.getAttribute('data-dp-layout'),'panel');
+    f.ctx.config.card_type='cover';assert.equal(f.run(),'');
     assert.equal(f.root.getAttribute('data-dp-illustration'),null,'cleanup before incompatible return');
   }
  }

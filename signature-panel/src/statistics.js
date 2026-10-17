@@ -1,3 +1,6 @@
+// Recorder daily totals share the proven timezone/reset handling of energy summaries.
+const dailyPanelStatistics = (summary, runtime, paint) => {
+const panelRuntime = this._dpRuntime;
 // Optional daily total or percentage. Recorder's change accounts for meter
 // resets; never subtract or sum the live cumulative entity states.
 const statisticOptions = summary.statistics;
@@ -27,6 +30,8 @@ let secondaryStatistics = secondaryStatisticsMode ? statisticsConfig(summary.sec
 if (secondaryStatistics && ((summary.secondary_statistics.time_zone || statisticsZone) !== statisticsZone
     || new Set([...primaryStatistics.ids,...secondaryStatistics.ids]).size > 16)) secondaryStatistics = null;
 const statisticIds = [...new Set([...(primaryStatistics?.ids || []),...(secondaryStatistics?.ids || [])])];
+// Keep source reads visible to Bubble's native dependency tracking.
+for (const id of statisticIds) hass.states[id];
 const dailyWindow = (stamp, zone) => {
   if (runtime.summaryStatisticsZone !== zone) {
     runtime.summaryStatisticsFormatter = new Intl.DateTimeFormat('en-CA', {timeZone:zone,
@@ -61,7 +66,7 @@ const dailyStatistics = paint => {
   if (data.pending || (data.lastAttempt !== null && window.end-data.lastAttempt < 60000)
       || typeof hass.callWS !== 'function') return;
   data.pending = true; data.lastAttempt = window.end;
-  const current = () => this._dpRuntime === runtime && runtime.summaryStatistics === data;
+  const current = () => this._dpRuntime === panelRuntime && runtime.summaryStatistics === data && panelRuntime.information.includes(runtime);
   const request = {type:'recorder/statistics_during_period',
     start_time:new Date(window.start).toISOString(),end_time:new Date(window.end).toISOString(),
     statistic_ids:statisticIds,period:'5minute',types:['change']};
@@ -95,4 +100,8 @@ const dailyStatistics = paint => {
     data.pending = false;
     data.paint(data.value,data.secondaryValue);
   });
+};
+
+if (statisticsEnabled) dailyStatistics(paint);
+else { runtime.summaryStatistics = null; paint(null,null); }
 };

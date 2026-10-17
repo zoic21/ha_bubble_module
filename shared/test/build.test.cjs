@@ -7,9 +7,9 @@ const {build, modules} = require('../../scripts/build-modules.cjs');
 const {root, readSource} = require('../../scripts/source-files.cjs');
 const {readModuleDefinition} = require('../../scripts/module-definition.cjs');
 
-test('all ten modules have reproducible, autonomous distributions built from sources', async () => {
+test('all eleven modules have reproducible, autonomous distributions built from sources', async () => {
   assert.deepEqual(modules(), ['alert_manager', 'signature-compact', 'signature-flow', 'signature-group', 'signature-header',
-    'signature-navigation', 'signature-room', 'signature-square', 'signature-weather', 'signature-wind-rose']);
+    'signature-navigation', 'signature-panel', 'signature-room', 'signature-square', 'signature-weather', 'signature-wind-rose']);
   for (const folder of modules()) {
     const first = await build(folder), second = await build(folder);
     assert.equal(first.content, second.content, folder + ' is not deterministic');

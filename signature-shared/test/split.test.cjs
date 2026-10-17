@@ -185,7 +185,7 @@ test('switching Compact from a numeric tile to media releases controls, observer
 });
 
 test('unsupported native types render nothing and clean up their previous presentation',()=>{
-  const invalid={square:[{card_type:'cover'},{button_type:'switch'}],room:[{card_type:'climate'},{button_type:'slider'}],compact:[{card_type:'pop-up'},{button_type:'slider'}],header:[{button_type:'state'},{card_type:'cover'}]};
+  const invalid={panel:[{card_type:'cover'},{button_type:'switch'}],square:[{card_type:'cover'},{button_type:'switch'}],room:[{card_type:'climate'},{button_type:'slider'}],compact:[{card_type:'pop-up'},{button_type:'slider'}],header:[{button_type:'state'},{card_type:'cover'}]};
   for(const layout of layouts)for(const config of invalid[layout]){
     const f=fixture(layout);f.run();Object.assign(f.ctx.config,config);
     assert.equal(f.run(),'');assert.equal(f.ctx.card.getAttribute('data-dp-layout'),null);f.ctx.teardown();
@@ -204,7 +204,7 @@ test('module forms expose only their useful fields and preserve mixed YAML types
       const visible=new Function('item','hass','card','return !!('+field.visible_if+');');
       assert.doesNotThrow(()=>visible({}, {},undefined));
       assert.equal(visible({}, {},{card_type:'pop-up'}),false);
-      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='compact'&&['color','color_background'].includes(name));
+      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel' || layout==='compact'&&['color','color_background'].includes(name));
     }
   }
   assert.deepEqual(definitions.compact.editor[1].fields.controls.selector.select.options.map(o=>o.value),['native','number']);

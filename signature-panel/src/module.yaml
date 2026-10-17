@@ -1,0 +1,60 @@
+name: Signature Panel
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+  - media-player
+description: Carte illustrée pleine largeur, deux pas de hauteur, une à trois informations et commandes Bubble natives. Un seul module de présentation par carte.
+editor:
+  - type: constant
+    label: Utiliser rows 2 et grid_options columns full / rows 2. Nom, entité, actions et sous-boutons restent dans les réglages Bubble natifs.
+  - name: ""
+    label: Réglages du panneau
+    type: signature_options
+    fields:
+      illustration:
+        label: Illustration (objet YAML)
+        selector:
+          object: {}
+        description: image, image_light/image_dark, columns/rows, index/index_dark, offset_x/offset_y/offset_y_dark. URLs et cadrage acceptent Jinja. Le module ne déduit aucun état métier.
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      information:
+        label: Informations supplémentaires (liste YAML, deux au maximum)
+        selector:
+          object: {}
+        description: La première information utilise le nom/état natif et secondary. Chaque entrée ajoute entity, name, state, secondary, icon, color, tap_action et/ou statistics, secondary_statistics. Les valeurs et libellés acceptent Jinja.
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      color:
+        $field: color
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      state:
+        $field: state
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      secondary:
+        $field: secondary
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      secondary_bold:
+        $field: secondary_bold
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      color_background:
+        $field: color_background
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      border_color:
+        $field: border_color
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      sub_button_styles:
+        $field: sub_button_styles
+        description: "Styles des sous-boutons natifs, par classe ou numéro. type command : icône/libellé, cible 44 px, active/disabled en booléen ou Jinja. Trois commandes visibles au maximum."
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      hover:
+        label: Surbrillance au survol
+        default: true
+        selector:
+          boolean: {}
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      progress:
+        label: Progression (objet YAML)
+        selector:
+          object: {}
+        description: "value : 0 à 100 ou Jinja ; color : accent facultatif. Sans valeur numérique, piste masquée."
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

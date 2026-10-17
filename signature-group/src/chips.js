@@ -100,7 +100,7 @@ for (let i = 0; i < labels.length; i++) {
   if (chip.label.textContent !== labels[i]) chip.label.textContent = labels[i];
   // Reuse the popup card's illustration contract, including its atlas crop and
   // effective HA theme. No second list of equipment or installation-specific art.
-  const square = card.signature_square;
+  const square = card.signature_panel || card.signature_square;
   const illustration = (square || card.signature_room)?.illustration || {};
   const renderArt = value => String(renderTemplate(value, card.entity) ?? '').trim();
   const dark = hass?.themes?.darkMode;

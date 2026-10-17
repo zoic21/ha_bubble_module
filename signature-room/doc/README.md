@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.3.7**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.4.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -180,39 +180,6 @@ une sortie explicite `false` la réactive. Sans expression, l’action reste nat
 Cette option réutilise les nœuds, formatages et actions de valeur existants ;
 les états habituels des pièces restent à 17 px sans l’option.
 
-`room_show_divider: false` retire uniquement le trait décoratif au-dessus des
-commandes. `room_state_centered: true` centre l’état entre le bas réel du nom
-(une ou deux lignes) et le haut des cibles de commandes. Ce centrage concerne
-le mode illustré sans secondaire, avec état et commandes visibles ; les autres
-cas gardent leur placement habituel. L’illustration, la hauteur et les cibles
-de 44 px ne bougent pas. Les deux options sont indépendantes et désactivées
-par défaut ; leur retrait restaure le rendu existant, sans nouveau nœud,
-mesure JavaScript, écouteur ou observateur.
-
-### Équipement double hauteur
-
-`room_compact: true` ramène la carte illustrée à **118 px**, avec l’image de
-**80 × 80 px** inchangée, centrée verticalement à droite. Le nom reste sur une
-ligne ; l’état est centré entre ce nom et les commandes. Les trois commandes
-occupent seulement l’espace à gauche de l’image, avec des écarts de 3 px et
-un padding horizontal réduit et des libellés de 11 px au maximum.
-Elles gardent leurs nœuds, libellés, icônes et
-cibles natives de **44 px de haut**, sans transformation ou réduction d’échelle.
-À 288 px de carte et avec les variables du thème par défaut, les trois cibles
-restent supérieures à 44 px de large et les libellés Désarmer/Armer/Nuit sont
-entiers. Pour l’alignement dans Sections, utiliser `rows: 2` et
-`grid_options: {columns: 12, rows: 2}`.
-
-Cette option exige un état principal, aucun secondaire et une seule rangée
-de une à trois commandes natives nommées `type: command`, avec au plus trois
-colonnes. Sinon le gabarit habituel reste utilisé. Le mode classique et les
-pièces existantes ne changent pas. Les noms longs sont ellipsés sur une ligne ;
-utiliser le gabarit normal lorsqu’un titre sur deux lignes est nécessaire.
-Le dessin conserve la taille CSS partagée ; au-delà de 102 px personnalisés,
-la hauteur augmente pour ne pas le tronquer. Un dessin absent libère sa
-réservation horizontale ; des commandes masquées libèrent le pied en CSS.
-Retirer l’option restaure le gabarit de 148 px.
-
 Cartes `button`, hors boutons `switch` et `slider`. Une carte pièce commence à 156 px et peut grandir avec le texte et les rangées de commandes. Une configuration incompatible ne reçoit aucun style de ce module.
 
 Les classes natives sont `room-temperature`, `room-humidity`, `room-status`, `room-control-N` et `room-climate`. `room_control_columns` va de 1 à 6. `room_auto_colors: false` désactive les couleurs automatiques. `room_measures_position: header` place les mesures dans l’en-tête quand l’état principal et le secondaire ne prennent pas cette place. Un état principal affiché masque les mesures redondantes.
@@ -235,9 +202,6 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `secondary` | Aucun | Texte secondaire (entité, texte ou template) |
 | `state` | Aucun | Valeur principale personnalisée (texte ou template) |
 | `room_state_as_value` | `false` | État principal au format de mesure ; état textuel de 22 px. |
-| `room_inline_metrics` | `false` | Aligne la valeur principale avec 1–2 contrôles de mesure non nommés sur la ligne basse, en mode illustré sans secondaire. |
-| `room_state_centered` | `false` | Centre l’état sous le nom et au-dessus des commandes visibles, en mode illustré sans secondaire. |
-| `room_compact` | `false` | Équipement illustré de 118 px, état et une rangée de 1–3 commandes nommées à gauche du dessin inchangé. |
 | `room_show_divider` | `true` | `false` masque seulement le séparateur décoratif des commandes. |
 | `room_hover` | `true` | `false` retire la surbrillance au survol de cette carte et de ses sous-boutons ; actions et retour d’appui conservés. |
 | `secondary_bold` | `false` | Interpréter **texte** en gras dans le texte secondaire |
@@ -414,64 +378,7 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 - Mutualise le socle de l’éditeur, la palette et la validation des couleurs, les sources de templates et les helpers de locale/précision.
 - Conserve les options YAML, les actions et la géométrie propres à cette présentation ; la précision native explicite reste prioritaire.
 
-### 1.3.3 — Mesures sur une ligne
 
-`room_inline_metrics: true` place la valeur principale et un ou deux sous-boutons natifs `room-control-N` (état affiché, sans nom) sur une même ligne basse. La carte illustrée conserve ses 148 px et le dessin de 80 px ; les trois cibles se partagent la largeur avec 12 px de retrait. Les mesures restent hautes de 44 px, avec icônes de 16 px. Le séparateur est masqué dans ce mode. Sans état, avec un secondaire, des commandes nommées ou plus de deux contrôles, le placement habituel est conservé. Aucun nouveau nœud, écouteur ou observateur ; le retrait de l’option restaure les positions natives.
+## Migration 1.4.0
 
-### 1.3.4 — Mesures compactes à côté du dessin
-
-Combiner `room_inline_metrics: true` et `room_compact: true` aligne la valeur principale et les 1–2 sous-boutons de mesure à gauche du dessin, dans une carte de 118 px. Titre en haut sur une ligne, illustration de 80 px centrée à droite, valeurs centrées dans la place sous le titre. Les mesures gardent leurs cibles de 44 px, leurs nœuds, entités et actions. La typographie devient plus compacte sous 360 px. Configurer `rows: 2` et `grid_options.rows: 2`. Sans `room_compact`, la ligne basse de 148 px reste disponible. Les commandes nommées conservent le gabarit compact d’Alarme ; aucune modification des autres pièces.
-
-### 1.3.5 — Alignement natif des mesures compactes
-
-Le mode compact avec `room_inline_metrics` conserve 118 px et l’image de 80 px.
-La zone de contenu a une hauteur explicite ; les règles natives `fixed-top`
-ne peuvent plus remonter le dessin ni décaler la valeur principale. Le dessin
-est centré dans toute la carte. Les trois mesures partagent taille de texte,
-graisse, interligne et ligne de base, unités comprises : taille responsive de
-13 à 22 px. La mesure intermédiaire dispose d’une colonne un peu plus large
-pour son unité et son icône, sans réduire l’image. Les contrôles gardent leurs
-cibles natives de 44 px et leurs actions. Le mode 148 px et les commandes nommées
-d’Alarme restent inchangés. Aucun observateur, listener ou nœud supplémentaire.
-
-### 1.3.6 — Cadre commun des mesures et survol facultatif
-
-En compact avec `room_inline_metrics`, l’état et les mesures sont désormais
-positionnés depuis le même conteneur de carte. Les wrappers natifs restent
-dans le DOM mais n’interposent plus leur propre boîte ou grille : la puissance
-ne dépend plus d’un repère différent de celui des deux sous-boutons. Titre à
-8 px du haut et 12 px de la gauche, hauteur de 118 px, image de 80 px centrée,
-typographie responsive commune et cibles de 44 px conservés.
-
-`room_hover: false` retire uniquement la surbrillance du pointeur sur la carte
-et ses commandes avec `--ha-ripple-hover-opacity: 0`. Les clics et le retour
-d’appui restent natifs ; retirer l’option rétablit le survol. Valeur par défaut :
-`true`. Aucun nœud, écouteur ou observateur supplémentaire.
-
-### 1.3.7 — Grille dédiée et pipeline de texte Bubble
-
-La cause du décalage restant est reproduite avec le composant Bubble complet :
-avec le défilement désactivé, son pipeline de texte écrit `display: -webkit-box`
-directement sur l’état. Cette règle en ligne remplaçait le `display: flex` du
-module et plaçait la puissance en haut de sa cible de 44 px.
-
-Le compact inline utilise désormais uniquement `src/inline-metrics.css.js`,
-à la place des géométries Room classique et illustrée. Une seule grille contient
-le titre, la rangée commune des mesures et le dessin sur les deux rangées.
-Les précédentes surcharges de coordonnées compactes sont supprimées ; la
-typographie de grande valeur ne se superpose plus à ce mode. Le
-`display: flex !important` des mesures neutralise précisément le style natif en ligne.
-Les transitions natives de hauteur/police ne décalent plus les sous-boutons
-pendant une actualisation. Hauteur, dessin, couleurs, nœuds et actions conservés.
-Le cache distingue ce mode et les sélecteurs de ses colonnes ; retirer l’option
-restaure le gabarit normal. Les autres variantes Room restent inchangées.
-
-La fixture minimale reproduit désormais le style natif multiligne. Un test
-d’intégration facultatif charge le vrai `dist/bubble-card.js` de Bubble 3.4.1,
-commit `061ed8376134307ba1086446869d0ab736265fcf`, vérifié par son SHA Git
-`5fe8799e8070e3169e1b2889c6d5d268632f9082`. Il couvre le nettoyage CSS natif,
-96 configurations et une actualisation par cas, puis les gestes délégués.
-Fournir ce fichier via `BUBBLE_NATIVE_SCRIPT_PATH` à `npm run test:styles`.
-Ce test échoue avec Room 1.3.6 et reproduit le décalage visible sur la capture.
-Le backend Home Assistant et les composants HA de base restent simulés ;
-ce n’est pas un essai de l’installation réelle ou de Safari/iOS.
+Les équipements illustrés double hauteur passent à [Signature Panel](../../signature-panel/doc/README.md). `room_compact`, `room_inline_metrics` et `room_state_centered` sont retirés, avec leurs anciennes feuilles de style. Les Rooms de pièces, classiques ou illustrées, gardent leur géométrie et leurs commandes. Installer Panel et migrer les équipements avant la mise à jour de Room.

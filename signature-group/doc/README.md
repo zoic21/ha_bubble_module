@@ -1,6 +1,6 @@
 # Signature Group
 
-Version **1.1.0**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
+Version **1.1.1**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
 
 Importer [signature-group.yaml](../dist/signature-group.yaml) dans l’éditeur des modules Bubble. Voir l’[exemple complet](../examples/activities.yaml), contenant les deux cartes séparées par `---`.
 
@@ -116,3 +116,7 @@ Modifier `src`, puis lancer `npm run build:modules`, `npm run check:modules`, `n
 - **1.1.0** : présentation `chips`, illustrations héritées de la popup, adaptation à la largeur réelle, compteur des seuls éléments masqués et flèche fixe ; résumé classique conservé par défaut.
 - **1.0.1** : option de masquage natif des groupes vides, réapparition aux changements d’état et retrait du message vide dans l’éditeur de popup.
 - **1.0.0** : source unique dans une popup, compteur et résumé sur un bouton, conditions natives et états vides, mise à jour avant première ouverture, nettoyage à la suppression.
+
+### 1.1.1
+
+Les pastilles reprennent aussi `signature_panel.illustration`, y compris les variantes sombres et le cadrage, après migration des cartes activité.

@@ -1,9 +1,8 @@
 name: Signature Square
-version: 1.6.2
+version: 2.0.0
 creator: Loïc
 supported:
   - button
-  - media-player
 description: Module autonome square ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte.
 editor:
   - type: constant
@@ -12,21 +11,6 @@ editor:
     label: Réglages square
     type: signature_options
     fields:
-      activity:
-        label: Bandeau activité illustré
-        default: false
-        selector:
-          boolean: {}
-        group: Tuile carrée
-        group_icon: mdi:card-outline
-        description: "Deux lignes natives ; informations en haut et commandes natives en bas. Compatible button et media-player. Utiliser rows: 2 et une illustration."
-      progress:
-        label: Progression d’activité (objet YAML)
-        selector:
-          object: {}
-        group: Tuile carrée
-        description: "value : nombre ou Jinja de 0 à 100 ; vide/invalide masque la barre. color : couleur facultative. Réservé aux boutons avec activity: true."
-        visible_if: item.activity === true && (!card || card.card_type === 'button')
       color:
         $field: color
         visible_if: (!card || (card.card_type === 'media-player' && item.activity === true) || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
@@ -85,15 +69,6 @@ editor:
         group_icon: mdi:card-outline
         description: "image : URL de repli ; image_light/image_dark : variantes facultatives selon le thème HA ; columns/rows : grille de sprites ; index/index_dark : cases jour/nuit Square ; offset_y_dark : cadrage sombre facultatif ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : nombre ou Jinja, cadrage en % de case de −50 à 50. URLs locales/HTTPS ou Jinja. Images à installer séparément. Masquer l’icône dans Bubble pour éviter le doublon."
         visible_if: (!card || (card.card_type === 'media-player' && item.activity === true) || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-      summary:
-        label: Bandeau à une ou deux mesures (objet YAML)
-        default: {}
-        selector:
-          object: {}
-        group: Tuile carrée
-        group_icon: mdi:card-outline
-        description: "enabled: true sans entity : bandeau à une mesure. entity : seconde mesure facultative ; name : son titre, texte ou Jinja ; secondary : son détail, texte, entité ou Jinja. statistics : total du jour (statistic_ids, unit, decimals, time_zone, factor facultatif) ; secondary_statistics : total journalier en sous-titre, même format et fuseau, sources groupées dans la même requête ; subtract_statistic_ids retire des sources du total ; operation: remaining_percentage avec part_statistic_ids affiche la part restante en %, facultatif et prioritaire sur entity. enabled: false désactive le bandeau. Illustration à droite. Utiliser rows: 2 et show_icon: false ; ne pas combiner avec auto_height ou controls: measure."
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       color_background:
         $field: color_background
         visible_if: (!card || (card.card_type === 'media-player' && item.activity === true) || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
