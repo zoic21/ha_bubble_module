@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.2**, **Panel 1.1.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -305,17 +305,20 @@ timer, écouteur, abonnement ou image intégrée au module.
 
 L’image utilise le même helper que Square : URL locale/HTTPS, sprites, index Jinja, variantes `image_light`/`image_dark` selon HA, sans nouvel observateur ni abonnement. Les images restent extérieures au dépôt des modules. Le badge d’état passe en haut à droite, au-dessus du dessin ; sans illustration, sa place est réservée dans le titre seulement lorsqu’il est visible. La taille partagée reste une variable CSS héritée et suit le thème sans reconstruire le cache ni lire les styles en JavaScript. L’anneau `icon_border_color` est reporté sur la décoration ; `border_color` garde l’ombre de carte et son contour d’alerte. `sub_button_styles.<classe>.icon_outline_color` conserve un contour de glyphe de 1,5 px avec la couleur RGB configurée, sans CSS dans la carte. Les commandes natives nommées disposent d’une grille icône/libellé dans le module. Ses zones `icon` et `label` sont attribuées explicitement aux deux éléments : Bubble crée le libellé avant l’icône et utilise `row-reverse` en flex. Ne pas dépendre de l’ordre du DOM pour le placement en grille ; le libellé utilise la colonne souple, l’icône la colonne de 26/30 px. Les six noms de Jardin restent complets dès 288 px, en clair/sombre, avec ou sans thème, sans modifier les cibles ou les nœuds natifs. L’illustration est centrée verticalement entre le bord intérieur supérieur et le haut du séparateur des commandes. Le calcul CSS utilise la hauteur réelle, la taille responsive et le nombre de rangées du pied ; il suit les changements de thème et les commandes masquées sans lecture de style en JavaScript. Sans commandes visibles ni secondaire, elle est centrée dans la carte entière. Un secondaire conserve son bloc supérieur réservé pour éviter de chevaucher sa ligne à pleine largeur. Les atlas aux marges transparentes inégales doivent fournir un `offset_y` adapté à chaque objet : le centrage du cadre seul ne garantit pas celui de la silhouette. Les réglages masqués restent enregistrés pour le retour au mode classique.
 
-### Badges Room après le nom (1.2.3)
+### Badges Room sur l’illustration (1.4.3)
 
 Un sous-bouton natif iconique `default`, sans texte ni rôle de commande ou de
 mesure, accepte `sub_button_styles.<classe-ou-index>.type: badge` en mode
 illustré. Conserver les nœuds/actions/conditions Bubble. Les icônes de 14 px
-partagent une capsule neutre haute de 20 px, située 6 px après le texte du nom.
-Centrer le groupe verticalement sur le texte, y compris sur deux lignes, et
-garder l’ordre natif. Les boutons natifs gardent leurs cibles de 20 × 20 px,
+partagent une capsule neutre haute de 20 px au coin supérieur droit du dessin,
+au-dessus de celui-ci, alignée en haut du titre. Garder son bord droit fixe et
+la laisser grandir vers la gauche ; conserver au moins 8 px entre nom et capsule
+et l’ordre natif. Sans illustration, garder la capsule 6 px après le nom.
+Les boutons natifs gardent leurs cibles de 20 × 20 px,
 sans fond individuel par défaut ; l’espacement visuel entre icônes vaut 6 px.
 Les 2 px aux extrémités donnent une capsule de 44 px pour deux icônes et de
-24 px pour une seule. Aucun contour, séparateur ou ombre supplémentaire.
+24 px pour une seule, 64 px pour trois. Aucun contour, séparateur ou ombre
+supplémentaire.
 Le fond réutilise `control-surface.css` : `signature-control-background`, ou
 5 % du texte primaire dans la surface neutre du thème. Les couleurs d’icônes
 et fonds individuels explicites restent prioritaires. Sans l’option, garder
@@ -331,10 +334,13 @@ natifs et retire les deux conteneurs. Un badge disparu ne laisse pas de vide.
 Préserver le rayon, la hauteur, les valeurs et les commandes ; le mode classique n’est pas concerné.
 La taille et le centrage du dessin restent indépendants des badges visibles,
 y compris sur mobile : aucune limite de 48 px ni déplacement conditionnel.
-Le titre et la capsule partagent l’espace réservé à gauche de l’illustration ;
-le nom conserve sa limite native de deux lignes. La réduction responsive
-ordinaire et la variable de taille du thème restent applicables. Comparer
-explicitement la géométrie du dessin avec zéro/un/deux badges ; couvrir aussi
+La capsule recouvre le dessin au lieu de réduire l’espace du titre, qui garde
+sa limite native de deux lignes. Une rangée flex pleine largeur aligne le nom
+à gauche et la capsule à droite ; le titre peut se réduire sur une carte
+extrêmement étroite, sans croiser les icônes. Une couche positionnée place les
+badges devant le pseudo-élément décoratif. La réduction responsive ordinaire
+et la variable de taille du thème restent applicables. Comparer explicitement
+la géométrie du dessin avec zéro/un/deux/trois badges ; couvrir aussi
 les changements de nom et de visibilité sans rendu, les mises à jour natives,
 le retrait de l’option, le teardown et les thèmes.
 

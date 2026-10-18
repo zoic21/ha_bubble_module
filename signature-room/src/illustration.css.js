@@ -18,6 +18,22 @@
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .bubble-name {
       max-width: calc(100% - min(var(--signature-illustration-size,80px),max(0px,100cqw - 112px)) - 8px);
     }
+    /* Let the shared native capsule grow left over the artwork, independently
+       of the name. Flex shrink keeps even three badges clear of narrow titles. */
+    ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .dp-room-heading {
+      max-width: none;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .dp-room-heading .bubble-name {
+      max-width: calc(100% - var(--dp-room-badge-art) - 8px);
+      align-self: flex-start;
+    }
+    ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"][data-dp-illustration="yes"] .dp-room-badges {
+      position: relative;
+      z-index: 2;
+    }
     ha-card[data-dp-layout="room"][data-dp-room-mode="illustrated"] :is(.bubble-icon-container,.room-humidity) {
       display: none !important;
     }

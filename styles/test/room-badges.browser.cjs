@@ -5,19 +5,20 @@ const {render} = require('./fixtures.cjs');
 const {loadModule} = require('../../shared/test/module.cjs');
 const code = loadModule('signature-room').code;
 
-async function room(page,{width=288,mode='light',plain=false,classic=false,secondary='',controls=1}={}) {
+async function room(page,{width=288,mode='light',plain=false,classic=false,secondary='',controls=1,badges=2}={}) {
   await render(page,{width,mode,plain});
-  await page.evaluate(({code,classic,secondary,controls})=>{
+  await page.evaluate(({code,classic,secondary,controls,badges})=>{
     const shadow=document.querySelector('[data-id="room"]').shadowRoot;
     const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
     const buttons=[{entity:'sensor.demo',css_class:'room-temperature',show_icon:false,show_state:true},
       ...Array.from({length:controls},(_,i)=>({entity:'light.demo',css_class:'room-control-'+(i+1)})),
-      {entity:'binary_sensor.motion',css_class:'room-motion',show_name:false,show_state:false,icon:'mdi:walk'},
-      {entity:'binary_sensor.window',css_class:'room-status',show_name:false,show_state:false,icon:'mdi:window-open'}];
+      ...[{entity:'binary_sensor.motion',css_class:'room-motion',show_name:false,show_state:false,icon:'mdi:walk'},
+      {entity:'binary_sensor.window',css_class:'room-status',show_name:false,show_state:false,icon:'mdi:window-open'},
+      {entity:'binary_sensor.door',css_class:'room-door',show_name:false,show_state:false,icon:'mdi:door-open'}].slice(0,badges)];
     ctx.config={...ctx.config,name:'Chambre principale',show_state:false,sub_button:{main:buttons},
       signature_room:{room_mode:classic?'classic':'illustrated',secondary,
         illustration:{image:'/local/rooms.png'},sub_button_styles:{
-          'room-status':{type:'badge',color:'#368ACB'},'room-motion':{type:'badge',color:'#B97918'}}}};
+          'room-status':{type:'badge',color:'#368ACB'},'room-motion':{type:'badge',color:'#B97918'},'room-door':{type:'badge',color:'#368ACB'}}}};
     ctx.elements.state.classList.add('hidden');ctx.card.querySelector('.bubble-name').textContent=ctx.config.name;
     const container=ctx.card.querySelector('.bubble-sub-button-container');container.replaceChildren();
     window.badgeClicks=[];
@@ -39,18 +40,43 @@ async function room(page,{width=288,mode='light',plain=false,classic=false,secon
       const root=ctx.card,content=ctx.elements.contentContainer;
       const box=selector=>{const el=root.querySelector(selector);if(!el)return null;const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height,display:s.display,color:s.color,background:s.backgroundColor,scroll:el.scrollWidth,client:el.clientWidth};};
       const c=content.getBoundingClientRect(),p=getComputedStyle(content,'::after');
-      return {capsule:box('.dp-room-badges'),motion:box('.room-motion'),window:box('.room-status'),name:box('.bubble-name'),value:box('.room-temperature'),
+      return {capsule:box('.dp-room-badges'),motion:box('.room-motion'),window:box('.room-status'),door:box('.room-door'),name:box('.bubble-name'),value:box('.room-temperature'),
         control:root.querySelector('.room-control-1')?box('.room-control-1'):null,card:box('.bubble-container'),
         nodes:root.querySelectorAll('*').length,art:{x:c.right-parseFloat(p.right)-parseFloat(p.width),
           y:c.y+parseFloat(p.top)+new DOMMatrixReadOnly(p.transform).m42,width:parseFloat(p.width),height:parseFloat(p.height)}};
     };
-  },{code,classic,secondary,controls});
+  },{code,classic,secondary,controls,badges});
   return page.evaluate(()=>window.readBadges());
 }
 
 const overlap=(a,b)=>a.x<b.right-.5&&a.right>b.x+.5&&a.y<b.bottom-.5&&a.bottom>b.y+.5;
 
-test('room badges fit beside the native name without changing values, footer or card height',async t=>{
+test('one, two and three icons grow left over unchanged artwork and retain their native hit targets',async t=>{
+  const page=await fixture(t);
+  for(const width of [142,170,180,190,220,288,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+    const none=await room(page,{width,mode,plain,badges:0});
+    for(const badges of [1,2,3]){
+      const m=await room(page,{width,mode,plain,badges});const hint=JSON.stringify({width,mode,plain,badges,m});
+      assert.equal(m.capsule.width,badges*20+4,hint);
+      assert.equal(m.capsule.height,20,hint);
+      assert.ok(Math.abs(m.capsule.right-m.art.x-m.art.width)<.1,hint);
+      assert.ok(m.capsule.x-m.name.right>=7.9,hint);
+      assert.equal(m.capsule.y,m.name.y,hint);
+      assert.deepEqual(m.art,none.art,hint);
+      assert.equal(m.card.height,none.card.height,hint);
+      assert.deepEqual(m.value,none.value,hint);
+      for(const b of [m.motion,m.window,m.door].filter(Boolean)){
+        assert.equal(b.background,'rgba(0, 0, 0, 0)',hint);
+        assert.ok(!overlap(m.name,b)&&!overlap(m.value,b),hint);
+      }
+    }
+  }
+  const shell=page.locator('[data-id="room"]');
+  for(const cls of ['room-motion','room-status','room-door'])await shell.locator('.'+cls).click();
+  assert.deepEqual(await page.evaluate(()=>window.badgeClicks),['room-motion','room-status','room-door']);
+});
+
+test('room capsule overlays the artwork at the right without changing values, footer or card height',async t=>{
   const page=await fixture(t);
   for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [142,170,190,220,240,288,328,358,382,600]){
     const m=await room(page,{width,mode,plain});const hint=JSON.stringify({width,mode,plain,m});
@@ -60,13 +86,13 @@ test('room badges fit beside the native name without changing values, footer or 
     assert.equal(m.capsule.height,20,hint);assert.equal(m.capsule.width,44,hint);
     assert.equal(m.motion.right,m.window.x,hint);
     assert.equal(m.motion.background,'rgba(0, 0, 0, 0)',hint);assert.equal(m.window.background,'rgba(0, 0, 0, 0)',hint);
-    assert.ok(Math.abs(m.capsule.x-m.name.right-6)<.1,hint);
-    assert.ok(Math.abs(m.motion.y+m.motion.height/2-m.name.y-m.name.height/2)<.1,hint);
+    assert.ok(Math.abs(m.capsule.right-m.art.x-m.art.width)<.1,hint);
+    assert.ok(Math.abs(m.motion.y-m.name.y)<.1,hint);
     assert.ok(!overlap(m.name,m.motion)&&!overlap(m.name,m.window),hint);
     assert.ok(!overlap(m.value,m.motion)&&!overlap(m.value,m.window),hint);
     assert.ok(m.motion.y>=m.card.y&&m.window.right<=m.card.right,hint);
     const art={...m.art,right:m.art.x+m.art.width,bottom:m.art.y+m.art.height};
-    assert.ok(!overlap(art,m.motion)&&!overlap(art,m.window),hint);
+    assert.ok(overlap(art,m.capsule),hint);
     assert.ok(art.bottom<m.control.y,hint);
     assert.equal(m.nodes,await page.evaluate(()=>window.badgeNativeCount+2),'two reusable title holders');
   }
@@ -87,9 +113,9 @@ test('native visibility collapses badge space immediately without rerendering th
   assert.equal(m.single.window.display,'none');assert.equal(m.none.motion.display,'none');
   assert.equal(m.windowOnly.motion.display,'none');assert.equal(m.windowOnly.window.display,'flex');
   assert.ok(m.single.name.width>=both.name.width);assert.ok(m.none.name.width>=m.single.name.width);
-  assert.equal(m.single.capsule.x,m.single.name.right+6);
+  assert.equal(m.single.capsule.right,both.capsule.right);
   assert.equal(m.single.capsule.width,24);assert.equal(m.none.capsule.display,'none');
-  assert.equal(m.windowOnly.capsule.x,m.windowOnly.name.right+6);
+  assert.equal(m.windowOnly.capsule.right,both.capsule.right);
   assert.equal(m.windowOnly.capsule.width,24);assert.equal(m.restored.capsule.width,44);
   assert.equal(m.restored.name.width,both.name.width);assert.equal(m.restored.nodes,both.nodes);
 });
@@ -146,15 +172,15 @@ test('badges remain clear of optional secondary text and two-row or absent contr
   }
 });
 
-test('short titles keep badges immediately after their text, including live name changes',async t=>{
+test('live title changes leave the capsule anchored to the artwork corner',async t=>{
   const page=await fixture(t);await room(page,{width:328});
   for(const name of ['Centre','Entrée','Cuisine','Chambre principale','WC']){
     const m=await page.evaluate(name=>{
       window.roomBadges.card.querySelector('.bubble-name').textContent=name;
       return window.readBadges();
     },name);
-    assert.ok(Math.abs(m.capsule.x-m.name.right-6)<.1,name);
-    assert.ok(Math.abs(m.motion.y+10-m.name.y-m.name.height/2)<.1,name);
+    assert.ok(Math.abs(m.capsule.right-m.art.x-m.art.width)<.1,name);
+    assert.ok(Math.abs(m.motion.y-m.name.y)<.1,name);
     if(name==='Centre')assert.ok(m.name.width<70,'the name must retain its natural text width');
   }
 });

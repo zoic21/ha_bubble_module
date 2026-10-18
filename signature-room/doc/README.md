@@ -1,6 +1,6 @@
 # Signature Room
 
-Version **1.4.2**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.4.3**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -63,14 +63,16 @@ L’objet `illustration` accepte `image` (URL locale/HTTPS), `image_light` et `i
 
 Pour conserver un contour de contraste sur une lampe Hue sans CSS, ajouter `icon_outline_color` dans son entrée `sub_button_styles` : couleur CSS, transparente ou Jinja ; le contour de glyphe fait 1,5 px et ne modifie pas la couleur RGB configurée. Les couleurs d’activité et les commandes restent natives.
 
-### Badges à côté du nom
+### Badges sur l’illustration
 
 En mode illustré, `sub_button_styles.<classe-ou-numéro>.type: badge` place un
-sous-bouton natif iconique immédiatement après le texte du nom, à gauche de
-l’illustration. Les icônes de 14 px partagent une capsule neutre haute de
-20 px, centrée verticalement sur le texte et située à 6 px du nom. L’ordre
-reste celui des sous-boutons natifs. Une capsule mesure 44 px avec deux icônes
-et 24 px avec une seule ; l’écart visible entre icônes est de 6 px.
+sous-bouton natif iconique dans une seule pilule au coin supérieur droit de
+l’illustration, superposée au dessin. Le bord droit reste fixe ; la pilule
+s’étend vers la gauche et le nom conserve au moins 8 px de dégagement.
+Les icônes de 14 px partagent un fond neutre haut de 20 px, aligné en haut
+du titre. L’ordre reste celui des sous-boutons natifs. La pilule mesure
+24, 44 ou 64 px avec une, deux ou trois icônes ; l’écart visible entre
+icônes est de 6 px. Sans illustration exploitable, elle reste après le nom.
 Elle s’ajuste immédiatement aux classes `.hidden` ou à l’attribut `[hidden]`
 de Bubble, puis disparaît quand tous les badges sont masqués.
 
@@ -129,8 +131,10 @@ Les boutons nommés, les états textuels, les types spécialisés et les command
 `room-control-N` / `room-climate` ne sont pas transformés.
 
 L’apparition d’un badge ne modifie ni la taille ni le centrage de l’illustration,
-y compris sur mobile. Le titre et la capsule partagent l’espace à gauche du
-dessin, avec un nom limité à deux lignes. La réduction responsive ordinaire
+y compris sur mobile. Le titre reste à gauche du dessin, limité à deux lignes ;
+les badges occupent le dessin au lieu de réduire cet espace. Sur les cartes
+extrêmement étroites, le titre se réduit avant de toucher la pilule.
+La réduction responsive ordinaire
 et la taille du thème restent applicables ; aucune réduction supplémentaire
 à 48 px n’est liée aux badges. La carte conserve sa hauteur, sa température
 et ses commandes.
@@ -395,3 +399,16 @@ Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. 
 Unités en graisse normale, y compris avec `room_state_as_value` ; couleur secondaire et espacement nul centralisés. Libellés des commandes partagés avec Panel. Disposition, retraits et cibles natives conservés.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## 1.4.3 — 18 octobre 2026 — pilule sur l’illustration
+
+Les badges des pièces illustrées partagent une pilule ancrée à droite au-dessus
+du dessin. Elle grandit vers la gauche sans masquer le titre ni réduire l’image.
+Les conditions, couleurs et actions natives sont conservées ; aucun nouveau
+nœud, observateur ou calcul de taille JavaScript. Sans illustration, le placement
+après le nom reste disponible ; Panel et les autres modules ne changent pas.
+
+Réimporter uniquement Room. Contrôles Chromium : zéro à trois badges, largeurs
+142–600 px, thèmes clair/sombre avec ou sans Signature, visibilité native,
+clics, retrait et nettoyage. Ces fixtures ne valident pas Home Assistant réel
+ni Safari/iOS.
