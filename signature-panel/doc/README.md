@@ -109,6 +109,28 @@ signature_panel:
 
 Les sprites partagent le lecteur Square/Room : `columns`, `rows`, `index` (base 0), `index_dark`, `offset_x`, `offset_y`, `offset_y_dark`. Les index/cadrages acceptent Jinja ; offsets entre −50 et 50 % d’une case. L’index −1 ou une URL invalide masque le dessin sans déplacer les colonnes. Le mode HA suit les actualisations natives Bubble, sans abonnement ni observateur supplémentaire ; il ne dépend pas du thème du système d’exploitation.
 
+### Pochette du média — 1.1.2
+
+Sur une carte `media-player`, ajouter `media_artwork: true` dans `illustration`
+pour donner priorité à l'attribut HA `entity_picture` du lecteur. Exemple :
+
+```yaml
+signature_panel:
+  illustration:
+    media_artwork: true
+    image: /local/illustrations/amplificateur.webp
+```
+
+La pochette ou l'affiche garde ses proportions dans les 80 px réservés :
+centrée, sans découpe d'atlas ni déformation. Les changements de morceau et
+l'apparition/disparition de l'attribut suivent les actualisations natives HA.
+Sans URL locale/HTTP(S) exploitable, le dessin configuré reprend exactement
+ses variantes clair/sombre et son cadrage. Pas de vérification réseau des
+URL : une image dont le serveur renvoie une erreur reste dépendante du lecteur.
+Option désactivée par défaut, sans effet sur les cartes bouton. Installer
+**Group 1.1.4** pour afficher la même pochette dans la pastille d'activité.
+Aucun nouvel abonnement, observateur, nœud ou gestionnaire de commande.
+
 ## Statistiques journalières
 
 Une information peut fournir `statistics` au lieu d’une entité : `statistic_ids`, `unit`, `decimals`, `time_zone`, `factor` positif facultatif. `secondary_statistics` affiche le coût sous la consommation avec une requête commune. `subtract_statistic_ids` retire des flux ; `operation: remaining_percentage` et `part_statistic_ids` donnent la part restante, par exemple l’autosuffisance.
@@ -213,3 +235,10 @@ Contrôles : tests Node et Chromium, dont Bubble Card 3.4.1 avec backend simulé
 un à trois badges, un à trois champs, clair/sombre et avec/sans thème, visibilité,
 clics, retrait et réservation du badge Alert Manager. Ces fixtures ne valident
 pas Home Assistant réel ni Safari/iOS.
+
+## 1.1.2 — 18 octobre 2026 — pochette du média
+
+Ajout facultatif de `illustration.media_artwork`, partagé avec Group 1.1.4.
+Le visuel HA courant remplace le dessin avec ses proportions ; retrait ou
+URL invalide rétablit le cadrage et le thème d'origine. La configuration et
+les contrôles natifs restent intacts.

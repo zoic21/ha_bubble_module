@@ -58,3 +58,40 @@ test('day/night sprite positions update on the same activity and media nodes',t=
   }
  }
 });
+
+test('media artwork follows track attributes and restores the complete themed sprite without changing native nodes',t=>{
+ const illustration={media_artwork:true,image:'/local/atlas.png',image_dark:'/local/night.png',columns:4,rows:6,index:2,index_dark:14,offset_x:7,offset_y:27,offset_y_dark:8};
+ const original=structuredClone(illustration);
+ const f=fixture({illustration},{card_type:'media-player',entity:'media_player.demo'});
+ t.after(()=>f.ctx.teardown());
+ f.hass.states['media_player.demo']={state:'playing',attributes:{}};
+ f.hass.themes={darkMode:false};
+ const day=f.run(),runtime=f.ctx._signaturePanelRuntime,children=f.content.children.length;
+ for(const picture of ['/api/media_player_proxy/media_player.demo?token=one','https://example.test/landscape.jpg','/local/new-album.jpg']){
+  f.hass.states['media_player.demo'].attributes.entity_picture=picture;
+  const css=f.run();
+  assert.ok(css.includes('url('+JSON.stringify(picture)+')'));
+  assert.ok(css.includes('--dp-illustration-size:contain;--dp-illustration-position:center'));
+  assert.ok(!css.includes('atlas.png'));assert.ok(!css.includes('night.png'));
+  assert.equal(f.ctx._signaturePanelRuntime,runtime);assert.equal(f.content.children.length,children);
+ }
+ f.hass.themes.darkMode=true;
+ assert.ok(f.run().includes('new-album.jpg'),'theme-only refresh keeps the current artwork');
+ for(const picture of [undefined,null,'','  ','unknown','javascript:alert(1)','data:image/png;base64,x','//example.test/a','/local/a\n.png',123,{}]){
+  f.hass.states['media_player.demo'].attributes.entity_picture=picture;
+  const css=f.run();assert.ok(css.includes('night.png'));assert.ok(css.includes('--dp-illustration-size:400% 600%;'));
+  assert.ok(!css.includes('--dp-illustration-size:contain'));
+ }
+ delete f.hass.states['media_player.demo'];assert.ok(f.run().includes('night.png'));
+ f.hass.themes.darkMode=false;assert.equal(f.run(),day);
+ assert.deepEqual(illustration,original);
+});
+
+test('media artwork requires explicit opt-in and never overrides ordinary panels',t=>{
+ for(const kind of ['button','media-player'])for(const enabled of [undefined,false,true]){
+  const f=fixture({illustration:{image:'/local/fallback.png',media_artwork:enabled}},{card_type:kind,entity:'media_player.demo'});
+  t.after(()=>f.ctx.teardown());
+  f.hass.states['media_player.demo']={state:'playing',attributes:{entity_picture:'/local/album.jpg'}};
+  const css=f.run();assert.equal(css.includes('album.jpg'),kind==='media-player'&&enabled===true);
+ }
+});

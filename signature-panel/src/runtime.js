@@ -1,10 +1,14 @@
 /* @include signature-shared/src/editor.js */
-const c = this.config, o = c.signature_panel || {}, root = this.card;
+const c = this.config, root = this.card;
 const layout = 'panel', kind = c.card_type || 'button';
 const tileEnabled = root && (kind === 'media-player'
   || kind === 'button' && !['switch','slider'].includes(c.button_type));
 /* @include signature-shared/src/lifecycle.js */
 if (!tileEnabled) return '';
+/* @include shared/src/media-artwork.js */
+const configured = c.signature_panel || {};
+const mediaArtwork = mediaArtworkFor(c, configured.illustration);
+const o = mediaArtwork ? {...configured, illustration: {image: mediaArtwork}} : configured;
 /* @include signature-shared/src/helpers.js */
 /* @include signature-shared/src/color-thresholds.js */
 /* @include signature-shared/src/structure.js */
@@ -15,6 +19,7 @@ const numberEnabled = false;
 /* @include signature-shared/src/actions.js */
 /* @include signature-shared/src/appearance.js */
 /* @include signature-shared/src/illustration.js */
+if (mediaArtwork) css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}';
 const roles = [], roomColumns = 3;
 /* @include signature-shared/src/sub-buttons.js */
 /* @include signature-panel/src/statistics.js */

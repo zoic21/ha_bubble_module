@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.1.1
+version: 1.1.2
 creator: Loïc
 supported:
   - button
@@ -16,7 +16,7 @@ editor:
         label: Illustration (objet YAML)
         selector:
           object: {}
-        description: image, image_light/image_dark, columns/rows, index/index_dark, offset_x/offset_y/offset_y_dark. URLs et cadrage acceptent Jinja. Le module ne déduit aucun état métier.
+        description: image, image_light/image_dark, columns/rows, index/index_dark, offset_x/offset_y/offset_y_dark. media_artwork true donne priorité à entity_picture sur un lecteur, avec repli sur le dessin. URLs et cadrage acceptent Jinja.
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       information:
         label: Informations supplémentaires (liste YAML, deux au maximum)

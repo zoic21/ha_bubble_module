@@ -41,6 +41,34 @@ function fixture() {
 }
 const robot={type:'custom:bubble-card',card_type:'button',entity:'vacuum.robot',name:'Aspirateur',visibility:[{condition:'state',entity:'vacuum.robot',state:'cleaning'}]};
 
+test('media chips track artwork and restore atlas crops on the same native activity',()=>{
+ const f=fixture();
+ const illustration={media_artwork:true,image:'/local/atlas.png',image_dark:'/local/night.png',columns:4,rows:6,index:2,index_dark:14,offset_x:7,offset_y:27,offset_y_dark:8};
+ const card={card_type:'media-player',entity:'media_player.denon',name:'Amplificateur',signature_panel:{illustration},visibility:[{condition:'state',entity:'media_player.denon',state:['on','playing']}]};
+ const original=structuredClone(card),source=f.producer([card]),button=f.consumer({presentation:'chips'});
+ f.hass.states[card.entity]={state:'on',attributes:{}};f.hass.themes={darkMode:false};
+ source.run();button.run();const chip=button.ctx._signatureGroup.nodes[0];
+ const day={...chip.art.style};
+ f.hass.states[card.entity].state='playing';
+ for(const picture of ['/api/media_player_proxy/media_player.denon?token=one','https://example.test/landscape.jpg','/local/new-album.jpg']){
+  f.hass.states[card.entity].attributes.entity_picture=picture;button.run();
+  assert.equal(button.ctx._signatureGroup.nodes[0],chip);
+  assert.equal(chip.art.style.backgroundImage,'url('+JSON.stringify(picture)+')');
+  assert.equal(chip.art.style.backgroundSize,'contain');assert.equal(chip.art.style.backgroundPosition,'center');
+ }
+ f.hass.themes.darkMode=true;button.run();assert.ok(chip.art.style.backgroundImage.includes('new-album.jpg'));
+ for(const picture of [undefined,null,'','  ','unknown','javascript:alert(1)','data:image/png;base64,x','//example.test/a','/local/a\n.png',123,{}]){
+  f.hass.states[card.entity].attributes.entity_picture=picture;button.run();
+  assert.ok(chip.art.style.backgroundImage.includes('night.png'));
+  assert.equal(chip.art.style.backgroundSize,'400% 600%');assert.notEqual(chip.art.style.backgroundPosition,'center');
+ }
+ f.hass.themes.darkMode=false;button.run();assert.deepEqual(chip.art.style,day);
+ f.hass.states[card.entity].attributes.entity_picture='/local/album.jpg';illustration.media_artwork=false;button.run();assert.ok(chip.art.style.backgroundImage.includes('atlas.png'));
+ illustration.media_artwork=true;assert.deepEqual(card,original);
+ f.hass.states[card.entity].state='off';button.run();assert.equal(button.ctx._signatureGroup.nodes.length,0);
+ button.ctx.teardown();source.ctx.teardown();
+});
+
 test('counts all visible cards, including connected idle devices, without changing their configuration',()=>{
   const f=fixture();const cards=[robot,{type:'custom:bubble-card',card_type:'button',entity:'sensor.printer',name:'H2S',visibility:[{condition:'state',entity:'sensor.printer',state_not:'offline'}]}];
   const original=structuredClone(cards), source=f.producer(cards), button=f.consumer();

@@ -82,6 +82,7 @@ const number = (value, fallback, min, max) => {
   const n = raw === '' ? NaN : Number(raw);
   return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
 };
+/* @include shared/src/media-artwork.js */
 for (let i = 0; i < labels.length; i++) {
   const card = items[i].card;
   let chip = runtime.nodes[i];
@@ -107,7 +108,9 @@ for (let i = 0; i < labels.length; i++) {
   // Reuse the popup card's illustration contract, including its atlas crop and
   // effective HA theme. No second list of equipment or installation-specific art.
   const square = card.signature_panel || card.signature_square;
-  const illustration = (square || card.signature_room)?.illustration || {};
+  const configuredArt = (square || card.signature_room)?.illustration || {};
+  const mediaArtwork = mediaArtworkFor(card, configuredArt);
+  const illustration = mediaArtwork ? {image: mediaArtwork} : configuredArt;
   const renderArt = value => String(renderTemplate(value, card.entity) ?? '').trim();
   const dark = hass?.themes?.darkMode;
   const imageVariant = renderArt((dark === true ? illustration.image_dark : dark === false ? illustration.image_light : undefined) ?? '');
@@ -125,8 +128,8 @@ for (let i = 0; i < labels.length; i++) {
     const offsetX = number(renderArt(illustration.offset_x ?? 0), 0, -50, 50);
     const offsetY = number(renderArt((spriteDark ? illustration.offset_y_dark : undefined) ?? illustration.offset_y ?? 0), 0, -50, 50);
     chip.art.style.backgroundImage = 'url(' + JSON.stringify(image) + ')';
-    chip.art.style.backgroundSize = columns * 100 + '% ' + rows * 100 + '%';
-    chip.art.style.backgroundPosition = (columns === 1 ? 0 : ((index % columns) + offsetX / 100) * 100 / (columns - 1)) + '% '
+    chip.art.style.backgroundSize = mediaArtwork ? 'contain' : columns * 100 + '% ' + rows * 100 + '%';
+    chip.art.style.backgroundPosition = mediaArtwork ? 'center' : (columns === 1 ? 0 : ((index % columns) + offsetX / 100) * 100 / (columns - 1)) + '% '
       + (rows === 1 ? 0 : (Math.floor(index / columns) + offsetY / 100) * 100 / (rows - 1)) + '%';
   } else {
     chip.art.style.backgroundImage = '';

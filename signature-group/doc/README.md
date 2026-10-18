@@ -136,3 +136,12 @@ Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. 
 Interligne du résumé fourni par le fragment secondaire commun. Géométrie des pastilles, marges, observation et contenu conservés.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## 1.1.4 — 18 octobre 2026 — pochette des lecteurs
+
+Les pastilles des lecteurs Panel reprennent `illustration.media_artwork: true`
+de leur carte source. L'attribut HA `entity_picture` remplace le dessin dans
+les 32 px existants, centré et sans déformation. Sans URL exploitable, retour
+au dessin et au cadrage clair/sombre configurés. Les changements de morceau
+actualisent les mêmes nœuds ; aucun inventaire, abonnement ou observateur
+supplémentaire. Installer Panel 1.1.2 pour le même comportement dans la popup.

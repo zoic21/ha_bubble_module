@@ -41,6 +41,7 @@ async function draw(page,{width=328,mode='light',plain=false,count=1,buttons=0,d
   window.hass={states:{'sensor.power':state(unavailable?'unavailable':140,'W'),'sensor.temperature':state(29.7,'°C'),'sensor.humidity':state(42,'%'),
    'media_player.demo':{state:'playing',attributes:{friendly_name:'Musique',media_title:'Une chanson',media_artist:'Un artiste',supported_features:0,volume_level:.4}},...extraStates},
    locale:{language:'fr',number_format:'language'},language:'fr',themes:{darkMode:mode==='dark'},config:{unit_system:{temperature:'°C'},time_zone:'Europe/Paris'},
+   hassUrl:path=>new URL(path,'https://ha.example.test').href,
    localize:()=>undefined,formatEntityState:s=>s.state,formatEntityAttributeValue:(s,k,v)=>v,
    connection:{subscribeMessage:async(callback,message)=>{
     if(message.type==='render_template' && Object.hasOwn(templateResults,message.template)){const sub={callback,template:message.template};subscriptions.add(sub);callback({result:templateResults[message.template]});return()=>subscriptions.delete(sub)}
@@ -87,6 +88,35 @@ async function snapshot(page){
    css:card.lastEvaluatedStyles};
  });
 }
+
+test('media Panel artwork follows track changes with natural proportions and restores its themed atlas',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ const illustration={media_artwork:true,image:'/local/atlas.webp',image_dark:'/local/night.webp',columns:4,rows:6,index:2,index_dark:14,offset_x:7,offset_y:27,offset_y_dark:8};
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await draw(page,{width,mode,plain,media:true,panel:{illustration}});
+  const read=()=>page.evaluate(()=>{
+   const host=card.card.querySelector('.bubble-container'),art=getComputedStyle(host,'::after');
+   const frame=host.getBoundingClientRect();
+   return{image:art.backgroundImage,size:art.backgroundSize,position:art.backgroundPosition,width:parseFloat(art.width),height:parseFloat(art.height),cardHeight:frame.height};
+  });
+  const fallback=await read();
+  await page.evaluate(()=>window.mediaNode=card.card.querySelector('.bubble-media-info-container'));
+  for(const image of ['https://example.test/album.jpg','/api/media_player_proxy/media_player.demo?token=two']){
+   await page.evaluate(image=>{
+    hass={...hass,states:{...hass.states,'media_player.demo':{...hass.states['media_player.demo'],attributes:{...hass.states['media_player.demo'].attributes,entity_picture:image}}}};
+    card.hass=hass;card.updateBubbleCard();
+   },image);
+   const current=await read();assert.ok(current.image.includes(image));assert.equal(current.size,'contain');assert.equal(current.position,'50% 50%');
+   assert.equal(current.width,80);assert.equal(current.height,80);assert.equal(current.cardHeight,118);
+   assert.equal(await page.evaluate(()=>mediaNode===card.card.querySelector('.bubble-media-info-container')),true);
+  }
+  await page.evaluate(()=>{
+   const attributes={...hass.states['media_player.demo'].attributes};delete attributes.entity_picture;
+   hass={...hass,states:{...hass.states,'media_player.demo':{...hass.states['media_player.demo'],attributes}}};card.hass=hass;card.updateBubbleCard();
+  });
+  assert.deepEqual(await read(),fallback);
+ }
+});
 
 test('Panel aligns one to three information columns in real Bubble, across themes and native refreshes',{skip:!nativePath},async t=>{
  const page=await setup(t);

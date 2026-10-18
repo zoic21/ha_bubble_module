@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.3**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.4**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -588,3 +588,15 @@ Les commandes Panel gardent leurs libellés en texte primaire. Seule l'icône
 le texte secondaire, avec l'opacité fonctionnelle des commandes désactivées.
 Le fond de sélection et les gardes d'action restent conservés. Vérifier les
 couleurs calculées et les clics réels avec Bubble, au-delà des seuls datasets.
+
+### Pochette média — Panel 1.1.2 et Group 1.1.4
+
+`illustration.media_artwork: true` est une option explicite des lecteurs.
+Le helper source commun lit `entity_picture` à chaque actualisation native ;
+URL locale/HTTP(S) valide seulement. La pochette est centrée en `contain`,
+sans cadrage d'atlas, dans le cadre inchangé : 80 px Panel, 32 px Group.
+Sans attribut exploitable, restaurer le dessin, ses variantes HA et son
+cadrage complet. Ne pas modifier la configuration source, les autres modules,
+les dimensions, les actions, le thème ou les abonnements. Conserver les mêmes
+nœuds lors des changements de morceau ; tester apparition, remplacement,
+retrait, données invalides et clair/sombre sur les deux présentations.

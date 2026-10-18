@@ -36,6 +36,26 @@ async function geometry(page){return page.evaluate(()=>{
  return{card:rect(shadow.querySelector('.bubble-container')),arrow:rect(r.arrow),track:rect(r.track),more:rect(r.more),moreText:r.more.textContent,moreVisible:getComputedStyle(r.more).visibility==='visible',message:r.message.textContent,visible:r.visibleCount,nodes:r.nodes.map(n=>({...rect(n),shown:getComputedStyle(n).visibility==='visible',label:n.label.textContent,art:getComputedStyle(n.art).display,image:n.art.style.backgroundImage,position:n.art.style.backgroundPosition})),name:getComputedStyle(ctx.elements.nameContainer).display,icon:getComputedStyle(ctx.elements.iconContainer).display};
 });}
 
+test('media chip artwork preserves proportions and returns to the themed fallback without resizing the summary',async t=>{
+ const page=await fixture(t,{prepare:null});
+ const cards=[{card_type:'media-player',entity:'media_player.denon',name:'Amplificateur',signature_panel:{illustration:{media_artwork:true,image:'/local/atlas.png',image_dark:'/local/night.png',columns:4,rows:6,index:2,index_dark:14,offset_x:7,offset_y:27,offset_y_dark:8}}}];
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await setup(page,{width,mode,plain,cards});const fallback=await geometry(page);
+  await page.evaluate(()=>{
+   window.chip=demo.ctx._signatureGroup.nodes[0];
+   demo.hass.states['media_player.denon']={state:'playing',attributes:{entity_picture:'/api/media_player_proxy/media_player.denon?token=one'}};demo.ctx.updateBubbleCard();
+  });await settle(page);
+  const current=await geometry(page);assert.equal(current.card.height,56);assert.equal(current.visible,1);
+  assert.equal(current.nodes[0].width,fallback.nodes[0].width);
+  assert.deepEqual(await page.evaluate(()=>{
+   const art=getComputedStyle(chip.art);
+   return{same:chip===demo.ctx._signatureGroup.nodes[0],size:art.backgroundSize,position:art.backgroundPosition,width:art.width,height:art.height};
+  }),{same:true,size:'contain',position:'50% 50%',width:'32px',height:'32px'});
+  await page.evaluate(()=>{delete demo.hass.states['media_player.denon'];demo.ctx.updateBubbleCard()});await settle(page);
+  assert.deepEqual(await geometry(page),fallback);
+ }
+});
+
 test('chips pack equipment by actual width with exact hidden count, fixed height and right arrow',async t=>{
  const page=await fixture(t,{prepare:null,viewport:{width:1100,height:300}});
  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [288,328,358,382,600,992])for(const count of [0,1,2,3,10,17]){
