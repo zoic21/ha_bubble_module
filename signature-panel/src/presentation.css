@@ -71,6 +71,23 @@ ha-card[data-dp-layout="panel"] .bubble-container::after {
   background: var(--dp-illustration-image) var(--dp-illustration-position) / var(--dp-illustration-size) no-repeat;
 }
 ha-card[data-dp-layout="panel"][data-dp-illustration="no"] .bubble-container::after { visibility: hidden; }
+/* Share the header row with the artwork: native badges grow left from its
+   right edge instead of consuming the title's space. */
+ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .dp-panel-heading {
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  gap: 8px;
+}
+ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .dp-panel-heading .bubble-name {
+  max-width: calc(100% - min(var(--signature-illustration-size,80px),80px) - 8px);
+}
+ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .dp-panel-badges {
+  position: relative;
+  z-index: 2;
+}
+ha-card[data-dp-layout="panel"][data-dp-illustration="yes"]:has(.bubble-main-icon-container > .am-alert-badge:is([data-am-state="active"],[data-am-state="pending"])) .dp-panel-badges {
+  margin-inline-end: 24px;
+}
 ha-card[data-dp-layout="panel"] .bubble-content-container { pointer-events: none; }
 ha-card[data-dp-layout="panel"] .dp-value-action {
   position: relative; z-index: 1; pointer-events: auto; cursor: pointer;

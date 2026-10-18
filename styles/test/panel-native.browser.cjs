@@ -238,12 +238,15 @@ test('Panel title badges share the Room neutral capsule, preserve geometry and n
     window.badgeNode=button;
     return {group:getComputedStyle(group).backgroundColor,fill:getComputedStyle(button).backgroundColor,icon:getComputedStyle(icon).color,glyph:icon.getAttribute('icon'),
      height:button.getBoundingClientRect().height,size:getComputedStyle(icon).getPropertyValue('--mdc-icon-size'),opacity:getComputedStyle(button).opacity,
-     gap:button.getBoundingClientRect().left-card.card.querySelector('.bubble-name').getBoundingClientRect().right};
+     gap:button.getBoundingClientRect().left-card.card.querySelector('.bubble-name').getBoundingClientRect().right,
+     right:group.getBoundingClientRect().right,
+     artRight:card.card.querySelector('.bubble-container').getBoundingClientRect().right-parseFloat(getComputedStyle(card.card.querySelector('.bubble-container')).paddingRight)-parseFloat(getComputedStyle(card.card.querySelector('.bubble-container')).borderRightWidth)};
    },state);
    const after=await snapshot(page),hint=JSON.stringify({width,mode,plain,state,m});
    assert.equal(after.frame.height,118,hint);assert.deepEqual(after.art,before.art,hint);
    assert.deepEqual(after.labels.map(x=>[x.top,x.bottom,x.font]),before.labels.map(x=>[x.top,x.bottom,x.font]),hint);
-   assert.equal(m.height,20,hint);assert.equal(m.size,'14px',hint);assert.ok(m.gap>=6 && m.gap<=9,hint);
+   assert.equal(m.height,20,hint);assert.equal(m.size,'14px',hint);assert.ok(m.gap>=9.9,hint);
+   assert.ok(Math.abs(m.right-m.artRight)<.1,hint);
    assert.equal(m.fill,'rgba(0, 0, 0, 0)',hint);
    assert.equal(m.icon,state==='on'?'rgb(41, 149, 138)':'rgb(129, 129, 129)',hint);
    assert.equal(m.glyph,state==='on'?'mdi:fan':state==='off'?'mdi:fan-off':'mdi:fan-alert',hint);
@@ -261,6 +264,38 @@ test('Panel title badges share the Room neutral capsule, preserve geometry and n
   assert.equal(await page.evaluate(()=>card.card.querySelector('.dp-panel-heading')),null);
   assert.equal(await page.evaluate(()=>badgeNode===card.card.querySelector('.bubble-sub-button-container .fan-status')),true);
  }
+});
+
+test('Panel capsules grow over the artwork with one to three native badges and retain the no-image fallback',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ const badges=Array.from({length:3},(_,i)=>({entity:'switch.fan',icon:'mdi:fan',show_name:false,show_state:false,show_icon:true,show_background:false,state_background:false,css_class:'status-'+i,tap_action:{action:'navigate',navigation_path:'#badge-'+i}}));
+ const sub_button_styles=Object.fromEntries(badges.map(b=>[b.css_class,{type:'badge',color:'#29958A'}]));
+ const geometry=()=>page.evaluate(()=>{
+  const root=card.card,box=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
+  const host=root.querySelector('.bubble-container'),s=getComputedStyle(host);
+  return {group:box(root.querySelector('.dp-panel-badges')),name:box(root.querySelector('.bubble-name')),
+   artRight:host.getBoundingClientRect().right-parseFloat(s.paddingRight)-parseFloat(s.borderRightWidth)};
+ });
+ for(const width of [288,328,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const count of [1,2,3]){
+  await draw(page,{width,mode,plain,count});const before=await snapshot(page);
+  for(const number of [1,2,3]){
+   await draw(page,{width,mode,plain,count,native:{sub_button:{main:badges.slice(0,number)}},panel:{sub_button_styles},extraStates:{'switch.fan':{state:'on',attributes:{}}}});
+   const m=await geometry(),after=await snapshot(page),hint=JSON.stringify({width,mode,plain,count,number,m});
+   assert.equal(m.group.width,number*20+4,hint);assert.equal(m.group.height,20,hint);
+   assert.ok(Math.abs(m.group.right-m.artRight)<.1,hint);assert.ok(m.group.x>=m.name.right+7.9,hint);
+   assert.equal(m.group.y,m.name.y,hint);assert.deepEqual(after.art,before.art,hint);assert.deepEqual(after.labels,before.labels,hint);
+   assert.equal(after.frame.height,before.frame.height,hint);
+  }
+ }
+ for(let i=0;i<3;i++)await page.locator('bubble-card').locator('.status-'+i).click({timeout:3000});
+ assert.deepEqual(await page.evaluate(()=>calls.map(c=>c.config.tap_action.navigation_path)),['#badge-0','#badge-1','#badge-2']);
+ const beforeAlert=await geometry();
+ await page.evaluate(()=>{const badge=document.createElement('span');badge.className='am-alert-badge';badge.dataset.amState='active';card.card.querySelector('.bubble-main-icon-container').append(badge)});
+ const active=await geometry();assert.equal(active.group.right,beforeAlert.group.right-24);assert.ok(active.group.x>=active.name.right+7.9);
+ await page.evaluate(()=>card.card.querySelector('.am-alert-badge').dataset.amState='resolved');
+ assert.deepEqual(await geometry(),beforeAlert,'inactive Alert Manager releases its corner without rerendering');
+ await draw(page,{count:3,native:{sub_button:{main:[badges[0]]}},panel:{illustration:{},sub_button_styles},extraStates:{'switch.fan':{state:'on',attributes:{}}}});
+ const noImage=await geometry();assert.equal(noImage.group.x,noImage.name.right+6);assert.equal(noImage.group.width,24);
 });
 
 test('Panel commands color only the active icon and keep inactive icons and every label neutral',{skip:!nativePath},async t=>{

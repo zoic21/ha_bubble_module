@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.1.0
+version: 1.1.1
 creator: Loïc
 supported:
   - button
@@ -44,7 +44,7 @@ editor:
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       sub_button_styles:
         $field: sub_button_styles
-        description: "Styles des sous-boutons natifs, par classe ou numéro. type badge : pastille iconique neutre à côté du titre. type command : icône/libellé, cible 44 px, active/disabled en booléen ou Jinja. Trois commandes visibles au maximum."
+        description: "Styles des sous-boutons natifs, par classe ou numéro. type badge : pilule neutre au coin supérieur droit de l’illustration, ou à côté du titre sans image. type command : icône/libellé, cible 44 px, active/disabled en booléen ou Jinja. Trois commandes visibles au maximum."
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       hover:
         label: Surbrillance au survol

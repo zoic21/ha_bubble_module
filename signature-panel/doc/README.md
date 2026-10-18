@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.1.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.1.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -51,9 +51,13 @@ carte reste indépendante, tout comme `information[].tap_action` pour chaque
 mesure supplémentaire. Les nombres, unités et icônes reçoivent la même action.
 
 Un sous-bouton iconique natif avec `sub_button_styles.<classe>.type: badge`
-rejoint le titre dans une capsule neutre, comme Room : hauteur 20 px, icône
-14 px, écart de 6 px avec le nom, largeur de 24 px pour un badge. Masquer le
-nom, l'état et le fond individuel ; les templates d'icône et les actions restent
+rejoint une seule pilule neutre, comme Room : hauteur 20 px, icône de 14 px,
+largeurs de 24, 44 ou 64 px avec une, deux ou trois icônes. Elle se superpose
+au coin supérieur droit du dessin, avec un bord droit fixe, et s’allonge vers
+la gauche sans toucher le titre (au moins 8 px de dégagement). Sans image,
+elle reste à 6 px du nom. Un badge Alert Manager actif ou en attente conserve
+sa place dans le coin ; la pilule se décale alors de 24 px vers la gauche.
+Masquer le nom, l'état et le fond individuel ; les templates d'icône et les actions restent
 natifs. `color` règle son accent et `opacity` son état fonctionnel. Le fond
 commun reste neutre. Les badges masqués libèrent leur place ; retirer le rôle
 ou démonter le module restaure les nœuds d'origine. Les informations restent
@@ -195,3 +199,17 @@ Les tests Chromium utilisent le vrai pipeline Bubble 3.4.1 avec backend simulé 
 clics sur nombres/unités/icônes, actualisations, changements de résultats Jinja,
 états de ventilation, commandes d'alarme, retrait des badges et thèmes. Ces
 contrôles ne constituent pas un essai Home Assistant réel ou Safari/iOS.
+
+## 1.1.1 — 18 octobre 2026 — pilule sur l’illustration
+
+Les badges natifs partagent une pilule au coin supérieur droit du dessin,
+comme Room 1.4.3, sans réduire l’image ni masquer le titre. Les cartes sans
+image gardent le placement après le nom. Hauteur de 118 px, mesures, commandes,
+couleurs et actions natives conservées. Aucune nouvelle option ni calcul de
+taille JavaScript. Réimporter uniquement Panel ; les dashboards déjà configurés
+restent compatibles. Les autres distributions ne changent pas.
+
+Contrôles : tests Node et Chromium, dont Bubble Card 3.4.1 avec backend simulé,
+un à trois badges, un à trois champs, clair/sombre et avec/sans thème, visibilité,
+clics, retrait et réservation du badge Alert Manager. Ces fixtures ne valident
+pas Home Assistant réel ni Safari/iOS.
