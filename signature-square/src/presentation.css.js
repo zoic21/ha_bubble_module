@@ -7,8 +7,8 @@
     ha-card[data-dp-layout="square"] .bubble-name-container { display: contents !important; }
     ha-card[data-dp-layout="square"] .bubble-icon-container { margin: 0 !important; pointer-events: auto; grid-area: 1 / 1; width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; --mdc-icon-size: 22px; }
     ha-card[data-dp-layout="square"] .bubble-name { min-width: 0;
-      /* @include shared/src/styles/name.css {"SIZE_IMPORTANT":" !important"} */
-      line-height: 20px; color: var(--primary-text-color); grid-area: 1 / 2; align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* @include shared/src/styles/name.css {"SIZE":"calc(var(--signature-caption-font-size,12px) + 1px)","WEIGHT":"var(--signature-font-weight-medium,500)","SIZE_IMPORTANT":" !important"} */
+      line-height: 20px; color: var(--secondary-text-color); grid-area: 1 / 2; align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     ha-card[data-dp-layout="square"] .bubble-state { grid-area: 2 / 1 / 3 / 3; align-self: center;
       /* @include shared/src/styles/value.css {"SIZE_IMPORTANT":" !important","WEIGHT_IMPORTANT":" !important"} */
       line-height: 1.1; overflow: hidden; text-overflow: ellipsis; }

@@ -345,6 +345,9 @@ test('ordinary native and media states use secondary color at full opacity', asy
 test('names, numeric values, temperature units and captions retain distinct roles', async t => {
   const page = await fixture(t);
   const result = await render(page, {width: 600});
+  const squareTitle = style(result, 'square', '.bubble-name');
+  assert.equal(squareTitle.fontSize, '13px');assert.equal(squareTitle.fontWeight, '500');
+  assert.equal(squareTitle.color, style(result, 'square', '.dp-secondary').color);
   for (const [id, selector] of [['compact', '.bubble-name'], ['media', '.bubble-name'], ['flow', '.sf-label'], ['weather-summary', '.sw-name']]) {
     const name = style(result, id, selector);
     assert.equal(name.fontSize, '14px'); assert.equal(name.fontWeight, '600');

@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **2.0.3**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.4**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -126,6 +126,13 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 
 ## Thème et coexistence
 
+Les titres partagent le rôle des panneaux boutons Panel 1.1.7 : couleur
+secondaire, poids moyen 500 et taille de légende augmentée de 1 px, soit 13 px
+par défaut. La taille suit `signature-caption-font-size` et le poids suit
+`signature-font-weight-medium`, y compris lors d’un changement de thème seul.
+Les sous-textes gardent leur poids normal ; la grille, les valeurs, icônes,
+illustrations et actions restent identiques.
+
 Le [thème Signature](../../themes/README.md) centralise l’apparence via les variables `--signature-*`. Le navigateur résout ces variables, y compris dans le CSS mis en cache, sans lecture JavaScript du thème. Les valeurs de secours reproduisent le rendu actuel en l’absence du thème. Les grilles, les placements et les comportements appartiennent au module. Aucune dépendance entre modules n’est à installer et aucun `card-mod` n’est nécessaire.
 
 Utiliser **un seul module de présentation par carte**. `alert_manager` peut être ajouté après celui-ci ; les alertes gardent leurs couleurs prioritaires. Le lecteur multimédia utilise `signature_compact`.
@@ -141,6 +148,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 2.0.4 — 18 octobre 2026
+
+Titres harmonisés avec les panneaux boutons Panel 1.1.7 : 13 px par défaut,
+poids moyen 500, couleur secondaire du thème. Aucun changement des libellés,
+valeurs, unités, dimensions ou actions. Le fragment typographique commun garde
+les valeurs de secours des autres présentations.
 
 ### 1.4.5 — 16 octobre 2026
 

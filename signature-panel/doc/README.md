@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.1.6**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.1.7**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -157,7 +157,7 @@ Recorder fournit les variations du jour, y compris les remises à zéro. Un rés
 
 ## Style et maintenance
 
-Surfaces, textes, police et rayons utilisent les tokens Signature, y compris sans son thème : carte 22 px, contrôles 14 px, valeur 28 px/500, unité 16 px/400, secondaire 13 px/400. Sur les cartes bouton, les noms utilisent le rôle de légende : `signature-caption-font-size` (12 px), poids normal 400 et couleur secondaire ; les libellés restent complets dans la configuration, sans abréviation. Les titres des lecteurs gardent leur rôle de nom 14 px/600. Les états textuels sont limités à 22 px. Avec trois informations, la taille commune s’adapte à la largeur ; avec les commandes nommées, le rôle de valeur est de 20 px. Les valeurs et libellés de commandes restent primaires, les unités/détails secondaires ; les icônes gardent leurs accents. Retraits extérieurs des textes : 12 px horizontalement, 10 px verticalement, bordure comprise ; 8 px entre les colonnes. Les commandes de 44 px utilisent un retrait vertical de 8 px pour conserver les deux pas.
+Surfaces, textes, police et rayons utilisent les tokens Signature, y compris sans son thème : carte 22 px, contrôles 14 px, valeur 28 px/500, unité 16 px/400, secondaire 13 px/400. Sur les cartes bouton, les noms utilisent le même titre de mesure que Square : `signature-caption-font-size` augmenté de 1 px (13 px par défaut), poids moyen 500 et couleur secondaire ; les libellés restent complets dans la configuration, sans abréviation. Les titres des lecteurs gardent leur rôle de nom 14 px/600. Les états textuels sont limités à 22 px. Avec trois informations, la taille commune s’adapte à la largeur ; avec les commandes nommées, le rôle de valeur est de 20 px. Les valeurs et libellés de commandes restent primaires, les unités/détails secondaires ; les icônes gardent leurs accents. Retraits extérieurs des textes : 12 px horizontalement, 10 px verticalement, bordure comprise ; 8 px entre les colonnes. Les commandes de 44 px utilisent un retrait vertical de 8 px pour conserver les deux pas.
 
 Sans commandes visibles au pied, le groupe titres/valeurs/détails est centré
 verticalement selon son contenu réel. Un détail vide ne réserve plus de rangée ;
@@ -306,3 +306,13 @@ une à trois informations à 288/328/358/382/600 px, clair/sombre, avec/sans th�
 détails absents/présents, badges, commandes et médias. Les libellés longs
 peuvent toujours être tronqués sur les écrans très étroits. Home Assistant réel
 et Safari/iOS restent à vérifier après importation.
+
+## 1.1.7 — 18 octobre 2026 — titres distingués des détails
+
+Les titres des panneaux boutons gagnent 1 px (13 px par défaut) et utilisent
+le poids moyen 500. Ils restent gris secondaires et reprennent exactement le
+rôle des titres Square 2.0.4. Les détails gardent leur poids normal, les noms
+complets et le centrage introduit en 1.1.6 sont conservés. Le titre
+« Consommation » reste lisible à la largeur courante contrôlée de 358 px.
+Les lecteurs gardent leur typographie. Réimporter Panel et Square pour adopter
+la même hiérarchie sur les deux présentations.

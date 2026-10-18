@@ -111,13 +111,13 @@ test('Panel captions stay complete and the actual title/value/detail block is ve
   const hint=JSON.stringify({width,mode,plain,count,detail,m});
   assert.equal(m.height,118,hint);assert.equal(m.art,80,hint);assert.ok(Math.abs(m.centerError)<1,hint);
   assert.equal(m.names.length,count,hint);
-  for(const name of m.names){assert.equal(name.size,'12px',hint);assert.equal(name.weight,'400',hint);assert.equal(name.color,m.secondary,hint);if(width>=358)assert.ok(name.overflow<=1,hint);}
+  for(const name of m.names){assert.equal(name.size,'13px',hint);assert.equal(name.weight,'500',hint);assert.equal(name.color,m.secondary,hint);if(width>=358)assert.ok(name.overflow<=1,hint);}
   for(let i=1;i<m.names.length;i++)assert.ok(m.names[i-1].right<=m.names[i].left,hint);
   if(count>1)assert.equal(m.names.at(-1).text,'Consommation',hint);
  }
  await page.evaluate(()=>{document.documentElement.style.setProperty('--signature-caption-font-size','13px');document.documentElement.style.setProperty('--secondary-text-color','#667788')});
  const themed=await page.evaluate(()=>{const s=getComputedStyle(card.card.querySelector('.bubble-name'));return{size:s.fontSize,color:s.color}});
- assert.deepEqual(themed,{size:'13px',color:'rgb(102, 119, 136)'});
+ assert.deepEqual(themed,{size:'14px',color:'rgb(102, 119, 136)'});
 });
 
 test('two-line Panel details preserve forecast text, height, values and option removal',{skip:!nativePath},async t=>{

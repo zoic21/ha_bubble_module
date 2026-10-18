@@ -14,6 +14,7 @@ test('standalone modules resolve live theme variables without a module execution
  const original=await read();
  await page.evaluate(()=>{
   document.body.style.setProperty('--signature-name-font-size','18px');
+  document.body.style.setProperty('--signature-caption-font-size','15px');
   document.body.style.setProperty('--signature-card-border-radius','17px');
   document.body.style.setProperty('--signature-control-border-radius','9px');
   document.body.style.setProperty('--signature-header-small-font-size','29px');
@@ -21,7 +22,9 @@ test('standalone modules resolve live theme variables without a module execution
   document.body.style.setProperty('--secondary-text-color','#ff0000');
  });
  const changed=await read();
- for(const id of ['compact','square','room']){assert.equal(changed[id].fontSize,'18px');assert.equal(changed[id].radius,'17px');}
+ for(const id of ['compact','room']){assert.equal(changed[id].fontSize,'18px');assert.equal(changed[id].radius,'17px');}
+ assert.equal(original.square.fontSize,'13px');assert.equal(changed.square.fontSize,'16px');
+ assert.equal(changed.square.color,'rgb(255, 0, 0)');assert.equal(changed.square.radius,'17px');
  assert.equal(original.header.fontSize,'32px');assert.equal(changed.header.fontSize,'29px');
  assert.equal(changed.title.fontSize,'19px');assert.equal(changed.title.color,'rgb(255, 0, 0)');
  assert.equal(changed.media.fontSize,'18px');assert.equal(changed.media.radius,'17px');

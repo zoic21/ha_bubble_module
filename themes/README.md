@@ -66,12 +66,12 @@ The browser resolves the variables directly. Changing the theme or its mode does
 |---|---|---|
 | `signature-font-family` | Font stack for Signature, Flow, Weather, Wind Rose and Navigation | System fonts, Apple first |
 | `signature-font-weight-normal` | Ordinary text and units | `400` |
-| `signature-font-weight-medium` | Main numeric values | `500` |
+| `signature-font-weight-medium` | Main numeric values and Square/Panel button titles | `500` |
 | `signature-font-weight-semibold` | Names and emphasized text | `600` |
 | `signature-font-weight-bold` | Large Signature headings | `700` |
-| `signature-name-font-size` | Standard compact/square/room, Flow, Weather and Wind Rose names | `14px` |
+| `signature-name-font-size` | Standard compact/room/media, Flow, Weather and Wind Rose names | `14px` |
 | `signature-secondary-font-size` | Secondary text, media states and period selectors | `13px` |
-| `signature-caption-font-size` | Weather details, rose labels and small measurements | `12px` |
+| `signature-caption-font-size` | Weather details, rose labels and small measurements; Square/Panel button titles add 1px | `12px` |
 | `signature-value-font-size` | Square and Flow primary values | `28px` |
 | `signature-compact-value-font-size` | Compact numeric values | `20px` |
 | `signature-temperature-font-size` | Room and current-weather temperatures | `30px`; responsive layouts may reduce it |

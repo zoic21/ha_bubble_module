@@ -1,4 +1,4 @@
-/* @defaults {"SIZE_IMPORTANT":"","WEIGHT":"var(--signature-font-weight-semibold, 600)"} */
-font-size: var(--signature-name-font-size, 14px)@@SIZE_IMPORTANT@@;
+/* @defaults {"SIZE":"var(--signature-name-font-size, 14px)","SIZE_IMPORTANT":"","WEIGHT":"var(--signature-font-weight-semibold, 600)"} */
+font-size: @@SIZE@@@@SIZE_IMPORTANT@@;
 font-weight: @@WEIGHT@@;
 letter-spacing: -.2px;

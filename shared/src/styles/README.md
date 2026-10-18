@@ -31,10 +31,13 @@ Une directive occupe sa propre ligne dans un bloc CSS, y compris à l'intérieur
 
 Les paramètres sont des chaînes JSON sur une ligne. Les noms correspondent aux marqueurs `@@NOM@@` du fragment. La première ligne `/* @defaults {...} */` fournit les valeurs par défaut ; un paramètre transmis remplace seulement la valeur de cette inclusion. Les fragments peuvent inclure d'autres fragments en leur passant explicitement des paramètres. Les valeurs par défaut et directives disparaissent du résultat.
 
-`name.css` accepte `WEIGHT` au build (défaut `signature-font-weight-semibold`,
+`name.css` accepte `SIZE` et `WEIGHT` au build (défauts `signature-name-font-size`,
+14 px, et `signature-font-weight-semibold`,
 600), comme `value.css` et `unit.css` acceptent une taille. Panel transmet le
 poids normal de son titre média directement, sans émettre un poids ensuite
-écrasé. Ces paramètres ne sont pas de nouvelles options ou variables de thème.
+écrasé. Square et les boutons Panel partagent le titre de mesure : légende
+augmentée de 1 px (13 px par défaut), poids moyen 500 et couleur secondaire.
+Ces paramètres ne sont pas de nouvelles options ou variables de thème.
 
 `unit.css` possède aussi la couleur secondaire et l'espacement nul des unités.
 Ne pas les recopier dans les présentations. `secondary.css` accepte `IMPORTANT`
