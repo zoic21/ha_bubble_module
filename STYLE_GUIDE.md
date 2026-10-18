@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.5**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.5**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -730,10 +730,16 @@ ignoré sur les médias. Le titre n’a pas la cible d’action d’une mesure.
 
 En présence de ce titre, la grille conserve les 118 px et l’image de 80 px
 centrée : rangée de titre de 18 px, noms de mesure de 16 px, retrait vertical
-intérieur de 7 px. Les badges natifs suivent le titre global ; sans titre ils
-retrouvent le nom natif. Le helper de badges partagé paramètre ce nœud au build,
+intérieur standard de 9 px depuis Panel 1.2.1 (10 px avec bordure). Les commandes
+nommées conservent leur exception de 7 px. Les badges natifs suivent le titre
+global ; sans titre ils retrouvent le nom natif. Le helper de badges partagé paramètre ce nœud au build,
 sans changer la distribution Room. Conserver les boutons et leurs handlers,
 l’alignement des valeurs, les actions indépendantes et le nettoyage. Les
 compositions cumulant titre, détails longs et nombreuses commandes doivent
 être allégées pour tenir dans deux pas. Tester titres présents/absents,
 badges, mises à jour, retraits, thèmes et largeur de téléphone.
+
+Depuis Panel 1.2.1, `show_name: false` garde le nom natif masqué. Si aucun
+nom de mesure n’est visible et non vide, sa rangée se replie en CSS ; les valeurs
+restent alignées et centrées sous le titre global. Préserver les retraits
+horizontaux de 12 px, le dessin de 80 px, les 118 px et les actions natives.

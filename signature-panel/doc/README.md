@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.2.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.2.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -14,6 +14,7 @@ card_type: button
 button_type: state
 entity: sensor.power
 name: Puissance
+show_name: false
 show_icon: false
 show_state: true
 rows: 2
@@ -48,16 +49,20 @@ Les sous-boutons natifs restent au pied, à gauche de l’illustration : au plus
 
 `title` accepte du texte ou Jinja et ne concerne que les panneaux boutons.
 Il utilise le rôle de nom de 14 px/600 en couleur primaire ; les noms de
-mesure restent à 13 px/500. Le nom Bubble, ici « Puissance », reste attaché
-à la première mesure ; le titre global ne reçoit pas sa cible more-info.
+mesure restent à 13 px/500. Le nom Bubble reste attaché à la première mesure
+et peut être masqué avec `show_name: false`, comme dans l’exemple. Quand tous
+les noms de mesure sont vides ou masqués, leur rangée se replie et les valeurs
+se centrent dans l’espace sous le titre. Le titre global ne reçoit pas la
+cible more-info de la mesure.
 Le clic dans cette zone suit l’action native de la carte. Les badges rejoignent
 la rangée du titre global et gardent leurs actions. Un titre vide ou retiré
 supprime son nœud et sa rangée ; le retour sans titre restaure les badges
 auprès du nom natif. Le texte reste littéral, sans interprétation HTML.
 
 Le titre ajoute sa rangée dans les mêmes 118 px, avec un retrait vertical
-extérieur de 8 px, des noms de mesure sur 16 px et le dessin de 80 px toujours
-centré. Préférer les panneaux de mesures ; la combinaison d’un titre, de détails
+extérieur standard de 10 px (12 px horizontalement), des noms de mesure sur
+16 px et le dessin de 80 px toujours centré. Préférer les panneaux de mesures ;
+la combinaison d’un titre, de détails
 longs et de nombreuses commandes doit être allégée pour tenir dans deux pas.
 Les lecteurs ignorent cette option. Aucun abonnement, écouteur ou observateur
 supplémentaire n’est créé.
@@ -176,7 +181,7 @@ Recorder fournit les variations du jour, y compris les remises à zéro. Un rés
 
 ## Style et maintenance
 
-Surfaces, textes, police et rayons utilisent les tokens Signature, y compris sans son thème : carte 22 px, contrôles 14 px, valeur 28 px/500, unité 16 px/400. Sur les cartes bouton, les noms utilisent le même titre de mesure que Square : `signature-caption-font-size` augmenté de 1 px (13 px par défaut), poids moyen 500 et couleur primaire ; les libellés restent complets dans la configuration, sans abréviation. Les détails utilisent la légende de 12 px, poids normal et couleur secondaire, avec 3 px au-dessus lorsqu’ils sont présents. Les titres et détails des lecteurs conservent leurs rôles de nom 14 px/600 et secondaire 13 px/400. Les états textuels sont limités à 22 px. Avec trois informations, la taille commune s’adapte à la largeur ; avec les commandes nommées, le rôle de valeur est de 20 px. Les valeurs et libellés de commandes restent primaires, les unités/détails secondaires ; les icônes gardent leurs accents. Retraits extérieurs des textes : 12 px horizontalement, 10 px verticalement, bordure comprise ; 8 px entre les colonnes. Un titre global ou des commandes de 44 px utilisent un retrait vertical de 8 px pour conserver les deux pas.
+Surfaces, textes, police et rayons utilisent les tokens Signature, y compris sans son thème : carte 22 px, contrôles 14 px, valeur 28 px/500, unité 16 px/400. Sur les cartes bouton, les noms utilisent le même titre de mesure que Square : `signature-caption-font-size` augmenté de 1 px (13 px par défaut), poids moyen 500 et couleur primaire ; les libellés restent complets dans la configuration, sans abréviation. Les détails utilisent la légende de 12 px, poids normal et couleur secondaire, avec 3 px au-dessus lorsqu’ils sont présents. Les titres et détails des lecteurs conservent leurs rôles de nom 14 px/600 et secondaire 13 px/400. Les états textuels sont limités à 22 px. Avec trois informations, la taille commune s’adapte à la largeur ; avec les commandes nommées, le rôle de valeur est de 20 px. Les valeurs et libellés de commandes restent primaires, les unités/détails secondaires ; les icônes gardent leurs accents. Retraits extérieurs des textes : 12 px horizontalement, 10 px verticalement, bordure comprise ; 8 px entre les colonnes. Les commandes de 44 px utilisent un retrait vertical de 8 px pour conserver les deux pas.
 
 Sans commandes visibles au pied, le groupe titres/valeurs/détails est centré
 verticalement selon son contenu réel. Un détail vide ne réserve plus de rangée ;
@@ -349,3 +354,12 @@ Tests Node et Chromium avec Bubble 3.4.1/backend simulé : titre présent/absent
 une à trois mesures, badges, clics indépendants, thèmes et largeurs mobiles.
 Contrôle de la carte Informatique exportée avec états simulés. Pas de validation
 Home Assistant réelle ou Safari/iOS déduite de ces fixtures.
+
+## 1.2.1 — 18 octobre 2026 — retraits du titre et mesures sans libellé
+
+Le titre global retrouve le retrait vertical standard de 10 px avec bordure ;
+les commandes nommées gardent leur exception de 8 px. Une rangée sans nom de
+mesure visible se replie, notamment avec `show_name: false`. Les valeurs se
+centrent sous le titre, sans changer leurs actions, la hauteur ni le dessin.
+Contrôles Chromium natifs à cinq largeurs, clair/sombre, avec/sans thème,
+nom présent/masqué et badges. Pas d’essai Home Assistant réel ou Safari/iOS.

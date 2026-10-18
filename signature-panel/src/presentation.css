@@ -164,11 +164,14 @@ ${panelTitle ? `
 ha-card[data-dp-layout="panel"][data-dp-panel-title="yes"] .bubble-container {
   --dp-panel-heading-row: 1; --dp-panel-name-row: 3;
   --dp-panel-value-row: 4; --dp-panel-detail-row: 5; --dp-panel-footer-row: 6;
-  padding-block: 7px;
-  grid-template-rows: 18px minmax(0,1fr) 16px max-content auto minmax(0,1fr);
+  --dp-panel-name-track: 16px;
+  grid-template-rows: 18px minmax(0,1fr) var(--dp-panel-name-track) max-content auto minmax(0,1fr);
 }
 ha-card[data-dp-layout="panel"][data-dp-panel-title="yes"] .bubble-container:has(:is(.bubble-sub-button-container,.bubble-buttons-container) :is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden])) {
-  grid-template-rows: 18px minmax(0,1fr) 16px max-content auto auto;
+  grid-template-rows: 18px minmax(0,1fr) var(--dp-panel-name-track) max-content auto auto;
+}
+ha-card[data-dp-layout="panel"][data-dp-panel-title="yes"] .bubble-container:not(:has(:is(.bubble-name,.dp-panel-name):not(:empty):not(.hidden):not([hidden]))) {
+  --dp-panel-name-track: 0px;
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-name,.dp-panel-name) { line-height: 16px; }
 ha-card[data-dp-layout="panel"] .dp-panel-title {

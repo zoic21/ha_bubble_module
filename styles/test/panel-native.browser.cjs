@@ -122,22 +122,25 @@ test('Panel captions stay complete and the actual title/value/detail block is ve
 
 test('an optional global Panel heading owns the badges and leaves metric navigation independent',{skip:!nativePath},async t=>{
  const page=await setup(t);
- for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const showName of [true,false]){
   const button={entity:'sensor.power',css_class:'ventilation',icon:'mdi:fan',show_icon:true,show_name:false,show_state:false,show_background:false,tap_action:{action:'navigate',navigation_path:'#temperature'}};
-  await draw(page,{width,mode,plain,count:3,native:{name:'Puissance',sub_button:{main:[button]}},panel:{title:'Baie informatique',tap_action:{action:'navigate',navigation_path:'#power'},
+  await draw(page,{width,mode,plain,count:3,native:{name:'Puissance',show_name:showName,sub_button:{main:[button]}},panel:{title:'Baie informatique',tap_action:{action:'navigate',navigation_path:'#power'},
    information:[{entity:'sensor.temperature',icon:'mdi:thermometer',tap_action:{action:'navigate',navigation_path:'#temperature'}},{entity:'sensor.humidity',icon:'mdi:water-percent'}],
    sub_button_styles:{ventilation:{type:'badge'}}}});
   const m=await page.evaluate(()=>{
    const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect(),title=root.querySelector('.dp-panel-title'),name=root.querySelector('.bubble-name');
    const box=e=>{const r=e.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,center:r.y+r.height/2}},s=getComputedStyle(title);
    window.kept={title,name,state:card.elements.state,badge:root.querySelector('.bubble-sub-button')};
-   return{height:frame.height,art:parseFloat(getComputedStyle(host,'::after').width),title:{...box(title),text:title.textContent,size:s.fontSize,weight:s.fontWeight},name:{...box(name),text:name.textContent},
-    values:[...root.querySelectorAll('.bubble-state,.dp-panel-state')].map(box),badge:box(kept.badge),headingOwner:title.parentNode.className};
+   return{height:frame.height,frame:box(host),art:parseFloat(getComputedStyle(host,'::after').width),title:{...box(title),text:title.textContent,size:s.fontSize,weight:s.fontWeight},name:{...box(name),text:name.textContent,display:getComputedStyle(name).display},
+    nameTrack:getComputedStyle(host).getPropertyValue('--dp-panel-name-track').trim(),values:[...root.querySelectorAll('.bubble-state,.dp-panel-state')].map(box),badge:box(kept.badge),capsule:box(root.querySelector('.dp-panel-badges')),headingOwner:title.parentNode.className};
   });
-  const hint=JSON.stringify({width,mode,plain,m});assert.equal(m.height,118,hint);assert.equal(m.art,80,hint);
+  const hint=JSON.stringify({width,mode,plain,showName,m});assert.equal(m.height,118,hint);assert.equal(m.art,80,hint);
   assert.equal(m.title.text,'Baie informatique');assert.equal(m.title.size,'14px');assert.equal(m.title.weight,'600');assert.equal(m.name.text,'Puissance');
-  assert.ok(m.title.bottom<=m.name.top,hint);assert.ok(m.title.right+7.9<=m.badge.left,hint);assert.equal(m.headingOwner,'dp-panel-heading');
-  for(const value of m.values){assert.ok(Math.abs(value.center-m.values[0].center)<1,hint);assert.ok(m.name.bottom<=value.top+.1,hint);}
+  assert.ok(Math.abs(m.title.top-m.frame.top-10)<.1,hint);assert.ok(Math.abs(m.title.left-m.frame.left-12)<.1,hint);assert.ok(Math.abs(m.frame.right-m.capsule.right-12)<.1,hint);
+  if(showName){assert.ok(m.title.bottom<=m.name.top,hint);assert.equal(m.nameTrack,'16px',hint);}
+  else{assert.equal(m.name.display,'none',hint);assert.equal(m.nameTrack,'0px',hint);assert.ok(Math.abs(m.values[0].center-(m.title.bottom+m.frame.bottom-10)/2)<1,hint);}
+  assert.ok(m.title.right+7.9<=m.badge.left,hint);assert.equal(m.headingOwner,'dp-panel-heading');
+  for(const value of m.values){assert.ok(Math.abs(value.center-m.values[0].center)<1,hint);if(showName)assert.ok(m.name.bottom<=value.top+.1,hint);}
   await page.mouse.click((m.title.left+m.title.right)/2,(m.title.top+m.title.bottom)/2);await page.waitForFunction(()=>calls.length===1);
   assert.equal((await page.evaluate(()=>calls))[0].config.tap_action.navigation_path,'#panel');await page.evaluate(()=>window.calls=[]);
   await page.locator('bubble-card').locator('.bubble-state').click();await page.waitForFunction(()=>calls.length===1);
