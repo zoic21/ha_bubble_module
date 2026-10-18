@@ -81,7 +81,7 @@ async function geometry(page){return page.evaluate(()=>{
   const read=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {left:r.left-rect.left,right:r.right-rect.left,top:r.top-rect.top,bottom:r.bottom-rect.top,width:r.width,height:r.height,color:s.color,fontSize:s.fontSize,background:s.backgroundColor,backgroundImage:s.backgroundImage,shadow:s.boxShadow,border:s.borderWidth};};
   const s=getComputedStyle(host);
   const badge=root.querySelector('.am-alert-badge');
-  return {width:rect.width,height:rect.height,background:s.backgroundImage,size:s.backgroundSize,surface:s.backgroundColor,transition:s.transitionDuration,state:read(root.querySelector('.bubble-state')),unit:read(root.querySelector('.dp-unit')),name:read(root.querySelector('.bubble-name')),buttons:[...root.querySelectorAll('.bubble-sub-button')].map(read),badge:badge?getComputedStyle(badge).display:null};
+  return {width:rect.width,height:rect.height,background:s.backgroundImage,size:s.backgroundSize,surface:s.backgroundColor,transition:s.transitionDuration,icon:read(root.querySelector('.bubble-icon-container')),state:read(root.querySelector('.bubble-state')),unit:read(root.querySelector('.dp-unit')),name:read(root.querySelector('.bubble-name')),buttons:[...root.querySelectorAll('.bubble-sub-button')].map(read),badge:badge?getComputedStyle(badge).display:null};
 });}
 
 test('fill retains switch/select nodes, native geometry and click/change handlers',async t=>{
@@ -127,6 +127,7 @@ test('fill stays within the card with values and controls at mobile/desktop widt
   for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const controls of ['none','switch','select','temperatures','crowded']){
     await prepare(page,{width,mode,controls,grouped:true});const g=await geometry(page);
     assert.equal(g.state.fontSize,'20px');assert.equal(g.unit.fontSize,'13px');
+    assert.equal(g.name.left-g.icon.right,12,'value layout shares the standard icon/text spacing');
     assert.ok(g.name.width>0,'No room for the name: '+JSON.stringify({width,controls,g}));
     for(const b of [g.state,...g.buttons])assert.ok(b.left>=0&&b.right<=g.width+.1&&b.top>=0&&b.bottom<=g.height+.1,'Clipped control: '+JSON.stringify({width,controls,g}));
     assert.match(g.background,/linear-gradient/);assert.match(g.size,/20% 100%/);
@@ -150,6 +151,7 @@ test('small value buttons precede native actions and keep switches last at narro
     assert.ok(result.sameNodes);assert.deepEqual(result.after,result.before);
     const g=await geometry(page);
     assert.equal(g.state.fontSize,'14px');assert.equal(g.unit.fontSize,'12px');assert.equal(g.state.height,36);
+    if(width!==382)assert.equal(g.name.left-g.icon.right,12,'value pill and wrapped controls preserve the text column');
     if(width<500){assert.equal(g.state.background,'rgba(0, 0, 0, 0)');assert.equal(g.state.backgroundImage,'none');assert.equal(g.state.shadow,'none');assert.equal(g.state.border,'0px');}
     assert.ok(g.name.width>0,'Name clipped: '+JSON.stringify({width,control,g}));
     for(const b of [g.state,...g.buttons])assert.ok(b.left>=0&&b.right<=g.width+.1&&b.top>=0&&b.bottom<=g.height+.1,'Control clipped: '+JSON.stringify({width,control,g}));

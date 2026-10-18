@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.4**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.1**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.4**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -174,6 +174,18 @@ Ne pas modifier une taille sans vérifier la hauteur de ligne, la ligne de grill
 Le thème Signature conserve la palette globale de Home Assistant : garder les fonds de page, surfaces, textes, accents, en-tête et barre latérale natifs. Il ajuste la typographie, les arrondis, la bordure et l'ombre des cartes natives. `ha-card-border-color` reprend `signature-card-border-color` et `ha-card-border-width` vaut 1 px : les cartes compatibles partagent ainsi le contour des modules en clair/sombre, sans remplacer `divider-color`. Statistics Graph Chart Card doit conserver `card_border: true` ; un `false` explicite masque la bordure malgré le thème. Ses variables Bubble globales ajustent seulement les arrondis ; ne pas y ajouter un fond, une bordure ou une ombre qui s'appliquerait aussi aux séparateurs. Hors thème, conserver les replis de la section 1. Le fond des groupes de période utilise `signature-control-background`, puis un mélange de 5 % de texte primaire dans la surface neutre. Leur onglet sélectionné reprend la surface de carte.
 
 Le fond d'icône Signature et Flow mélange 16 % de l'accent dans la surface neutre. Les options explicites de couleur et de teinte restent fonctionnelles. Les valeurs météo froides/chaudes utilisent `signature-weather-cool-color` (`#8bc3d2`) et `signature-weather-warm-color` (`#e9ac70`). La rose utilise `signature-wind-rose-color` (`#4db6ac`). Les couleurs des conditions météo et les alertes portent une information ; ne pas les remplacer uniformément par une couleur décorative.
+
+### Espacement des textes Compact — 1.6.1
+
+Conserver **12 px entre le carré d’icône et le texte**, avec ou sans badge de
+mode, en standard comme en mode valeur. Les lignes flex utilisent une marge
+d’icône de 12 px ; les grilles gardent leur écart de 8 px entre contrôles et
+réservent 40 px pour l’icône de 36 px. La grille repliée suit la même règle.
+Nom et secondaire partagent la colonne ; ne pas déplacer les valeurs et les
+commandes de droite ni réduire leurs cibles. Sans icône, ne pas ajouter de
+colonne réservée. Le média garde sa disposition native et porte le retrait
+de son bloc de texte de 4 à 12 px. Les petits formats spécialisés Hue gardent
+leurs règles propres. Aucun décalage conditionné par la présence du badge.
 
 ### Badge de mode sur une icône Compact
 

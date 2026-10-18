@@ -9,7 +9,7 @@ test('standalone modules resolve live theme variables without a module execution
   const root=document.querySelector('[data-id="'+id+'"]').shadowRoot;
   const name=root.querySelector('.bubble-name'),box=root.querySelector('.bubble-container');
   const control=root.querySelector('.bubble-media-button');
-  return [id,{fontSize:getComputedStyle(name).fontSize,color:getComputedStyle(name).color,radius:getComputedStyle(box).borderRadius,height:box.getBoundingClientRect().height,secondary:getComputedStyle(root.querySelector('.bubble-state')).color,controlRadius:control?getComputedStyle(control).borderRadius:null}];
+  return [id,{fontSize:getComputedStyle(name).fontSize,color:getComputedStyle(name).color,radius:getComputedStyle(box).borderRadius,height:box.getBoundingClientRect().height,secondary:getComputedStyle(root.querySelector('.bubble-state')).color,controlRadius:control?getComputedStyle(control).borderRadius:null,mediaTextInset:root.querySelector('.bubble-media-info-container')?getComputedStyle(root.querySelector('.bubble-media-info-container')).marginInlineStart:null}];
  })));
  const original=await read();
  await page.evaluate(()=>{
@@ -27,6 +27,7 @@ test('standalone modules resolve live theme variables without a module execution
  assert.equal(changed.media.fontSize,'18px');assert.equal(changed.media.radius,'17px');
  assert.equal(changed.media.controlRadius,'9px');assert.equal(changed.media.secondary,'rgb(255, 0, 0)');
  assert.equal(changed.media.height,original.media.height);assert.notEqual(changed.media.height,56);
+ assert.equal(original.media.mediaTextInset,'12px');assert.equal(changed.media.mediaTextInset,'12px');
 });
 
 // Native-shaped flat/grouped header with the two rows used by the home dashboard.

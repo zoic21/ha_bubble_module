@@ -1,5 +1,18 @@
 # Signature Compact
 
+## 1.6.1 — 18 octobre 2026 — espacement des textes
+
+L'écart entre le carré d'icône et le bloc de texte passe à **12 px** sur
+toutes les lignes Compact, avec ou sans badge A/M. Les lignes standard,
+volets, thermostats et commandes numériques gagnent 8 px ; les grilles de
+valeur, qui avaient déjà 8 px, gagnent 4 px pour conserver le même alignement.
+Le nom et le secondaire restent alignés ; les contrôles et valeurs de droite
+gardent leur taille et leur ancrage. La grille avec commandes sur une seconde
+ligne suit le même retrait. Sans icône, aucun emplacement d'icône n'est ajouté.
+Le lecteur multimédia applique aussi un retrait de texte de 12 px au lieu de
+4 px, en gardant sa géométrie native. Les présentations spécialisées Hue
+conservent leur disposition. Aucun CSS de dashboard ni thème à modifier.
+
 ## 1.5.0 — 17 octobre 2026 — cohérence des dashboards
 
 Option `name_lines: 2` avec limite de hauteur liée au thème ; durées `h:mm`
@@ -7,7 +20,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.1**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
