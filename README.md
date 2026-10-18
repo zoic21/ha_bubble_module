@@ -14,7 +14,7 @@ computed styles. Includes measured CSS sizes, operation counts and import versio
 |---|---|---|---|
 | Signature Square — square tiles | 2.0.3 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.5.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.1.3 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.1.4 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.3 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.2.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
@@ -118,7 +118,7 @@ Signature Group 1.1.1 links a popup and a name button through their hash. Enable
 
 Group’s optional `presentation: chips` replaces the visible title and total count with equipment pills inherited from the popup cards. Actual available width determines how many fit; `+N` counts only hidden items and precedes the fixed right arrow. Names, atlas crops and HA light/dark artwork follow the popup, without duplicate configuration.
 
-Panel 1.1.3 and Group 1.1.5 share opt-in `illustration.media_artwork: true` for media-player cards: prefer the entity's current `entity_picture`, preserve its aspect ratio, and restore the configured themed artwork when unavailable. Track updates follow native HA updates without new subscriptions or observers. Media covers have rounded corners; Group keeps a small inset around them without changing chip width. Panel play/pause uses a transparent background and neutral icon while retaining the native ripple and actions.
+Panel 1.1.4 and Group 1.1.5 share opt-in `illustration.media_artwork: true` for media-player cards: prefer the entity's current `entity_picture`, preserve its aspect ratio, and restore the configured themed artwork when unavailable. Track updates follow native HA updates without new subscriptions or observers. Media covers have rounded corners; Group keeps a small inset around them without changing chip width. Panel play/pause uses a transparent background and neutral icon while retaining the native ripple and actions.
 
 Group’s optional `hide_empty: true` hides an empty summary through the native Home Assistant visibility contract while retaining state updates. Editor previews stay available; popup placeholders receive no extra empty-state block.
 

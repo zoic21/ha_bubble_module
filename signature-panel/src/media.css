@@ -16,3 +16,10 @@ ha-card[data-dp-layout="panel"] .bubble-play-pause-button {
   background-color: transparent;
   --bubble-media-player-play-pause-icon-color: var(--primary-text-color);
 }
+/* A configured detail uses the reserved third row; native metadata stays in
+   the middle row, with compact leading and unchanged font sizes/actions. */
+ha-card[data-dp-layout="panel"][data-dp-secondary="yes"] .bubble-container { padding-block: 6px; }
+ha-card[data-dp-layout="panel"][data-dp-secondary="yes"] .bubble-media-info-container { grid-row: 2; }
+ha-card[data-dp-layout="panel"][data-dp-secondary="yes"] :is(.bubble-title,.bubble-artist) {
+  line-height: 1.15; white-space: nowrap !important; flex-shrink: 0;
+}

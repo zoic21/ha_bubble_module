@@ -143,6 +143,35 @@ test('Panel play and pause keep native taps and neutral icons without a permanen
  }
 });
 
+test('media details keep track metadata and native controls on separate rows and restore the empty-detail layout',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const metadata of [true,false]){
+  await draw(page,{width,mode,plain,media:true,native:{show_state:false,state_content:[]},
+   panel:{secondary:'{{ detail }}'},templateResults:{'{{ detail }}':'Volume 35 % · Application au nom particulièrement long'},
+   extraStates:{'media_player.demo':{state:'playing',attributes:{supported_features:16385,volume_level:.35,media_content_type:'music',...(metadata?{media_title:'Un morceau au titre particulièrement long',media_artist:'Un artiste'}:{})}}}});
+  const read=()=>page.evaluate(()=>{
+   const root=card.card,rect=e=>{const b=e.getBoundingClientRect();return{top:b.top,bottom:b.bottom,left:b.left,right:b.right,height:b.height}};
+   const info=root.querySelector('.bubble-media-info-container'),detail=root.querySelector('.dp-secondary');
+   return{frame:rect(root.querySelector('.bubble-container')),name:rect(root.querySelector('.bubble-name')),info:rect(info),row:getComputedStyle(info).gridRow,
+    metadata:[...info.querySelectorAll('.bubble-title,.bubble-artist')].filter(e=>e.textContent.trim()&&getComputedStyle(e).display!=='none').map(e=>({...rect(e),line:parseFloat(getComputedStyle(e).lineHeight),inline:e.style.cssText,html:e.innerHTML})),
+    detail:detail?{...rect(detail),overflow:getComputedStyle(detail).textOverflow,whiteSpace:getComputedStyle(detail).whiteSpace}:null,
+    footer:rect(root.querySelector('.bubble-buttons-container')),buttons:[...root.querySelectorAll('.bubble-media-button')].filter(e=>getComputedStyle(e).display!=='none').map(rect)};
+  });
+  const m=await read(),hint=JSON.stringify({width,mode,plain,metadata,m});
+  assert.equal(m.frame.height,118,hint);assert.equal(m.row,'2',hint);
+  if(m.info.height){assert.ok(m.info.top>=m.name.bottom-.1,hint);assert.ok(m.info.bottom<=m.detail.top+.1,hint);}
+  for(const line of m.metadata){assert.ok(line.top>=m.name.bottom-.1,hint);assert.ok(line.bottom<=m.detail.top+.1,hint);assert.ok(line.height>=line.line-.1,hint);}
+  assert.ok(m.detail.bottom<=m.footer.top+.1,hint);assert.equal(m.detail.overflow,'ellipsis');assert.equal(m.detail.whiteSpace,'nowrap');
+  await page.evaluate(()=>{
+   window.infoNode=card.card.querySelector('.bubble-media-info-container');
+   for(const sub of templateSubscriptions)if(sub.template==='{{ detail }}')sub.callback({result:''});card.updateBubbleCard();
+  });
+  await page.waitForFunction(()=>!card.card.querySelector('.dp-secondary'));
+  const empty=await read();assert.equal(empty.row,'2 / 4');
+  assert.equal(await page.evaluate(()=>infoNode===card.card.querySelector('.bubble-media-info-container')),true);
+ }
+});
+
 test('Panel aligns one to three information columns in real Bubble, across themes and native refreshes',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const count of [1,2,3]){

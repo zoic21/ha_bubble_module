@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.3**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.4**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -616,3 +616,15 @@ La hauteur de pilule de 36 px, sa largeur et le début du libellé ne changent
 pas. Le retrait laisse 4 px au-dessus/dessous de la pochette, contre 2 px
 pour l'illustration habituelle. Le retrait de la pochette restaure le dessin
 sans arrondi ni marge ajoutés. Les rayons suivent le thème sans réexécution.
+
+### Ligne secondaire des lecteurs — Panel 1.1.4
+
+Sur un lecteur avec `secondary` non vide, réserver la troisième rangée à ce
+détail et la deuxième aux métadonnées natives. Leurs tailles de police sont
+conservées ; titre/artiste utilisent un interligne compact de 1,15, une seule
+ligne native par champ et un retrait vertical de 6 px pour tenir au-dessus
+du détail et des commandes, dans les mêmes 118 px. Sans détail,
+restaurer le span 2 / 4 et l'interligne de 1,3. Le détail garde le rôle
+secondaire commun et une ellipse ; aucun nouveau nœud ni déplacement de
+DOM ajouté. Tester les métadonnées présentes/absentes, les titres longs et
+la disparition native du détail, avec les mêmes commandes et la même image.

@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.1.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.1.4**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -252,3 +252,14 @@ La pochette actuelle reçoit un rayon de 12 px par défaut dans le cadre de
 secours, leur cadrage et les autres types de carte restent identiques.
 Les métadonnées morceau/artiste ne sont pas remplacées : certains lecteurs
 Denon ne les fournissent pas pendant AirPlay, même avec une pochette.
+
+## 1.1.4 — 18 octobre 2026 — détail indépendant sur les lecteurs
+
+`secondary` peut afficher une donnée fournie par la carte (volume, source,
+application), avec le même Jinja et les mêmes cibles more-info. Les métadonnées
+morceau/artiste restent natives dans la rangée centrale ; le détail réserve
+sa propre ligne au-dessus des commandes. Interligne compact de 1,15 et retrait vertical de 6 px seulement avec ce
+détail ; titre et artiste restent sur une ligne chacun, sans changer les
+tailles de texte, la hauteur ou l'image.
+Sans donnée, la carte retrouve sa disposition média habituelle. Aucun état
+métier ni donnée de lecteur n'est codé dans le module.
