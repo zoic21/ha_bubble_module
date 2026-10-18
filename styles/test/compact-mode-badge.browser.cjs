@@ -65,7 +65,9 @@ test('Compact mode badges keep 44px targets and 14px letters through native upda
    assert.equal(Math.round(m.container.height),56);assert.equal(m.glyph,'"'+name[0]+'"');assert.ok(m.fullName.includes(name));
    assert.ok(m.icon.left+m.icon.width/2>=m.button.left&&m.icon.right-m.icon.width/2<=m.button.right,JSON.stringify({kind,width,mode,plain,...m}));
    assert.ok(m.button.right<=m.name.left,'mode target must not cover the room name');
-   assert.equal(m.name.left-m.icon.right,12,'text keeps 12px after the icon, independently of the mode');
+   assert.equal(m.name.left-m.icon.right,10,'text keeps 10px after the icon, independently of the mode');
+   assert.equal(m.icon.left-m.container.left,10,'left outer inset equals the icon/text gap');
+   assert.equal(m.icon.top-m.container.top,10);assert.equal(m.container.bottom-m.icon.bottom,10);
    assert.ok(m.button.top>=m.container.top&&m.button.bottom<=m.container.bottom);
    if(name==='Auto')assert.equal(m.background,'rgb(54, 153, 59)');
    if(name==='Manuel')assert.notEqual(m.background,'rgb(54, 153, 59)');

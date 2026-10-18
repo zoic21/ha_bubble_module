@@ -20,6 +20,6 @@ if (kind === 'media-player') {
     ha-card :is(.bubble-state,.bubble-artist) {
       /* @include shared/src/styles/secondary.css */
       font-weight: var(--signature-font-weight-normal, 400); opacity: 1; }
-    ha-card .bubble-media-info-container { line-height: 1.3; margin-inline-start: 12px; }
+    ha-card .bubble-media-info-container { line-height: 1.3; margin-inline-start: 10px; }
   `;
 }

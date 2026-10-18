@@ -7,7 +7,7 @@ if (wrapValueControls) {
       ha-card[data-dp-value-controls="wrap"] .bubble-container { height: auto !important; }
       ha-card[data-dp-value-controls="wrap"] .bubble-wrapper {
         position: relative !important; height: auto !important;
-        grid-template-columns: 40px minmax(0, 1fr) fit-content(60%);
+        grid-template-columns: 38px minmax(0, 1fr) fit-content(60%);
         grid-template-rows: minmax(36px, auto) auto;
         padding-block: 9px; row-gap: 8px;
       }

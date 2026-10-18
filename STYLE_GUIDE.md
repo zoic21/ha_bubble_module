@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.1**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.4**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.4**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -175,17 +175,18 @@ Le thème Signature conserve la palette globale de Home Assistant : garder les f
 
 Le fond d'icône Signature et Flow mélange 16 % de l'accent dans la surface neutre. Les options explicites de couleur et de teinte restent fonctionnelles. Les valeurs météo froides/chaudes utilisent `signature-weather-cool-color` (`#8bc3d2`) et `signature-weather-warm-color` (`#e9ac70`). La rose utilise `signature-wind-rose-color` (`#4db6ac`). Les couleurs des conditions météo et les alertes portent une information ; ne pas les remplacer uniformément par une couleur décorative.
 
-### Espacement des textes Compact — 1.6.1
+### Espacement des textes Compact — 1.6.2
 
-Conserver **12 px entre le carré d’icône et le texte**, avec ou sans badge de
-mode, en standard comme en mode valeur. Les lignes flex utilisent une marge
-d’icône de 12 px ; les grilles gardent leur écart de 8 px entre contrôles et
-réservent 40 px pour l’icône de 36 px. La grille repliée suit la même règle.
-Nom et secondaire partagent la colonne ; ne pas déplacer les valeurs et les
-commandes de droite ni réduire leurs cibles. Sans icône, ne pas ajouter de
-colonne réservée. Le média garde sa disposition native et porte le retrait
-de son bloc de texte de 4 à 12 px. Les petits formats spécialisés Hue gardent
-leurs règles propres. Aucun décalage conditionné par la présence du badge.
+Conserver **10 px entre le carré d’icône et le texte**, avec ou sans badge de
+mode, en standard comme en mode valeur : même écart que le retrait extérieur
+de l’icône (10 px, bordure comprise), en haut, en bas et à gauche. Les lignes
+flex utilisent une marge d’icône de 10 px ; les grilles gardent leur écart de
+8 px entre contrôles et réservent 38 px pour l’icône de 36 px. La grille
+repliée suit la même règle. Nom et secondaire partagent la colonne ; ne pas
+déplacer les valeurs et commandes de droite ni réduire leurs cibles.
+Sans icône, ne pas ajouter de colonne réservée. Le média garde sa disposition
+native et un retrait de texte de 10 px. Les petits formats spécialisés Hue
+gardent leurs règles propres. Aucun décalage conditionné par le badge.
 
 ### Badge de mode sur une icône Compact
 

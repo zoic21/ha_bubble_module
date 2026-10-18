@@ -6,8 +6,8 @@
     ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 8px; padding: 0 9px; box-sizing: border-box; transition: none !important; }
     ha-card[data-dp-layout="compact"] .bubble-sub-button { --bubble-sub-button-border-radius: var(--dp-compact-pill-radius); }
     ha-card[data-dp-layout="compact"] .bubble-content-container { flex: 1; display: flex !important; align-items: center; min-width: 0; }
-    /* Leave 12px before the text, including the space beside a mode badge. */
-    ha-card[data-dp-layout="compact"] .bubble-icon-container { width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; margin: 0 12px 0 0 !important; background: var(--bubble-icon-background-color) !important; border-radius: var(--bubble-icon-border-radius) !important; }
+    /* Leave 10px before the text, including the space beside a mode badge. */
+    ha-card[data-dp-layout="compact"] .bubble-icon-container { width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; margin: 0 10px 0 0 !important; background: var(--bubble-icon-background-color) !important; border-radius: var(--bubble-icon-border-radius) !important; }
     ha-card[data-dp-layout="compact"] .bubble-main-icon { --mdc-icon-size: 22px; color: var(--dp-accent); }
     ha-card[data-dp-layout="compact"] .bubble-name-container { margin: 0 !important; min-width: 0; }
     /* Keep glyphs inside Bubble's clipped name; max-height still measures the two content lines. */
@@ -114,7 +114,7 @@ opacity: 1;
     ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep the native state node, formatting and action bindings. */
     ha-card[data-dp-value-trailing="yes"] .bubble-wrapper {
 display: grid !important;
-grid-template-columns: 40px minmax(0, 1fr) auto fit-content(60%);
+grid-template-columns: 38px minmax(0, 1fr) auto fit-content(60%);
 grid-template-rows: 1fr 1fr;
 column-gap: 8px;
 row-gap: 0;
@@ -128,7 +128,7 @@ row-gap: 0;
     ha-card[data-dp-value-trailing="yes"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 2 / 2 / 3 !important; align-self: end; }` : ''}
     ha-card[data-dp-value-trailing="yes"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) auto fit-content(60%); }
     /* The measurement precedes every native action, including the final switch. */
-    ha-card[data-dp-value-style="button"] .bubble-wrapper { grid-template-columns: 40px minmax(0, 1fr) fit-content(40%) auto; }
+    ha-card[data-dp-value-style="button"] .bubble-wrapper { grid-template-columns: 38px minmax(0, 1fr) fit-content(40%) auto; }
     ha-card[data-dp-value-style="button"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) fit-content(40%) auto; }
     ha-card[data-dp-value-style="button"] .bubble-state { grid-area: 1 / 3 / 3 / 4 !important; }
     ha-card[data-dp-value-style="button"] .bubble-sub-button-container { grid-area: 1 / 4 / 3 / 5; }

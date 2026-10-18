@@ -1,5 +1,14 @@
 # Signature Compact
 
+## 1.6.2 — 18 octobre 2026 — retraits équilibrés à 10 px
+
+L’écart icône/texte est ramené de 12 à **10 px** dans toutes les lignes
+Compact, avec ou sans badge A/M, en flex et en grille, y compris avec
+commandes repliées et dans le lecteur multimédia. Il correspond au retrait
+extérieur de l’icône (bordure comprise), ainsi qu’aux marges verticales
+des lignes de 56 px. Valeurs, commandes et variantes Hue sont conservées.
+Réimporter uniquement le module, puis recharger le frontend.
+
 ## 1.6.1 — 18 octobre 2026 — espacement des textes
 
 L'écart entre le carré d'icône et le bloc de texte passe à **12 px** sur
@@ -20,7 +29,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.1**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.2**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 

@@ -27,7 +27,7 @@ test('standalone modules resolve live theme variables without a module execution
  assert.equal(changed.media.fontSize,'18px');assert.equal(changed.media.radius,'17px');
  assert.equal(changed.media.controlRadius,'9px');assert.equal(changed.media.secondary,'rgb(255, 0, 0)');
  assert.equal(changed.media.height,original.media.height);assert.notEqual(changed.media.height,56);
- assert.equal(original.media.mediaTextInset,'12px');assert.equal(changed.media.mediaTextInset,'12px');
+ assert.equal(original.media.mediaTextInset,'10px');assert.equal(changed.media.mediaTextInset,'10px');
 });
 
 // Native-shaped flat/grouped header with the two rows used by the home dashboard.
