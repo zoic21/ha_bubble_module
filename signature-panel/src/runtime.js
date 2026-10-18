@@ -15,6 +15,7 @@ const o = mediaArtwork ? {...configured, illustration: {image: mediaArtwork}} : 
 const numberEnabled = false;
 /* @include signature-shared/src/value-config.js */
 /* @include signature-shared/src/value-render.js */
+/* @include signature-panel/src/media-metadata.js */
 /* @include signature-shared/src/secondary.js */
 /* @include signature-shared/src/actions.js */
 /* @include signature-shared/src/appearance.js */

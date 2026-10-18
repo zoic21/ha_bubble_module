@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.2.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.2.2**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -363,3 +363,25 @@ mesure visible se replie, notamment avec `show_name: false`. Les valeurs se
 centrent sous le titre, sans changer leurs actions, la hauteur ni le dessin.
 Contrôles Chromium natifs à cinq largeurs, clair/sombre, avec/sans thème,
 nom présent/masqué et badges. Pas d’essai Home Assistant réel ou Safari/iOS.
+
+## 1.2.2 — 18 octobre 2026 — métadonnées média sans répétition
+
+Sur les lecteurs, un artiste/application identique au titre est masqué.
+Les morceaux du détail `secondary`, séparés par `·`, ne répètent plus une
+ligne native visible : « Infuse » reste une seule fois et
+« Volume 48 % · TV » devient « Volume 48 % » si TV figure déjà au-dessus.
+Seules les correspondances complètes sont retirées, sans distinction de casse
+ou d’espaces ; un artiste, une source ou un volume distinct reste affiché.
+Les métadonnées masquées par Bubble ne suppriment pas un détail utile.
+
+Le module lit les textes déjà résolus par Bubble, y compris son repli sur
+l’application et la copie originale de son défilement. Aucun texte natif,
+attribut HA ou contrôle n’est réécrit ; aucun observateur ni abonnement ajouté.
+Le masquage disparaît au changement de média ou au retrait du module.
+Importer uniquement **Panel 1.2.2**, puis recharger le frontend : les dashboards
+et leurs templates existants restent compatibles.
+
+Contrôles : tests Node et Chromium avec Bubble 3.4.1/backend simulé, cas
+Infuse/TV, volume, artiste distinct, correspondance partielle, métadonnées
+absentes/masquées, actualisation, défilement, nettoyage, clair/sombre et
+avec/sans thème à 288/358/600 px. Pas d’essai Home Assistant réel ou Safari/iOS.

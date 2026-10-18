@@ -654,6 +654,20 @@ pas. Le retrait laisse 4 px au-dessus/dessous de la pochette, contre 2 px
 pour l'illustration habituelle. Le retrait de la pochette restaure le dessin
 sans arrondi ni marge ajoutés. Les rayons suivent le thème sans réexécution.
 
+### Métadonnées média sans répétition — Panel 1.2.2
+
+Sur les lecteurs Panel, masquer la ligne artiste/application lorsqu’elle est
+identique au titre natif. Retirer du détail les éléments séparés par `·`
+qui correspondent entièrement à une ligne native visible, en ignorant casse
+et espaces superflus. Conserver les données distinctes, notamment le volume,
+sans recherche par sous-chaîne. Lire le texte résolu par Bubble, sans recopier
+sa logique de repli application/série, ni ses copies de défilement.
+Les données masquées par Bubble ne doivent pas supprimer un détail utile.
+Le masquage CSS utilise un attribut du runtime nettoyé au démontage ; ne pas
+réécrire les textes ou styles inline natifs. Aucun nouvel observateur,
+abonnement, timer ou changement de dimensions. Tester Infuse/TV, mises à jour,
+métadonnées absentes, correspondances partielles et conservation des commandes.
+
 ### Ligne secondaire des lecteurs — Panel 1.1.4
 
 Sur un lecteur avec `secondary` non vide, réserver la troisième rangée à ce

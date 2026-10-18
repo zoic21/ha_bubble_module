@@ -263,6 +263,39 @@ test('media details keep track metadata and native controls on separate rows and
  }
 });
 
+test('media Panel displays Infuse and TV once while retaining volume, distinct metadata and native controls',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ const cases=[
+  {title:'Heroes - S4 · E13 - La première pierre',app:'Infuse',detail:'Infuse',expectedArtist:'Infuse',expectedDetail:null},
+  {title:'TV',artist:'TV',app:'TV',source:'HDMI',detail:'Volume 48 % · TV',expectedArtist:null,expectedDetail:'Volume 48 %'},
+  {title:'Une chanson',artist:'Un artiste',app:'Spotify',detail:'Volume 35 % · Spotify',expectedArtist:'Un artiste',expectedDetail:'Volume 35 % · Spotify'},
+  {title:'Infuse Pro',artist:'Infuse',detail:'Infuse Pro Max',expectedArtist:'Infuse',expectedDetail:'Infuse Pro Max'},
+  {title:'',app:'Infuse',detail:'Infuse',expectedArtist:null,expectedDetail:'Infuse'}
+ ];
+ for(const width of [288,358,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const scenario of cases){
+  await draw(page,{width,mode,plain,media:true,scrolling:true,native:{name:'Apple TV Salon',show_state:false,state_content:[]},
+   panel:{secondary:scenario.detail},extraStates:{'media_player.demo':{state:'playing',attributes:{supported_features:16385,
+    media_title:scenario.title,media_artist:scenario.artist,app_name:scenario.app,source:scenario.source}}}});
+  const read=()=>page.evaluate(()=>{
+   const root=card.card,info=card.elements.mediaInfoContainer;
+   const artist=info.style.display!=='none'&&getComputedStyle(card.elements.artist).display!=='none'?card.elements.artist.previousText:null;
+   return{title:info.style.display!=='none'?card.elements.title.previousText:null,artist,detail:root.querySelector('.dp-secondary')?.textContent??null,height:root.querySelector('.bubble-container').getBoundingClientRect().height,
+    controls:root.querySelectorAll('.bubble-media-button').length,duplicate:root.getAttribute('data-dp-media-artist-duplicate')};
+  });
+  const actual=await read(),hint=JSON.stringify({width,mode,plain,scenario,actual});
+  assert.equal(actual.title,scenario.title||null,hint);assert.equal(actual.artist,scenario.expectedArtist,hint);assert.equal(actual.detail,scenario.expectedDetail,hint);
+  assert.equal(actual.height,118,hint);assert.ok(actual.controls>0,hint);
+  await page.evaluate(()=>{
+   window.keptTitle=card.elements.title;window.keptArtist=card.elements.artist;
+   hass={...hass,states:{...hass.states,'media_player.demo':{entity_id:'media_player.demo',state:'playing',attributes:{supported_features:16385,media_title:'Un nouveau morceau',media_artist:'Nouvel artiste'}}}};
+   card.hass=hass;card.updateBubbleCard();
+  });
+  const updated=await read();assert.equal(updated.artist,'Nouvel artiste',hint);assert.equal(updated.detail,scenario.detail,hint);
+  assert.equal(updated.duplicate,'no',hint);
+  assert.equal(await page.evaluate(()=>card.elements.title===keptTitle&&card.elements.artist===keptArtist),true,hint);
+ }
+});
+
 test('Panel aligns one to three information columns in real Bubble, across themes and native refreshes',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const count of [1,2,3]){

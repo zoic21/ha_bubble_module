@@ -95,3 +95,45 @@ test('media artwork requires explicit opt-in and never overrides ordinary panels
   const css=f.run();assert.equal(css.includes('album.jpg'),kind==='media-player'&&enabled===true);
  }
 });
+
+test('media metadata removes repeated details and restores distinct lines on native refresh',t=>{
+ const f=fixture({secondary:'Volume 48 % · TV'},{card_type:'media-player'});
+ t.after(()=>f.ctx.teardown());
+ const {Element}=context;
+ const info=new Element(),title=new Element(),artist=new Element();
+ info.className='bubble-media-info-container';title.className='bubble-title';artist.className='bubble-artist';
+ info.append(title,artist);f.content.append(info);
+ Object.assign(f.ctx.elements,{mediaInfoContainer:info,title,artist});
+ title.textContent='TV';artist.textContent=' tv ';
+ f.run();
+ assert.equal(f.root.getAttribute('data-dp-media-artist-duplicate'),'yes');
+ assert.equal(f.root.querySelector('.dp-secondary').textContent,'Volume 48 %');
+ title.textContent='Heroes - S4 · E13';artist.textContent='Infuse';
+ f.ctx.config.signature_panel.secondary='Infuse';f.run();
+ assert.equal(f.root.getAttribute('data-dp-media-artist-duplicate'),'no');
+ assert.equal(f.root.querySelector('.dp-secondary'),null);
+ assert.equal(f.root.getAttribute('data-dp-secondary'),'no');
+ artist.textContent='Un artiste';f.ctx.config.signature_panel.secondary='Infuse';f.run();
+ assert.equal(f.root.querySelector('.dp-secondary').textContent,'Infuse');
+ // Animated text contains two copies; use Bubble's original resolved text.
+ artist.previousText='Infuse';artist.textContent='Infuse | Infuse |';f.run();
+ assert.equal(f.root.querySelector('.dp-secondary'),null);
+ info.style.display='none';f.run();
+ assert.equal(f.root.querySelector('.dp-secondary').textContent,'Infuse','hidden metadata must not suppress the detail');
+ info.style.display='';delete artist.previousText;
+ artist.textContent='Infuse';f.ctx.config.signature_panel.secondary='Infuse Pro';f.run();
+ assert.equal(f.root.querySelector('.dp-secondary').textContent,'Infuse Pro','partial matches remain visible');
+ f.ctx.config.card_type='cover';f.run();
+ assert.equal(f.root.getAttribute('data-dp-media-artist-duplicate'),null);
+});
+
+test('media details preserve distinct artist/application and native state visibility',t=>{
+ const f=fixture({secondary:'Volume 35 % · AirPlay'},{card_type:'media-player'});
+ t.after(()=>f.ctx.teardown());
+ f.value.textContent='AirPlay';f.run();
+ assert.equal(f.root.querySelector('.dp-secondary').textContent,'Volume 35 %');
+ f.value.classList.add('hidden');f.run();
+ assert.equal(f.root.querySelector('.dp-secondary').textContent,'Volume 35 % · AirPlay');
+ f.ctx.config.card_type='button';f.run();
+ assert.equal(f.root.querySelector('.dp-secondary').textContent,'Volume 35 % · AirPlay');
+});
