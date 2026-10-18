@@ -97,7 +97,7 @@ test('media Panel artwork follows track changes with natural proportions and res
   const read=()=>page.evaluate(()=>{
    const host=card.card.querySelector('.bubble-container'),art=getComputedStyle(host,'::after');
    const frame=host.getBoundingClientRect();
-   return{image:art.backgroundImage,size:art.backgroundSize,position:art.backgroundPosition,width:parseFloat(art.width),height:parseFloat(art.height),cardHeight:frame.height};
+   return{image:art.backgroundImage,size:art.backgroundSize,position:art.backgroundPosition,width:parseFloat(art.width),height:parseFloat(art.height),cardHeight:frame.height,radius:art.borderRadius};
   });
   const fallback=await read();
   await page.evaluate(()=>window.mediaNode=card.card.querySelector('.bubble-media-info-container'));
@@ -108,6 +108,7 @@ test('media Panel artwork follows track changes with natural proportions and res
    },image);
    const current=await read();assert.ok(current.image.includes(image));assert.equal(current.size,'contain');assert.equal(current.position,'50% 50%');
    assert.equal(current.width,80);assert.equal(current.height,80);assert.equal(current.cardHeight,118);
+   assert.equal(current.radius,'12px');
    assert.equal(await page.evaluate(()=>mediaNode===card.card.querySelector('.bubble-media-info-container')),true);
   }
   await page.evaluate(()=>{
@@ -115,6 +116,30 @@ test('media Panel artwork follows track changes with natural proportions and res
    hass={...hass,states:{...hass.states,'media_player.demo':{...hass.states['media_player.demo'],attributes}}};card.hass=hass;card.updateBubbleCard();
   });
   assert.deepEqual(await read(),fallback);
+ }
+});
+
+test('Panel play and pause keep native taps and neutral icons without a permanent background',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const state of ['playing','paused']){
+  await draw(page,{width,mode,plain,media:true,extraStates:{'media_player.demo':{state,attributes:{supported_features:16385,volume_level:.4}}}});
+  // Native Bubble animates background-color for 300 ms after style injection.
+  await page.waitForFunction(()=>getComputedStyle(card.card.querySelector('.bubble-play-pause-button')).backgroundColor==='rgba(0, 0, 0, 0)');
+  const before=await page.evaluate(()=>{
+   window.playButton=card.card.querySelector('.bubble-play-pause-button');
+   window.playRipple=playButton.querySelector('ha-ripple');window.services=[];
+   hass.callService=(domain,service,data)=>services.push({domain,service,data});
+   const style=getComputedStyle(playButton),icon=playButton.querySelector('.bubble-media-button-icon');
+   return{background:style.backgroundColor,color:getComputedStyle(icon).color,otherColor:getComputedStyle(card.card.querySelector('.bubble-volume-button .bubble-media-button-icon')).color,
+    icon:icon.getAttribute('icon'),width:playButton.getBoundingClientRect().width,height:playButton.getBoundingClientRect().height,ripple:!!playRipple};
+  });
+  assert.equal(before.background,'rgba(0, 0, 0, 0)');assert.equal(before.color,before.otherColor);
+  assert.equal(before.icon,state==='playing'?'mdi:pause':'mdi:play');assert.equal(before.ripple,true);
+  assert.ok(before.width>=30);assert.ok(before.height>=30);
+  await page.locator('bubble-card').locator('.bubble-play-pause-button').click({timeout:3000});
+  assert.deepEqual(await page.evaluate(()=>services),[{domain:'media_player',service:state==='playing'?'media_pause':'media_play',data:{entity_id:'media_player.demo'}}]);
+  await page.evaluate(()=>{card.updateBubbleCard()});
+  assert.equal(await page.evaluate(()=>playButton===card.card.querySelector('.bubble-play-pause-button')&&playRipple===playButton.querySelector('ha-ripple')),true);
  }
 });
 

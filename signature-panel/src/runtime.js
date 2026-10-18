@@ -19,7 +19,7 @@ const numberEnabled = false;
 /* @include signature-shared/src/actions.js */
 /* @include signature-shared/src/appearance.js */
 /* @include signature-shared/src/illustration.js */
-if (mediaArtwork) css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}';
+if (mediaArtwork) css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}ha-card[data-dp-illustration="yes"] .bubble-container::after {border-radius:max(0px,calc(var(--signature-card-border-radius,22px) - 10px));}';
 const roles = [], roomColumns = 3;
 /* @include signature-shared/src/sub-buttons.js */
 /* @include signature-panel/src/statistics.js */

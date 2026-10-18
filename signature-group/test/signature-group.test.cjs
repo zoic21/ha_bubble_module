@@ -55,12 +55,14 @@ test('media chips track artwork and restore atlas crops on the same native activ
   assert.equal(button.ctx._signatureGroup.nodes[0],chip);
   assert.equal(chip.art.style.backgroundImage,'url('+JSON.stringify(picture)+')');
   assert.equal(chip.art.style.backgroundSize,'contain');assert.equal(chip.art.style.backgroundPosition,'center');
+  assert.equal(chip.art.classList.contains('sg-media-artwork'),true);
  }
  f.hass.themes.darkMode=true;button.run();assert.ok(chip.art.style.backgroundImage.includes('new-album.jpg'));
  for(const picture of [undefined,null,'','  ','unknown','javascript:alert(1)','data:image/png;base64,x','//example.test/a','/local/a\n.png',123,{}]){
   f.hass.states[card.entity].attributes.entity_picture=picture;button.run();
   assert.ok(chip.art.style.backgroundImage.includes('night.png'));
   assert.equal(chip.art.style.backgroundSize,'400% 600%');assert.notEqual(chip.art.style.backgroundPosition,'center');
+  assert.equal(chip.art.classList.contains('sg-media-artwork'),false);
  }
  f.hass.themes.darkMode=false;button.run();assert.deepEqual(chip.art.style,day);
  f.hass.states[card.entity].attributes.entity_picture='/local/album.jpg';illustration.media_artwork=false;button.run();assert.ok(chip.art.style.backgroundImage.includes('atlas.png'));

@@ -12,3 +12,7 @@ ha-card[data-dp-layout="panel"] .bubble-artist {
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-title,.bubble-artist) { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 ha-card[data-dp-layout="panel"] .bubble-volume-slider-wrapper { inset: auto 9px 7px; height: 30px; width: auto; }
+ha-card[data-dp-layout="panel"] .bubble-play-pause-button {
+  background-color: transparent;
+  --bubble-media-player-play-pause-icon-color: var(--primary-text-color);
+}

@@ -56,6 +56,13 @@ ha-card[data-signature-group="chips"] :is(.sg-art,.sg-icon) {
 ha-card[data-signature-group="chips"] .sg-art {
   background-repeat: no-repeat;
 }
+ha-card[data-signature-group="chips"] .sg-art.sg-media-artwork {
+  flex-basis: 28px;
+  width: 28px;
+  height: 28px;
+  margin: 2px;
+  border-radius: max(0px, calc(var(--signature-card-border-radius, 22px) - 14px));
+}
 ha-card[data-signature-group="chips"] .sg-icon {
   --mdc-icon-size: 22px;
   display: grid;

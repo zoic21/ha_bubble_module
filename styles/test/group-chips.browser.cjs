@@ -49,8 +49,8 @@ test('media chip artwork preserves proportions and returns to the themed fallbac
   assert.equal(current.nodes[0].width,fallback.nodes[0].width);
   assert.deepEqual(await page.evaluate(()=>{
    const art=getComputedStyle(chip.art);
-   return{same:chip===demo.ctx._signatureGroup.nodes[0],size:art.backgroundSize,position:art.backgroundPosition,width:art.width,height:art.height};
-  }),{same:true,size:'contain',position:'50% 50%',width:'32px',height:'32px'});
+   return{same:chip===demo.ctx._signatureGroup.nodes[0],size:art.backgroundSize,position:art.backgroundPosition,width:art.width,height:art.height,radius:art.borderRadius,margin:art.margin};
+  }),{same:true,size:'contain',position:'50% 50%',width:'28px',height:'28px',radius:'8px',margin:'2px'});
   await page.evaluate(()=>{delete demo.hass.states['media_player.denon'];demo.ctx.updateBubbleCard()});await settle(page);
   assert.deepEqual(await geometry(page),fallback);
  }

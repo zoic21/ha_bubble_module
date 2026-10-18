@@ -14,13 +14,13 @@ computed styles. Includes measured CSS sizes, operation counts and import versio
 |---|---|---|---|
 | Signature Square — square tiles | 2.0.3 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.5.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.1.2 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.1.3 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.3 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.2.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.6 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.5.5 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
-| Signature Group — popup activity summaries | 1.1.4 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
+| Signature Group — popup activity summaries | 1.1.5 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Signature Hue — native Hue presentation companion | 1.0.1 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
 | Signature Irrigation — calendar reader and weekday controls | 1.0.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
@@ -118,7 +118,7 @@ Signature Group 1.1.1 links a popup and a name button through their hash. Enable
 
 Group’s optional `presentation: chips` replaces the visible title and total count with equipment pills inherited from the popup cards. Actual available width determines how many fit; `+N` counts only hidden items and precedes the fixed right arrow. Names, atlas crops and HA light/dark artwork follow the popup, without duplicate configuration.
 
-Panel 1.1.2 and Group 1.1.4 share opt-in `illustration.media_artwork: true` for media-player cards: prefer the entity's current `entity_picture`, preserve its aspect ratio, and restore the configured themed artwork when unavailable. Track updates follow native HA updates without new subscriptions or observers.
+Panel 1.1.3 and Group 1.1.5 share opt-in `illustration.media_artwork: true` for media-player cards: prefer the entity's current `entity_picture`, preserve its aspect ratio, and restore the configured themed artwork when unavailable. Track updates follow native HA updates without new subscriptions or observers. Media covers have rounded corners; Group keeps a small inset around them without changing chip width. Panel play/pause uses a transparent background and neutral icon while retaining the native ripple and actions.
 
 Group’s optional `hide_empty: true` hides an empty summary through the native Home Assistant visibility contract while retaining state updates. Editor previews stay available; popup placeholders receive no extra empty-state block.
 

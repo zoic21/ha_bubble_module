@@ -110,6 +110,7 @@ for (let i = 0; i < labels.length; i++) {
   const square = card.signature_panel || card.signature_square;
   const configuredArt = (square || card.signature_room)?.illustration || {};
   const mediaArtwork = mediaArtworkFor(card, configuredArt);
+  chip.art.classList.toggle('sg-media-artwork', !!mediaArtwork);
   const illustration = mediaArtwork ? {image: mediaArtwork} : configuredArt;
   const renderArt = value => String(renderTemplate(value, card.entity) ?? '').trim();
   const dark = hass?.themes?.darkMode;

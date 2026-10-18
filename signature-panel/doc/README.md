@@ -128,7 +128,7 @@ Sans URL locale/HTTP(S) exploitable, le dessin configuré reprend exactement
 ses variantes clair/sombre et son cadrage. Pas de vérification réseau des
 URL : une image dont le serveur renvoie une erreur reste dépendante du lecteur.
 Option désactivée par défaut, sans effet sur les cartes bouton. Installer
-**Group 1.1.4** pour afficher la même pochette dans la pastille d'activité.
+**Group 1.1.5** pour afficher la même pochette dans la pastille d'activité.
 Aucun nouvel abonnement, observateur, nœud ou gestionnaire de commande.
 
 ## Statistiques journalières
@@ -242,3 +242,13 @@ Ajout facultatif de `illustration.media_artwork`, partagé avec Group 1.1.4.
 Le visuel HA courant remplace le dessin avec ses proportions ; retrait ou
 URL invalide rétablit le cadrage et le thème d'origine. La configuration et
 les contrôles natifs restent intacts.
+
+## 1.1.3 — 18 octobre 2026 — lecture/pause discret et pochette arrondie
+
+Le bouton lecture/pause garde son comportement et son ripple natifs, avec
+un fond transparent et une icône neutre comme les autres commandes.
+La pochette actuelle reçoit un rayon de 12 px par défaut dans le cadre de
+80 px inchangé ; le rayon suit celui de la carte. Les illustrations de
+secours, leur cadrage et les autres types de carte restent identiques.
+Les métadonnées morceau/artiste ne sont pas remplacées : certains lecteurs
+Denon ne les fournissent pas pendant AirPlay, même avec une pochette.

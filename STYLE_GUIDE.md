@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.4**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.5.0**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.3**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -600,3 +600,19 @@ cadrage complet. Ne pas modifier la configuration source, les autres modules,
 les dimensions, les actions, le thème ou les abonnements. Conserver les mêmes
 nœuds lors des changements de morceau ; tester apparition, remplacement,
 retrait, données invalides et clair/sombre sur les deux présentations.
+
+### Retouches média — Panel 1.1.3 et Group 1.1.5
+
+Le lecteur Panel retire le fond permanent du bouton lecture/pause et utilise
+le texte primaire pour son icône, comme les autres commandes. Conserver sa
+cible, son rayon, son ripple natif et les services propres à l'état courant.
+Les contrôles Compact et les commandes Panel non média restent identiques.
+
+Seules les pochettes réelles sont arrondies : rayon `max(0px, rayon carte -
+10px)` dans le cadre Panel de 80 px, soit 12 px par défaut. Dans Group,
+image de 28 px avec 2 px de marge de chaque côté dans le même emplacement
+de 32 px, rayon `max(0px, rayon carte - 14px)`, soit 8 px par défaut.
+La hauteur de pilule de 36 px, sa largeur et le début du libellé ne changent
+pas. Le retrait laisse 4 px au-dessus/dessous de la pochette, contre 2 px
+pour l'illustration habituelle. Le retrait de la pochette restaure le dessin
+sans arrondi ni marge ajoutés. Les rayons suivent le thème sans réexécution.

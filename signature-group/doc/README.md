@@ -145,3 +145,12 @@ les 32 px existants, centré et sans déformation. Sans URL exploitable, retour
 au dessin et au cadrage clair/sombre configurés. Les changements de morceau
 actualisent les mêmes nœuds ; aucun inventaire, abonnement ou observateur
 supplémentaire. Installer Panel 1.1.2 pour le même comportement dans la popup.
+
+## 1.1.5 — 18 octobre 2026 — pochette en retrait dans la pilule
+
+La pochette réelle passe à 28 px avec une marge de 2 px et un rayon de 8 px
+par défaut, lié au rayon de carte. Elle conserve un emplacement total de
+32 px : largeur des pastilles, début des noms et compteur restent stables.
+Le fond neutre apparaît autour de l'image et la silhouette arrondie de la
+pilule reste lisible. Les illustrations normales restent à 32 px, sans
+marge ni arrondi ajoutés. Aucun nouveau nœud, abonnement ou observateur.
