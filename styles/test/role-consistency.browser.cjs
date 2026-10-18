@@ -28,7 +28,8 @@ test('Panel units, secondary lines and insets follow shared roles without a modu
           unchanged:css===style.textContent && nodes.every(e => e.isConnected)};
       };
       const before = read();
-      document.body.style.setProperty('--signature-secondary-font-size','17px');
+      document.body.style.setProperty('--signature-secondary-font-size','19px');
+      document.body.style.setProperty('--signature-caption-font-size','17px');
       document.body.style.setProperty('--signature-card-border-radius','18px');
       document.body.style.setProperty('--secondary-text-color','#765432');
       return [before,read()];
@@ -41,7 +42,7 @@ test('Panel units, secondary lines and insets follow shared roles without a modu
       for (const unit of m.units) {assert.equal(unit.weight,'400',hint);assert.equal(unit.color,m.secondaryColor,hint);assert.ok(['normal','0px'].includes(unit.spacing),hint);}
       for (const value of m.values) assert.equal(value.numeric,'tabular-nums',hint);
       for (const detail of m.details) {
-        assert.equal(detail.size,i?'17px':'13px',hint);assert.equal(detail.color,m.secondaryColor,hint);assert.equal(detail.opacity,'1',hint);
+        assert.equal(detail.size,i?'17px':'12px',hint);assert.equal(detail.color,m.secondaryColor,hint);assert.equal(detail.opacity,'1',hint);
         assert.ok(Math.abs(parseFloat(detail.line)-(i?20.4:16))<.02,hint);
         assert.ok(detail.height >= parseFloat(detail.line)-.02,hint);
       }

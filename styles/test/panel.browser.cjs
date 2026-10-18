@@ -28,7 +28,7 @@ test('Panel shares theme typography and one grid for one to three information co
   },{code,count});
   const hint=JSON.stringify({width,mode,plain,count,m});
   assert.equal(m.height,118,hint);assert.equal(m.radius,'22px',hint);assert.equal(m.art,80,hint);
-  assert.deepEqual(m.name,{size:'13px',weight:'500'},hint);assert.deepEqual(m.detail,{size:'13px',opacity:'1'},hint);
+  assert.deepEqual(m.name,{size:'13px',weight:'500'},hint);assert.deepEqual(m.detail,{size:'12px',opacity:'1'},hint);
   assert.equal(m.values.length,count,hint);
   if(count===3 && width>=382)assert.equal(parseFloat(m.values[0].font),24,hint);
   for(const value of m.values){assert.equal(value.display,'flex',hint);assert.equal(value.weight,'500',hint);assert.equal(value.color,m.values[0].color,hint);assert.equal(value.font,m.values[0].font,hint);assert.ok(Math.abs(value.center-m.values[0].center)<1,hint);assert.ok(value.overflow<=1,hint)}

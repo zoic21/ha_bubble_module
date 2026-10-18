@@ -105,7 +105,7 @@ test('Panel captions stay complete and the actual title/value/detail block is ve
    const names=[...root.querySelectorAll('.bubble-name,.dp-panel-name')].filter(e=>e.textContent.trim()).map(e=>{
     const s=getComputedStyle(e),r=e.getBoundingClientRect();return{text:e.textContent,size:s.fontSize,weight:s.fontWeight,color:s.color,left:r.left,right:r.right,overflow:e.scrollWidth-e.clientWidth};
    });
-   const probe=document.createElement('span');probe.style.color='var(--secondary-text-color)';root.append(probe);const secondary=getComputedStyle(probe).color;probe.remove();
+   const probe=document.createElement('span');probe.style.color='var(--primary-text-color)';root.append(probe);const secondary=getComputedStyle(probe).color;probe.remove();
    return{height:frame.height,art:parseFloat(getComputedStyle(host,'::after').width),centerError:(Math.min(...boxes.map(r=>r.top))+Math.max(...boxes.map(r=>r.bottom)))/2-(frame.top+frame.height/2),names,secondary};
   });
   const hint=JSON.stringify({width,mode,plain,count,detail,m});
@@ -115,9 +115,39 @@ test('Panel captions stay complete and the actual title/value/detail block is ve
   for(let i=1;i<m.names.length;i++)assert.ok(m.names[i-1].right<=m.names[i].left,hint);
   if(count>1)assert.equal(m.names.at(-1).text,'Consommation',hint);
  }
- await page.evaluate(()=>{document.documentElement.style.setProperty('--signature-caption-font-size','13px');document.documentElement.style.setProperty('--secondary-text-color','#667788')});
+ await page.evaluate(()=>{document.documentElement.style.setProperty('--signature-caption-font-size','13px');document.documentElement.style.setProperty('--primary-text-color','#667788')});
  const themed=await page.evaluate(()=>{const s=getComputedStyle(card.card.querySelector('.bubble-name'));return{size:s.fontSize,color:s.color}});
  assert.deepEqual(themed,{size:'14px',color:'rgb(102, 119, 136)'});
+});
+
+test('an optional global Panel heading owns the badges and leaves metric navigation independent',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  const button={entity:'sensor.power',css_class:'ventilation',icon:'mdi:fan',show_icon:true,show_name:false,show_state:false,show_background:false,tap_action:{action:'navigate',navigation_path:'#temperature'}};
+  await draw(page,{width,mode,plain,count:3,native:{name:'Puissance',sub_button:{main:[button]}},panel:{title:'Baie informatique',tap_action:{action:'navigate',navigation_path:'#power'},
+   information:[{entity:'sensor.temperature',icon:'mdi:thermometer',tap_action:{action:'navigate',navigation_path:'#temperature'}},{entity:'sensor.humidity',icon:'mdi:water-percent'}],
+   sub_button_styles:{ventilation:{type:'badge'}}}});
+  const m=await page.evaluate(()=>{
+   const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect(),title=root.querySelector('.dp-panel-title'),name=root.querySelector('.bubble-name');
+   const box=e=>{const r=e.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,center:r.y+r.height/2}},s=getComputedStyle(title);
+   window.kept={title,name,state:card.elements.state,badge:root.querySelector('.bubble-sub-button')};
+   return{height:frame.height,art:parseFloat(getComputedStyle(host,'::after').width),title:{...box(title),text:title.textContent,size:s.fontSize,weight:s.fontWeight},name:{...box(name),text:name.textContent},
+    values:[...root.querySelectorAll('.bubble-state,.dp-panel-state')].map(box),badge:box(kept.badge),headingOwner:title.parentNode.className};
+  });
+  const hint=JSON.stringify({width,mode,plain,m});assert.equal(m.height,118,hint);assert.equal(m.art,80,hint);
+  assert.equal(m.title.text,'Baie informatique');assert.equal(m.title.size,'14px');assert.equal(m.title.weight,'600');assert.equal(m.name.text,'Puissance');
+  assert.ok(m.title.bottom<=m.name.top,hint);assert.ok(m.title.right+7.9<=m.badge.left,hint);assert.equal(m.headingOwner,'dp-panel-heading');
+  for(const value of m.values){assert.ok(Math.abs(value.center-m.values[0].center)<1,hint);assert.ok(m.name.bottom<=value.top+.1,hint);}
+  await page.mouse.click((m.title.left+m.title.right)/2,(m.title.top+m.title.bottom)/2);await page.waitForFunction(()=>calls.length===1);
+  assert.equal((await page.evaluate(()=>calls))[0].config.tap_action.navigation_path,'#panel');await page.evaluate(()=>window.calls=[]);
+  await page.locator('bubble-card').locator('.bubble-state').click();await page.waitForFunction(()=>calls.length===1);
+  assert.equal((await page.evaluate(()=>calls))[0].config.tap_action.navigation_path,'#power');
+  await page.evaluate(()=>window.calls=[]);await page.locator('bubble-card').locator('.dp-panel-state').first().click();await page.waitForFunction(()=>calls.length===1);
+  assert.equal((await page.evaluate(()=>calls))[0].config.tap_action.navigation_path,'#temperature');
+  await page.evaluate(()=>{delete card.config.signature_panel.title;card.updateBubbleCard()});
+  const removed=await page.evaluate(()=>({title:!!card.card.querySelector('.dp-panel-title'),sameState:kept.state===card.elements.state,sameBadge:kept.badge===card.card.querySelector('.bubble-sub-button'),nameInHeading:kept.name.parentNode.classList.contains('dp-panel-heading')}));
+  assert.deepEqual(removed,{title:false,sameState:true,sameBadge:true,nameInHeading:true});
+ }
 });
 
 test('two-line Panel details preserve forecast text, height, values and option removal',{skip:!nativePath},async t=>{

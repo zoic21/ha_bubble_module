@@ -2,7 +2,7 @@
 // Up to two more columns use the same roles and Bubble's delegated actions.
 const information = Array.isArray(o.information) ? o.information.filter(item => item?.enabled !== false).slice(0,2) : [];
 attr('data-dp-panel-count', String(information.length + 1));
-attr('data-dp-panel-shared-name',information.length && information.every(item => !item?.name) ? 'yes' : 'no');
+attr('data-dp-panel-shared-name',!panelTitle && information.length && information.every(item => !item?.name) ? 'yes' : 'no');
 let items = runtime.information || (runtime.information = []);
 if (!runtime.informationCleanup) {
   const dispose = runtime.dispose;

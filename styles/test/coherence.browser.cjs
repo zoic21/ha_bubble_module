@@ -347,7 +347,7 @@ test('names, numeric values, temperature units and captions retain distinct role
   const result = await render(page, {width: 600});
   const squareTitle = style(result, 'square', '.bubble-name');
   assert.equal(squareTitle.fontSize, '13px');assert.equal(squareTitle.fontWeight, '500');
-  assert.equal(squareTitle.color, style(result, 'square', '.dp-secondary').color);
+  assert.equal(squareTitle.color, style(result, 'square', '.bubble-state').color);
   for (const [id, selector] of [['compact', '.bubble-name'], ['media', '.bubble-name'], ['flow', '.sf-label'], ['weather-summary', '.sw-name']]) {
     const name = style(result, id, selector);
     assert.equal(name.fontSize, '14px'); assert.equal(name.fontWeight, '600');
@@ -390,7 +390,7 @@ test('period controls agree in active/inactive colors, font, padding and corners
 
 test('custom fonts grow secondary rows and reach media and Flow mobile text', async t => {
   const page = await fixture(t);
-  const result = await render(page, {overrides: {'signature-name-font-size': '18px', 'signature-secondary-font-size': '17px', 'signature-font-weight-normal': 450}});
+  const result = await render(page, {overrides: {'signature-name-font-size': '18px', 'signature-secondary-font-size': '17px', 'signature-caption-font-size': '17px', 'signature-font-weight-normal': 450}});
   for (const id of ['compact-standard', 'media']) assert.equal(style(result, id, '.bubble-state').fontSize, '17px');
   for (const id of ['compact', 'square', 'room']) {
     const secondary = style(result, id, '.dp-secondary');

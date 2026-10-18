@@ -36,13 +36,15 @@ Les paramètres sont des chaînes JSON sur une ligne. Les noms correspondent aux
 600), comme `value.css` et `unit.css` acceptent une taille. Panel transmet le
 poids normal de son titre média directement, sans émettre un poids ensuite
 écrasé. Square et les boutons Panel partagent le titre de mesure : légende
-augmentée de 1 px (13 px par défaut), poids moyen 500 et couleur secondaire.
+augmentée de 1 px (13 px par défaut), poids moyen 500 et couleur primaire.
 Ces paramètres ne sont pas de nouvelles options ou variables de thème.
 
 `unit.css` possède aussi la couleur secondaire et l'espacement nul des unités.
-Ne pas les recopier dans les présentations. `secondary.css` accepte `IMPORTANT`
-pour la taille, `COLOR` et `COLOR_IMPORTANT` ; `secondary-line.css` les transmet
-et applique aussi `IMPORTANT` à son interligne adaptatif.
+Ne pas les recopier dans les présentations. `secondary.css` accepte `SIZE`
+(secondaire de 13 px par défaut), `IMPORTANT`, `COLOR` et `COLOR_IMPORTANT` ;
+`secondary-line.css` les transmet et calcule son interligne avec cette même
+taille. Square et les boutons Panel transmettent la légende de 12 px pour
+leurs détails, sans modifier le défaut des autres consommateurs.
 La couleur primaire des noms de scène Hue reste explicite. Les fragments de
 switch ne définissent ni état, ni couleur active, ni transition ; ces décisions
 restent dans Signature/Hue, avec les actions et nœuds natifs.

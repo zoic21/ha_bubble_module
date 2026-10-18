@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **2.0.4**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.5**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -126,12 +126,14 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 
 ## Thème et coexistence
 
-Les titres partagent le rôle des panneaux boutons Panel 1.1.7 : couleur
-secondaire, poids moyen 500 et taille de légende augmentée de 1 px, soit 13 px
+Les titres partagent le rôle des panneaux boutons Panel 1.2.0 : couleur
+primaire, poids moyen 500 et taille de légende augmentée de 1 px, soit 13 px
 par défaut. La taille suit `signature-caption-font-size` et le poids suit
 `signature-font-weight-medium`, y compris lors d’un changement de thème seul.
-Les sous-textes gardent leur poids normal ; la grille, les valeurs, icônes,
-illustrations et actions restent identiques.
+Les sous-textes utilisent la légende de 12 px, un poids normal et la couleur
+secondaire ; l’écart de rangées vaut 3 px. Les valeurs, icônes, illustrations,
+dimensions et actions restent identiques. Le titre global facultatif est propre
+à Panel ; Square conserve son titre natif.
 
 Le [thème Signature](../../themes/README.md) centralise l’apparence via les variables `--signature-*`. Le navigateur résout ces variables, y compris dans le CSS mis en cache, sans lecture JavaScript du thème. Les valeurs de secours reproduisent le rendu actuel en l’absence du thème. Les grilles, les placements et les comportements appartiennent au module. Aucune dépendance entre modules n’est à installer et aucun `card-mod` n’est nécessaire.
 
@@ -148,6 +150,13 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 2.0.5 — 18 octobre 2026
+
+Titres de mesure en couleur primaire et détails de légende de 12 px, avec le
+même contraste que Panel 1.2.0. Écart de rangées de 3 px ; tokens et interlignes
+suivent les changements du thème sans JavaScript. Pas de changement des valeurs,
+entités, actions ou dimensions.
 
 ### 2.0.4 — 18 octobre 2026
 

@@ -204,7 +204,7 @@ test('module forms expose only their useful fields and preserve mixed YAML types
       const visible=new Function('item','hass','card','return !!('+field.visible_if+');');
       assert.doesNotThrow(()=>visible({}, {},undefined));
       assert.equal(visible({}, {},{card_type:'pop-up'}),false);
-      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['tap_action','secondary_lines'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
+      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['title','tap_action','secondary_lines'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
       if(layout==='square')assert.equal(visible({activity:true}, {},{card_type:'media-player'}),false,'retired activity options must not expose unsupported Square media fields');
     }
   }

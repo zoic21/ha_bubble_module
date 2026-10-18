@@ -13,6 +13,35 @@ function fixture(){
  let icon='mdi:thermometer';
  return {ctx,root,hass,options,run:()=>render.call(ctx,hass,fn=>ctx.teardown=fn,v=>v==='{{ icon }}'?icon:v),setIcon:value=>icon=value};
 }
+test('an optional global heading stays separate from metric names and native actions, and cleans up on removal',()=>{
+ const f=fixture(),name=new context.Element();name.className='bubble-name';name.textContent='Puissance';f.ctx.elements.nameContainer.append(name);
+ f.options.title='Baie informatique';f.options.tap_action={action:'navigate',navigation_path:'#power'};
+ f.run();const title=f.root.querySelector('.dp-panel-title'),state=f.ctx.elements.state,runtime=f.ctx._signaturePanelRuntime,css=runtime.styleCSS;
+ assert.equal(title.textContent,'Baie informatique');assert.equal(name.textContent,'Puissance');
+ assert.equal(f.root.getAttribute('data-dp-panel-shared-name'),'no');
+ assert.equal(title.dataset.entity,undefined);assert.equal(JSON.parse(state.dataset.tapAction).navigation_path,'#power');
+ f.options.title='<img src=x onerror=alert(1)>';f.run();
+ assert.equal(f.root.querySelector('.dp-panel-title'),title);assert.equal(title.textContent,f.options.title);assert.equal(title.children.length,0);
+ assert.equal(runtime.styleCSS,css,'changing heading text must not rebuild geometry');
+ f.options.title=' ';f.run();assert.equal(f.root.querySelector('.dp-panel-title'),null);assert.equal(f.root.getAttribute('data-dp-panel-title'),'no');
+ f.options.title='Baie';f.run();assert.equal(f.root.querySelectorAll('.dp-panel-title').length,1);
+ f.ctx.teardown();assert.equal(f.root.querySelector('.dp-panel-title'),null);assert.equal(f.root.getAttribute('data-dp-panel-title'),null);
+ assert.equal(name.parentNode,f.ctx.elements.nameContainer);
+});
+test('global heading badges retain their native nodes when the heading changes or disappears',()=>{
+ const f=fixture(),name=new context.Element(),group=new context.Element(),badge=new context.Element();
+ name.className='bubble-name';name.textContent='Puissance';group.className='bubble-sub-button-group';badge.className='bubble-sub-button status';
+ f.ctx.elements.nameContainer.append(name);group.append(badge);f.root.append(group);
+ f.ctx.config.sub_button={main:[{entity:'sensor.temp',css_class:'status',show_name:false,show_state:false}]};
+ f.options.sub_button_styles={status:{type:'badge'}};f.options.title='Baie';f.run();
+ assert.equal(f.root.querySelector('.dp-panel-heading').firstElementChild,f.root.querySelector('.dp-panel-title'));
+ assert.equal(name.parentNode,f.ctx.elements.nameContainer);assert.equal(f.root.querySelector('.dp-panel-badges').firstElementChild,badge);
+ delete f.options.title;f.run();assert.equal(f.root.querySelector('.dp-panel-heading').firstElementChild,name);
+ assert.equal(f.root.querySelector('.dp-panel-title'),null);assert.equal(f.root.querySelector('.dp-panel-badges').firstElementChild,badge);
+ f.options.title='Baie';f.run();f.ctx.teardown();assert.equal(badge.parentNode,group);assert.equal(name.parentNode,f.ctx.elements.nameContainer);
+ assert.equal(f.root.querySelector('.dp-panel-title'),null);assert.equal(f.root.querySelector('.dp-panel-heading'),null);
+ f.ctx.config.card_type='media-player';f.run();assert.equal(f.root.querySelector('.dp-panel-title'),null);f.ctx.teardown();
+});
 test('Panel emits command and media CSS only for their active native configuration',t=>{
  const f=fixture();t.after(()=>f.ctx.teardown());
  const base=f.run();assert.doesNotMatch(base,/grid-template-areas:'icon' 'label'|bubble-media-info-container/);

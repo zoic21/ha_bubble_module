@@ -7,7 +7,7 @@
     ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .bubble-wrapper { position: relative !important; height: auto !important; }
     ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .bubble-content-container {
 position: relative; inset: auto; width: 100%; box-sizing: border-box;
-padding: 9px; grid-template-rows: 36px auto; row-gap: ${secondary ? '4px' : '6px'};
+padding: 9px; grid-template-rows: 36px auto; row-gap: ${secondary ? '3px' : '6px'};
     }
     ${secondary ? `ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px auto auto; }
     ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .dp-secondary { overflow: visible; text-overflow: clip; }` : ''}

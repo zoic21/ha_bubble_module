@@ -69,9 +69,9 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-font-weight-medium` | Main numeric values and Square/Panel button titles | `500` |
 | `signature-font-weight-semibold` | Names and emphasized text | `600` |
 | `signature-font-weight-bold` | Large Signature headings | `700` |
-| `signature-name-font-size` | Standard compact/room/media, Flow, Weather and Wind Rose names | `14px` |
+| `signature-name-font-size` | Standard compact/room/media, optional Panel card heading, Flow, Weather and Wind Rose names | `14px` |
 | `signature-secondary-font-size` | Secondary text, media states and period selectors | `13px` |
-| `signature-caption-font-size` | Weather details, rose labels and small measurements; Square/Panel button titles add 1px | `12px` |
+| `signature-caption-font-size` | Weather details, rose labels, small measurements and Square/Panel button details; their metric titles add 1px | `12px` |
 | `signature-value-font-size` | Square and Flow primary values | `28px` |
 | `signature-compact-value-font-size` | Compact numeric values | `20px` |
 | `signature-temperature-font-size` | Room and current-weather temperatures | `30px`; responsive layouts may reduce it |

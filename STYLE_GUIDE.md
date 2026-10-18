@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.4**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.7**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.5**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -83,7 +83,7 @@ La présence d'Apple dans la pile ne garantit pas une police Apple sur Android, 
 |---|---|---|---|
 | Nom standard, nom média, titre du morceau, nom Flow, nom Weather | `signature-name-font-size` | 14 px | `signature-font-weight-semibold`, 600 |
 | Texte secondaire, état média, artiste, état compact standard, onglet de période | `signature-secondary-font-size` | 13 px | `signature-font-weight-normal`, 400 |
-| Légende, détail météo, petite mesure, libellé Wind Rose | `signature-caption-font-size` | 12 px | Normale, sauf commande explicitement mise en évidence |
+| Légende, détail météo, petite mesure, libellé Wind Rose, détail Square et panneau bouton Panel | `signature-caption-font-size` | 12 px | Normale, sauf commande explicitement mise en évidence |
 | Titre de mesure Square et panneau bouton Panel | `signature-caption-font-size` + 1 px | 13 px | `signature-font-weight-medium`, 500 |
 | Valeur compacte en petit bouton | `signature-name-font-size` / unité `signature-caption-font-size` | 14 px / 12 px | Moyenne 500 / normale 400 |
 | Valeur numérique compacte | `signature-compact-value-font-size` | 20 px | `signature-font-weight-medium`, 500 |
@@ -711,3 +711,29 @@ de poids normal 400 ; les titres média gardent leur rôle de nom. Réutiliser
 `name.css` avec ses paramètres de taille et de poids au build, sans modifier
 les défauts des autres consommateurs. Conserver le centrage Panel, les noms
 complets à largeur courante, les illustrations, dimensions, grilles et actions.
+
+### Titre global et contraste — Panel 1.2.0 / Square 2.0.5
+
+Les noms de mesure de 13 px/500 utilisent maintenant la couleur primaire.
+Les détails utilisent la légende de 12 px, la couleur secondaire et le poids
+normal. Panel ajoute 3 px avant un détail non vide ; Square emploie un écart
+de grille de 3 px. Les unités gardent leurs propres rôles, les lecteurs gardent
+leurs tailles et leurs couleurs. Les fragments secondaires acceptent une taille
+au build et calculent l’interligne avec elle ; leurs défauts de 13 px restent
+identiques pour les autres modules, sans nouveau token ni mesure JavaScript.
+
+`signature_panel.title` est facultatif sur les boutons : titre global en haut,
+rôle de nom 14 px/600/texte primaire, distinct du nom natif de première mesure.
+Son texte est relu avec le rendu existant, jamais interprété en HTML. Le nœud
+est réutilisé lors d’un changement de texte, supprimé au retrait/démontage et
+ignoré sur les médias. Le titre n’a pas la cible d’action d’une mesure.
+
+En présence de ce titre, la grille conserve les 118 px et l’image de 80 px
+centrée : rangée de titre de 18 px, noms de mesure de 16 px, retrait vertical
+intérieur de 7 px. Les badges natifs suivent le titre global ; sans titre ils
+retrouvent le nom natif. Le helper de badges partagé paramètre ce nœud au build,
+sans changer la distribution Room. Conserver les boutons et leurs handlers,
+l’alignement des valeurs, les actions indépendantes et le nettoyage. Les
+compositions cumulant titre, détails longs et nombreuses commandes doivent
+être allégées pour tenir dans deux pas. Tester titres présents/absents,
+badges, mises à jour, retraits, thèmes et largeur de téléphone.

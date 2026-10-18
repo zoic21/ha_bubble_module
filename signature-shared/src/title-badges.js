@@ -1,4 +1,4 @@
-/* @defaults {"LAYOUT":"room","ENABLED":"roomIllustrated","SCOPE_SUFFIX":"[data-dp-room-mode=\"illustrated\"]","HEADING_GRID":"grid-area: 1 / 1; align-self: start;","HEADING_WIDTH":"max-width: calc(100% - var(--dp-room-badge-art) - 8px);"} */
+/* @defaults {"LAYOUT":"room","ENABLED":"roomIllustrated","SCOPE_SUFFIX":"[data-dp-room-mode=\"illustrated\"]","NAME_NODE":"root.querySelector('.bubble-name')","NAME_SELECTOR":".bubble-name","HEADING_GRID":"grid-area: 1 / 1; align-self: start;","HEADING_WIDTH":"max-width: calc(100% - var(--dp-room-badge-art) - 8px);"} */
 // A native title and its badges share intrinsic flex layout. Move the existing
 // nodes, retaining Bubble handlers, and restore them when the option is removed.
 if (!runtime.roomBadgeTeardown) {
@@ -18,7 +18,7 @@ if (!structure.roomBadgeStyles) {
 }
 const badgeNodes = @@ENABLED@@ ? structure.roomBadgeStyles.flatMap(({cls}) =>
   [...root.querySelectorAll('.bubble-sub-button.'+cls)]) : [];
-const badgeName = root.querySelector('.bubble-name');
+const badgeName = @@NAME_NODE@@;
 let badgeFrame = runtime.roomBadges;
 if (badgeFrame && (!badgeNodes.length || badgeFrame.name !== badgeName
     || badgeName?.parentNode !== badgeFrame.heading || !root.contains(badgeFrame.heading))) {
@@ -81,7 +81,7 @@ if (badgeNodes.length && badgeName?.parentNode) {
         gap: 6px; min-width: 0; @@HEADING_WIDTH@@
         pointer-events: none;
       }
-      ${scope+' .dp-@@LAYOUT@@-heading .bubble-name'} {
+      ${scope+' .dp-@@LAYOUT@@-heading @@NAME_SELECTOR@@'} {
         flex: 0 1 auto; min-width: 0; max-width: none; padding-right: 0 !important;
         align-self: center;
       }

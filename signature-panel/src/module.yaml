@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.1.7
+version: 1.2.0
 creator: Loïc
 supported:
   - button
@@ -12,6 +12,12 @@ editor:
     label: Réglages du panneau
     type: signature_options
     fields:
+      title:
+        label: Titre global du panneau
+        selector:
+          text: {}
+        description: "Facultatif, texte ou Jinja. Affiché en haut, séparément des noms de mesure. Le nom Bubble reste le libellé de la première mesure. Hauteur de 118 px conservée ; préférer un panneau de mesures et limiter les détails si des commandes occupent le pied."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       illustration:
         label: Illustration (objet YAML)
         selector:
