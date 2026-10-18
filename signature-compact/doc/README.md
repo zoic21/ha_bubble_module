@@ -7,7 +7,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.5.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -29,6 +29,44 @@ signature_compact:
   color: orange
   compact_mode: value
 ```
+
+## Badge Auto/Manuel sur l’icône
+
+Depuis **1.6.0**, `sub_button_styles.<classe-ou-numéro>.type: mode_badge`
+place une unique commande native nommée sur le carré de l’icône d’une carte
+`climate` ou `cover`. Le badge rond fait 14 px ; la cible tactile couvre
+44 × 44 px. Le nom natif complet reste accessible ; sa première lettre est
+affichée (`Auto` → A, `Manuel` → M, état inconnu → —).
+
+```yaml
+sub_button:
+  main:
+    - entity: automation.sejour_chauffage
+      name: "{{ 'Auto' if is_state(entity, 'on') else 'Manuel' }}"
+      show_name: true
+      show_icon: false
+      show_state: false
+      tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+        entity: climate.sejour_thermostat
+signature_compact:
+  sub_button_styles:
+    '1':
+      type: mode_badge
+      color: "{{ '#ffffff' if is_state(entity, 'on') else 'var(--primary-text-color)' }}"
+      background: "{{ '#36993B' if is_state(entity, 'on') else 'var(--ha-card-background, var(--card-background-color))' }}"
+```
+
+Les actions sont celles du sous-bouton : configurer le clic pour la bascule
+et l’appui long vers l’équipement parent. Les commandes +/−, ouvrir/stop/fermer,
+la visibilité et les autres sous-boutons restent natifs. `color`, `background`
+et `opacity` continuent d’accepter Jinja, avec l’entité du sous-bouton. Le
+fond manuel doit rester lié au thème. Aucun nœud, écouteur, observateur ni
+abonnement supplémentaire ; retirer le type restitue la disposition native.
+Le placement est réservé à un unique bouton `default`, nommé, sans état,
+sur une carte cover/climate avec icône visible ; les autres cas restent natifs.
 
 ## Compatibilité et comportement
 

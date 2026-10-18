@@ -13,7 +13,8 @@ const paint = (selector,b,spec = {},auto = false) => {
   if (String(spec.background ?? '').trim()) bg = color(spec.background,bg || 'transparent',b.entity);
   if (spec.opacity != null) opacity = number(render(spec.opacity,b.entity),1,0,1);
   const target = layout === 'room' && roleSet.has(b) ? selector+' .bubble-sub-button-icon' : selector;
-  const declarations = (fg?'color:'+fg+' !important;':'')+(bg?'background:'+bg+' !important;':'')+(opacity!==''?'opacity:'+opacity+' !important;':'');
+  const backgroundProperty = layout === 'compact' && modeBadge?.b === b ? '--dp-mode-badge-background' : 'background';
+  const declarations = (fg?'color:'+fg+' !important;':'')+(bg?backgroundProperty+':'+bg+' !important;':'')+(opacity!==''?'opacity:'+opacity+' !important;':'');
   if (declarations) css += target+' {'+declarations+'}';
   if (spec.column != null) css += selector+' { --room-control-column:'+ (number(spec.column,1,1,roomColumns)-1) +'; }';
   return opacity;

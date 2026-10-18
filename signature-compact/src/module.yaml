@@ -1,5 +1,5 @@
 name: Signature Compact
-version: 1.5.0
+version: 1.6.0
 creator: Loïc
 supported:
   - button
@@ -122,6 +122,7 @@ editor:
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
       sub_button_styles:
         $field: sub_button_styles
+        description: "Styles par classe ou numéro natif. type: mode_badge superpose une unique commande Auto/Manuel nommée à l’icône d’une carte cover/climate : badge de 14 px et cible native de 44 px ; color/background restent configurables."
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
       color_background:
         $field: color_background

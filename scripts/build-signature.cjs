@@ -68,6 +68,7 @@ async function build(layout) {
   chunks.push(layout === 'room' ? specific(layout, 'room-geometry') : `
     const roles = [], roomColumns = 4, roomRows = 1, roomHeaderMeasures = false;
   `);
+  if (layout === 'compact') chunks.push(specific(layout, 'mode-badge'));
   chunks.push(shared('sub-buttons'));
   if (layout === 'room') chunks.push(specific(layout, 'badges'), specific(layout, 'commands'));
   if (layout === 'square') chunks.push(specific(layout, 'badge'));
