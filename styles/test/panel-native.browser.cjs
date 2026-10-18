@@ -89,6 +89,33 @@ async function snapshot(page){
  });
 }
 
+test('two-line Panel details preserve forecast text, height, values and option removal',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await draw(page,{width,mode,plain,count:3,panel:{secondary_lines:2,secondary:'≈ 7 h 30',information:[
+   {entity:'sensor.temperature',name:'Production'},
+   {entity:'sensor.humidity',name:'Restant',secondary:'Demain : 18,6 kWh'}]}});
+  const m=await page.evaluate(()=>{
+   window.savedState=card.elements.state;
+   const root=card.card,frame=root.querySelector('.bubble-container').getBoundingClientRect();
+   const details=[...root.querySelectorAll('.dp-secondary,.dp-panel-secondary')].filter(e=>e.textContent.trim()).map(e=>{
+    const rect=e.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(e);
+    return{text:e.textContent,whiteSpace:getComputedStyle(e).whiteSpace,lines:[...range.getClientRects()].map(r=>({left:r.left,right:r.right,top:r.top,bottom:r.bottom})),rect:{left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom}};
+   });
+   return{height:frame.height,details};
+  });
+  const hint=JSON.stringify({width,mode,plain,m});assert.equal(m.height,118,hint);
+  for(const detail of m.details){
+   assert.equal(detail.whiteSpace,'normal',hint);assert.ok(detail.lines.length<=2,hint);
+   for(const line of detail.lines){assert.ok(line.left>=detail.rect.left-1&&line.right<=detail.rect.right+1,hint);assert.ok(line.top>=detail.rect.top-1&&line.bottom<=detail.rect.bottom+1,hint);}
+  }
+  assert.ok(m.details.some(d=>d.text==='Demain : 18,6 kWh'),hint);
+  await page.evaluate(()=>{delete card.config.signature_panel.secondary_lines;card.updateBubbleCard()});
+  const restored=await page.evaluate(()=>({same:card.elements.state===savedState,whiteSpace:getComputedStyle(card.card.querySelector('.dp-secondary')).whiteSpace,height:card.card.querySelector('.bubble-container').getBoundingClientRect().height}));
+  assert.deepEqual(restored,{same:true,whiteSpace:'nowrap',height:118},hint);
+ }
+});
+
 test('media Panel artwork follows track changes with natural proportions and restores its themed atlas',{skip:!nativePath},async t=>{
  const page=await setup(t);
  const illustration={media_artwork:true,image:'/local/atlas.webp',image_dark:'/local/night.webp',columns:4,rows:6,index:2,index_dark:14,offset_x:7,offset_y:27,offset_y_dark:8};

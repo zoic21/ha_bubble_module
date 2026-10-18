@@ -135,3 +135,17 @@ ha-card[data-dp-layout="panel"][data-dp-panel-count="2"] .bubble-container {
   --dp-panel-value-size: clamp(18px,7cqw,var(--dp-panel-value-limit,var(--signature-value-font-size,28px)));
   --dp-panel-unit-size: clamp(12px,4cqw,var(--signature-value-unit-font-size,16px));
 }
+${twoLineDetails ? `
+ha-card[data-dp-layout="panel"] .bubble-container {
+  grid-template-rows: 20px minmax(0,1fr) calc(2 * max(16px,calc(var(--signature-secondary-font-size,13px) * 1.2))) auto;
+}
+ha-card[data-dp-layout="panel"] :is(.dp-secondary,.dp-panel-secondary) {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  white-space: normal !important; overflow-wrap: anywhere;
+  line-height: max(16px,calc(var(--signature-secondary-font-size,13px) * 1.2));
+  max-height: calc(2 * max(16px,calc(var(--signature-secondary-font-size,13px) * 1.2)));
+}
+ha-card[data-dp-layout="panel"][data-dp-panel-count="3"] :is(.dp-secondary,.dp-panel-secondary) {
+  font-size: clamp(11px,3.7cqw,var(--signature-secondary-font-size,13px));
+}
+` : ''}

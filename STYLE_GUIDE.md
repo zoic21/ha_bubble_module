@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.4**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.5**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -656,3 +656,17 @@ restaurer le span 2 / 4 et l'interligne de 1,3. Le détail garde le rôle
 secondaire commun et une ellipse ; aucun nouveau nœud ni déplacement de
 DOM ajouté. Tester les métadonnées présentes/absentes, les titres longs et
 la disparition native du détail, avec les mêmes commandes et la même image.
+
+### Détails sur deux lignes — Panel 1.1.5
+
+`secondary_lines: 2` est facultatif et limité aux boutons sans sous-boutons.
+Réserver deux interlignes secondaires communs, chacun au moins 16 px, dans les
+mêmes 118 px ; conserver la grille des valeurs et le dessin de 80 px centré.
+Les détails peuvent revenir à la ligne, avec une limite de deux lignes et une
+hauteur maximale liée au token de police. Le mode ordinaire garde son ellipse
+et sa seule rangée. Le choix appartient à la clé de cache CSS ; retrait,
+média, commandes natives et masquages doivent retrouver leur comportement.
+Avec trois informations, adapter le secondaire de 11 px à la taille du thème
+avec `clamp(11px, 3.7cqw, taille secondaire)` ; les autres formats gardent la
+taille secondaire du thème. Les deux interlignes réservés ne changent pas.
+Aucun nouveau nœud, écouteur, abonnement ou mesure de style JavaScript.

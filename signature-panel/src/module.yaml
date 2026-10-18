@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.1.4
+version: 1.1.5
 creator: Loïc
 supported:
   - button
@@ -39,6 +39,16 @@ editor:
       color_background:
         $field: color_background
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      secondary_lines:
+        label: Nombre de lignes réservées aux détails
+        selector:
+          number:
+            min: 1
+            max: 2
+            step: 1
+            mode: box
+        description: "Une ligne par défaut. Deux lignes permettent de lire une prévision ou une durée sur un bouton sans sous-boutons, sans changer la hauteur."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       border_color:
         $field: border_color
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

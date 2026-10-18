@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.1.4**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.1.5**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -173,6 +173,16 @@ Des valeurs ou unités particulièrement longues peuvent nécessiter une autre d
 
 `hover: false` supprime le survol, pas les actions ni le retour d’appui. `progress: {value: 0..100, color: ...}` ajoute une piste décorative ; une valeur invalide la masque. L’état principal garde le défilement natif Bubble via `state_content` et `scrolling_effect`.
 
+`secondary_lines: 2` réserve deux lignes communes aux détails d’un bouton sans
+sous-boutons. Les prévisions et durées peuvent revenir à la ligne ; un texte
+plus long reste limité à deux lignes. Les valeurs gardent leur alignement et
+le dessin son centrage, dans les mêmes 118 px. L’option vaut une ligne par
+défaut et ne s’applique ni aux médias ni aux boutons avec sous-boutons.
+Avec trois informations, le texte secondaire s’adapte de 11 px jusqu’à sa
+taille de thème pour garder les détails lisibles sur écran étroit.
+Le retrait de l’option restitue la géométrie précédente, sans nouveau nœud,
+abonnement ou mesure JavaScript.
+
 Les sources sont séparées en présentation, informations, statistiques, commandes et progression. Modifier `src`, puis `npm run build:modules`, `npm run check:modules`, `npm test` et `npm run test:styles`. Le test `panel-native.browser.cjs` charge Bubble **3.4.1** lorsque `BUBBLE_NATIVE_SCRIPT_PATH` pointe vers son script (SHA contrôlé). Cette couverture Chromium avec backend simulé ne valide ni l’installation Home Assistant réelle ni Safari/iOS.
 
 ## Migration
@@ -263,3 +273,11 @@ détail ; titre et artiste restent sur une ligne chacun, sans changer les
 tailles de texte, la hauteur ou l'image.
 Sans donnée, la carte retrouve sa disposition média habituelle. Aucun état
 métier ni donnée de lecteur n'est codé dans le module.
+
+## 1.1.5 — 18 octobre 2026 — détails facultatifs sur deux lignes
+
+`secondary_lines: 2` garde les prévisions et durées lisibles dans les colonnes
+étroites des panneaux boutons sans sous-boutons. Deux lignes secondaires
+réservées, hauteur de 118 px et grille des valeurs conservées. Le défaut,
+les lecteurs et les commandes restent inchangés ; retrait de l’option et
+changement de thème couverts par les contrôles natifs Bubble.
