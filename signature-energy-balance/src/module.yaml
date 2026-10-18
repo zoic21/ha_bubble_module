@@ -1,0 +1,9 @@
+name: Signature Energy Balance
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+description: Barre journalière réseau, solaire et batterie, calculée sur le bilan net Recorder. Infobulles au survol, au toucher et au clavier, sans ouverture More info.
+editor:
+  - type: constant
+    label: Configurer les listes de compteurs kWh dans signature_energy_balance. Ce module remplace le contenu du bouton par une barre de bilan net.

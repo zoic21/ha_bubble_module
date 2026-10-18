@@ -4,6 +4,14 @@ Référence commune de **Signature Compact 1.6.2**, **Square 2.0.3**, **Header 1
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
+**Signature Energy Balance 1.0.0** remplace seulement le contenu d’un bouton
+par une barre nette journalière : carte de 50 px, piste de 28 px, retraits de
+10 px et rayon commun de 22 px. Les pourcentages utilisent la légende de
+12 px, graisse 600 et chiffres tabulaires. Les segments trop étroits masquent
+leur texte ; leur infobulle reste accessible à la souris, au toucher et au
+clavier. La surface, la bordure et la police utilisent les fragments communs.
+Le module ne modifie pas les styles des autres graphiques ou présentations.
+
 Les éditeurs des présentations Signature utilisent un formulaire anonyme (`name: ''`, `type: signature_options`) pour conserver les clés directement sous `signature_square`, `signature_compact`, `signature_room` ou `signature_header`. Le pont enregistre une fois son composant, puis utilise les champs d’objet Bubble et le regroupement `group` dans un `ha-form` natif. Le sélecteur d’objet reste détaché : aucun panneau d’élément ou bouton de suppression de l’objet racine. Les conditions `visible_if` suivent le type natif de carte et masquent les groupes sans champ utile sans supprimer les valeurs précédentes. Conserver les types mixtes compatibles Jinja, les booléens et la structure indexée de `sub_button_styles` ; les guides des présentations précisent les champs YAML intégrés au formulaire. Aucun observateur, abonnement ou polling ne doit être ajouté aux cartes pour gérer l’éditeur.
 
 Flow 3.5.0 applique ce formulaire direct à `signature_flow`, avec des formulaires imbriqués dans les portées existantes `slots`, `slots.1` à `slots.6` et `animation`. Les six sections repliables gardent leurs noms et positions ; aucun emplacement absent ne doit être créé en ouvrant l’éditeur. La case d’activation doit refléter l’absence d’un emplacement et le défaut actif d’un objet déjà configuré. Préserver les valeurs masquées lorsque le bloc, le secondaire ou l’animation est désactivé. Les templates assurent leur propre calcul et formatage : ne présenter multiplicateur/précision que pour les entités directes. Un réglage d’animation vide par emplacement doit hériter du réglage global correspondant, sans injecter un défaut qui l’écrase. Utiliser le sélecteur Lovelace `ui_action` pour conserver les objets d’actions. Les conditions et les groupes ne doivent pas ajouter de calcul ou d’observateur aux cartes ; leurs règles de rendu restent identiques.
