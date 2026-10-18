@@ -24,7 +24,7 @@ const roles = [], roomColumns = 3;
 /* @include signature-shared/src/sub-buttons.js */
 /* @include signature-panel/src/statistics.js */
 /* @include signature-panel/src/information.js */
-/* @include signature-shared/src/title-badges.js {"LAYOUT":"panel","ENABLED":"kind === 'button'","SCOPE_SUFFIX":"","HEADING_GRID":"grid-row: 1; grid-column: 1 / -2; align-self: center;","HEADING_WIDTH":"max-width: 100%;"} */
+/* @include signature-shared/src/title-badges.js {"LAYOUT":"panel","ENABLED":"kind === 'button'","SCOPE_SUFFIX":"","HEADING_GRID":"grid-row: var(--dp-panel-name-row,1); grid-column: 1 / -2; align-self: center;","HEADING_WIDTH":"max-width: 100%;"} */
 /* @include signature-panel/src/commands.js */
 /* @include signature-panel/src/progress.js */
 if (o.hover === false) css += 'ha-card[data-dp-layout="panel"] ha-ripple { --ha-ripple-hover-opacity: 0; }';

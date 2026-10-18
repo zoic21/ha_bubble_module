@@ -34,12 +34,12 @@ ha-card[data-dp-layout="panel"] .bubble-main-icon-container > :not(.am-alert-bad
 ha-card[data-dp-layout="panel"][data-dp-panel-shared-name="yes"] .bubble-name { grid-column: 1 / -2; }
 ha-card[data-dp-layout="panel"] :is(.bubble-name,.dp-panel-name) {
   /* @include shared/src/styles/name.css */
-  grid-row: 1; grid-column: var(--dp-panel-column,1); line-height: 20px;
+  grid-row: var(--dp-panel-name-row,1); grid-column: var(--dp-panel-column,1); line-height: 20px;
   color: var(--primary-text-color); align-self: center;
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-state,.dp-panel-state) {
   /* @include shared/src/styles/value.css {"SIZE":"var(--dp-panel-value-size,var(--signature-value-font-size,28px))"} */
-  grid-row: 2; grid-column: var(--dp-panel-column,1); align-self: stretch;
+  grid-row: var(--dp-panel-value-row,2); grid-column: var(--dp-panel-column,1); align-self: stretch;
   display: flex !important; align-items: center; gap: 0;
   color: var(--primary-text-color); line-height: 1.15; opacity: 1; font-variant-numeric: tabular-nums;
   height: auto !important; width: fit-content; max-width: 100%; transition: none;
@@ -58,7 +58,7 @@ ha-card[data-dp-layout="panel"] .dp-panel-icon {
 }
 ha-card[data-dp-layout="panel"] :is(.dp-secondary,.dp-panel-secondary) {
   /* @include shared/src/styles/secondary-line.css */
-  grid-row: 3; grid-column: var(--dp-panel-column,1); align-self: center;
+  grid-row: var(--dp-panel-detail-row,3); grid-column: var(--dp-panel-column,1); align-self: center;
   opacity: 1;
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-name,.dp-panel-name,.bubble-state,.dp-panel-state,.dp-secondary,.dp-panel-secondary) {
@@ -111,6 +111,21 @@ ha-card[data-dp-layout="panel"] .bubble-container:has(:is(.bubble-sub-button-con
 }
 ${commandStyles.length ? `
 /* @include signature-panel/src/command-controls.css */
+` : ''}
+${kind === 'button' ? `
+/* Measure captions remain complete; lighter typography frees horizontal space.
+   Empty detail rows collapse and equal outer tracks center the actual group. */
+ha-card[data-dp-layout="panel"] :is(.bubble-name,.dp-panel-name) {
+  font-size: var(--signature-caption-font-size,12px);
+  font-weight: var(--signature-font-weight-normal,400);
+  color: var(--secondary-text-color);
+}
+ha-card[data-dp-layout="panel"] .bubble-container:not(:has(:is(.bubble-sub-button-container,.bubble-buttons-container) :is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden]))) {
+  --dp-panel-name-row: 2;
+  --dp-panel-value-row: 3;
+  --dp-panel-detail-row: 4;
+  grid-template-rows: minmax(0,1fr) 20px max-content auto minmax(0,1fr);
+}
 ` : ''}
 ha-card[data-dp-layout="panel"] [aria-disabled="true"] { cursor: default; }
 ha-card[data-dp-layout="panel"] [aria-disabled="true"][aria-pressed="false"] { opacity: .4; }

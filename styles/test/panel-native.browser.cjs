@@ -89,6 +89,37 @@ async function snapshot(page){
  });
 }
 
+test('Panel captions stay complete and the actual title/value/detail block is vertically centered',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const count of [1,2,3])for(const detail of [false,true]){
+  const information=count===2?[{entity:'sensor.temperature',name:'Consommation',state:'11,1 kWh',secondary:detail?'Demain : 18,6 kWh':''}]:[
+   {entity:'sensor.temperature',name:'Autonomie',state:'21 %'},
+   {entity:'sensor.humidity',name:'Consommation',state:'11,1 kWh',secondary:detail?'Demain : 18,6 kWh':''}].slice(0,count-1);
+  await draw(page,{width,mode,plain,count,native:{name:'Puissance'},extraStates:{'sensor.power':{state:'484',attributes:{unit_of_measurement:'W'}}},
+   panel:{information,secondary_lines:2,secondary:detail?'≈ 7 h 30':''}});
+  const m=await page.evaluate(()=>{
+   const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect();
+   const nodes=[...root.querySelectorAll('.bubble-name,.dp-panel-name,.bubble-state,.dp-panel-state,.dp-secondary,.dp-panel-secondary')]
+    .filter(e=>e.textContent.trim()&&getComputedStyle(e).display!=='none');
+   const boxes=nodes.map(e=>e.getBoundingClientRect());
+   const names=[...root.querySelectorAll('.bubble-name,.dp-panel-name')].filter(e=>e.textContent.trim()).map(e=>{
+    const s=getComputedStyle(e),r=e.getBoundingClientRect();return{text:e.textContent,size:s.fontSize,weight:s.fontWeight,color:s.color,left:r.left,right:r.right,overflow:e.scrollWidth-e.clientWidth};
+   });
+   const probe=document.createElement('span');probe.style.color='var(--secondary-text-color)';root.append(probe);const secondary=getComputedStyle(probe).color;probe.remove();
+   return{height:frame.height,art:parseFloat(getComputedStyle(host,'::after').width),centerError:(Math.min(...boxes.map(r=>r.top))+Math.max(...boxes.map(r=>r.bottom)))/2-(frame.top+frame.height/2),names,secondary};
+  });
+  const hint=JSON.stringify({width,mode,plain,count,detail,m});
+  assert.equal(m.height,118,hint);assert.equal(m.art,80,hint);assert.ok(Math.abs(m.centerError)<1,hint);
+  assert.equal(m.names.length,count,hint);
+  for(const name of m.names){assert.equal(name.size,'12px',hint);assert.equal(name.weight,'400',hint);assert.equal(name.color,m.secondary,hint);if(width>=358)assert.ok(name.overflow<=1,hint);}
+  for(let i=1;i<m.names.length;i++)assert.ok(m.names[i-1].right<=m.names[i].left,hint);
+  if(count>1)assert.equal(m.names.at(-1).text,'Consommation',hint);
+ }
+ await page.evaluate(()=>{document.documentElement.style.setProperty('--signature-caption-font-size','13px');document.documentElement.style.setProperty('--secondary-text-color','#667788')});
+ const themed=await page.evaluate(()=>{const s=getComputedStyle(card.card.querySelector('.bubble-name'));return{size:s.fontSize,color:s.color}});
+ assert.deepEqual(themed,{size:'13px',color:'rgb(102, 119, 136)'});
+});
+
 test('two-line Panel details preserve forecast text, height, values and option removal',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){

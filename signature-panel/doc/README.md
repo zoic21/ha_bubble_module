@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.1.5**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.1.6**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -157,7 +157,15 @@ Recorder fournit les variations du jour, y compris les remises à zéro. Un rés
 
 ## Style et maintenance
 
-Surfaces, textes, police et rayons utilisent les tokens Signature, y compris sans son thème : carte 22 px, contrôles 14 px, nom 14 px/600, valeur 28 px/500, unité 16 px/400, secondaire 13 px/400. Les états textuels sont limités à 22 px. Avec trois informations, la taille commune s’adapte à la largeur ; avec les commandes nommées, le rôle de valeur est de 20 px. Le texte reste primaire, les unités/détails secondaires ; les icônes gardent leurs accents. Retraits extérieurs des textes : 12 px horizontalement, 10 px verticalement, bordure comprise ; 8 px entre les colonnes. Les commandes de 44 px utilisent un retrait vertical de 8 px pour conserver les deux pas.
+Surfaces, textes, police et rayons utilisent les tokens Signature, y compris sans son thème : carte 22 px, contrôles 14 px, valeur 28 px/500, unité 16 px/400, secondaire 13 px/400. Sur les cartes bouton, les noms utilisent le rôle de légende : `signature-caption-font-size` (12 px), poids normal 400 et couleur secondaire ; les libellés restent complets dans la configuration, sans abréviation. Les titres des lecteurs gardent leur rôle de nom 14 px/600. Les états textuels sont limités à 22 px. Avec trois informations, la taille commune s’adapte à la largeur ; avec les commandes nommées, le rôle de valeur est de 20 px. Les valeurs et libellés de commandes restent primaires, les unités/détails secondaires ; les icônes gardent leurs accents. Retraits extérieurs des textes : 12 px horizontalement, 10 px verticalement, bordure comprise ; 8 px entre les colonnes. Les commandes de 44 px utilisent un retrait vertical de 8 px pour conserver les deux pas.
+
+Sans commandes visibles au pied, le groupe titres/valeurs/détails est centré
+verticalement selon son contenu réel. Un détail vide ne réserve plus de rangée ;
+un détail présent garde son interligne et son éventuel retour à la ligne.
+Les valeurs restent alignées entre colonnes, le dessin reste centré sur la carte.
+Les badges du titre suivent sa rangée sans créer de pied. Avec des commandes
+visibles, leur disposition et leurs cibles restent inchangées ; les lecteurs
+conservent toute leur disposition et leur typographie.
 
 Avec trois informations, les trois nombres conservent la même taille et le même
 alignement. Depuis 1.0.3, ils atteignent environ **22–24 px sur les cartes de
@@ -173,14 +181,14 @@ Des valeurs ou unités particulièrement longues peuvent nécessiter une autre d
 
 `hover: false` supprime le survol, pas les actions ni le retour d’appui. `progress: {value: 0..100, color: ...}` ajoute une piste décorative ; une valeur invalide la masque. L’état principal garde le défilement natif Bubble via `state_content` et `scrolling_effect`.
 
-`secondary_lines: 2` réserve deux lignes communes aux détails d’un bouton sans
+`secondary_lines: 2` autorise deux lignes communes aux détails d’un bouton sans
 sous-boutons. Les prévisions et durées peuvent revenir à la ligne ; un texte
 plus long reste limité à deux lignes. Les valeurs gardent leur alignement et
 le dessin son centrage, dans les mêmes 118 px. L’option vaut une ligne par
 défaut et ne s’applique ni aux médias ni aux boutons avec sous-boutons.
 Avec trois informations, le texte secondaire s’adapte de 11 px jusqu’à sa
 taille de thème pour garder les détails lisibles sur écran étroit.
-Le retrait de l’option restitue la géométrie précédente, sans nouveau nœud,
+Le retrait de l’option restitue le détail sur une ligne, sans nouveau nœud,
 abonnement ou mesure JavaScript.
 
 Les sources sont séparées en présentation, informations, statistiques, commandes et progression. Modifier `src`, puis `npm run build:modules`, `npm run check:modules`, `npm test` et `npm run test:styles`. Le test `panel-native.browser.cjs` charge Bubble **3.4.1** lorsque `BUBBLE_NATIVE_SCRIPT_PATH` pointe vers son script (SHA contrôlé). Cette couverture Chromium avec backend simulé ne valide ni l’installation Home Assistant réelle ni Safari/iOS.
@@ -281,3 +289,20 @@ métier ni donnée de lecteur n'est codé dans le module.
 réservées, hauteur de 118 px et grille des valeurs conservées. Le défaut,
 les lecteurs et les commandes restent inchangés ; retrait de l’option et
 changement de thème couverts par les contrôles natifs Bubble.
+
+## 1.1.6 — 18 octobre 2026 — libellés sobres et contenu centré
+
+Tous les panneaux boutons partagent des libellés de 12 px, de poids normal
+et de couleur secondaire, sans raccourcir les noms. En l’absence de commandes
+visibles au pied, titres, valeurs et détails présents forment un groupe centré
+verticalement ; les détails vides ne réservent plus de place. Les prévisions
+gardent jusqu’à deux lignes avec l’option existante. Aucun changement des
+valeurs, calculs, unités, illustrations de 80 px, hauteur de 118 px ou actions.
+Les commandes gardent leur géométrie et les médias leur style précédent.
+Réimporter uniquement Panel ; aucune modification des dashboards nécessaire.
+
+Contrôles : build, tests Node et Chromium avec Bubble 3.4.1 et backend simulé,
+une à trois informations à 288/328/358/382/600 px, clair/sombre, avec/sans thème,
+détails absents/présents, badges, commandes et médias. Les libellés longs
+peuvent toujours être tronqués sur les écrans très étroits. Home Assistant réel
+et Safari/iOS restent à vérifier après importation.

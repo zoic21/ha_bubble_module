@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.5**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.3**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.1.6**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -83,7 +83,7 @@ La présence d'Apple dans la pile ne garantit pas une police Apple sur Android, 
 |---|---|---|---|
 | Nom standard, nom média, titre du morceau, nom Flow, nom Weather | `signature-name-font-size` | 14 px | `signature-font-weight-semibold`, 600 |
 | Texte secondaire, état média, artiste, état compact standard, onglet de période | `signature-secondary-font-size` | 13 px | `signature-font-weight-normal`, 400 |
-| Légende, détail météo, petite mesure, libellé Wind Rose | `signature-caption-font-size` | 12 px | Normale, sauf commande explicitement mise en évidence |
+| Légende, détail météo, petite mesure, libellé Wind Rose, libellé de panneau bouton Panel | `signature-caption-font-size` | 12 px | Normale, sauf commande explicitement mise en évidence |
 | Valeur compacte en petit bouton | `signature-name-font-size` / unité `signature-caption-font-size` | 14 px / 12 px | Moyenne 500 / normale 400 |
 | Valeur numérique compacte | `signature-compact-value-font-size` | 20 px | `signature-font-weight-medium`, 500 |
 | Valeur square et valeur principale Flow | `signature-value-font-size` | 28 px | Moyenne, 500 |
@@ -678,3 +678,24 @@ Avec trois informations, adapter le secondaire de 11 px à la taille du thème
 avec `clamp(11px, 3.7cqw, taille secondaire)` ; les autres formats gardent la
 taille secondaire du thème. Les deux interlignes réservés ne changent pas.
 Aucun nouveau nœud, écouteur, abonnement ou mesure de style JavaScript.
+
+### Libellés sobres et centrage du contenu — Panel 1.1.6
+
+Sur les panneaux boutons uniquement, les noms principal et supplémentaires
+utilisent le rôle de légende de 12 px, le poids normal 400 et la couleur
+secondaire, avec les tokens correspondants et sans abréger les libellés.
+Cette règle remplace leur ancien rôle de nom 14 px/600/texte primaire.
+Les titres des lecteurs restent à 14 px/600 et les commandes gardent leurs
+propres libellés primaires.
+
+Sans commandes visibles au pied, des pistes CSS souples égales encadrent le
+groupe titres/valeurs/détails. Centrer son contenu réel plutôt qu’une rangée de
+valeurs extensible ; les détails vides ne doivent réserver aucune hauteur.
+Les détails présents gardent leur interligne, avec une ou deux lignes selon
+l’option existante : les deux lignes ne sont plus réservées si elles sont vides.
+Les badges du titre suivent cette même rangée. Préserver la hauteur de 118 px,
+le dessin de 80 px centré sur la carte, les tailles de valeurs, unités, retraits
+et actions. Avec commandes visibles, conserver la grille du pied et ses cibles ;
+les médias ne changent pas. Vérifier les libellés complets à largeur courante,
+le centrage avec/sans détail, les trois valeurs alignées et les changements de
+thème sans nouvelle exécution. Aucun nouveau DOM ni mesure JavaScript.
