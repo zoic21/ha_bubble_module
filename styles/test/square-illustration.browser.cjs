@@ -113,6 +113,33 @@ test('illustration keeps a visible native icon clear of the heading when it is n
   assert.ok(m.padding>=m.iconWidth+10);
 });
 
+test('iconless Square headings share Panel insets while values keep their baseline and native targets',async t=>{
+  const page=await fixture(t);
+  for(const width of [148,180,246,328,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const autoHeight of [false,true])for(const artwork of [false,true]){
+    await render(page,{width,mode,plain});
+    const m=await page.evaluate(({code,autoHeight,artwork})=>{
+      const root=document.querySelector('[data-id="square"]').shadowRoot,ctx=contexts.find(c=>c.card===root.querySelector('ha-card'));
+      const style=root.querySelectorAll('style')[1],name=root.querySelector('.bubble-name'),state=ctx.elements.state,icon=ctx.elements.iconContainer;
+      ctx.config.signature_square={auto_height:autoHeight,secondary:'Rafales · 4,0 km/h',...(artwork?{illustration:{image:'/local/wind.webp'}}:{})};
+      const samples=[];
+      for(const visible of [true,false,true]){
+        ctx.config.show_icon=visible;icon.classList.toggle('hidden',!visible);
+        style.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);
+        const frame=ctx.elements.mainContainer.getBoundingClientRect(),content=ctx.elements.contentContainer.getBoundingClientRect(),title=name.getBoundingClientRect(),value=state.getBoundingClientRect(),padding=getComputedStyle(ctx.elements.contentContainer);
+        samples.push({top:title.top-frame.top,left:content.left-frame.left+parseFloat(padding.paddingLeft),right:frame.right-content.right+parseFloat(padding.paddingRight),valueTop:value.top-frame.top,valueBottom:value.bottom-frame.top,height:frame.height,
+          icon:getComputedStyle(icon).display,valueAction:JSON.parse(state.dataset.tapAction).action,sameName:root.querySelector('.bubble-name')===name,sameState:ctx.elements.state===state});
+      }
+      return samples;
+    },{code,autoHeight,artwork});
+    const hint=JSON.stringify({width,mode,plain,autoHeight,artwork,m}),[before,hidden,restored]=m;
+    if(!(autoHeight&&artwork)){assert.equal(before.top,18,hint);assert.equal(before.left,10,hint);assert.equal(before.right,10,hint);}
+    assert.equal(hidden.top,10,hint);assert.equal(hidden.left,12,hint);assert.equal(hidden.right,12,hint);assert.equal(hidden.icon,'none',hint);
+    if(!(autoHeight&&artwork)){assert.equal(hidden.valueTop,before.valueTop,hint);assert.equal(hidden.valueBottom,before.valueBottom,hint);assert.equal(hidden.height,before.height,hint);}
+    assert.ok(hidden.valueTop>hidden.top+20&&hidden.valueBottom<hidden.height-10,hint);
+    assert.equal(hidden.valueAction,'more-info',hint);assert.ok(hidden.sameName&&hidden.sameState,hint);assert.deepEqual(restored,before,hint);
+  }
+});
+
 test('theme variants follow HA instead of OS mode, including a theme-only update with cached layout', async t => {
   const page=await fixture(t,{colorScheme:'dark'});
   for(const plain of [false,true]) {

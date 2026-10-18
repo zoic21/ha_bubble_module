@@ -16,7 +16,9 @@
       /* @include shared/src/styles/secondary-line.css {"SIZE":"var(--signature-caption-font-size,12px)"} */
       grid-area: 3 / 1 / 4 / 3;
     }` : ''}
-    ha-card[data-dp-layout="square"][data-dp-icon="no"] .bubble-name { grid-column: 1 / 3; }
+    /* Iconless titles start at the shared top inset; retain the value baseline. */
+    ha-card[data-dp-layout="square"][data-dp-icon="no"]:not([data-dp-auto-height="yes"]) .bubble-content-container { inset-inline: 11px; }
+    ha-card[data-dp-layout="square"][data-dp-icon="no"] .bubble-name { grid-column: 1 / 3; align-self: start; }
 
     ha-card[data-dp-layout="square"] .bubble-button-card { transition: none !important; }
 

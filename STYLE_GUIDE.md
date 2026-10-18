@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.5**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -298,7 +298,7 @@ Compact 1.4.3 applique un padding horizontal de 9 px dans le wrapper, auquel s�
 
 Compact conserve un écart de 8 px entre les informations et les groupes de commandes, dans le wrapper flex, la grille de valeur et les groupes natifs de sous-boutons. Une valeur finale n’utilise plus un écart de 4 px face aux badges. Le padding interne d’une valeur en bouton et les 4 px entre nombre et unité restent distincts de cet écart. Les commandes cover/climate/number conservent leur géométrie propre.
 
-Conserver les densités existantes : 10 px pour le contenu compact/square, 12 px pour le contenu room, 14 px pour l'enveloppe Flow, généralement 16 px pour les sections Weather et Wind Rose. Depuis Flow 3.5.2, une carte de moins de 490 px conserve 14 px verticalement mais utilise 10 px horizontalement et 8 px entre l'icône et le texte. Déterminer ce retrait depuis la largeur extérieure, indépendante du padding, pour éviter une oscillation au seuil. L'axe central reste fixe ; les unités et tailles de police restent celles de leur rôle, avec l'ajustement des nombres débordants existant. Les adaptations étroites de Weather restent propres à ses sections. Ne pas imposer le même padding à tous les modules.
+Conserver les densités existantes : 10 px pour Compact et Square avec icône ; Square sans icône garde 10 px verticalement et utilise 12 px horizontalement depuis 2.0.6, comme Panel ; 12 px pour le contenu room, 14 px pour l'enveloppe Flow, généralement 16 px pour les sections Weather et Wind Rose. Depuis Flow 3.5.2, une carte de moins de 490 px conserve 14 px verticalement mais utilise 10 px horizontalement et 8 px entre l'icône et le texte. Déterminer ce retrait depuis la largeur extérieure, indépendante du padding, pour éviter une oscillation au seuil. L'axe central reste fixe ; les unités et tailles de police restent celles de leur rôle, avec l'ajustement des nombres débordants existant. Les adaptations étroites de Weather restent propres à ses sections. Ne pas imposer le même padding à tous les modules.
 
 ## 6. Comportement et maintenance
 
@@ -743,3 +743,18 @@ Depuis Panel 1.2.1, `show_name: false` garde le nom natif masqué. Si aucun
 nom de mesure n’est visible et non vide, sa rangée se replie en CSS ; les valeurs
 restent alignées et centrées sous le titre global. Préserver les retraits
 horizontaux de 12 px, le dessin de 80 px, les 118 px et les actions natives.
+
+### Square 2.0.6 — retraits sans icône
+
+Avec `data-dp-icon="no"`, ancrer le titre en haut de sa rangée : retrait
+extérieur de 10 px verticalement et de 12 px horizontalement, bordure comprise,
+comme le titre global Panel. La rangée de 36 px reste réservée sur les tuiles
+fixes pour préserver les valeurs et détails ; seule la position du titre change
+verticalement. Avec icône visible, garder le centrage du nom et les retraits
+de 10 px. Illustration et secondaire partagent le nouveau retrait horizontal.
+
+En hauteur automatique sans icône, conserver le padding de 9 px vertical et
+11 px horizontal, même avec une illustration : sa remise à zéro générique
+ne doit pas annuler les retraits. La hauteur naturelle suit alors le contenu.
+Tester masquage/rétablissement natifs, classique/illustré, fixe/auto, détails,
+clair/sombre et avec/sans thème. Aucun nouveau nœud, observateur ni calcul JS.

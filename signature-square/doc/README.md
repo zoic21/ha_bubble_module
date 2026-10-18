@@ -1,6 +1,6 @@
 # Signature Square
 
-Version **2.0.5**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.6**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -126,6 +126,15 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 
 ## Thème et coexistence
 
+Avec `show_icon: false`, le titre est ancré en haut : retrait extérieur de
+10 px, bordure comprise. Les textes et le dessin ont 12 px de retrait
+horizontal, comme Panel. La rangée technique de 36 px reste réservée pour
+conserver la position verticale des valeurs et détails sur les tuiles fixes.
+Avec une icône visible, le titre reste centré à son côté, avec les retraits
+existants de 10 px. Le passage d’un état à l’autre reste natif et réversible.
+En hauteur automatique, le contenu sans icône reçoit le même padding ; le
+dessin ne doit pas annuler ses retraits et la hauteur suit le contenu.
+
 Les titres partagent le rôle des panneaux boutons Panel 1.2.0 : couleur
 primaire, poids moyen 500 et taille de légende augmentée de 1 px, soit 13 px
 par défaut. La taille suit `signature-caption-font-size` et le poids suit
@@ -150,6 +159,20 @@ Modifier les fichiers `src` du module et les [fonctions partagées](../../signat
 Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; la référence actuelle est Bubble Card 3.4.1. Les contrôles automatiques comparent les distributions à Signature, leurs actions et leur nettoyage, ainsi que les styles calculés dans des fixtures Chromium. Ils ne constituent pas une validation dans Home Assistant ou Safari/iOS.
 
 ## Notes de version
+
+### 2.0.6 — 18 octobre 2026
+
+Titres des Squares sans icône ancrés au retrait supérieur de 10 px, au lieu
+d’être centrés dans la rangée de l’icône. Retrait horizontal de 12 px, comme
+Panel. Valeurs et détails des tuiles fixes gardent leur position et leurs
+actions ; les icônes visibles gardent leur disposition. La hauteur automatique
+préserve aussi les retraits avec une illustration. Aucun nouveau nœud,
+observateur, option ni calcul JavaScript de géométrie.
+
+Tests Node et Chromium, avec/sans thème, clair/sombre, différentes largeurs,
+icône masquée/rétablie, illustrations, détails et hauteur automatique.
+Captures des cartes Confort et du bandeau Maison avec Bubble 3.4.1 et valeurs
+simulées ; pas de validation Home Assistant réelle ou Safari/iOS.
 
 ### 2.0.5 — 18 octobre 2026
 

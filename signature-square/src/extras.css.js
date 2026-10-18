@@ -9,6 +9,7 @@
 position: relative; inset: auto; width: 100%; box-sizing: border-box;
 padding: 9px; grid-template-rows: 36px auto; row-gap: ${secondary ? '3px' : '6px'};
     }
+    ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-icon="no"] .bubble-content-container { padding: 9px 11px; }
     ${secondary ? `ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-secondary="yes"] .bubble-content-container { grid-template-rows: 36px auto auto; }
     ha-card[data-dp-layout="square"][data-dp-auto-height="yes"] .dp-secondary { overflow: visible; text-overflow: clip; }` : ''}
     ha-card[data-dp-layout="square"][data-dp-auto-height="yes"][data-dp-measure-detail="yes"] .bubble-content-container { bottom: auto; padding-bottom: 26px; }
