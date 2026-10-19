@@ -1,5 +1,18 @@
 # Signature Compact
 
+## 1.6.5 — 19 octobre 2026 — commandes multimédia neutres
+
+Play/Pause utilise un fond transparent et l’icône en texte primaire, comme
+Panel, en lecture et en pause, y compris avec les boutons en pleine largeur.
+Les actions, dimensions et retours d’appui natifs restent conservés.
+
+Pour masquer Power sur une carte précise, utiliser le réglage natif
+`hide: {power_button: true}` ; le module garde cette commande disponible sur
+les appareils pour lesquels elle est utile.
+
+Mettre à jour Compact puis recharger le frontend. Les changements de masquage
+Power dans un dashboard demandent aussi de réimporter ce dashboard.
+
 ## 1.6.4 — 19 octobre 2026 — horaires et lecteur multimédia
 
 - Les horaires et leur titre se centrent sur la hauteur visible des caractères
@@ -59,7 +72,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.4**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.5**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 

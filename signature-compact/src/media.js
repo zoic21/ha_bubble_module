@@ -14,6 +14,11 @@ if (kind === 'media-player') {
       --bubble-icon-border-radius: var(--signature-icon-border-radius, 12px);
     }
     ha-card .bubble-main-icon { color: ${accent} !important; }
+    /* Match Panel's neutral native transport button, including full-width rows. */
+    ha-card .bubble-buttons-container .bubble-play-pause-button {
+      background-color: transparent;
+      --bubble-media-player-play-pause-icon-color: var(--primary-text-color);
+    }
     ha-card :is(.bubble-name,.bubble-title) {
       /* @include shared/src/styles/name.css */
        color: var(--primary-text-color); }

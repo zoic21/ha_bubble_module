@@ -23,15 +23,15 @@ async function setup(t){
  });
  await page.addScriptTag({path:nativePath});return page;
 }
-async function draw(page,{media=false,width=180,mode='dark',plain=false,playback='playing',metadata=true,scrolling=false,customState='',label='Lever',clockValue='8:15',showState,showName,hide={},buttons=true}={}){
- await page.evaluate(({code,theme,nativeModes,media,width,mode,plain,playback,metadata,scrolling,customState,label,clockValue,showState,showName,hide,buttons})=>{
+async function draw(page,{media=false,width=180,mode='dark',plain=false,playback='playing',metadata=true,scrolling=false,customState='',label='Lever',clockValue='8:15',showState,showName,hide={},buttons=true,fullWidth=false}={}){
+ await page.evaluate(({code,theme,nativeModes,media,width,mode,plain,playback,metadata,scrolling,customState,label,clockValue,showState,showName,hide,buttons,fullWidth})=>{
   window.card?.remove();
   document.documentElement.style.cssText=Object.entries({...nativeModes[mode],...(plain?{}:{...theme,...theme.modes[mode]})}).filter(([k])=>k!=='modes').map(([k,v])=>'--'+k+':'+v).join(';');
   document.querySelector('#cards').style.width=width+'px';
   const entity=media?'media_player.emilie_emilie':'input_datetime.emilie_heure_levee';
   window.events=[];window.services=[];
   window.hass={states:{[entity]:{entity_id:entity,state:media?playback:'08:15:00',attributes:media?{
-   friendly_name:'Émilie',supported_features:buttons?16383:0,volume_level:.4,is_volume_muted:false,media_content_type:'music',
+   friendly_name:'Émilie',supported_features:buttons?32767:0,volume_level:.4,is_volume_muted:false,media_content_type:'music',
    ...(metadata?{media_title:'Il était un Petit Navire et autres comptines',media_artist:'La superstar des chansons pour les enfants',entity_picture:'/api/cover.jpg'}:{})
   }:{friendly_name:'Lever',has_date:false,has_time:true,hour:8,minute:15,second:0}}},
    locale:{language:'fr',number_format:'language',time_format:'24'},language:'fr',themes:{darkMode:mode==='dark'},config:{unit_system:{temperature:'°C'},time_zone:'Europe/Paris'},
@@ -42,12 +42,12 @@ async function draw(page,{media=false,width=180,mode='dark',plain=false,playback
   window.card=document.createElement('bubble-card');
   card.setConfig({type:'custom:bubble-card',card_type:media?'media-player':'button',button_type:'state',entity,name:media?'Émilie':label,icon:media?'mdi:speaker':'mdi:weather-sunset-up',
    force_icon:!media,card_layout:'large',scrolling_effect:scrolling,cover_background:false,grid_options:{columns:'full',rows:'auto'},modules:[],styles:code,
-   tap_action:{action:'more-info'},button_action:{tap_action:{action:'more-info'}},hide,
+   tap_action:{action:'more-info'},button_action:{tap_action:{action:'more-info'}},hide,main_buttons_full_width:fullWidth,
    ...(showState===undefined?{}:{show_state:showState}),...(showName===undefined?{}:{show_name:showName}),
    ...(!media?{rows:1,state_content:'state'}:{}),
    signature_compact:{color:'#208EC6',...(!media?{compact_mode:'value',...(customState?{state:customState}:{})}:{})}});
   document.querySelector('#cards').append(card);card.hass=hass;card.addEventListener('hass-action',e=>events.push(e.detail));
- },{code,theme,nativeModes,media,width,mode,plain,playback,metadata,scrolling,customState,label,clockValue,showState,showName,hide,buttons});
+ },{code,theme,nativeModes,media,width,mode,plain,playback,metadata,scrolling,customState,label,clockValue,showState,showName,hide,buttons,fullWidth});
  await page.waitForFunction(()=>card&&!card.initialLoad&&card.card?.querySelector('.bubble-container'),{},{timeout:5000});
 }
 async function snapshot(page){return page.evaluate(()=>{
@@ -113,4 +113,30 @@ test('Compact media preserves metadata updates, native visibility, volume and tr
  assert.equal((await snapshot(page)).artist.display,'none');
  await page.evaluate(()=>card.card.querySelector('.bubble-artist').classList.remove('hidden'));
  assert.equal((await snapshot(page)).artist.display,'block');
+});
+
+test('Compact play and pause stay neutral while native Power hiding releases space and keeps transport actions',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,366,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const playback of ['playing','paused'])for(const fullWidth of [false,true]){
+  await draw(page,{media:true,width,mode,plain,playback,fullWidth,hide:{power_button:true}});
+  await page.waitForFunction(()=>getComputedStyle(card.card.querySelector('.bubble-play-pause-button')).backgroundColor==='rgba(0, 0, 0, 0)');
+  const before=await page.evaluate(()=>{
+   const root=card.card,play=root.querySelector('.bubble-play-pause-button'),power=root.querySelector('.bubble-power-button'),icon=play.querySelector('.bubble-media-button-icon');
+   window.playNode=play;window.ripple=play.querySelector('ha-ripple');
+   return{background:getComputedStyle(play).backgroundColor,color:getComputedStyle(icon).color,reference:getComputedStyle(root.querySelector('.bubble-next-button .bubble-media-button-icon')).color,
+    icon:icon.getAttribute('icon'),powerWidth:power.getBoundingClientRect().width,playWidth:play.getBoundingClientRect().width,playHeight:play.getBoundingClientRect().height,ripple:!!window.ripple};
+  });
+  assert.equal(before.background,'rgba(0, 0, 0, 0)');assert.equal(before.color,before.reference);assert.equal(before.powerWidth,0);assert.ok(before.ripple);
+  assert.equal(before.icon,playback==='playing'?'mdi:pause':'mdi:play');assert.ok(before.playWidth>=30&&before.playHeight>=30);
+  await page.locator('bubble-card').locator('.bubble-play-pause-button').click();await page.waitForFunction(()=>services.length>0);
+  assert.equal((await page.evaluate(()=>services))[0][1],playback==='playing'?'media_pause':'media_play');
+  await page.evaluate(()=>{document.documentElement.style.setProperty('--primary-text-color','#abcdef');card.updateBubbleCard()});
+  assert.equal(await page.evaluate(()=>getComputedStyle(playNode.querySelector('.bubble-media-button-icon')).color),'rgb(171, 205, 239)');
+  assert.ok(await page.evaluate(()=>playNode===card.card.querySelector('.bubble-play-pause-button')&&ripple===playNode.querySelector('ha-ripple')));
+ }
+ await draw(page,{media:true,width:366});const withPower=await snapshot(page);
+ await page.locator('bubble-card').locator('.bubble-power-button').click();await page.waitForFunction(()=>services.length>0);
+ assert.equal((await page.evaluate(()=>services))[0][1],'turn_off');
+ await draw(page,{media:true,width:366,hide:{power_button:true}});const withoutPower=await snapshot(page);
+ assert.ok(withoutPower.info.width>=withPower.info.width+35);
 });

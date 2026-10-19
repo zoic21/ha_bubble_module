@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.4**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.3.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.5**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.3.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -846,3 +846,17 @@ natifs restent conservés ; aucune transformation du lecteur en tuile.
 Tester le composant Bubble réel avec de longues métadonnées, clair/sombre,
 avec/sans thème et défilement actif/inactif ; une fixture simplifiée ne reproduit
 pas cette écriture en ligne native.
+
+### Play/Pause Compact — 1.6.5
+
+Comme Panel, le lecteur Compact utilise un fond transparent permanent sur
+Play/Pause et `primary-text-color` pour son icône dans les deux états. Le
+sélecteur couvre aussi les boutons natifs en pleine largeur. Garder le ripple,
+les dimensions natives, les gestes et les appels `media_play`/`media_pause`.
+Les couleurs suivent le thème en CSS sans nouvelle exécution du module.
+
+Le module ne masque pas globalement Power : chaque carte conserve le réglage
+natif `hide.power_button`. Ce réglage doit être porté par le dashboard lorsque
+Power est superflu pour un lecteur ; téléviseurs et amplificateurs peuvent
+garder leur commande d'alimentation. Aucun masquage fondé sur un nom d'entité
+ni mutation de configuration depuis le module.
