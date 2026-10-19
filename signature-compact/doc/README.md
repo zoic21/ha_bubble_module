@@ -1,5 +1,20 @@
 # Signature Compact
 
+## 1.6.3 — 19 octobre 2026 — repli des petites valeurs selon le contenu
+
+Avec `value_style: button` et au moins trois commandes, le groupe reste sur
+la ligne de la mesure tant que ses libellés tiennent. Il passe dessous seulement
+si la largeur intrinsèque du contenu l’exige, sans seuil fixe de 480 px.
+La hauteur reste de 56 px sur une ligne et augmente lors du repli.
+Les textes secondaires, nœuds, cibles, sélecteurs et masquages natifs sont
+conservés ; le navigateur suit les changements de largeur et de texte en CSS,
+sans mesure JavaScript ni nouvel observateur. Les grandes valeurs texte avec
+jauge conservent leur disposition existante.
+
+Réimporter le module puis recharger le frontend. Le cas Zappi/Eddi est vérifié
+avec Bubble 3.4.1, backend HA et composants HA simulés, en clair/sombre et
+avec/sans thème ; cela ne constitue pas un essai Home Assistant réel ou Safari/iOS.
+
 ## 1.6.2 — 18 octobre 2026 — retraits équilibrés à 10 px
 
 L’écart icône/texte est ramené de 12 à **10 px** dans toutes les lignes
@@ -29,7 +44,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.2**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.3**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -176,7 +191,7 @@ Zéro reste une mesure valide. Une source absente, vide, non numérique, un tota
 
 Le fond conserve la surface Signature native ; un accent transparent à 16 % la recouvre seulement sur la largeur calculée. `--signature-fill-tint`, valeur CSS facultative de 0 % à 100 %, permet d’ajuster cette intensité dans le thème. La transition de largeur dure 1,5 s et disparaît avec `prefers-reduced-motion: reduce`. Le texte conserve les couleurs du thème, l’icône et les badges leurs réglages propres. Les seuils d’icône ne recolorent pas la jauge, qui reprend `color`.
 
-Les sous-boutons restent natifs : mêmes nœuds, états, actions, conditions, switches et listes déroulantes. Aucune réduction de police, de padding ou de flèche n’est appliquée. Avec `compact_mode: value` et au moins trois sous-boutons configurés, une carte de 480 px ou moins place le groupe sous la mesure et laisse ses boutons se répartir sur plusieurs lignes ; la hauteur devient automatique. Au-dessus, la disposition compacte habituelle est conservée. Les cartes avec zéro, un ou deux sous-boutons restent à 56 px. Les sous-boutons masqués restent masqués ; le seuil de trois compte les boutons configurés, même lorsqu’une condition en masque certains.
+Les sous-boutons restent natifs : mêmes nœuds, états, actions, conditions, switches et listes déroulantes. Aucune réduction de police, de padding ou de flèche n’est appliquée. Avec `compact_mode: value`, `value_style: button` et au moins trois sous-boutons configurés, les commandes restent à droite tant que leur contenu tient ; le groupe passe sous la mesure et sa hauteur devient automatique uniquement lorsque la place manque. Aucun seuil de largeur fixe ne s’applique à ces petites valeurs. Les grandes valeurs texte avec jauge conservent leur repli à 480 px ou moins. Les cartes avec zéro, un ou deux sous-boutons restent à 56 px. Les sous-boutons masqués restent masqués ; le seuil de trois compte les boutons configurés, même lorsqu’une condition en masque certains.
 
 Alert Manager continue d’ajouter son badge au-dessus de l’icône, sans changement de son module. Le remplissage n’ajoute aucun nœud, action, abonnement, observateur ou polling : les deux états sont lus à chaque passage pour être suivis par Bubble, les styles statiques sont mis en cache et le thème reste résolu en CSS.
 

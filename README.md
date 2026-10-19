@@ -13,7 +13,7 @@ computed styles. Includes measured CSS sizes, operation counts and import versio
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
 | Signature Square — square tiles | 2.0.6 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information, control rows and media players | 1.6.2 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.6.3 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
 | Signature Panel — illustrated full-width panels | 1.3.0 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.3 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.2.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
