@@ -4,7 +4,9 @@ if (kind === 'media-player') {
   const normalizeMediaText = value => String(value ?? '').replace(/\s+/g,' ').trim().toLowerCase();
   const mediaText = node => normalizeMediaText(node?.previousText ?? node?.textContent);
   const {title,artist,mediaInfoContainer} = this.elements || {};
-  const metadataVisible = mediaInfoContainer && mediaInfoContainer.style.display !== 'none';
+  // An explicit module state owns the middle row, using the native title role.
+  attr('data-dp-media-custom-state',custom && owned ? 'yes' : 'no');
+  const metadataVisible = !(custom && owned) && mediaInfoContainer && mediaInfoContainer.style.display !== 'none';
   const titleText = metadataVisible ? mediaText(title) : '';
   const artistText = metadataVisible ? mediaText(artist) : '';
   attr('data-dp-media-artist-duplicate',titleText && titleText === artistText ? 'yes' : 'no');

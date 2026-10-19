@@ -24,3 +24,10 @@ ha-card[data-dp-layout="panel"][data-dp-secondary="yes"] .bubble-media-info-cont
 ha-card[data-dp-layout="panel"][data-dp-secondary="yes"] :is(.bubble-title,.bubble-artist) {
   line-height: 1.15; white-space: nowrap !important; flex-shrink: 0;
 }
+
+/* Explicit media state replaces metadata in the same middle row. */
+ha-card[data-dp-layout="panel"][data-dp-media-custom-state="yes"] .bubble-media-info-container { display: none !important; }
+ha-card[data-dp-layout="panel"][data-dp-media-custom-state="yes"] .bubble-state {
+  /* @include shared/src/styles/name.css {"SIZE_IMPORTANT":" !important","WEIGHT":"var(--signature-font-weight-normal,400)"} */
+  line-height: 1.15;
+}

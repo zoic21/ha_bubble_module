@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.3.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.3.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -443,3 +443,11 @@ restent à leur place. Les panneaux avec détail conservent leur disposition.
 Importer uniquement le module et recharger ; aucun dashboard à réimporter.
 Le correctif vise l’équilibre visuel de la capture utilisateur ; les plages
 DOM seules ne prouvent pas le centrage optique d’une police particulière.
+
+### Source du lecteur en deuxième ligne — 1.3.1
+
+Sur un lecteur, `signature_panel.state` remplace les métadonnées natives
+en deuxième ligne avec leur typographie (14 px, poids normal). Il accepte
+Jinja, par exemple `state: "{{ state_attr('media_player.ampli', 'source') or '' }}"`.
+`secondary` reste en troisième ligne pour le volume. Retirer `state` restaure
+les métadonnées Bubble ; les commandes et leur visibilité restent natives.

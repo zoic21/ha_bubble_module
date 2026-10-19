@@ -521,3 +521,27 @@ test('Panel commands color only the active icon and keep inactive icons and ever
   for(let i=0;i<3;i++){assert.equal(m.buttons[i].icon,i===active?rgb[i]:m.secondary);assert.equal(m.buttons[i].label,m.primary);}
  }
 });
+
+test('explicit media state occupies the native title row and restores metadata when removed',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await draw(page,{width,mode,plain,media:true,native:{name:'Amplificateur'},
+   panel:{state:'{{ source }}',secondary:'{{ volume }}'},templateResults:{'{{ source }}':'TV Audio','{{ volume }}':'Volume 42 %'},
+   extraStates:{'media_player.demo':{state:'playing',attributes:{media_title:'Un morceau',source:'TV Audio',volume_level:.42,supported_features:32767}}}});
+  await page.waitForFunction(()=>card.elements.state.textContent==='TV Audio');
+  const m=await page.evaluate(()=>{
+   const root=card.card,state=card.elements.state,detail=root.querySelector('.dp-secondary'),name=root.querySelector('.bubble-name');
+   const box=e=>{const r=e.getBoundingClientRect();return{top:r.top,bottom:r.bottom}};
+   return {state:state.textContent,detail:detail.textContent,size:getComputedStyle(state).fontSize,weight:getComputedStyle(state).fontWeight,
+    metadata:getComputedStyle(card.elements.mediaInfoContainer).display,nameBox:box(name),stateBox:box(state),detailBox:box(detail),
+    power:getComputedStyle(root.querySelector('.bubble-power-button')).display};
+  });
+  const hint=JSON.stringify({width,mode,plain,m});
+  assert.equal(m.state,'TV Audio',hint);assert.equal(m.detail,'Volume 42 %',hint);assert.equal(m.size,'14px',hint);assert.equal(m.weight,'400',hint);
+  assert.equal(m.metadata,'none',hint);assert.notEqual(m.power,'none',hint);
+  assert.ok(m.nameBox.bottom<=m.stateBox.top+.1,hint);assert.ok(m.stateBox.bottom<=m.detailBox.top+.1,hint);
+  await page.evaluate(()=>{delete card.config.signature_panel.state;card.updateBubbleCard()});
+  await page.waitForFunction(()=>card.card.getAttribute('data-dp-media-custom-state')==='no');
+  assert.notEqual(await page.evaluate(()=>getComputedStyle(card.elements.mediaInfoContainer).display),'none');
+ }
+});
