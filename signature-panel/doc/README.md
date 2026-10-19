@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.2.4**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.2.5**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -401,3 +401,14 @@ de 44 px restent en place, comme l’illustration de 80 px et la hauteur de 118 
 Aucune option supplémentaire et aucun CSS local : les cartes Alarme existantes
 reprennent la correction après importation du module. Vérifications Chromium
 avec et sans thème ; elles ne remplacent pas un essai Home Assistant réel.
+
+
+## 1.2.5 — ajustement optique de l’état seul
+
+La capture après 1.2.4 montre encore un état trop proche des commandes.
+Sur les panneaux à commandes nommées sans détail, seul le texte de la valeur
+remonte de 3 px. Le titre, le pied, les cibles d’action, l’image et la hauteur
+restent à leur place. Les panneaux avec détail conservent leur disposition.
+Importer uniquement le module et recharger ; aucun dashboard à réimporter.
+Le correctif vise l’équilibre visuel de la capture utilisateur ; les plages
+DOM seules ne prouvent pas le centrage optique d’une police particulière.

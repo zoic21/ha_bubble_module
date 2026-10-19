@@ -68,7 +68,7 @@ test('Panel shares theme typography and one grid for one to three information co
  }
 });
 
-test('command Panel states have equal visual gaps below the title and above the footer',async t=>{
+test('command Panel states stay clear of the title and footer after optical adjustment',async t=>{
  const page=await fixture(t);
  for(const width of [288,358,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
   await render(page,{width,mode,plain});
@@ -93,7 +93,7 @@ test('command Panel states have equal visual gaps below the title and above the 
    });
   },{code});
   for(const m of measurements){const hint=JSON.stringify({width,mode,plain,m});
-   assert.ok(Math.abs(m.upperGap-m.lowerGap)<1,hint);assert.ok(m.upperGap>=0,hint);
+   assert.ok(m.upperGap>=6,hint);assert.ok(m.lowerGap>=6,hint);
    assert.equal(m.height,118,hint);assert.equal(m.art,80,hint);assert.equal(m.footerInset,8,hint);assert.deepEqual(m.targets,[44,44,44],hint);
   }
  }

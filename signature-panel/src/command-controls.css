@@ -4,6 +4,11 @@ ha-card[data-dp-layout="panel"] .bubble-container:has([data-dp-command]) {
   --dp-panel-value-size: var(--signature-compact-value-font-size,20px);
   --dp-panel-value-limit: var(--signature-compact-value-font-size,20px);
 }
+/* Optical balance of text in the free row; keep its native action box intact. */
+ha-card[data-dp-layout="panel"] .bubble-container:has([data-dp-command]):not(:has(:is(.dp-secondary,.dp-panel-secondary):not(:empty))) :is(.bubble-state,.dp-panel-state) {
+  box-sizing: border-box;
+  padding-bottom: 6px;
+}
 ha-card[data-dp-layout="panel"] .bubble-container:has([data-dp-command]) .bubble-sub-button-container {
   display: flex !important; flex-direction: row !important; align-items: center;
   justify-content: stretch; min-height: 44px;

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.4**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.5**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -793,3 +793,16 @@ les espacements autour du texte rendu avec des plages DOM ; le seul rectangle
 extensible de la valeur ne suffit pas à vérifier le centrage perçu. Les cibles
 de 44 px, le pied, les retraits latéraux et le dessin de 80 px restent stables.
 Les autres panneaux et les lecteurs gardent leurs pistes habituelles.
+
+
+### Équilibre optique de l’état seul — Panel 1.2.5
+
+La capture utilisateur après 1.2.4 conserve 18 px entre le titre et le texte
+de l’état, contre 12 px entre ce texte et les boutons. Sur les panneaux à
+commandes nommées sans détail, remonter seulement le contenu de la valeur de
+3 px avec 6 px de padding inférieur dans sa piste extensible. Le titre et le
+pied gardent leurs positions de 1.2.4 ; la boîte d’action native reste stable.
+La présence d’un détail restaure son centrage habituel. Le rectangle Range
+inclut les métriques de police : ne pas assimiler son équilibre à celui de
+l’encre visible dans une capture. Aucun calcul de police ou de pixels dans
+le module ; conserver les cibles natives, les dimensions et les illustrations.
