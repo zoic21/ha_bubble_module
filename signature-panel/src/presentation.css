@@ -18,7 +18,7 @@ ha-card[data-dp-layout="panel"] .bubble-container {
   height: calc(2 * var(--row-height,56px) + var(--row-gap,8px) - 2px) !important;
   min-height: 0 !important; box-sizing: border-box; padding: 9px 11px;
   grid-template-columns: repeat(var(--dp-panel-count),minmax(0,1fr)) min(var(--signature-illustration-size,80px),80px);
-  grid-template-rows: 20px minmax(0,1fr) max(16px,calc(var(--signature-secondary-font-size,13px) * 1.2)) auto; column-gap: 8px;
+  grid-template-rows: var(--dp-panel-heading-height,20px) minmax(0,1fr) max(16px,calc(var(--signature-secondary-font-size,13px) * 1.2)) auto; column-gap: 8px;
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-wrapper,.bubble-content-container,.bubble-name-container,.dp-panel-information) {
   display: contents !important; position: static !important;
@@ -35,7 +35,7 @@ ha-card[data-dp-layout="panel"] .bubble-main-icon-container > :not(.am-alert-bad
 ha-card[data-dp-layout="panel"][data-dp-panel-shared-name="yes"] .bubble-name { grid-column: 1 / -2; }
 ha-card[data-dp-layout="panel"] :is(.bubble-name,.dp-panel-name) {
   /* @include shared/src/styles/name.css {"SIZE":"${kind === 'button' ? 'calc(var(--signature-caption-font-size,12px) + 1px)' : 'var(--signature-name-font-size,14px)'}","WEIGHT":"${kind === 'button' ? 'var(--signature-font-weight-medium,500)' : 'var(--signature-font-weight-semibold,600)'}"} */
-  grid-row: var(--dp-panel-name-row,1); grid-column: var(--dp-panel-column,1); line-height: 20px;
+  grid-row: var(--dp-panel-name-row,1); grid-column: var(--dp-panel-column,1); line-height: var(--dp-panel-heading-height,20px);
   color: var(--primary-text-color); align-self: center;
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-state,.dp-panel-state) {
@@ -108,7 +108,7 @@ ha-card[data-dp-layout="panel"] .bubble-sub-button-name-container {
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-sub-button-container,.bubble-buttons-container):not(:has(:is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden]))) { display: none; }
 ha-card[data-dp-layout="panel"] .bubble-container:has(:is(.bubble-sub-button-container,.bubble-buttons-container) :is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden])) {
-  grid-template-rows: 20px minmax(0,1fr) auto auto;
+  grid-template-rows: var(--dp-panel-heading-height,20px) minmax(0,1fr) auto auto;
 }
 ${commandStyles.length ? `
 /* @include signature-panel/src/command-controls.css */
@@ -148,7 +148,7 @@ ha-card[data-dp-layout="panel"][data-dp-panel-count="2"] .bubble-container {
 }
 ${twoLineDetails ? `
 ha-card[data-dp-layout="panel"] .bubble-container {
-  grid-template-rows: 20px minmax(0,1fr) calc(2 * max(16px,calc(var(--dp-panel-detail-size) * 1.2))) auto;
+  grid-template-rows: var(--dp-panel-heading-height,20px) minmax(0,1fr) calc(2 * max(16px,calc(var(--dp-panel-detail-size) * 1.2))) auto;
 }
 ha-card[data-dp-layout="panel"] :is(.dp-secondary,.dp-panel-secondary) {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;

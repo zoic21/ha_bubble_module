@@ -1,5 +1,6 @@
 ha-card[data-dp-layout="panel"] .bubble-container:has([data-dp-command]) {
   padding-block: 7px;
+  --dp-panel-heading-height: 16px;
   --dp-panel-value-size: var(--signature-compact-value-font-size,20px);
   --dp-panel-value-limit: var(--signature-compact-value-font-size,20px);
 }

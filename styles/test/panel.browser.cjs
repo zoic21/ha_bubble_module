@@ -67,3 +67,34 @@ test('Panel shares theme typography and one grid for one to three information co
   for(const value of m.values){assert.equal(value.display,'flex',hint);assert.equal(value.weight,'500',hint);assert.equal(value.color,m.values[0].color,hint);assert.equal(value.font,m.values[0].font,hint);assert.ok(Math.abs(value.center-m.values[0].center)<1,hint);assert.ok(value.overflow<=1,hint)}
  }
 });
+
+test('command Panel states have equal visual gaps below the title and above the footer',async t=>{
+ const page=await fixture(t);
+ for(const width of [288,358,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await render(page,{width,mode,plain});
+  const measurements=await page.evaluate(({code})=>{
+   const ctx=contexts.find(c=>c.card.getRootNode().host.dataset.id==='square');ctx.teardown();
+   const root=ctx.card,host=root.querySelector('.bubble-container'),footer=root.querySelector('.bubble-sub-button-container');
+   const commands=['Désarmer','Armer','Nuit'].map((name,i)=>({entity:'alarm_control_panel.demo',css_class:'alarm-'+i,name,show_name:true,show_state:false}));
+   ctx.config={card_type:'button',button_type:'state',entity:'alarm_control_panel.demo',show_state:true,show_icon:false,
+    sub_button:commands,signature_panel:{state:'Désarmée',illustration:{image:'/local/alarm.webp'},sub_button_styles:Object.fromEntries(commands.map(b=>[b.css_class,{type:'command'}]))}};
+   ctx._hass.states['alarm_control_panel.demo']={state:'disarmed',attributes:{}};
+   root.querySelector('.bubble-name').textContent='Alarme';
+   footer.innerHTML=commands.map((b,i)=>'<div class="bubble-sub-button bubble-sub-button-'+(i+1)+' '+b.css_class+'"><ha-icon class="bubble-sub-button-icon"></ha-icon><span class="bubble-sub-button-name-container">'+b.name+'</span></div>').join('');
+   const style=root.getRootNode().querySelectorAll('style')[1];
+   const box=e=>{const r=e.getBoundingClientRect();return{top:r.top,bottom:r.bottom,height:r.height}};
+   const text=e=>{const r=document.createRange();r.selectNodeContents(e);return box(r)};
+   return ['Désarmée','Nuit','Absence','Présence','Déclenchée'].map(label=>{
+    ctx.config.signature_panel.state=label;
+    style.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
+    const title=text(root.querySelector('.bubble-name')),value=text(root.querySelector('.dp-value')),buttons=box(footer),frame=box(host);
+    return{label,upperGap:value.top-title.bottom,lowerGap:buttons.top-value.bottom,height:frame.height,
+     footerInset:frame.bottom-buttons.bottom,targets:[...footer.querySelectorAll('[data-dp-command]')].map(e=>box(e).height),art:parseFloat(getComputedStyle(host,'::after').height)};
+   });
+  },{code});
+  for(const m of measurements){const hint=JSON.stringify({width,mode,plain,m});
+   assert.ok(Math.abs(m.upperGap-m.lowerGap)<1,hint);assert.ok(m.upperGap>=0,hint);
+   assert.equal(m.height,118,hint);assert.equal(m.art,80,hint);assert.equal(m.footerInset,8,hint);assert.deepEqual(m.targets,[44,44,44],hint);
+  }
+ }
+});

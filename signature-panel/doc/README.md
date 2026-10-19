@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.2.3**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.2.4**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -390,3 +390,14 @@ Contrôles : tests Node et Chromium avec Bubble 3.4.1/backend simulé, cas
 Infuse/TV, volume, artiste distinct, correspondance partielle, métadonnées
 absentes/masquées, actualisation, défilement, nettoyage, clair/sombre et
 avec/sans thème à 288/358/600 px. Pas d’essai Home Assistant réel ou Safari/iOS.
+
+
+## 1.2.4 — centrage de l’état avec commandes nommées
+
+La rangée du titre et son interligne passent ensemble à 16 px sur les panneaux
+à commandes nommées. L’état est centré entre le titre visible et les commandes,
+avec environ 2 px de remontée dans la géométrie standard. Le pied et ses cibles
+de 44 px restent en place, comme l’illustration de 80 px et la hauteur de 118 px.
+Aucune option supplémentaire et aucun CSS local : les cartes Alarme existantes
+reprennent la correction après importation du module. Vérifications Chromium
+avec et sans thème ; elles ne remplacent pas un essai Home Assistant réel.
