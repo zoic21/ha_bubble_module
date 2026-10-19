@@ -24,6 +24,20 @@ function fixture(options = {}, native = {}) {
   return {ctx,hass,run,root,value,content};
 }
 
+test('native no-background selectors follow flattened groups and refresh without stale cache',t=>{
+ const first={entity:'sensor.demo',show_background:false},second={entity:'sensor.demo',show_background:true};
+ const f=fixture({}, {sub_button:{main:[second,{group:[first]}],bottom:[{entity:'sensor.demo',show_background:false}]}});
+ t.after(()=>f.ctx.teardown());
+ const expected='ha-card[data-dp-layout="panel"] .bubble-sub-button:is(.bubble-sub-button-1,.bubble-sub-button-3) { background: transparent !important; }';
+ assert.ok(f.run().includes(expected));
+ first.show_background=true;
+ assert.ok(f.run().includes('.bubble-sub-button:is(.bubble-sub-button-3) { background: transparent !important; }'));
+ second.show_background=false;
+ assert.ok(f.run().includes('.bubble-sub-button:is(.bubble-sub-button-2,.bubble-sub-button-3) { background: transparent !important; }'));
+ f.ctx.config.sub_button={main:[{entity:'sensor.demo'}]};
+ assert.ok(!f.run().includes('.bubble-sub-button:is('));
+});
+
 test('activity progress is opt-in, bounded and disappears for invalid input',t=>{
   const f=fixture({activity:true,progress:{value:25,color:'#308DCB'}});t.after(()=>f.ctx.teardown());
   const options=f.ctx.config.signature_panel;

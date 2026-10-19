@@ -29,6 +29,11 @@ const roles = [], roomColumns = 3;
 /* @include signature-shared/src/title-badges.js {"LAYOUT":"panel","ENABLED":"kind === 'button'","SCOPE_SUFFIX":"","NAME_NODE":"panelTitle || root.querySelector('.bubble-name')","NAME_SELECTOR":":is(.bubble-name,.dp-panel-title)","HEADING_GRID":"grid-row: var(--dp-panel-heading-row,var(--dp-panel-name-row,1)); grid-column: 1 / -2; align-self: center;","HEADING_WIDTH":"max-width: 100%;"} */
 /* @include signature-panel/src/commands.js */
 /* @include signature-panel/src/progress.js */
+// The native no-background choice also wins over numeric/command accents.
+const transparentButtons = flat.flatMap((button,index) => button.show_background === false
+  ? ['.bubble-sub-button-'+(index+1)] : []);
+if (transparentButtons.length) css += 'ha-card[data-dp-layout="panel"] .bubble-sub-button:is('
+  +transparentButtons.join(',')+') { background: transparent !important; }';
 if (o.hover === false) css += 'ha-card[data-dp-layout="panel"] ha-ripple { --ha-ripple-hover-opacity: 0; }';
 const twoLineDetails = kind === 'button' && flat.length === 0 && o.secondary_lines === 2;
 const styleKey = [kind, surface, !!secondary, information.length, flat.length, commandStyles.length > 0, twoLineDetails, !!panelTitle].join('\u0001');

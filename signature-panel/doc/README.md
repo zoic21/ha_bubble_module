@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.2.2**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.2.3**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -44,6 +44,11 @@ signature_panel:
 `information` : `entity`, `name`, `state`, `secondary`, `icon`, `color`, `tap_action`, `statistics`, `secondary_statistics`. `state`, `name`, `secondary`, `icon` et `color` peuvent être des templates Jinja ; `entity` fournit le format numérique HA, l’unité et la cible de détails. `tap_action` remplace seulement l’action de clic de cette information. Une valeur calculée sans entité ne crée pas de cible more-info fictive. `enabled: false` retire une information supplémentaire. Deux entrées au maximum sont rendues ; ne pas utiliser ce format pour plus de trois informations.
 
 Les sous-boutons natifs restent au pied, à gauche de l’illustration : au plus trois visibles. Leurs entités, conditions et actions restent dans `sub_button`. Le rôle `sub_button_styles.<classe-ou-numéro>.type: command` empile icône et libellé dans une cible de 44 px. `active` et `disabled` acceptent booléen ou Jinja. Une désactivation non résolue bloque la commande, y compris une action déjà mémorisée ou un geste commencé avant l’actualisation. Le garde est commun à Room et Panel ; la géométrie est propre à chaque module. Les boutons informatifs conservent leur densité native de 30 px et les lecteurs leurs contrôles/volume natifs.
+
+Depuis Panel **1.2.3**, `sub_button[].show_background: false` impose un fond
+transparent, y compris lorsqu'un seuil numérique ou un style `command`
+définit un fond coloré. Les couleurs des icônes, les masquages et les actions
+restent conservés. Sans ce choix explicite, les fonds habituels restent actifs.
 
 ### Titre global facultatif
 

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.3**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -653,6 +653,16 @@ La hauteur de pilule de 36 px, sa largeur et le début du libellé ne changent
 pas. Le retrait laisse 4 px au-dessus/dessous de la pochette, contre 2 px
 pour l'illustration habituelle. Le retrait de la pochette restaure le dessin
 sans arrondi ni marge ajoutés. Les rayons suivent le thème sans réexécution.
+
+### Sous-boutons sans fond — Panel 1.2.3
+
+Le choix natif explicite `show_background: false` conserve un fond transparent
+sur les sous-boutons Panel, même avec des seuils numériques ou le rôle
+`command`. L'accent de l'icône et l'état actif/désactivé restent conservés.
+Les boutons sans ce choix gardent leurs fonds configurés. La règle est limitée
+aux sous-boutons concernés ; aucune géométrie, action, souscription ou minuterie
+supplémentaire. Vérifier aussi les groupes main/bottom et le retour du fond
+après modification de la configuration.
 
 ### Métadonnées média sans répétition — Panel 1.2.2
 

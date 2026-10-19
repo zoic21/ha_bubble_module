@@ -5,6 +5,39 @@ const {render}=require('./fixtures.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-panel').code;
 
+test('Panel respects native no-background over numeric thresholds and active commands',async t=>{
+ const page=await fixture(t);
+ for(const width of [288,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await render(page,{width,mode,plain});
+  const result=await page.evaluate(({code})=>{
+   const ctx=contexts.find(c=>c.card.getRootNode().host.dataset.id==='square');ctx.teardown();
+   const button=show_background=>({entity:'sensor.demo',show_name:true,show_background});
+   ctx.config={card_type:'button',button_type:'state',entity:'sensor.demo',
+    sub_button:{main:[{group:[button(false),button(false)]}],bottom:[button(true)]},
+    signature_panel:{sub_button_styles:{
+     1:{color_thresholds:{enabled:true,values:[{value:0,color:'#29958A'},{value:100,color:'#29958A'}]}},
+     2:{type:'command',active:true,color:'#368ACB'},3:{background:'#B97918'}
+    }}};
+   const host=ctx.card.querySelector('.bubble-sub-button-container');
+   host.innerHTML=[1,2,3].map(i=>'<div class="bubble-sub-button bubble-sub-button-'+i+'" style="background:#039be5"><ha-icon class="bubble-sub-button-icon"></ha-icon><span class="bubble-sub-button-name-container">Mesure</span></div>').join('');
+   let calls=0;host.firstElementChild.addEventListener('click',()=>calls++);
+   const style=ctx.card.getRootNode().querySelectorAll('style')[1];
+   const update=()=>style.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;').call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
+   const read=()=>[...host.children].map(e=>({background:getComputedStyle(e).backgroundColor,icon:getComputedStyle(e.querySelector('.bubble-sub-button-icon')).color}));
+   update();const initial=read();host.firstElementChild.click();
+   ctx.config.sub_button.main[0].group.forEach(b=>b.show_background=true);update();const restored=read();
+   ctx.config.sub_button.main[0].group.forEach(b=>b.show_background=false);update();const again=read();
+   return {initial,restored,again,calls};
+  },{code});
+  for(const colors of [result.initial,result.again]){
+   assert.deepEqual(colors.map(b=>b.background),['rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)','rgb(185, 121, 24)']);
+   assert.equal(colors[0].icon,'rgb(41, 149, 138)');assert.equal(colors[1].icon,'rgb(54, 138, 203)');
+  }
+  assert.ok(result.restored.slice(0,2).every(b=>b.background!=='rgba(0, 0, 0, 0)'));
+  assert.equal(result.calls,1);
+ }
+});
+
 // Always runs in CI; panel-native.browser.cjs adds the optional real Bubble pipeline.
 test('Panel shares theme typography and one grid for one to three information columns',async t=>{
  const page=await fixture(t);
