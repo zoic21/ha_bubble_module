@@ -83,6 +83,12 @@ text-overflow: ellipsis;
 opacity: 1;
     }
     ${!multiline ? `ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-multiline="no"] .bubble-state { white-space: nowrap !important; }` : ''}
+    /* Centre clock glyphs by their cap/baseline edges, rather than the font's
+       extra ascender/descender space. Unsupported browsers retain box centring. */
+    ha-card[data-dp-layout="compact"][data-dp-value-clock="yes"] :is(.bubble-name,.bubble-state) {
+      text-box-trim: trim-both; text-box-edge: cap alphabetic;
+    }
+    ha-card[data-dp-layout="compact"][data-dp-value-clock="yes"] .bubble-state { padding-block: 4px; }
     /* Text values need room for accents and descenders inside Bubble's clipped native state. */
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"] .bubble-state { font-size: 16px; font-weight: var(--signature-font-weight-normal, 400); color: var(--secondary-text-color); line-height: 1.3; padding-block: 2px; }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"][data-dp-value-text="yes"][data-dp-color-background="yes"] .bubble-state { color: var(--dp-accent); }

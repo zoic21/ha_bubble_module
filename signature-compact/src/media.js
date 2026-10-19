@@ -21,5 +21,12 @@ if (kind === 'media-player') {
       /* @include shared/src/styles/secondary.css */
       font-weight: var(--signature-font-weight-normal, 400); opacity: 1; }
     ha-card .bubble-media-info-container { line-height: 1.3; margin-inline-start: 10px; }
+    /* Native scrolling_effect:false writes a two-line clamp inline for each
+       metadata field. Two lines each cannot fit the native compact media row. */
+    ha-card :is(.bubble-title,.bubble-artist) {
+      white-space: nowrap !important; display: block !important;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    ha-card :is(.bubble-title,.bubble-artist):is(.hidden,[hidden],.is-hidden) { display: none !important; }
   `;
 }

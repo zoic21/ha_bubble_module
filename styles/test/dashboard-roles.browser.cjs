@@ -34,12 +34,12 @@ test('Compact clock durations retain the numeric role through native asynchronou
   const result=[];
   for(const text of ['1:05','123:59:09','0:00','12:99','2026-10-17 12:30','Fermée','22,5']){
    node.textContent=text;await Promise.resolve();const s=getComputedStyle(ctx.elements.state);
-   result.push({text,size:s.fontSize,weight:s.fontWeight,small:ctx.card.dataset.dpValueText==='yes'});
+   result.push({text,size:s.fontSize,weight:s.fontWeight,small:ctx.card.dataset.dpValueText==='yes',clock:ctx.card.dataset.dpValueClock==='yes'});
   }
   return result;
  });
  for(const [i,r]of result.entries()){
-  const small=i>=3&&i<=5;assert.equal(r.small,small,r.text);assert.equal(r.size,small?'16px':'20px',r.text);assert.equal(r.weight,small?'400':'500',r.text);
+  const small=i>=3&&i<=5;assert.equal(r.clock,i<3,r.text);assert.equal(r.small,small,r.text);assert.equal(r.size,small?'16px':'20px',r.text);assert.equal(r.weight,small?'400':'500',r.text);
  }
 });
 

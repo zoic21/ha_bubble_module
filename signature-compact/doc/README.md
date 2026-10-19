@@ -1,5 +1,20 @@
 # Signature Compact
 
+## 1.6.4 — 19 octobre 2026 — horaires et lecteur multimédia
+
+- Les horaires et leur titre se centrent sur la hauteur visible des caractères
+  avec les propriétés CSS `text-box-*`, tout en conservant leur valeur et leur
+  action native. Un navigateur sans prise en charge garde le centrage des boîtes.
+- Le lecteur garde un titre et un artiste sur une ligne chacun, avec ellipse
+  pour les textes longs : les deux champs ne débordent plus de la carte native
+  de 56 px lorsque le défilement est désactivé.
+- Pochette, commandes de lecture, volume, masquages et mises à jour natifs sont
+  conservés ; aucun nouveau réglage, nœud ou observateur.
+
+Mettre à jour uniquement Compact puis recharger le frontend. Les tests utilisent
+le vrai Bubble 3.4.1 dans Chromium avec backend HA simulé ; le rendu Safari/iOS
+et dans l’installation réelle reste à confirmer.
+
 ## 1.6.3 — 19 octobre 2026 — repli des petites valeurs selon le contenu
 
 Avec `value_style: button` et au moins trois commandes, le groupe reste sur
@@ -44,7 +59,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.3**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.4**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 

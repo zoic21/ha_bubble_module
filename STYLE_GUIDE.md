@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.3**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.3.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.4**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.3.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -825,3 +825,24 @@ Les pochettes média réelles gardent leur colonne complète. Sans option, aucun
 géométrie existante ne change. Tester une à trois mesures, les coefficients
 des quatre synthèses, les petites largeurs, clair/sombre, avec/sans thème,
 la mise à jour et le retrait du coefficient, le thème seul et le repli média.
+
+### Horaires et métadonnées Compact — 1.6.4
+
+Les heures `h:mm` / `h:mm:ss` identifiées dans le texte natif exposent
+`data-dp-value-clock`. L'observateur existant ajoute/retire cet attribut avec
+les mises à jour ; aucun observateur supplémentaire. Le titre et l'heure
+utilisent `text-box-trim: trim-both` et `text-box-edge: cap alphabetic` pour
+centrer les caractères par leur hauteur de capitale et leur ligne de base.
+Le padding de 4 px de l'heure conserve sa cible ; les navigateurs sans cette
+propriété gardent le centrage des boîtes. Les textes non horaires reprennent
+leur présentation existante. Voir [CSS Inline Layout](https://drafts.csswg.org/css-inline-3/#text-edges).
+
+Dans les lecteurs Compact, titre et artiste tiennent chacun sur une seule
+ligne avec ellipse horizontale. Contrer le `display: -webkit-box` et
+`white-space: normal` natifs écrits en ligne lorsque `scrolling_effect: false` :
+les deux champs repliés sur deux lignes dépassaient ensemble les 56 px.
+Les copies de défilement, nœuds, pochettes, boutons, slider de volume et masquages
+natifs restent conservés ; aucune transformation du lecteur en tuile.
+Tester le composant Bubble réel avec de longues métadonnées, clair/sombre,
+avec/sans thème et défilement actif/inactif ; une fixture simplifiée ne reproduit
+pas cette écriture en ligne native.
