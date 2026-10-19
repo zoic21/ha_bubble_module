@@ -115,3 +115,37 @@ test('Panel title badges move native nodes and restore every home on removal and
  f.options.sub_button_styles={status:{type:'badge'}};f.run();f.ctx.teardown();
  assert.equal(badge.parentNode,group);assert.equal(name.parentNode,f.ctx.elements.nameContainer);
 });
+
+test('illustration width ratio updates outside the geometry cache and rejects invalid input',t=>{
+ const f=fixture();t.after(()=>f.ctx.teardown());
+ assert.match(f.run(),/--dp-panel-artwork-ratio:1;/);
+ const css=f.ctx._signaturePanelRuntime.styleCSS,state=f.ctx.elements.state;
+ for(const ratio of [0.65,0.7,0.75,0.8,'0.5']){
+  f.options.illustration.width_ratio=ratio;
+  assert.ok(f.run().includes('--dp-panel-artwork-ratio:'+Number(ratio)+';'));
+  assert.equal(f.ctx._signaturePanelRuntime.styleCSS,css);
+  assert.equal(f.ctx.elements.state,state);
+ }
+ for(const invalid of [0,-1,1.1,'','invalid',true,{},Infinity,NaN]){
+  f.options.illustration.width_ratio=invalid;
+  assert.match(f.run(),/--dp-panel-artwork-ratio:1;/);
+ }
+ f.options.illustration.width_ratio='{{ ratio }}';
+ for(const ratio of ['0.75','0.65','bad']){
+  const css=render.call(f.ctx,f.hass,fn=>f.ctx.teardown=fn,v=>v==='{{ ratio }}'?ratio:v);
+  assert.ok(css.includes('--dp-panel-artwork-ratio:'+(ratio==='bad'?1:Number(ratio))+';'));
+ }
+ delete f.options.illustration.width_ratio;
+ assert.match(f.run(),/--dp-panel-artwork-ratio:1;/);
+});
+
+test('real media artwork keeps its full track while an atlas fallback retains its width ratio',t=>{
+ const f=fixture();t.after(()=>f.ctx.teardown());
+ f.ctx.config.card_type='media-player';
+ f.options.illustration={image:'/local/rack.webp',media_artwork:true,width_ratio:0.65};
+ assert.match(f.run(),/--dp-panel-artwork-ratio:0.65;/);
+ f.hass.states['sensor.power'].attributes.entity_picture='/api/media_player_proxy/album';
+ assert.match(f.run(),/--dp-panel-artwork-ratio:1;/);
+ delete f.hass.states['sensor.power'].attributes.entity_picture;
+ assert.match(f.run(),/--dp-panel-artwork-ratio:0.65;/);
+});

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.2**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.2.5**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.2**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.3.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -806,3 +806,22 @@ La présence d’un détail restaure son centrage habituel. Le rectangle Range
 inclut les métriques de police : ne pas assimiler son équilibre à celui de
 l’encre visible dans une capture. Aucun calcul de police ou de pixels dans
 le module ; conserver les cibles natives, les dimensions et les illustrations.
+
+### Largeur utile de l'illustration — Panel 1.3.0
+
+`illustration.width_ratio` (0 exclu à 1, défaut 1) agit seulement sur la
+dernière colonne : taille courante du carré multipliée par le ratio. Garder
+le calque carré à `min(signature-illustration-size, 80px)`, son centrage, le
+cadrage du sprite et l'échelle du dessin. Les marges transparentes peuvent
+déborder du track ; choisir un ratio qui laisse le dessin et ses ombres à
+distance des textes dans toutes ses variantes. Ne pas étirer le sprite en
+réduisant la largeur de son calque et ne pas mesurer ses pixels au runtime.
+
+Le coefficient est relu hors du cache structurel avec le moteur de templates
+existant ; une entrée vide, non finie ou hors limites utilise 1. Les dimensions
+du thème restent résolues en CSS et suivent leurs mises à jour sans réexécution.
+Conserver la hauteur de 118 px, les fontes, détails, commandes et nœuds natifs.
+Les pochettes média réelles gardent leur colonne complète. Sans option, aucune
+géométrie existante ne change. Tester une à trois mesures, les coefficients
+des quatre synthèses, les petites largeurs, clair/sombre, avec/sans thème,
+la mise à jour et le retrait du coefficient, le thème seul et le repli média.

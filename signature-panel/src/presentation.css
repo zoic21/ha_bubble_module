@@ -10,6 +10,8 @@ ha-card[data-dp-layout="panel"] {
   --bubble-main-background-color: ${surface};
   --bubble-sub-button-border-radius: var(--signature-control-border-radius,14px);
   --dp-panel-count: ${information.length + 1};
+  --dp-panel-artwork-size: min(var(--signature-illustration-size,80px),80px);
+  --dp-panel-artwork-width: calc(var(--dp-panel-artwork-size) * var(--dp-panel-artwork-ratio,1));
   --dp-panel-detail-size: ${kind === 'button' ? 'var(--signature-caption-font-size,12px)' : 'var(--signature-secondary-font-size,13px)'};
   border: 0; box-shadow: none;
 }
@@ -17,7 +19,7 @@ ha-card[data-dp-layout="panel"] .bubble-container {
   display: grid; container-type: inline-size;
   height: calc(2 * var(--row-height,56px) + var(--row-gap,8px) - 2px) !important;
   min-height: 0 !important; box-sizing: border-box; padding: 9px 11px;
-  grid-template-columns: repeat(var(--dp-panel-count),minmax(0,1fr)) min(var(--signature-illustration-size,80px),80px);
+  grid-template-columns: repeat(var(--dp-panel-count),minmax(0,1fr)) var(--dp-panel-artwork-width);
   grid-template-rows: var(--dp-panel-heading-height,20px) minmax(0,1fr) max(16px,calc(var(--signature-secondary-font-size,13px) * 1.2)) auto; column-gap: 8px;
 }
 ha-card[data-dp-layout="panel"] :is(.bubble-wrapper,.bubble-content-container,.bubble-name-container,.dp-panel-information) {
@@ -68,7 +70,7 @@ ha-card[data-dp-layout="panel"] :is(.bubble-name,.dp-panel-name,.bubble-state,.d
 }
 ha-card[data-dp-layout="panel"] .bubble-container::after {
   content: ''; grid-column: -2; grid-row: 1 / -1; align-self: center;
-  width: 100%; aspect-ratio: 1; pointer-events: none;
+  width: var(--dp-panel-artwork-size); aspect-ratio: 1; justify-self: center; pointer-events: none;
   background: var(--dp-illustration-image) var(--dp-illustration-position) / var(--dp-illustration-size) no-repeat;
 }
 ha-card[data-dp-layout="panel"][data-dp-illustration="no"] .bubble-container::after { visibility: hidden; }
@@ -80,7 +82,7 @@ ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .dp-panel-heading {
   gap: 8px;
 }
 ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .dp-panel-heading :is(.bubble-name,.dp-panel-title) {
-  max-width: calc(100% - min(var(--signature-illustration-size,80px),80px) - 8px);
+  max-width: calc(100% - var(--dp-panel-artwork-width) - 8px);
 }
 ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .dp-panel-badges {
   position: relative;
@@ -131,7 +133,7 @@ ${kind === 'media-player' ? `
 ` : ''}
 ha-card[data-dp-layout="panel"] :is(.hidden,[hidden]) { display: none !important; }
 ha-card[data-dp-layout="panel"][data-dp-panel-count="3"] .bubble-container {
-  grid-template-columns: repeat(3,minmax(0,max-content)) min(var(--signature-illustration-size,80px),80px);
+  grid-template-columns: repeat(3,minmax(0,max-content)) var(--dp-panel-artwork-width);
   justify-content: space-between;
   --dp-panel-value-size: clamp(13px,calc(12.5cqw - 20px),min(var(--dp-panel-value-limit,var(--signature-value-font-size,28px)),24px));
   --dp-panel-unit-size: clamp(11px,3.7cqw,min(var(--signature-secondary-font-size,13px),var(--signature-value-unit-font-size,16px)));

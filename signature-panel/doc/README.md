@@ -1,6 +1,6 @@
 # Signature Panel
 
-Version **1.2.5**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.3.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -137,6 +137,37 @@ signature_panel:
 ```
 
 Les sprites partagent le lecteur Square/Room : `columns`, `rows`, `index` (base 0), `index_dark`, `offset_x`, `offset_y`, `offset_y_dark`. Les index/cadrages acceptent Jinja ; offsets entre −50 et 50 % d’une case. L’index −1 ou une URL invalide masque le dessin sans déplacer les colonnes. Le mode HA suit les actualisations natives Bubble, sans abonnement ni observateur supplémentaire ; il ne dépend pas du thème du système d’exploitation.
+
+### Largeur réservée au dessin — 1.3.0
+
+`illustration.width_ratio` réduit uniquement la colonne réservée au dessin.
+Le calque et le cadrage du sprite restent carrés, à la même échelle et centrés
+dans cette colonne. Les marges transparentes peuvent ainsi déborder de la
+colonne sans diminuer ni étirer l'illustration. La hauteur reste de 118 px.
+
+```yaml
+signature_panel:
+  illustration:
+    image: /local/illustrations/energy-utilities-day-v1.png
+    columns: 2
+    rows: 1
+    index: 0
+    width_ratio: 0.65
+```
+
+La valeur doit être supérieure à 0 et au plus égale à 1 ; le défaut est 1.
+Un nombre, une chaîne numérique ou un template Jinja est accepté. Une valeur
+vide, non numérique ou hors limites restaure 1. Choisir le ratio d'après les
+marges transparentes, avec une marge de sécurité pour les ombres et toutes
+les variantes du dessin. Le module ne mesure pas les pixels des images.
+
+Avec `width_ratio: 0.75`, le dessin utilise toujours son carré de 80 px mais
+la colonne réserve 60 px. Si le thème ramène le carré à 64 px, la colonne
+devient 48 px sans nouvelle exécution du module. Les valeurs, unités,
+sous-informations, actions et tailles de police ne sont pas modifiées.
+Retirer l'option restaure la disposition habituelle. Une pochette média réelle
+conserve sa colonne complète ; son illustration de repli peut utiliser le ratio.
+Aucun nœud, observateur, abonnement ou calcul de dimensions n'est ajouté.
 
 ### Pochette du média — 1.1.2
 

@@ -5,6 +5,51 @@ const {render}=require('./fixtures.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-panel').code;
 
+test('Panel reclaims only the artwork track, preserving sprite scale, values and live theme sizing',async t=>{
+ const page=await fixture(t);
+ for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const plain of [false,true])for(const count of [1,2,3]){
+  await render(page,{width,mode,plain});
+  const results=await page.evaluate(({code,count})=>{
+   const ctx=contexts.find(c=>c.card.getRootNode().host.dataset.id==='square');ctx.teardown();
+   ctx.config={card_type:'button',button_type:'state',show_state:true,show_icon:false,entity:'sensor.power',signature_panel:{secondary:'Détail',
+    information:[{entity:'sensor.temp',name:'Consommation'},{entity:'sensor.humidity',name:'Coût'}].slice(0,count-1),
+    illustration:{image:'/local/atlas.webp',columns:2,rows:1,index:1}}};
+   ctx._hass.states['sensor.power']={state:'638',attributes:{unit_of_measurement:'W'}};
+   ctx._hass.states['sensor.temp']={state:'6.1',attributes:{unit_of_measurement:'kWh'}};
+   ctx._hass.states['sensor.humidity']={state:'0.94',attributes:{unit_of_measurement:'€'}};
+   ctx.card.querySelector('.bubble-name').textContent='Puissance';
+   const state=ctx.elements.state,style=ctx.card.getRootNode().querySelectorAll('style')[1];
+   const update=()=>style.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;')
+    .call(ctx,ctx._hass,fn=>ctx.teardown=fn,x=>x);
+   const read=()=>{
+    const host=ctx.card.querySelector('.bubble-container'),art=getComputedStyle(host,'::after');
+    const tracks=getComputedStyle(host).gridTemplateColumns.split(' ');
+    return{height:host.getBoundingClientRect().height,art:[parseFloat(art.width),parseFloat(art.height)],
+     track:parseFloat(tracks.at(-1)),background:[art.backgroundSize,art.backgroundPosition],sameState:ctx.elements.state===state,
+     fonts:[...ctx.card.querySelectorAll('.bubble-state,.dp-panel-state')].map(e=>getComputedStyle(e).fontSize)};
+   };
+   update();const base=read(),narrow=[];
+   for(const ratio of [0.65,0.7,0.75,0.8]){ctx.config.signature_panel.illustration.width_ratio=ratio;update();narrow.push({ratio,...read()});}
+   ctx.config.signature_panel.illustration.width_ratio=0.75;update();
+   ctx.card.style.setProperty('--signature-illustration-size','64px');
+   const themed=read();
+   ctx.card.style.removeProperty('--signature-illustration-size');
+   delete ctx.config.signature_panel.illustration.width_ratio;update();
+   return{base,narrow,themed,restored:read()};
+  },{code,count});
+  const hint=JSON.stringify({width,mode,plain,count,results});
+  assert.deepEqual(results.base.art,[80,80],hint);assert.equal(results.base.track,80,hint);
+  for(const current of results.narrow){
+   assert.equal(current.height,118,hint);assert.deepEqual(current.art,[80,80],hint);
+   assert.ok(Math.abs(current.track-80*current.ratio)<0.1,hint);
+   assert.deepEqual(current.background,results.base.background,hint);
+   assert.deepEqual(current.fonts,results.base.fonts,hint);assert.equal(current.sameState,true,hint);
+  }
+  assert.deepEqual(results.themed.art,[64,64],hint);assert.equal(results.themed.track,48,hint);
+  assert.deepEqual(results.restored,results.base,hint);
+ }
+});
+
 test('Panel respects native no-background over numeric thresholds and active commands',async t=>{
  const page=await fixture(t);
  for(const width of [288,600])for(const mode of ['light','dark'])for(const plain of [false,true]){

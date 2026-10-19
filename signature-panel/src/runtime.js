@@ -20,6 +20,11 @@ const numberEnabled = false;
 /* @include signature-shared/src/actions.js */
 /* @include signature-shared/src/appearance.js */
 /* @include signature-shared/src/illustration.js */
+// Keep the sprite square; only its grid track uses the visible-width ratio.
+const illustrationWidthInput = Number(render(illustration.width_ratio ?? 1).trim());
+const illustrationWidthRatio = !mediaArtwork && Number.isFinite(illustrationWidthInput)
+  && illustrationWidthInput > 0 && illustrationWidthInput <= 1 ? illustrationWidthInput : 1;
+css += 'ha-card[data-dp-layout="panel"] {--dp-panel-artwork-ratio:' + illustrationWidthRatio + ';}';
 if (mediaArtwork) css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}ha-card[data-dp-illustration="yes"] .bubble-container::after {border-radius:max(0px,calc(var(--signature-card-border-radius,22px) - 10px));}';
 const roles = [], roomColumns = 3;
 /* @include signature-shared/src/sub-buttons.js */
