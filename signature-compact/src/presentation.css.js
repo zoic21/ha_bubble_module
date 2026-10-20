@@ -57,7 +57,7 @@
 display: grid;
 grid-template-columns: minmax(0, 1fr) fit-content(60%);
 align-items: center;
-column-gap: 8px;
+column-gap: ${valueButton ? 8 : 4}px;
     }
     ha-card[data-dp-layout="compact"][data-dp-compact-mode="value"] .bubble-name {
 grid-area: 1 / 1 / 3 / 2;

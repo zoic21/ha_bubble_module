@@ -1,5 +1,16 @@
 # Signature Compact
 
+## 1.6.6 — 20 octobre 2026 — espace entre le nom et la grande valeur
+
+En mode `compact_mode: value`, l’espace entre le nom et la grande valeur
+passe de 8 à 4 px. Les mesures étroites gagnent ainsi 4 px pour leur libellé,
+par exemple PM 4.0. La valeur reste alignée à droite ; polices, unités,
+retraits autour de la carte et espacement avant les commandes sont conservés.
+Les petites valeurs `value_style: button` gardent leur écart de 8 px.
+
+Mettre à jour uniquement Compact puis recharger le frontend. Aucune
+modification ni réimportation des dashboards n’est nécessaire.
+
 ## 1.6.5 — 19 octobre 2026 — commandes multimédia neutres
 
 Play/Pause utilise un fond transparent et l’icône en texte primaire, comme
