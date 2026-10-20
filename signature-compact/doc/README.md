@@ -1,5 +1,14 @@
 # Signature Compact
 
+## 1.6.7 — 20 octobre 2026 — icônes de seuils sans fond
+
+L’option booléenne `color_thresholds.background: false` supprime le fond
+d’un indicateur numérique tout en conservant la couleur calculée de son
+icône. Elle s’applique aux sous-boutons et, pour Compact/Square, à l’icône
+principale. Sans cette option ou avec `true`, le fond doux à 16 % reste actif.
+Voir le [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
+
+
 ## 1.6.6 — 20 octobre 2026 — espace entre le nom et la grande valeur
 
 En mode `compact_mode: value`, l’espace entre le nom et la grande valeur

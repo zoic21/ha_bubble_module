@@ -1,5 +1,14 @@
 # Signature Header
 
+## 1.2.1 — 20 octobre 2026 — icônes de seuils sans fond
+
+L’option booléenne `color_thresholds.background: false` supprime le fond
+d’un indicateur numérique tout en conservant la couleur calculée de son
+icône. Elle s’applique aux sous-boutons et, pour Compact/Square, à l’icône
+principale. Sans cette option ou avec `true`, le fond doux à 16 % reste actif.
+Voir le [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
+
+
 ## 1.2.0 — 17 octobre 2026 — cohérence des dashboards
 
 Boutons d'en-tête reliés au rôle secondaire de 13 px ; rôle `type: metric`

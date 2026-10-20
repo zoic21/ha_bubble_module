@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const {test} = require('node:test');
 const context = vm.createContext({...require('./dom.cjs'),Intl,setTimeout,clearTimeout});
-const definitions = Object.fromEntries(['compact','square','header','room'].map(layout => [layout,
+const definitions = Object.fromEntries(['compact','square','header','room','panel'].map(layout => [layout,
   loadModule('signature-'+layout)]));
 const renderers = Object.fromEntries(Object.entries(definitions).map(([layout,definition]) => [layout,
   vm.runInContext('(function(hass,onTeardown,renderTemplate){return `' + definition.code + '`;})',context)]));
@@ -96,6 +96,35 @@ test('sub-button manual backgrounds and tints do not mask scales; visual switche
     {sub_button:[{entity:'switch.demo',css_class:'toggle',tap_action:{action:'toggle'}}]});
   toggle.hass.states['switch.demo'] = {state:'on',attributes:{}};
   assert.doesNotMatch(toggle.run(),/\.toggle \.bubble-sub-button-icon\s*\{\s*color:var\(--secondary-text-color\)/);
+});
+test('icon-only main thresholds follow state changes and restore the default surface',t => {
+  for (const layout of ['compact','square']) {
+    const options = {color_thresholds:{...scale,background:false}};
+    const f = fixture(t,layout,options);
+    assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:transparent/);
+    assert.match(f.run(),/\.bubble-main-icon\s*\{\s*color:rgb\(55,163,162\)/);
+    f.hass.states['sensor.temperature'].state = '26';
+    assert.match(f.run(),/\.bubble-main-icon\s*\{\s*color:rgb\(166,164,40\)/);
+    f.hass.states['sensor.temperature'].state = 'unavailable';
+    assert.match(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:transparent/);
+    options.color_thresholds.background = true;
+    assert.match(f.run(),/background:color-mix\(in srgb,var\(--secondary-text-color\) 16%/);
+    delete options.color_thresholds.background;
+    assert.match(f.run(),/background:color-mix\(in srgb,var\(--secondary-text-color\) 16%/);
+    options.color_thresholds = {...options.color_thresholds,enabled:false,background:false};
+    assert.doesNotMatch(f.run(),/\.bubble-main-icon-container\s*\{[^}]*background:transparent/);
+  }
+});
+test('icon-only badge thresholds override a manual surface without changing the label color',t => {
+  for (const [layout,card_type] of [['compact','button'],['square','button'],['header','button'],['header','separator'],['panel','button']]) {
+    const options = {sub_button_styles:{temperature:{background:'#f00',color_thresholds:{...scale,background:false}}}};
+    const f = fixture(t,layout,options,{card_type,sub_button:{main:[{entity:'sensor.temperature',css_class:'temperature'}]}});
+    assert.match(f.run(),/\.temperature\.bubble-sub-button\s*\{\s*background:transparent/);
+    assert.match(f.run(),/\.temperature \.bubble-sub-button-icon\s*\{\s*color:rgb\(55,163,162\)/);
+    assert.match(f.run(),/\.temperature\.bubble-sub-button\s*\{\s*color:var\(--primary-text-color,#212121\)/);
+    options.sub_button_styles.temperature.color_thresholds.background = true;
+    assert.match(f.run(),/\.temperature\.bubble-sub-button\s*\{\s*background:color-mix\(in srgb,rgb\(55,163,162\) 16%/);
+  }
 });
 test('configuration changes replace cached scales and editor visibility follows supported targets',t => {
   const f = fixture(t,'square',{color_thresholds:scale});f.run();

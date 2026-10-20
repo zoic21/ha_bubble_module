@@ -67,12 +67,37 @@ signature_header:
 
 Le même `sub_button_styles` fonctionne avec `card_type: separator` et `signature_header`. Les conditions de visibilité, l’ordre natif des groupes et les actions Bubble sont conservés. Le champ YAML existant des sous-boutons est disponible dans le formulaire du séparateur.
 
+## Icône colorée sans fond
+
+Depuis Compact 1.6.7, Square 2.0.7, Header 1.2.1 et les sous-boutons de Panel 1.3.2, ajouter `background: false`
+dans l’objet `color_thresholds` pour rendre le fond transparent. La couleur
+calculée de l’icône et le premier plan du libellé sont conservés, y compris
+lorsque la valeur change. Une donnée indisponible garde son icône neutre avec
+un fond transparent. Les dimensions, cibles de clic et actions sont inchangées.
+
+```yaml
+signature_compact:
+  sub_button_styles:
+    temperature:
+      color_thresholds:
+        background: false
+        values:
+          - {value: 15, color: "#2196f3"}
+          - {value: 25, color: "#ff9800"}
+```
+
+Le même booléen est utilisable dans `signature_compact.color_thresholds` et
+`signature_square.color_thresholds` pour l’icône principale. Le défaut est
+`true` ; retirer le champ restaure le fond doux à 16 %. Le réglage ne modifie
+pas les couleurs ni les seuils et ne s’applique qu’à une échelle valide active.
+
 ## Règles de l’échelle
 
 | Champ | Comportement |
 |---|---|
 | `values` | Liste de points numériques `value` / `color`, triée sans modifier la configuration |
 | `enabled` | Une liste valide active l’échelle ; `false` la désactive en conservant ses réglages |
+| `background` | `true` par défaut ; `false` rend le fond transparent en gardant la couleur de l’icône |
 | `transition` | `smooth` par défaut ; `hard` reproduit les paliers du graphique |
 | `entity` | Option Signature : source différente de l’entité de la carte ou du sous-bouton |
 | `attribute` | Option Signature : attribut numérique de la source, par exemple `temperature` |

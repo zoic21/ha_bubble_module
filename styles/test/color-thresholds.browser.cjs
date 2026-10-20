@@ -53,9 +53,16 @@ test('threshold indicators use the same 16% soft surfaces as ordinary icons and 
         ctx._hass.states['sensor.demo'].state='20';
         if(isSub)ctx.config[key].sub_button_styles.temperature.icon_color='#abcdef';else ctx.config[key].icon_color='#abcdef';
         apply();const manual=read();
+        const configuredScale=isSub?ctx.config[key].sub_button_styles.temperature.color_thresholds:ctx.config[key].color_thresholds;
+        configuredScale.background=false;const transparent=[];
+        for(const value of [20,26,'unknown','unavailable','invalid']){
+          ctx._hass.states['sensor.demo'].state=String(value);apply();transparent.push(read());
+        }
+        ctx._hass.states['sensor.demo'].state='20';configuredScale.background=true;apply();const tintedAgain=read();
+        delete configuredScale.background;apply();const defaultAgain=read();
         ctx.config[key]=layout==='compact'?{compact_mode:'value'}:{};apply();
         await new Promise(resolve=>setTimeout(resolve,200));const restored=read();
-        rows.push({id,isSub,preferred,neutral,baseline,samples,manual,restored,clicks,sameConfig,sameNode:icon.isConnected});
+        rows.push({id,isSub,preferred,neutral,baseline,samples,manual,transparent,tintedAgain,defaultAgain,restored,clicks,sameConfig,sameNode:icon.isConnected});
       }
       return rows;
     },codes);
@@ -76,6 +83,15 @@ test('threshold indicators use the same 16% soft surfaces as ordinary icons and 
       if(row.isSub)for(const sample of row.samples)assert.equal(sample.labelText,'17 °C');
       assert.deepEqual(row.manual.icon,[76,175,80,255],row.id+' active scale precedence');
       near(row.manual.background,mixed([76,175,80,255]),row.id+' manual soft surface');
+      for(const [i,sample]of row.transparent.entries()){
+        assert.deepEqual(sample.background,[0,0,0,0],row.id+' transparent background '+mode);
+        near(sample.icon,i===0?[76,175,80,255]:i===1?[166,164,40,255]:row.preferred,row.id+' icon-only color');
+        if(row.isSub)assert.deepEqual(sample.text,row.preferred,row.id+' icon-only theme label');
+        for(const key of ['surface','width','height','targetWidth','targetHeight','opacity'])
+          assert.equal(JSON.stringify(sample[key]),JSON.stringify(row.baseline[key]),row.id+' icon-only changed '+key);
+      }
+      near(row.tintedAgain.background,mixed([76,175,80,255]),row.id+' restored enabled surface');
+      near(row.defaultAgain.background,row.tintedAgain.background,row.id+' default surface');
       assert.notDeepEqual(row.restored.background,row.manual.background);
       assert.equal(row.clicks,1);assert.ok(row.sameConfig);assert.ok(row.sameNode);
     }

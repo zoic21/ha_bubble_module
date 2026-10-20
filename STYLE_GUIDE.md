@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.6**, **Square 2.0.6**, **Header 1.2.0**, **Room 1.4.3**, **Panel 1.3.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.7**, **Square 2.0.7**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.3.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -869,3 +869,12 @@ natives dans la deuxième rangée, au rôle du titre média :
 Le détail reste en troisième ligne ; les métadonnées masquées ne servent
 pas à dédupliquer ce détail. Retirer l'option restaure le texte Bubble.
 Les autres panneaux, contrôles et dimensions restent inchangés.
+
+### Seuils numériques sans fond — Compact 1.6.7, Square 2.0.7, Header 1.2.1, Panel 1.3.2
+
+`color_thresholds.background: false` rend transparent le fond du carré
+d’icône ou de la pastille concernée. Conserver la couleur exacte calculée de
+l’icône et le texte du thème. Le défaut et `true` gardent le mélange à 16 %.
+Préserver géométrie, actions, seuils, suivi des états et masquages natifs.
+La lecture du booléen reste hors du cache d’échelle ; un changement de ce
+réglage doit s’appliquer sans remplacer les nœuds ni ajouter d’observateur.

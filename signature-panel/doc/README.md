@@ -1,5 +1,13 @@
 # Signature Panel
 
+## 1.3.2 — 20 octobre 2026 — pastilles de seuils sans fond
+
+L’option `sub_button_styles.<clé>.color_thresholds.background: false` rend
+le fond d’une pastille transparent en gardant la couleur numérique de son
+icône. Le défaut reste le fond doux à 16 %. Voir le
+[guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
+
+
 Version **1.3.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.

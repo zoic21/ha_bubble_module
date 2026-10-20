@@ -1,5 +1,5 @@
 name: Signature Compact
-version: 1.6.6
+version: 1.6.7
 creator: Loïc
 supported:
   - button
@@ -132,6 +132,7 @@ editor:
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
       color_thresholds:
         $field: color_thresholds
+        description: "values : liste value/color. background: false garde la couleur de l’icône sans fond ; true ou absent conserve le fond doux à 16 %."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider'))
       icon_opacity:
         $field: icon_opacity
