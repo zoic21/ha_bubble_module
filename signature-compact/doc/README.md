@@ -16,8 +16,12 @@ Il s’applique lorsque le fond effectif est explicitement transparent :
 `color_thresholds.background: false`. Les switches, badges Auto/Manuel,
 rôles `mode` et `metric`, sliders et médias gardent leur géométrie.
 
-Importer Compact 1.6.8 puis recharger le frontend. Aucune modification
-ni réimportation des dashboards n’est nécessaire.
+Pour Cave à vin à largeur de téléphone, choisir `flat_button_padding: 2` :
+les trois mesures récupèrent 36 px et le titre tient dans la fixture de
+376 px. Cette valeur utilise toujours les cibles natives d’au moins 36 px.
+Importer Compact 1.6.8 puis recharger le frontend. Le défaut de 4 px ne
+demande aucun changement de dashboard ; un réglage propre à une carte
+doit être sauvegardé ou importé avec son dashboard.
 
 ## 1.6.7 — 20 octobre 2026 — icônes de seuils sans fond
 

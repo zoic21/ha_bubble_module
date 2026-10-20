@@ -897,3 +897,6 @@ options et templates à chaque rendu avec les helpers existants, sans
 getComputedStyle, DOM supplémentaire, observateur, abonnement ni timer.
 Tester le retour à un fond, la modification du padding et le changement
 de seuil, ainsi que Cave à vin avec trois mesures et un switch.
+La carte Cave à vin utilise `flat_button_padding: 2` : gain de 36 px pour
+ses trois mesures et titre sur une ligne à 376 px dans la fixture. Le
+défaut de 4 px reste celui des autres cartes sans réglage explicite.
