@@ -70,6 +70,7 @@ async function build(layout) {
   `);
   if (layout === 'compact') chunks.push(specific(layout, 'mode-badge'));
   chunks.push(shared('sub-buttons'));
+  if (layout === 'compact') chunks.push(specific(layout, 'flat-buttons'));
   if (layout === 'room') chunks.push(specific(layout, 'badges'), specific(layout, 'commands'));
   if (layout === 'square') chunks.push(specific(layout, 'badge'));
   const css = [shared('base.css')];

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.7**, **Square 2.0.7**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.3.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.7**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.3.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.0.1** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -878,3 +878,22 @@ l’icône et le texte du thème. Le défaut et `true` gardent le mélange à 16
 Préserver géométrie, actions, seuils, suivi des états et masquages natifs.
 La lecture du booléen reste hors du cache d’échelle ; un changement de ce
 réglage doit s’appliquer sans remplacer les nœuds ni ajouter d’observateur.
+
+
+### Sous-boutons Compact sans fond — 1.6.8
+
+Les sous-boutons ordinaires sans fond utilisent un padding horizontal de
+4 px au lieu des 8 px natifs. `flat_button_padding` accepte 0 à 8 px, avec
+4 px par défaut ; 8 px restitue le retrait Bubble. Reconnaître le choix
+natif `show_background: false`, un `background: transparent` manuel ou
+rendu par template, et un seuil actif avec `background: false`. Un fond
+manuel opaque ou le fond d'une échelle active garde la densité native.
+
+Ne changer que `padding-inline` : garder les 8 px entre boutons, hauteur,
+largeur minimale native de 36 px, ripple, polices, couleurs, nœuds, actions
+et masquages. Les switches visuels, badges Auto/Manuel, rôles `mode` et
+`metric`, sliders et lecteurs média conservent leur géométrie. Relire les
+options et templates à chaque rendu avec les helpers existants, sans
+getComputedStyle, DOM supplémentaire, observateur, abonnement ni timer.
+Tester le retour à un fond, la modification du padding et le changement
+de seuil, ainsi que Cave à vin avec trois mesures et un switch.

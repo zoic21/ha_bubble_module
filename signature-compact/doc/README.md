@@ -1,5 +1,24 @@
 # Signature Compact
 
+## 1.6.8 — 20 octobre 2026 — sous-boutons sans fond plus serrés
+
+Les sous-boutons sans fond passent de 8 à **4 px de padding horizontal
+par côté**. Trois mesures comme bouteilles / température / puissance
+libèrent ainsi jusqu’à 24 px pour le nom Cave à vin. L’écart de 8 px entre
+les boutons, leur hauteur et leur largeur minimale native de 36 px restent
+conservés, ainsi que les actions, états, icônes et couleurs.
+
+`flat_button_padding` permet de choisir de 0 à 8 px ; la valeur 8 restitue
+le retrait natif. Le réglage apparaît dans « Commandes et sous-boutons ».
+Il s’applique lorsque le fond effectif est explicitement transparent :
+`show_background: false`, `sub_button_styles.<clé>.background: transparent`
+(y compris un template retournant ce mot-clé) ou des seuils actifs avec
+`color_thresholds.background: false`. Les switches, badges Auto/Manuel,
+rôles `mode` et `metric`, sliders et médias gardent leur géométrie.
+
+Importer Compact 1.6.8 puis recharger le frontend. Aucune modification
+ni réimportation des dashboards n’est nécessaire.
+
 ## 1.6.7 — 20 octobre 2026 — icônes de seuils sans fond
 
 L’option booléenne `color_thresholds.background: false` supprime le fond
@@ -239,7 +258,7 @@ Zéro reste une mesure valide. Une source absente, vide, non numérique, un tota
 
 Le fond conserve la surface Signature native ; un accent transparent à 16 % la recouvre seulement sur la largeur calculée. `--signature-fill-tint`, valeur CSS facultative de 0 % à 100 %, permet d’ajuster cette intensité dans le thème. La transition de largeur dure 1,5 s et disparaît avec `prefers-reduced-motion: reduce`. Le texte conserve les couleurs du thème, l’icône et les badges leurs réglages propres. Les seuils d’icône ne recolorent pas la jauge, qui reprend `color`.
 
-Les sous-boutons restent natifs : mêmes nœuds, états, actions, conditions, switches et listes déroulantes. Aucune réduction de police, de padding ou de flèche n’est appliquée. Avec `compact_mode: value`, `value_style: button` et au moins trois sous-boutons configurés, les commandes restent à droite tant que leur contenu tient ; le groupe passe sous la mesure et sa hauteur devient automatique uniquement lorsque la place manque. Aucun seuil de largeur fixe ne s’applique à ces petites valeurs. Les grandes valeurs texte avec jauge conservent leur repli à 480 px ou moins. Les cartes avec zéro, un ou deux sous-boutons restent à 56 px. Les sous-boutons masqués restent masqués ; le seuil de trois compte les boutons configurés, même lorsqu’une condition en masque certains.
+Les sous-boutons restent natifs : mêmes nœuds, états, actions, conditions, switches et listes déroulantes. Les polices et flèches restent natives ; seuls les sous-boutons sans fond reçoivent le padding horizontal `flat_button_padding` depuis 1.6.8. Avec `compact_mode: value`, `value_style: button` et au moins trois sous-boutons configurés, les commandes restent à droite tant que leur contenu tient ; le groupe passe sous la mesure et sa hauteur devient automatique uniquement lorsque la place manque. Aucun seuil de largeur fixe ne s’applique à ces petites valeurs. Les grandes valeurs texte avec jauge conservent leur repli à 480 px ou moins. Les cartes avec zéro, un ou deux sous-boutons restent à 56 px. Les sous-boutons masqués restent masqués ; le seuil de trois compte les boutons configurés, même lorsqu’une condition en masque certains.
 
 Alert Manager continue d’ajouter son badge au-dessus de l’icône, sans changement de son module. Le remplissage n’ajoute aucun nœud, action, abonnement, observateur ou polling : les deux états sont lus à chaque passage pour être suivis par Bubble, les styles statiques sont mis en cache et le thème reste résolu en CSS.
 
@@ -258,6 +277,7 @@ Alert Manager continue d’ajouter son badge au-dessus de l’icône, sans chang
 | `multiline` | `false` | Autoriser les textes sur plusieurs lignes |
 | `controls` | `native` | Commandes Valeurs : `native`, `number`. |
 | `sub_buttons_position` | `default` | Position des sous-boutons en compacte Valeurs : `default`, `end`. |
+| `flat_button_padding` | `4` | Padding horizontal des sous-boutons sans fond, de 0 à 8 px ; 8 retrouve le retrait natif. |
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |

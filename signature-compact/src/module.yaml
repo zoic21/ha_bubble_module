@@ -1,5 +1,5 @@
 name: Signature Compact
-version: 1.6.7
+version: 1.6.8
 creator: Loïc
 supported:
   - button
@@ -119,6 +119,20 @@ editor:
                 value: end
         group: Commandes et sous-boutons
         group_icon: mdi:gesture-tap-button
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      flat_button_padding:
+        label: Marge interne des sous-boutons sans fond
+        default: 4
+        selector:
+          number:
+            min: 0
+            max: 8
+            step: 1
+            mode: box
+            unit_of_measurement: px
+        group: Commandes et sous-boutons
+        group_icon: mdi:gesture-tap-button
+        description: "Padding horizontal uniquement : 4 px par défaut, 8 px pour retrouver le retrait Bubble. Hauteur, largeur minimale, switches et badges Auto/Manuel conservés."
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
       sub_button_styles:
         $field: sub_button_styles
