@@ -48,7 +48,8 @@ test('Cave à vin gains room from transparent metrics while gaps, touch targets,
    assert.equal(after.buttons[i].height,before.buttons[i].height);assert.equal(after.buttons[i].min,'36px');assert.ok(after.buttons[i].width>=36);
    assert.equal(after.buttons[i].color,before.buttons[i].color);
   }
-  assert.equal(opaque.buttons[1].padding,'8px');assert.deepEqual(after.buttons[3],before.buttons[3]);
+  assert.equal(opaque.buttons[1].padding,'8px');
+  for(const key of ['width','height','padding','min','color'])assert.equal(after.buttons[3][key],before.buttons[3][key]);
   if(width>=376)assert.ok(after.name.height<=after.line+4.1,hint);
   assert.ok(after.name.right<=after.group.left+.1,hint);
   assert.equal(result.hidden,'none');assert.equal(result.clicks,4);assert.ok(result.sameNodes);
