@@ -27,9 +27,10 @@ test('threshold indicators use the same 16% soft surfaces as ordinary icons and 
         const layout=id==='title'?'header':id,key='signature_'+layout,style=[...root.querySelectorAll('style')].at(-1);
         const apply=()=>{style.textContent=new Function('hass','onTeardown','renderTemplate','return '+String.fromCharCode(96)+codes[layout]+String.fromCharCode(96)+';').call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);};
         let target=root.querySelector('.bubble-main-icon-container'),icon=root.querySelector('.bubble-main-icon'),label=root.querySelector('.bubble-state');
-        ctx.config[key]=layout==='compact'?{compact_mode:'value'}:{};apply();
+        // Isolate color/background changes from Compact's optional flat-button density.
+        ctx.config[key]=layout==='compact'?{compact_mode:'value',flat_button_padding:8}:{};apply();
         if(isSub){
-          target=document.createElement('div');target.className='bubble-sub-button bubble-sub-button-1 temperature background-on';target.style.cssText='background:#ef0000;color:#ef0000';
+          target=document.createElement('div');target.className='bubble-sub-button bubble-sub-button-1 temperature background-on';target.style.cssText='background:#ef0000;color:#ef0000;padding:0 8px';
           icon=document.createElement('ha-icon');icon.className='bubble-sub-button-icon';
           label=document.createElement('span');label.className='bubble-sub-button-name-container';label.textContent='17 °C';
           target.append(icon,label);ctx.card.querySelector('.bubble-sub-button-container').append(target);
