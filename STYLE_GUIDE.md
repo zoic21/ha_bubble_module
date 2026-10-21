@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.8**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.3.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.3.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -68,13 +68,15 @@ Un `none` explicite pour l'ombre est une valeur valide et doit être conservé. 
 
 Limiter les sélecteurs au module ou au layout concerné. Une règle commune de remise à zéro des boutons peut être plus spécifique qu'une classe d'onglet : contrôler la couleur inactive, le focus et la règle tactile dans les styles calculés. Utiliser `!important` uniquement lorsqu'une règle native ou une géométrie Bubble l'exige.
 
-### Square 2.0.8 — centrage facultatif sans secondaire
+### Square 2.0.9 — centrage vertical facultatif sans secondaire
 
-`center_value_without_secondary: true` centre horizontalement la valeur et
-son unité, et verticalement dans l’espace sous la rangée titre/icône, lorsque
+`center_value_without_secondary: true` centre verticalement la valeur et
+son unité dans l’espace sous la rangée titre/icône, lorsque
 le secondaire rendu est vide. La valeur occupe les deuxième et troisième
 pistes de la grille fixe ; le titre, l’icône, les dimensions et les actions
-natives restent inchangés. Un secondaire non vide restaure la disposition
+natives restent inchangés. La position horizontale des chiffres et unités
+reste strictement celle du layout habituel ; aucun alignement horizontal
+supplémentaire. Un secondaire non vide restaure la disposition
 habituelle. Sans cette option, les valeurs gardent leur ligne de base réservée.
 L’option est sans effet en hauteur automatique, avec une illustration ou en
 mode `controls: measure`. Le cache CSS distingue son activation ; aucun nœud,

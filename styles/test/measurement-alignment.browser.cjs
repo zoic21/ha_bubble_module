@@ -51,7 +51,7 @@ test('fixed Square values retain their baseline when optional detail appears or 
  }
 });
 
-test('Square opt-in centers a lone value and restores its usual layout with detail or without the option',async t=>{
+test('Square opt-in centers a lone value vertically without moving it horizontally and restores its usual layout with detail',async t=>{
  const page=await fixture(t);
  for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [114,122,148,180,288]){
   await render(page,{mode,plain,width});
@@ -76,8 +76,8 @@ test('Square opt-in centers a lone value and restores its usual layout with deta
      const icon=ctx.elements.iconContainer.getBoundingClientRect();
      const range=document.createRange();range.selectNodeContents(state);
      const text=range.getBoundingClientRect();
-     samples.push({top:box.top,x:(text.left+text.right)/2,boxX:(box.left+box.right)/2,y:(box.top+box.bottom)/2,
-      targetX:(content.left+content.right)/2,targetY:(icon.bottom+3+content.bottom)/2,
+     samples.push({top:box.top,left:box.left,textLeft:text.left,textRight:text.right,y:(box.top+box.bottom)/2,
+      targetY:(icon.bottom+3+content.bottom)/2,
       detail:!!ctx.card.querySelector('.dp-secondary'),text:state.textContent,
       height:ctx.elements.mainContainer.getBoundingClientRect().height,
       action:JSON.parse(state.dataset.tapAction).action,
@@ -90,15 +90,18 @@ test('Square opt-in centers a lone value and restores its usual layout with deta
   for(const samples of results){
    const context=JSON.stringify({mode,plain,width,samples});
    for(const i of [1,3]){
-    assert.ok(Math.abs(samples[i].boxX-samples[i].targetX)<1,context);
-    if(!samples[i].clipped)assert.ok(Math.abs(samples[i].x-samples[i].targetX)<1,context);
     assert.ok(Math.abs(samples[i].y-samples[i].targetY)<1,context);
     assert.equal(samples[i].detail,false,context);
    }
    assert.equal(samples[2].detail,true,context);
    assert.equal(samples[2].top,samples[0].top,context);
    assert.equal(samples[4].top,samples[0].top,context);
-   for(const s of samples){assert.equal(s.height,120);assert.equal(s.action,'more-info');assert.equal(s.clipped,samples[0].clipped,context);}
+   for(const s of samples){
+    assert.equal(s.left,samples[0].left,context);
+    assert.equal(s.textLeft,samples[0].textLeft,context);
+    assert.equal(s.textRight,samples[0].textRight,context);
+    assert.equal(s.height,120);assert.equal(s.action,'more-info');assert.equal(s.clipped,samples[0].clipped,context);
+   }
   }
  }
 });

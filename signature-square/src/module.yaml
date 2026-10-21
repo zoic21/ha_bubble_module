@@ -1,5 +1,5 @@
 name: Signature Square
-version: 2.0.8
+version: 2.0.9
 creator: Loïc
 supported:
   - button
@@ -45,13 +45,13 @@ editor:
         $field: sub_button_styles
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       center_value_without_secondary:
-        label: Centrer la valeur en l’absence de texte secondaire
+        label: Centrer verticalement la valeur en l’absence de texte secondaire
         default: false
         selector:
           boolean: {}
         group: Tuile carrée
         group_icon: mdi:card-outline
-        description: "Tuile classique de hauteur fixe : centre la valeur et son unité sous le titre si le secondaire est vide. Sans effet avec une illustration ou des commandes de mesure."
+        description: "Tuile classique de hauteur fixe : centre verticalement la valeur et son unité sous le titre si le secondaire est vide, en conservant leur position horizontale. Sans effet avec une illustration ou des commandes de mesure."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       auto_height:
         label: Adapter la hauteur au contenu
