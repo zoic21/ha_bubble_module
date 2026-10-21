@@ -40,14 +40,14 @@ test('Hue companion preserves native nodes, geometry, live palette and theme tok
 test('Hue popup only changes the lamp grid below its 320px container threshold',async t=>{
  const page=await fixture(t,{prepare:null});
  await page.setContent('<div id="root"></div>');
- for(const width of [288,320,321,600]){
-  const result=await page.evaluate(({hue,width})=>{
+ for(const width of [288,320,321,600])for(const withTitle of [false,true]){
+  const result=await page.evaluate(({hue,width,withTitle})=>{
    const root=document.querySelector('#root');root.style.cssText='width:'+width+'px;--signature-card-border-radius:18px';
-   root.innerHTML='<div class="bubble-pop-up"><div class="bubble-pop-up-container"><div class="bubble-cards-container"><div class="card"></div><div class="card"><hui-grid-card></hui-grid-card></div><div class="card"><hui-grid-card></hui-grid-card></div><div class="card"><hui-grid-card></hui-grid-card></div></div></div></div>';
+   root.innerHTML='<div class="bubble-pop-up"><div class="bubble-pop-up-container"><div class="bubble-cards-container"><div class="card">Éclairage</div>'+(withTitle?'<div class="card">Lampes</div>':'')+'<div class="card"><hui-grid-card></hui-grid-card></div><div class="card">Scènes</div><div class="card"><hui-grid-card style="--grid-card-column-count:2"></hui-grid-card></div><div class="card"><hui-grid-card></hui-grid-card></div></div></div></div>';
    const style=document.createElement('style');style.textContent='hui-grid-card{--grid-card-column-count:4}'+new Function('return `'+hue+'`;').call({config:{card_type:'pop-up',signature_hue:{mode:'popup'}}});root.append(style);
    return {columns:[...root.querySelectorAll('hui-grid-card')].map(e=>getComputedStyle(e).getPropertyValue('--grid-card-column-count').trim()),radius:getComputedStyle(root.querySelector('.bubble-pop-up')).getPropertyValue('--bubble-pop-up-border-radius').trim()};
-  },{hue,width});
-  assert.deepEqual(result.columns,['4',width<=320?'3':'4','4']);assert.equal(result.radius,'18px');
+  },{hue,width,withTitle});
+  assert.deepEqual(result.columns,[width<=320?'3':'4','2','4']);assert.equal(result.radius,'18px');
  }
 });
 

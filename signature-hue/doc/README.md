@@ -1,4 +1,4 @@
-# Signature Hue 1.1.1
+# Signature Hue 1.1.2
 
 Compagnon de présentation des commandes Hue natives, sans logique de contrôle.
 Importer `signature-hue/dist/signature-hue.yaml`, puis placer `signature_hue`
@@ -36,10 +36,13 @@ ne sont jamais envoyées aux lampes. Les conditions des sous-boutons, les servic
 et les cibles restent dans le dashboard. Ne pas remplacer les commandes par des
 nœuds créés dans le module.
 
-La popup doit conserver son ordre de contenu : commande Éclairage, titre Lampes,
-grille de lampes (troisième enfant), puis scènes. Les autres grilles ne changent
-pas de nombre de colonnes. Les sous-boutons de luminosité et d’animation gardent
-les classes ci-dessus et leurs actions natives.
+La popup conserve son ordre de contenu : commande Éclairage, grille de lampes,
+titre Scènes puis grille de scènes. Le titre Lampes est facultatif depuis
+1.1.2 : la grille reste à trois colonnes jusqu’à 320 px, qu’elle soit le
+deuxième ou le troisième enfant. Les autres grilles gardent leurs colonnes.
+Retirer la carte de titre du dashboard supprime aussi la hauteur qu’elle
+réservait. Les sous-boutons de luminosité et d’animation gardent les classes
+ci-dessus et leurs actions natives.
 
 ## Slider de luminosité sans interrupteur — 1.1.0
 
