@@ -51,6 +51,58 @@ test('fixed Square values retain their baseline when optional detail appears or 
  }
 });
 
+test('Square opt-in centers a lone value and restores its usual layout with detail or without the option',async t=>{
+ const page=await fixture(t);
+ for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [114,122,148,180,288]){
+  await render(page,{mode,plain,width});
+  const results=await page.evaluate(({code})=>{
+   const shadow=document.querySelector('[data-id="square"]').shadowRoot;
+   const ctx=window.contexts.find(c=>c.card===shadow.querySelector('ha-card'));
+   const style=shadow.querySelectorAll('style')[1];
+   // Bubble writes this native state display when scrolling is disabled.
+   ctx.elements.state.style.display='-webkit-box';
+   const results=[];
+   for(const [value,unit] of [['0','ppm'],['21','ppm'],['83','W/m²'],['120','nSv/h'],['0','']]){
+    ctx._hass.states['sensor.demo'].state=value;
+    ctx._hass.states['sensor.demo'].attributes.unit_of_measurement=unit;
+    const samples=[];
+    for(const [enabled,secondary] of [[false,''],[true,''],[true,'Détail'],[true,'   '],[false,'']]){
+     ctx.config.signature_square={center_value_without_secondary:enabled,secondary};
+     style.textContent=new Function('hass','onTeardown','renderTemplate','return `'+code+'`;')
+      .call(ctx,ctx._hass,fn=>ctx.teardown=fn,v=>v);
+     const state=ctx.elements.state;
+     const box=state.getBoundingClientRect();
+     const content=ctx.elements.contentContainer.getBoundingClientRect();
+     const icon=ctx.elements.iconContainer.getBoundingClientRect();
+     const range=document.createRange();range.selectNodeContents(state);
+     const text=range.getBoundingClientRect();
+     samples.push({top:box.top,x:(text.left+text.right)/2,boxX:(box.left+box.right)/2,y:(box.top+box.bottom)/2,
+      targetX:(content.left+content.right)/2,targetY:(icon.bottom+3+content.bottom)/2,
+      detail:!!ctx.card.querySelector('.dp-secondary'),text:state.textContent,
+      height:ctx.elements.mainContainer.getBoundingClientRect().height,
+      action:JSON.parse(state.dataset.tapAction).action,
+      clipped:state.scrollWidth>state.clientWidth+1});
+    }
+    results.push(samples);
+   }
+   return results;
+  },{code:square});
+  for(const samples of results){
+   const context=JSON.stringify({mode,plain,width,samples});
+   for(const i of [1,3]){
+    assert.ok(Math.abs(samples[i].boxX-samples[i].targetX)<1,context);
+    if(!samples[i].clipped)assert.ok(Math.abs(samples[i].x-samples[i].targetX)<1,context);
+    assert.ok(Math.abs(samples[i].y-samples[i].targetY)<1,context);
+    assert.equal(samples[i].detail,false,context);
+   }
+   assert.equal(samples[2].detail,true,context);
+   assert.equal(samples[2].top,samples[0].top,context);
+   assert.equal(samples[4].top,samples[0].top,context);
+   for(const s of samples){assert.equal(s.height,120);assert.equal(s.action,'more-info');assert.equal(s.clipped,samples[0].clipped,context);}
+  }
+ }
+});
+
 test('Compact metric columns align numbers without replacing native actions or visibility',async t=>{
  const page=await fixture(t);
  for(const mode of ['light','dark'])for(const width of [288,328,358,382,600]){

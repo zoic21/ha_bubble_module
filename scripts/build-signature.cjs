@@ -80,7 +80,7 @@ async function build(layout) {
   css.push(shared('visibility.css'));
   const layoutStyleKeys = {
     room: 'roomColumns,roomRows,roomHeaderMeasures,roomIllustrated,',
-    square: 'illustrationEnabled,',
+    square: "illustrationEnabled,o.center_value_without_secondary === true,",
     compact: 'valueButton,twoLineName,'
   }[layout] || '';
   chunks.push(`

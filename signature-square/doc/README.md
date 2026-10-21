@@ -1,5 +1,19 @@
 # Signature Square
 
+## 2.0.8 — 21 octobre 2026 — centrage facultatif sans sous-texte
+
+Avec `center_value_without_secondary: true`, la valeur et son unité sont
+centrées horizontalement et dans la hauteur disponible sous le titre et
+l’icône, uniquement lorsque le texte secondaire rendu est vide. Dès qu’un
+secondaire apparaît, la disposition habituelle revient. L’option est
+désactivée par défaut et s’applique aux tuiles classiques de hauteur fixe,
+sans illustration ni `controls: measure`.
+
+```yaml
+signature_square:
+  center_value_without_secondary: true
+```
+
 ## 2.0.7 — 20 octobre 2026 — icônes de seuils sans fond
 
 L’option booléenne `color_thresholds.background: false` supprime le fond
@@ -9,7 +23,7 @@ principale. Sans cette option ou avec `true`, le fond doux à 16 % reste actif.
 Voir le [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **2.0.6**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.8**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -124,6 +138,7 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 | `controls` | `native` | Commandes Valeurs : `native`, `measure`. |
 | `sub_button_styles` | `{}` | Objet YAML indexé par css_class ou numéro de sous-bouton ; les clés personnalisées restent compatibles. |
 | `auto_height` | `false` | Adapter la hauteur au contenu |
+| `center_value_without_secondary` | `false` | Centrer valeur et unité sous l’en-tête quand le secondaire rendu est vide (tuile classique fixe) |
 | `reserve_measure_detail` | `false` | Réserver la ligne de détail avec les commandes de mesure |
 | `illustration` | Aucun | Objet `image`, `image_light`, `image_dark`, `columns`, `rows`, `index` ; images externes et sprites facultatifs |
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
