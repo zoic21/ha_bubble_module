@@ -47,5 +47,5 @@ if (mode === 'scene') {
   css += `ha-card { --signature-hue-palette: ${palette}; --signature-hue-selected: ${selected ? 1 : 0}; }`;
 }
 if (mode === 'brightness' && !available)
-  css += 'ha-card .hue-brightness-step { opacity: .4 !important; pointer-events: none !important; }';
+  css += 'ha-card :is(.hue-brightness-step,.bubble-sub-button-bottom-container .bubble-sub-slider-wrapper.inline) { opacity: .4 !important; pointer-events: none !important; } ha-card .bubble-sub-button-bottom-container .bubble-sub-slider-wrapper.inline * { pointer-events: none !important; }';
 return css;

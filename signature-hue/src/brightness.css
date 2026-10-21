@@ -21,3 +21,37 @@ ha-card[data-dp-layout="compact"] .hue-brightness-step .bubble-sub-button-icon {
     display: none !important;
   }
 }
+
+/* Optional native bottom slider: keep the 56px heading and reserve its own row.
+   Legacy step controls retain their one-row presentation. */
+ha-card[data-dp-layout="compact"]:has(.bubble-sub-button-bottom-container .bubble-sub-slider-wrapper.inline) .bubble-container {
+  height: 104px !important;
+}
+ha-card[data-dp-layout="compact"]:has(.bubble-sub-button-bottom-container .bubble-sub-slider-wrapper.inline) .bubble-wrapper {
+  height: 100% !important;
+  padding-bottom: 48px !important;
+}
+ha-card[data-dp-layout="compact"]:has(.bubble-sub-button-bottom-container .bubble-sub-slider-wrapper.inline) .bubble-icon-container {
+  display: flex !important;
+}
+ha-card[data-dp-layout="compact"] .bubble-sub-button-bottom-container {
+  width: calc(100% - 20px);
+  margin: 0 9px 9px !important;
+}
+ha-card[data-dp-layout="compact"] .bubble-sub-button-bottom-container .bubble-sub-button-slider.inline {
+  background: color-mix(in srgb, var(--dp-accent) 16%, var(--dp-surface)) !important;
+  border-radius: var(--signature-control-border-radius, 14px);
+  overflow: hidden;
+}
+ha-card[data-dp-layout="compact"] .bubble-sub-button-bottom-container .bubble-range-fill {
+  background: var(--dp-accent) !important;
+}
+ha-card[data-dp-layout="compact"] .bubble-sub-button-bottom-container .bubble-range-fill::after {
+  content: '';
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-end: 3px;
+  width: 4px;
+  border-radius: 4px;
+  background: var(--primary-text-color);
+}

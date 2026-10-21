@@ -1,4 +1,4 @@
-# Signature Hue 1.0.1
+# Signature Hue 1.1.0
 
 Compagnon de présentation des commandes Hue natives, sans logique de contrôle.
 Importer `signature-hue/dist/signature-hue.yaml`, puis placer `signature_hue`
@@ -21,7 +21,7 @@ signature_hue:
 |---|---|
 | `light` | Petite tuile carrée, minimum 88 px, nom 14 px sur deux lignes, état 13 px, icône RGB conservée |
 | `scene` | Aperçu de 112 px, palette illustrative et coche de sélection |
-| `brightness` | Commandes natives `hue-brightness-step` et `hue-brightness-value` sur une ligne |
+| `brightness` | Luminosité avec slider natif pleine largeur en bas et pourcentage en haut ; les anciennes commandes `hue-brightness-step` / `hue-brightness-value` sur une ligne restent compatibles |
 | `animation` | Habillage des commandes natives `hue-animation-start`, `hue-animation-stop`, `hue-animation-disabled` |
 | `popup` | Arrondis Signature et grille de lampes à trois colonnes jusqu’à 320 px |
 
@@ -40,6 +40,49 @@ La popup doit conserver son ordre de contenu : commande Éclairage, titre Lampes
 grille de lampes (troisième enfant), puis scènes. Les autres grilles ne changent
 pas de nombre de colonnes. Les sous-boutons de luminosité et d’animation gardent
 les classes ci-dessus et leurs actions natives.
+
+## Slider de luminosité sans interrupteur — 1.1.0
+
+La commande Éclairage utilise un bouton État Compact, un sous-bouton de
+pourcentage `hue-brightness-value` dans `sub_button.main` et un slider natif
+dans `sub_button.bottom`. Aucun bouton marche/arrêt n’est nécessaire :
+`allow_light_slider_to_0: true` autorise l’extinction à 0 %, puis un réglage
+positif rallume le groupe. Le titre et le pourcentage gardent leurs actions
+`more-info` vers les réglages de couleur et de température.
+
+```yaml
+sub_button:
+  main:
+    - entity: light.salon_hue_ambiance
+      css_class: hue-brightness-value
+      show_icon: false
+      show_background: false
+      show_state: true
+      state_content: >-
+        {% if not has_value(entity) %}—{% elif is_state(entity, 'off') %}0 %{% elif state_attr(entity, 'brightness') is number %}{{ (state_attr(entity, 'brightness') / 255 * 100) | round(0) | int }} %{% else %}—{% endif %}
+      tap_action: {action: more-info}
+  bottom:
+    - entity: light.salon_hue_ambiance
+      sub_button_type: slider
+      always_visible: true
+      fill_width: true
+      custom_height: 36
+      show_button_info: false
+      slider_value_position: hidden
+      allow_light_slider_to_0: true
+      relative_slide: false
+      tap_to_slide: true
+      slider_live_update: false
+      use_accent_color: true
+```
+
+La carte mesure 104 px : en-tête de 56 px et slider natif de 36 px, avec les
+retraits Signature. L’icône reste visible sur téléphone. Le slider reprend
+l’accent configuré et son repère suit les couleurs du thème. Lorsqu’une
+entité est indisponible, le slider est grisé et non interactif ; le texte
+de repli reste défini dans le dashboard. Le module habille les nœuds Bubble
+existants ; il n’ajoute aucun contrôleur, abonnement ou gestionnaire de geste.
+Le slider envoie la commande native uniquement à la fin du geste.
 
 Le CSS de chaque mode est mis en cache par carte et version ; les templates sont
 relus à chaque rendu. Les couleurs de texte, surfaces et rayons restent des

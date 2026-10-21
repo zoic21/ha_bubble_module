@@ -50,3 +50,49 @@ test('Hue popup only changes the lamp grid below its 320px container threshold',
   assert.deepEqual(result.columns,['4',width<=320?'3':'4','4']);assert.equal(result.radius,'18px');
  }
 });
+
+test('Hue bottom brightness slider has a separate full-width row and follows native availability and theme',async t=>{
+ const page=await fixture(t);
+ for(const width of [288,320,382,600])for(const mode of ['light','dark'])for(const plain of [false,true]){
+  await render(page,{width,mode,plain});
+  const result=await page.evaluate(({hue,compact})=>{
+   const ctx=contexts.find(c=>c.card.getRootNode().host.dataset.id==='compact-standard'),root=ctx.card;
+   ctx.config.signature_compact={color:'#B97918'};
+   ctx.config.signature_hue={mode:'brightness',available:true};
+   const style=document.createElement('style');root.getRootNode().append(style);
+   const frame=root.querySelector('.bubble-container'),heading=root.querySelector('.bubble-wrapper');
+   const bottom=document.createElement('div');bottom.className='bubble-sub-button-bottom-container';
+   bottom.style.cssText='position:absolute;bottom:0;display:flex';
+   bottom.innerHTML='<div class="bubble-sub-button-group" style="width:100%"><div class="bubble-sub-slider-wrapper inline" style="height:36px;width:100%"><div class="bubble-sub-button-slider inline" style="height:36px;position:relative;pointer-events:auto"><div class="bubble-range-fill" style="position:absolute;inset:0;width:10%;pointer-events:auto"></div></div></div></div>';
+   heading.append(bottom);
+   const runCompact=new Function('hass','onTeardown','renderTemplate','return `'+compact+'`;');
+   const runHue=new Function('renderTemplate','return `'+hue+'`;');
+   const update=()=>style.textContent=runCompact.call(ctx,ctx._hass,()=>{},v=>v)+runHue.call(ctx,v=>v);
+   update();
+   const icon=root.querySelector('.bubble-icon-container'),slider=bottom.querySelector('.bubble-sub-button-slider'),fill=bottom.querySelector('.bubble-range-fill');
+   const box=e=>{const r=e.getBoundingClientRect();return{x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}};
+   const before={frame:box(frame),iconBox:box(icon),slider:box(slider),icon:getComputedStyle(icon).display,accent:getComputedStyle(fill).backgroundColor};
+   ctx.config.signature_hue.available=false;update();
+   const disabled=[bottom.querySelector('.bubble-sub-slider-wrapper'),slider,fill].map(e=>getComputedStyle(e).pointerEvents);
+   ctx.config.signature_hue.available=true;update();
+   const sameNodes=slider===bottom.querySelector('.bubble-sub-button-slider')&&heading===root.querySelector('.bubble-wrapper');
+   root.style.setProperty('--primary-text-color','#123456');
+   const marker=getComputedStyle(fill,'::after').backgroundColor;
+   const enabled=getComputedStyle(slider).pointerEvents;
+   bottom.remove();update();
+   return{before,disabled,sameNodes,marker,enabled,legacyHeight:box(frame).height};
+  },{hue,compact});
+  assert.equal(result.before.frame.height,104);
+  assert.equal(result.before.icon,'flex');
+  assert.ok(Math.abs(result.before.iconBox.y-result.before.frame.y-10)<=1);
+  assert.equal(result.before.slider.height,36);
+  assert.ok(result.before.slider.y>=result.before.iconBox.bottom);
+  assert.ok(Math.abs(result.before.slider.x-result.before.frame.x-10)<=1);
+  assert.ok(Math.abs(result.before.frame.right-result.before.slider.right-10)<=1);
+  assert.ok(Math.abs(result.before.frame.bottom-result.before.slider.bottom-10)<=1);
+  assert.equal(result.before.accent,'rgb(185, 121, 24)');
+  assert.deepEqual(result.disabled,['none','none','none']);
+  assert.equal(result.enabled,'auto');assert.equal(result.sameNodes,true);
+  assert.equal(result.marker,'rgb(18, 52, 86)');assert.equal(result.legacyHeight,56);
+ }
+});
