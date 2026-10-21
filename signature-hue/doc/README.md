@@ -1,4 +1,4 @@
-# Signature Hue 1.1.0
+# Signature Hue 1.1.1
 
 Compagnon de présentation des commandes Hue natives, sans logique de contrôle.
 Importer `signature-hue/dist/signature-hue.yaml`, puis placer `signature_hue`
@@ -83,6 +83,9 @@ entité est indisponible, le slider est grisé et non interactif ; le texte
 de repli reste défini dans le dashboard. Le module habille les nœuds Bubble
 existants ; il n’ajoute aucun contrôleur, abonnement ou gestionnaire de geste.
 Le slider envoie la commande native uniquement à la fin du geste.
+
+La version 1.1.1 ancre explicitement la rangée inférieure au bord du wrapper
+natif pour conserver 10 px de chaque côté, sans cumuler le padding de l’en-tête.
 
 Le CSS de chaque mode est mis en cache par carte et version ; les templates sont
 relus à chaque rendu. Les couleurs de texte, surfaces et rayons restent des

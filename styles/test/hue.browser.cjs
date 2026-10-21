@@ -87,9 +87,9 @@ test('Hue bottom brightness slider has a separate full-width row and follows nat
   assert.ok(Math.abs(result.before.iconBox.y-result.before.frame.y-10)<=1);
   assert.equal(result.before.slider.height,36);
   assert.ok(result.before.slider.y>=result.before.iconBox.bottom);
-  assert.ok(Math.abs(result.before.slider.x-result.before.frame.x-10)<=1);
-  assert.ok(Math.abs(result.before.frame.right-result.before.slider.right-10)<=1);
-  assert.ok(Math.abs(result.before.frame.bottom-result.before.slider.bottom-10)<=1);
+  assert.ok(Math.abs(result.before.slider.x-result.before.frame.x-10)<=1,JSON.stringify(result));
+  assert.ok(Math.abs(result.before.frame.right-result.before.slider.right-10)<=1,JSON.stringify(result));
+  assert.ok(Math.abs(result.before.frame.bottom-result.before.slider.bottom-10)<=1,JSON.stringify(result));
   assert.equal(result.before.accent,'rgb(185, 121, 24)');
   assert.deepEqual(result.disabled,['none','none','none']);
   assert.equal(result.enabled,'auto');assert.equal(result.sameNodes,true);

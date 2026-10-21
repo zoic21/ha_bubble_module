@@ -35,7 +35,8 @@ ha-card[data-dp-layout="compact"]:has(.bubble-sub-button-bottom-container .bubbl
   display: flex !important;
 }
 ha-card[data-dp-layout="compact"] .bubble-sub-button-bottom-container {
-  width: calc(100% - 20px);
+  inset-inline-start: 0;
+  width: calc(100% - 18px);
   margin: 0 9px 9px !important;
 }
 ha-card[data-dp-layout="compact"] .bubble-sub-button-bottom-container .bubble-sub-button-slider.inline {
