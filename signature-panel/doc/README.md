@@ -1,5 +1,22 @@
 # Signature Panel
 
+## 1.4.5 — 27 octobre 2026 — sélecteur à côté de la mesure
+
+Sur les en-têtes illustrés avec une seule mesure et un sélecteur natif,
+le mode reste à côté de la valeur dès **350 px de largeur de carte**,
+y compris sous l’ancien seuil mobile de 520 px. Sous 350 px, le groupe
+reste dessous pour préserver les textes, les cibles de 44 px et le dessin.
+Les en-têtes à plusieurs mesures et les autres présentations sont conservés.
+
+Le seuil est lu sur un conteneur CSS nommé au niveau de la carte : le
+conteneur interne de Bubble et ses retraits ne doivent pas décaler la règle
+appliquée au sélecteur par rapport à celle des colonnes. Aucun calcul de
+largeur JavaScript, observateur ou CSS de carte supplémentaire.
+
+Importer uniquement **Signature Panel 1.4.5**, puis recharger le frontend.
+Les modes, entités et actions natives ne changent pas. Contrôles Chromium
+avec Bubble réel et environnement HA simulé, sans essai HA réel/Safari.
+
 ## 1.4.4 — 27 octobre 2026 — synthèse réduite
 
 La synthèse illustrée devient plus compacte sur ordinateur : **160 px de

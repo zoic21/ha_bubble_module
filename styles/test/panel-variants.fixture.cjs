@@ -24,11 +24,11 @@ async function setup(t){
 async function draw(page,scenario){
  await page.evaluate(({scenario,code,theme,nativeModes})=>{
   window.card?.remove();
-  const {width,mode,plain,kind,primary=true}=scenario;
+  const {width,mode,plain,kind,primary=true,poolMode='Normal'}=scenario;
   document.documentElement.style.cssText=Object.entries({...nativeModes[mode],...(plain?{}:{...theme,...theme.modes[mode]})}).filter(([k])=>k!=='modes').map(([k,v])=>'--'+k+':'+v).join(';');
   document.querySelector('#cards').style.width=width+'px';
   const state=(v,u)=>({state:String(v),attributes:{unit_of_measurement:u}});
-  window.hass={states:{'sensor.temperature':state(22.8,'°C'),'sensor.humidity':state(64,'%'),'sensor.salt':state(2.8,'g/L'),'sensor.ph':state(7.2,''),'sensor.redox':state(720,'mV'),'switch.ph':state('on',''),'switch.redox':state('off',''),'device_tracker.mower':state('home',''),'lawn_mower.demo':state('docked',''),'input_select.mode':{state:'Normal',attributes:{options:['Normal','Hivers']}}},
+  window.hass={states:{'sensor.temperature':state(22.8,'°C'),'sensor.humidity':state(64,'%'),'sensor.salt':state(2.8,'g/L'),'sensor.ph':state(7.2,''),'sensor.redox':state(720,'mV'),'switch.ph':state('on',''),'switch.redox':state('off',''),'device_tracker.mower':state('home',''),'lawn_mower.demo':state('docked',''),'input_select.mode':{state:poolMode,attributes:{options:['Normal','Hivers']}}},
    locale:{language:'fr',number_format:'language'},language:'fr',themes:{darkMode:mode==='dark'},config:{unit_system:{temperature:'°C'},time_zone:'Europe/Paris'},hassUrl:p=>new URL(p,'https://ha.example.test').href,
    localize:()=>undefined,formatEntityState:s=>s.state,formatEntityAttributeValue:(s,k,v)=>v,
    connection:{subscribeMessage:async(cb,msg)=>{if(msg.type==='render_template'){window.templateMessages ||= [];templateMessages.push(msg.template);cb({result:msg.template.includes('primary')?String(primary):'0 %'});}return()=>{}},subscribeEvents:async()=>()=>{}},

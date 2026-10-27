@@ -2,6 +2,7 @@
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"], ha-card[data-dp-layout="panel"][data-dp-panel-variant="strip"] { container-type: inline-size; }
 /* Native two-column pages contain the whole view; the heading fills its section. */
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] {
+  container-name: signature-panel-heading;
   width: 100%; max-width: var(--signature-panel-heading-max-width,none);
   margin-inline: 0; box-sizing: border-box;
 }
@@ -113,4 +114,14 @@ ha-card[data-dp-layout="panel"][data-dp-panel-variant="strip"] :is(.dp-secondary
     grid-column: 2; grid-row: calc(var(--dp-panel-column,1) * 2 - 1); max-width: 100%; justify-self: end;
   }
   ha-card[data-dp-layout="panel"][data-dp-panel-variant="strip"] .bubble-sub-button { grid-column: 2; grid-row: calc(var(--dp-panel-column,1) * 2); }
+}
+/* One reading and a native selector fit beside each other on ordinary phones.
+   Keep the narrower fallback and the multi-reading heading geometry intact. */
+@container signature-panel-heading (min-width: 350px) {
+  ha-card[data-dp-panel-variant="heading"][data-dp-panel-count="1"]:has(.is-select) .bubble-container {
+    grid-template-columns: minmax(0,max-content) max-content minmax(0,1fr) var(--dp-panel-artwork-width);
+  }
+  ha-card[data-dp-panel-variant="heading"][data-dp-panel-count="1"]:has(.is-select) .bubble-sub-button-container {
+    grid-row: 3; grid-column: 2;
+  }
 }
