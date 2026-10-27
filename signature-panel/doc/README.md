@@ -1,5 +1,18 @@
 # Signature Panel
 
+## 1.4.7 — 27 octobre 2026 — mode centré entre valeur et illustration
+
+Avec une seule mesure et un sélecteur natif, le mode est désormais centré
+dans l’espace entre la valeur et le dessin dès 350 px, sur ordinateur et
+téléphone. Les espaces de part et d’autre du sélecteur sont égaux, au lieu
+de garder tout l’espace libre à sa droite. Température, illustration,
+hauteur, tailles et commandes conservent leurs réglages. Le repli étroit
+sous 350 px reste disponible. Aucun CSS par carte.
+
+Importer uniquement **Signature Panel 1.4.7**, puis recharger le frontend.
+Les contrôles Chromium vérifient Normal/Hivers en clair et sombre, de
+288 à 1 032 px, avec Bubble réel et environnement HA simulé.
+
 ## 1.4.6 — 27 octobre 2026 — mesures rapprochées et mieux réparties
 
 Les en-têtes illustrés suppriment la rangée extensible qui éloignait les

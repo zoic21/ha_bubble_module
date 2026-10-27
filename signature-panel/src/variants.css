@@ -119,13 +119,12 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] .bubble-sub-button { grid-column: 2; grid-row: calc(var(--dp-panel-column,1) * 2); }
 }
-/* One reading and a native selector fit beside each other on ordinary phones.
-   Keep the narrower fallback and the multi-reading heading geometry intact. */
+/* Center the selector in the space between one reading and the artwork. */
 @container signature-panel-heading (min-width: 350px) {
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="1"]:has(.is-select) .bubble-container {
-    grid-template-columns: minmax(0,max-content) max-content minmax(0,1fr) var(--dp-panel-artwork-width);
+    grid-template-columns: minmax(0,max-content) minmax(max-content,1fr) var(--dp-panel-artwork-width);
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="1"]:has(.is-select) .bubble-sub-button-container {
-    grid-row: 3; grid-column: 2;
+    grid-row: 3; grid-column: 2; justify-self: center;
   }
 }

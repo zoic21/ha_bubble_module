@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.6**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.7**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1089,3 +1089,16 @@ l’écart au titre et le retrait sous les valeurs, sur téléphone et ordinateu
 Préserver les titres longs, les modes Normal/Hivers, les cibles de 44 px, les
 actions et les nœuds au redimensionnement. Aucun observateur, abonnement,
 timer ou mesure JavaScript supplémentaire ; pas de CSS dans les cartes.
+
+
+### Panel 1.4.7 — équilibrer le sélecteur d’une mesure
+
+Dès 350 px, une mesure avec sélecteur utilise trois pistes : valeur
+intrinsèque, espace central souple d’au moins la largeur du sélecteur,
+illustration réservée. Centrer le conteneur natif dans la deuxième piste :
+les écarts valeur/sélecteur et sélecteur/dessin sont égaux. Conserver
+l’alignement vertical, les cibles de 44 px, les dimensions de 1.4.6, les
+nœuds/actions et le repli sous 350 px. Les autres en-têtes et Panels restent
+inchangés. Vérifier Normal/Hivers en clair/sombre et aux seuils, dont 386 px
+proche de la capture mobile. Aucun déplacement de nœud, calcul de largeur
+JavaScript, observateur, abonnement ou CSS local supplémentaire.

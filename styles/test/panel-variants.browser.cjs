@@ -30,7 +30,8 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
   if(kind==='mode'&&width>=350){
    const value=m.fields.find(f=>f.cls.includes('bubble-state')),control=m.fields.find(f=>f.cls.includes('is-select'));
    assert.ok(Math.abs((value.top+value.bottom-control.top-control.bottom)/2)<1,'mode must align with temperature: '+hint);
-   assert.ok(control.left-value.right>=8&&control.left-value.right<=56,'mode must stay beside temperature: '+hint);
+   const before=control.left-value.right,after=m.width-m.artwork.right-m.artwork.width-control.right;
+   assert.ok(before>=8&&Math.abs(before-after)<2,'mode must be centered between temperature and illustration: '+hint);
   }
   if(kind!=='strip'){
    for(const field of m.fields.filter(f=>!f.cls.includes('settings')))
@@ -91,22 +92,23 @@ test('a heading fills its section through resize and preserves a live explicit w
  assert.equal((await page.evaluate(()=>calls.at(-1))).config.entity,'sensor.humidity');
 });
 
-test('a single-reading heading keeps Normal and Hivers beside temperature from 350 px, with a narrow fallback',{skip:!nativePath},async t=>{
+test('a single-reading heading centers Normal and Hivers between temperature and artwork from 350 px, with a narrow fallback',{skip:!nativePath},async t=>{
  const page=await setup(t);
- for(const width of [288,328,349,350,358,382,480,520,521,600,1032])for(const poolMode of ['Normal','Hivers']){
-  await draw(page,{width,mode:'light',kind:'mode',poolMode});
+ for(const width of [288,328,349,350,358,382,386,480,520,521,600,1032])for(const mode of ['light','dark'])for(const poolMode of ['Normal','Hivers']){
+  await draw(page,{width,mode,kind:'mode',poolMode});
   const m=await page.evaluate(()=>{
    const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect();
    const rect=el=>{const r=el.getBoundingClientRect();return{left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,width:r.width,height:r.height}};
    const value=rect(root.querySelector('.bubble-state')),select=root.querySelector('.is-select'),label=select.querySelector('.bubble-sub-button-name-container'),art=getComputedStyle(host,'::after'),layout=getComputedStyle(host),lastTrack=parseFloat(layout.gridTemplateColumns.split(' ').at(-1));
    return{value,control:rect(select),text:label.textContent,overflow:label.scrollWidth-label.clientWidth,artStart:frame.width-parseFloat(layout.paddingRight)-(lastTrack+parseFloat(art.width))/2};
   });
-  const hint=JSON.stringify({width,poolMode,m});
+  const hint=JSON.stringify({width,mode,poolMode,m});
   assert.equal(m.text.trim(),poolMode,hint);assert.ok(m.overflow<=1,hint);assert.equal(m.control.height,44,hint);
   assert.ok(m.control.right<=m.artStart+1,'keep the selector clear of the illustration: '+hint);
   if(width>=350){
    assert.ok(Math.abs((m.value.top+m.value.bottom-m.control.top-m.control.bottom)/2)<1,'align selector and temperature: '+hint);
-   assert.ok(m.control.left-m.value.right>=8&&m.control.left-m.value.right<=56,'place selector immediately after temperature: '+hint);
+   const before=m.control.left-m.value.right,after=m.artStart-m.control.right;
+   assert.ok(before>=8&&Math.abs(before-after)<2,'balance horizontal space on both sides of the selector: '+hint);
   }else assert.ok(m.control.top>=m.value.bottom,'keep the selector below when the row is too narrow: '+hint);
  }
  // Resizing must change only CSS placement, preserving native select and actions.
