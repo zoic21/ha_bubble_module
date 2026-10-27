@@ -1,5 +1,26 @@
 # Signature Panel
 
+## 1.4.9 — 27 octobre 2026 — colonnes centrées avec commandes
+
+Les en-têtes avec commandes utilisent une zone centrée par mesure, une pour
+le groupe de commandes et une pour l’illustration. La piscine aligne ainsi
+température, mode et dessin dans trois zones régulières, dès 350 px. La
+température ne reste plus contre le bord. Chaque piste conserve au moins
+la largeur intrinsèque de son contenu pour préserver les libellés.
+
+Le même principe s’applique au Jardin avec sa commande de tondeuse : quatre
+zones sur grand écran, groupe centré sous les mesures lorsqu’il passe sur
+une autre ligne. Une commande masquée libère sa colonne, y compris pour un
+sélecteur. Les marges verticales, tailles, cibles et actions sont conservées.
+
+Audit des vingt en-têtes de pièces : Piscine et Jardin sont les deux cas
+avec commandes hors badge de scénarios. Les essais Chromium couvrent les
+modes Normal/Hivers, les états présent/absent de la tondeuse, le masquage
+et le redimensionnement avec Bubble réel et un environnement HA simulé.
+
+Importer uniquement **Signature Panel 1.4.9**, puis recharger le frontend.
+Aucun CSS par carte ni nouvelle importation de dashboard.
+
 ## 1.4.8 — 27 octobre 2026 — équilibre des marges verticales
 
 Dans les en-têtes illustrés, l’espace disponible sous les mesures est

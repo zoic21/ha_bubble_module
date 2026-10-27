@@ -30,8 +30,8 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
   if(kind==='mode'&&width>=350){
    const value=m.fields.find(f=>f.cls.includes('bubble-state')),control=m.fields.find(f=>f.cls.includes('is-select'));
    assert.ok(Math.abs((value.top+value.bottom-control.top-control.bottom)/2)<1,'mode must align with temperature: '+hint);
-   const before=control.left-value.right,after=m.width-m.artwork.right-m.artwork.width-control.right;
-   assert.ok(before>=8&&Math.abs(before-after)<2,'mode must be centered between temperature and illustration: '+hint);
+   const centers=[(value.left+value.right)/2,(control.left+control.right)/2,m.width-m.artwork.right-m.artwork.width/2];
+   assert.ok(control.left-value.right>=8&&Math.abs((centers[1]-centers[0])-(centers[2]-centers[1]))<2,'temperature, mode and illustration must occupy balanced centered zones: '+hint);
   }
   if(kind!=='strip'){
    for(const field of m.fields.filter(f=>!f.cls.includes('settings')))
@@ -100,15 +100,15 @@ test('a single-reading heading centers Normal and Hivers between temperature and
    const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect();
    const rect=el=>{const r=el.getBoundingClientRect();return{left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,width:r.width,height:r.height}};
    const value=rect(root.querySelector('.bubble-state')),select=root.querySelector('.is-select'),label=select.querySelector('.bubble-sub-button-name-container'),art=getComputedStyle(host,'::after'),layout=getComputedStyle(host),lastTrack=parseFloat(layout.gridTemplateColumns.split(' ').at(-1));
-   return{value,control:rect(select),text:label.textContent,overflow:label.scrollWidth-label.clientWidth,artStart:frame.width-parseFloat(layout.paddingRight)-(lastTrack+parseFloat(art.width))/2};
+   return{value,control:rect(select),text:label.textContent,overflow:label.scrollWidth-label.clientWidth,artStart:frame.width-parseFloat(layout.paddingRight)-(lastTrack+parseFloat(art.width))/2,artCenter:frame.width-parseFloat(layout.paddingRight)-lastTrack/2};
   });
   const hint=JSON.stringify({width,mode,poolMode,m});
   assert.equal(m.text.trim(),poolMode,hint);assert.ok(m.overflow<=1,hint);assert.equal(m.control.height,44,hint);
   assert.ok(m.control.right<=m.artStart+1,'keep the selector clear of the illustration: '+hint);
   if(width>=350){
    assert.ok(Math.abs((m.value.top+m.value.bottom-m.control.top-m.control.bottom)/2)<1,'align selector and temperature: '+hint);
-   const before=m.control.left-m.value.right,after=m.artStart-m.control.right;
-   assert.ok(before>=8&&Math.abs(before-after)<2,'balance horizontal space on both sides of the selector: '+hint);
+   const centers=[(m.value.left+m.value.right)/2,(m.control.left+m.control.right)/2,m.artCenter];
+   assert.ok(m.control.left-m.value.right>=8&&Math.abs((centers[1]-centers[0])-(centers[2]-centers[1]))<2,'center each item in a balanced zone: '+hint);
   }else assert.ok(m.control.top>=m.value.bottom,'keep the selector below when the row is too narrow: '+hint);
  }
  // Resizing must change only CSS placement, preserving native select and actions.
@@ -139,5 +139,46 @@ test('headings reuse existing vertical space without increasing height or moving
   assert.ok(Math.abs(m.current.title.top-m.previous.title.top)<.1,'keep the title in place: '+hint);
   assert.equal(m.current.fields.length,m.previous.fields.length,hint);
   m.current.fields.forEach((f,i)=>{const old=m.previous.fields[i];const shrink=f.cls.includes('sub-button-container')?m.previous.height-m.current.height:0;assert.ok(f.top>=old.top-shrink-.1,'keep values below their previous position and footer controls within the original height: '+hint);assert.ok(Math.abs(f.left-old.left)<.1&&Math.abs(f.right-old.right)<.1,'keep horizontal positioning unchanged: '+hint);});
+ }
+});
+
+test('conditional garden controls use centered zones and release their column when hidden',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [328,382,600,900,1032])for(const mode of ['light','dark'])for(const mowerHome of [true,false]){
+  await draw(page,{width,mode,kind:'mower',mowerHome});
+  const m=await page.evaluate(()=>{
+   const root=card.card,host=root.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),art=getComputedStyle(host,'::after'),tracks=s.gridTemplateColumns.split(' ').map(parseFloat);
+   const center=e=>{const b=e.getBoundingClientRect();return(b.left+b.right)/2-r.left};
+   const button=root.querySelector('.bubble-sub-button-container .bubble-sub-button'),values=[...root.querySelectorAll('.bubble-state,.dp-panel-state')].map(center);
+   return{columns:tracks.length,values,control:center(button),visible:getComputedStyle(button).display!=='none',art:r.width-parseFloat(s.paddingRight)-tracks.at(-1)/2};
+  });
+  const hint=JSON.stringify({width,mode,mowerHome,m});
+  assert.equal(m.visible,mowerHome,hint);assert.equal(m.columns,mowerHome&&width>760?4:3,hint);
+  if(mowerHome&&width>760){
+   const centers=[...m.values,m.control,m.art],gaps=centers.slice(1).map((c,i)=>c-centers[i]);
+   assert.ok(Math.max(...gaps)-Math.min(...gaps)<2,'center all four garden fields in regular columns: '+hint);
+  }else{
+   assert.ok(Math.abs((m.values[1]-m.values[0])-(m.art-m.values[1]))<2,'keep readings and artwork balanced when controls wrap or disappear: '+hint);
+   if(mowerHome)assert.ok(Math.abs(m.control-(m.values[0]+m.values[1])/2)<2,'center footer commands under the readings: '+hint);
+  }
+ }
+ await draw(page,{width:1032,mode:'dark',kind:'mower'});
+ await page.evaluate(()=>window.savedMower=card.card.querySelector('.bubble-sub-button-container .bubble-sub-button'));
+ for(const state of ['not_home','home']){
+  await page.evaluate(state=>{window.hass={...hass,states:{...hass.states,'device_tracker.mower':{...hass.states['device_tracker.mower'],state}}};card.hass=hass;},state);
+  await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,state==='home'?4:3);
+  assert.equal(await page.evaluate(()=>savedMower===card.card.querySelector('.bubble-sub-button-container .bubble-sub-button')),true);
+ }
+});
+
+test('hiding a native selector removes its reserved heading column without replacing nodes',{skip:!nativePath},async t=>{
+ const page=await setup(t);await draw(page,{width:386,mode:'dark',kind:'mode',poolMode:'Hivers'});
+ await page.evaluate(()=>window.savedMode=card.card.querySelector('.is-select'));
+ for(const method of ['class','attribute']){
+  await page.evaluate(method=>{if(method==='class')savedMode.classList.add('hidden');else savedMode.hidden=true;},method);
+  await page.waitForFunction(()=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===2);
+  await page.evaluate(method=>{if(method==='class')savedMode.classList.remove('hidden');else savedMode.hidden=false;},method);
+  await page.waitForFunction(()=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===3);
+  assert.equal(await page.evaluate(()=>savedMode===card.card.querySelector('.is-select')),true);
  }
 });

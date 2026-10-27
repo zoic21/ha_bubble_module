@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.8**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.9**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1120,3 +1120,25 @@ cibles de 44 px et actions natives. Ni déplacement de nœud ni JavaScript
 de géométrie. Les autres variantes ne changent pas. Vérifier les marges
 haute/basse et comparer la hauteur ainsi que les positions horizontales au
 contrat précédent sur les mêmes nœuds natifs, avec titres longs et commandes.
+
+
+### Panel 1.4.9 — colonnes régulières pour valeurs et commandes
+
+Avec commandes visibles sur une ligne, réserver une piste souple par mesure,
+une pour le groupe natif et une pour le dessin. Chaque mesure/commande utilise
+`minmax(max-content,1fr)` ; la piste du dessin garde sa largeur minimale
+réservée. Centrer le conteneur des commandes dans sa zone, comme les valeurs
+et le dessin. Le groupe reste centré sous les mesures lors du repli.
+
+La piscine garde trois pistes centrées dès 350 px : température, mode et
+illustration. Retirer l’exception qui fixait la première valeur au bord.
+Le Jardin partage la règle à quatre pistes quand la tondeuse est visible
+sur grand écran. Une commande cachée libère sa piste ; l’exception du
+sélecteur ne doit pas rester active sur une commande `.hidden` ou `[hidden]`.
+Les dix-huit autres en-têtes de pièces n’ont pas de commande hors badge.
+
+Conserver les marges verticales de 1.4.8, les cibles de 44 px, les conditions
+et nœuds natifs. Vérifier les distances entre centres, les largeurs limites,
+Normal/Hivers, la visibilité de la tondeuse et le masquage d’un sélecteur.
+Les bandeaux de traitement et autres Panels gardent leurs règles. Aucun
+CSS de carte, déplacement de nœud, observateur ou calcul de largeur ajouté.

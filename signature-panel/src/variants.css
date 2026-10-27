@@ -50,7 +50,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-badges .b
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-badges .bubble-sub-button-icon { --mdc-icon-size: 18px; }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container {
   display: flex; flex-wrap: wrap; gap: 8px; min-height: 0;
-  grid-row: 3; grid-column: calc(var(--dp-panel-count) + 1); align-self: center;
+  grid-row: 3; grid-column: calc(var(--dp-panel-count) + 1); place-self: center;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container .bubble-sub-button {
   height: 44px; padding-inline: 14px; max-width: 100%;
@@ -59,7 +59,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .is-select .bubble-sub-button-icon { color: var(--dp-accent); }
 /* Visible native controls get their own track on wide headings. */
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container:where(:has(.bubble-sub-button-container .bubble-sub-button:not(.hidden):not([hidden]))) {
-  grid-template-columns: repeat(var(--dp-panel-count),minmax(0,1fr)) max-content minmax(var(--dp-panel-artwork-width),1fr);
+  grid-template-columns: repeat(var(--dp-panel-count),minmax(max-content,1fr)) minmax(max-content,1fr) minmax(var(--dp-panel-artwork-width),1fr);
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="0"] .bubble-container {
   min-height: 112px !important; --dp-panel-artwork-size: 96px;
@@ -119,12 +119,12 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] .bubble-sub-button { grid-column: 2; grid-row: calc(var(--dp-panel-column,1) * 2); }
 }
-/* Center the selector in the space between one reading and the artwork. */
+/* One reading, its visible selector and artwork each get a centered zone. */
 @container signature-panel-heading (min-width: 350px) {
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="1"]:has(.is-select) .bubble-container {
-    grid-template-columns: minmax(0,max-content) minmax(max-content,1fr) var(--dp-panel-artwork-width);
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="1"]:has(.is-select:not(.hidden,[hidden])) .bubble-container {
+    grid-template-columns: repeat(2,minmax(max-content,1fr)) minmax(var(--dp-panel-artwork-width),1fr);
   }
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="1"]:has(.is-select) .bubble-sub-button-container {
-    grid-row: 3; grid-column: 2; justify-self: center;
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="1"]:has(.is-select:not(.hidden,[hidden])) .bubble-sub-button-container {
+    grid-row: 3; grid-column: 2;
   }
 }
