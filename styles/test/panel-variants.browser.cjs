@@ -49,7 +49,7 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
     const centers=[(temperature.left+temperature.right)/2,(humidity.left+humidity.right)/2,m.width-m.artwork.right-m.artwork.width/2];
     assert.ok(Math.abs((centers[1]-centers[0])-(centers[2]-centers[1]))<2,'the two measurements and artwork must be evenly spaced: '+hint);
     const title=m.fields.find(f=>f.cls.includes('dp-panel-title'));
-    assert.ok(temperature.top-title.bottom<=8,'bring the measurements close to the title: '+hint);
+    assert.ok(Math.abs(m.height-temperature.bottom-title.top)<1,'balance the top title margin and bottom value margin: '+hint);
     assert.ok(m.height-temperature.bottom<=30,'remove unused space below measurements: '+hint);
     if(m.width<=520)assert.ok(m.height<=102+Math.max(0,title.bottom-title.top-28),'phone summary grows only for wrapped titles: '+hint);
     if(m.width>=382&&m.width<=520)assert.ok(title.bottom-title.top<=30,'use the space before the artwork to avoid an unnecessary second title line: '+hint);
@@ -118,5 +118,26 @@ test('a single-reading heading centers Normal and Hivers between temperature and
   await page.evaluate(width=>document.querySelector('#cards').style.width=width+'px',width);
   await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
   assert.equal(await page.evaluate(()=>savedSelect===card.card.querySelector('.is-select')),true);
+ }
+});
+
+test('headings reuse existing vertical space without increasing height or moving horizontal positions',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,382,600,1032])for(const kind of ['single','double','mode','mower'])for(const mode of ['light','dark']){
+  await draw(page,{width,kind,mode});
+  const m=await page.evaluate(async width=>{
+   const host=card.card.querySelector('.bubble-container');
+   const read=()=>{const r=host.getBoundingClientRect();const rect=e=>{const b=e.getBoundingClientRect();return{cls:e.className,top:b.top-r.top,bottom:b.bottom-r.top,left:b.left-r.left,right:b.right-r.left}};return{height:r.height,title:rect(host.querySelector('.dp-panel-title')),fields:[...host.querySelectorAll('.bubble-state,.dp-panel-state,.bubble-sub-button-container')].filter(e=>e.getBoundingClientRect().height>0).map(rect)}};
+   const current=read();
+   // Compare against the previous 1.4.7 row contract on these same native nodes.
+   host.style.setProperty('grid-template-rows',`minmax(${width<=520?28:32}px,max-content) 4px minmax(44px,max-content) auto auto`,'important');
+   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+   return{current,previous:read()};
+  },width);
+  const hint=JSON.stringify({width,kind,mode,m});
+  assert.ok(m.current.height<=m.previous.height+.1,'reuse space without increasing the card height: '+hint);
+  assert.ok(Math.abs(m.current.title.top-m.previous.title.top)<.1,'keep the title in place: '+hint);
+  assert.equal(m.current.fields.length,m.previous.fields.length,hint);
+  m.current.fields.forEach((f,i)=>{const old=m.previous.fields[i];const shrink=f.cls.includes('sub-button-container')?m.previous.height-m.current.height:0;assert.ok(f.top>=old.top-shrink-.1,'keep values below their previous position and footer controls within the original height: '+hint);assert.ok(Math.abs(f.left-old.left)<.1&&Math.abs(f.right-old.right)<.1,'keep horizontal positioning unchanged: '+hint);});
  }
 });

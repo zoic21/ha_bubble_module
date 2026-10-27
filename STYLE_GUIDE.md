@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.7**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.8**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1102,3 +1102,21 @@ nœuds/actions et le repli sous 350 px. Les autres en-têtes et Panels restent
 inchangés. Vérifier Normal/Hivers en clair/sombre et aux seuils, dont 386 px
 proche de la capture mobile. Aucun déplacement de nœud, calcul de largeur
 JavaScript, observateur, abonnement ou CSS local supplémentaire.
+
+
+### Panel 1.4.8 — équilibrer les retraits haut et bas des en-têtes
+
+La piste entre le titre et les valeurs devient `minmax(4px,1fr)` au lieu
+de 4 px fixes, sur ordinateur comme sur mobile. Elle absorbe l’espace libre
+qui restait dans les rangées automatiques après les valeurs. Le retrait
+sous la dernière ligne utile correspond au retrait au-dessus du titre ;
+les valeurs ne sont plus collées à la rangée du titre quand de la place
+est disponible. La hauteur n’augmente pas ; les titres longs et les
+commandes sur une rangée supplémentaire gardent leur place nécessaire.
+Sans espace libre, ne pas créer une marge qui agrandirait la carte.
+
+Conserver les pistes horizontales, le sélecteur Piscine centré, les tailles,
+cibles de 44 px et actions natives. Ni déplacement de nœud ni JavaScript
+de géométrie. Les autres variantes ne changent pas. Vérifier les marges
+haute/basse et comparer la hauteur ainsi que les positions horizontales au
+contrat précédent sur les mêmes nœuds natifs, avec titres longs et commandes.

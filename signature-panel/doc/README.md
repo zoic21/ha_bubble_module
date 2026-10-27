@@ -1,5 +1,20 @@
 # Signature Panel
 
+## 1.4.8 — 27 octobre 2026 — équilibre des marges verticales
+
+Dans les en-têtes illustrés, l’espace disponible sous les mesures est
+reporté entre le titre et la ligne des valeurs. La marge sous cette ligne
+correspond ainsi à celle au-dessus du titre, sur ordinateur et téléphone.
+La hauteur n’augmente pas ; les titres longs et les rangées de commandes
+gardent leur place utile. Les alignements horizontaux et le centrage du
+mode Piscine restent conservés, ainsi que les cibles natives de 44 px.
+
+Ce réglage est centralisé dans le module, sans CSS par carte, déplacement
+de nœud ni mesure JavaScript. Importer uniquement **Signature Panel 1.4.8**,
+puis recharger le frontend. Les panneaux classiques, lecteurs et bandeaux
+de traitement gardent leur disposition. Les essais Chromium utilisent
+Bubble réel et un environnement HA simulé, sans essai HA réel/Safari.
+
 ## 1.4.7 — 27 octobre 2026 — mode centré entre valeur et illustration
 
 Avec une seule mesure et un sélecteur natif, le mode est désormais centré

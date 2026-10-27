@@ -18,7 +18,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container {
   padding: 8px 18px; column-gap: clamp(8px,1.5cqw,20px); row-gap: 0; align-content: start;
   /* Measurements and artwork occupy equal zones; no empty control track. */
   grid-template-columns: repeat(calc(var(--dp-panel-count) + 1),minmax(0,1fr));
-  grid-template-rows: minmax(32px,max-content) 4px minmax(44px,max-content) auto auto !important;
+  grid-template-rows: minmax(32px,max-content) minmax(4px,1fr) minmax(44px,max-content) auto auto !important;
   justify-content: normal;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] :is(.dp-panel-title,.dp-panel-heading) {
@@ -96,7 +96,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
     --dp-panel-artwork-size: 80px; --dp-panel-value-size: clamp(22px,7.5cqw,var(--signature-temperature-font-size,30px));
     --dp-panel-unit-size: 13px; min-height: max(96px,calc(var(--dp-panel-artwork-size) + 16px)) !important; column-gap: 8px; padding: 8px 12px;
     grid-template-columns: repeat(calc(var(--dp-panel-count) + 1),minmax(0,1fr));
-    grid-template-rows: minmax(28px,max-content) 4px minmax(44px,max-content) auto auto !important;
+    grid-template-rows: minmax(28px,max-content) minmax(4px,1fr) minmax(44px,max-content) auto auto !important;
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-title { font-size: calc(var(--signature-name-font-size,14px) + 8px); }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-icon { --mdc-icon-size: 14px; flex-basis: 14px; margin-inline-end: 3px; }
