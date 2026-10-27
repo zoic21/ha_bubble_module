@@ -125,7 +125,8 @@ test('generated modules are current, autonomous and limited to their own present
     assert.match(definitions[layout].version,/^\d+\.\d+\.\d+$/);
     assert.ok(definitions[layout].editor[1].fields);
     assert.ok(!Object.hasOwn(definitions[layout].editor[1].fields,'layout'));
-    assert.ok(Buffer.byteLength(output.content)<70000);
+    // Panel adds the opt-in wide single-row header; keep its growth bounded to 2 KB.
+    assert.ok(Buffer.byteLength(output.content)<(layout==='panel'?72000:70000));
     for(const other of layouts.filter(name=>name!==layout))assert.ok(!definitions[layout].code.includes('ha-card[data-dp-layout="'+other+'"]'),layout+' contains '+other+' CSS');
   }
 });

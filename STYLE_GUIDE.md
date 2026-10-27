@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.9**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.10**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1142,3 +1142,28 @@ et nœuds natifs. Vérifier les distances entre centres, les largeurs limites,
 Normal/Hivers, la visibilité de la tondeuse et le masquage d’un sélecteur.
 Les bandeaux de traitement et autres Panels gardent leurs règles. Aucun
 CSS de carte, déplacement de nœud, observateur ou calcul de largeur ajouté.
+
+
+### Panel 1.4.10 — bandeaux larges sur une ligne
+
+À partir de 761 px de largeur de carte, le titre occupe une colonne à gauche,
+centré verticalement. Une piste souple par mesure, puis une pour les commandes
+visibles, répartit le contenu au centre. Le dessin a sa propre piste de largeur
+fixe au bord droit, avec le retrait latéral ordinaire. Ne plus centrer le dessin
+dans une grande zone souple. Les valeurs et le groupe natif partagent la même
+rangée, centrée verticalement ; les détails éventuels gardent une rangée auto.
+
+La base est de 100 px pour tous ces bandeaux, avec ou sans mesure. Le dessin
+passe à 80 px par défaut ; une taille explicitement supérieure réserve toujours
+son dégagement vertical. Le titre peut se replier dans sa colonne. Les cibles
+restent de 44 px. Une commande cachée libère sa colonne sans déplacer de nœud.
+Les cartes de 760 px ou moins gardent la disposition précédente, y compris
+le sélecteur Piscine et les marges mobiles. Aucun CSS par carte ni changement
+des bandeaux de traitement, des Panels classiques ou des lecteurs.
+
+Vérifier le titre, les valeurs, la commande Piscine et la tondeuse Jardin sur
+la même ligne, le dessin au bord et la hauteur commune avec Couloir ; couvrir
+les thèmes, le masquage et le passage du seuil sur les mêmes nœuds natifs.
+La distribution Panel reste sous 72 ko après mutualisation des pistes CSS ;
+les autres présentations gardent leur budget de 70 ko. Les essais Chromium
+avec Bubble réel et contexte HA simulé ne valident pas Safari ou HA installé.

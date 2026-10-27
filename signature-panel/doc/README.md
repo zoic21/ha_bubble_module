@@ -1,5 +1,24 @@
 # Signature Panel
 
+## 1.4.10 — 27 octobre 2026 — une ligne compacte sur ordinateur
+
+Les en-têtes d’au moins **761 px de large** placent le nom à gauche, les
+valeurs et commandes réparties au milieu, puis le dessin contre le bord droit.
+Tous sont centrés verticalement. Hauteur de base commune **100 px**, avec ou
+sans mesure, et illustration **80 px**. Un titre long se replie dans sa colonne ;
+un dessin explicitement plus grand ou des détails peuvent augmenter la hauteur.
+Les commandes masquées libèrent leur place et les cibles gardent 44 px.
+
+Les cartes de 760 px ou moins conservent leur rendu : disposition mobile,
+marges, trois zones Piscine dès 350 px et repli de la tondeuse inchangés.
+Le changement dépend de la largeur réelle de carte, sans mesure JavaScript.
+Pas de CSS par carte ni changement des entités, actions, conditions et atlas.
+
+Importer uniquement **Signature Panel 1.4.10**, puis recharger le frontend.
+Les tests Chromium couvrent les cinq types d’en-tête, avec/sans thème,
+clair/sombre, commandes visibles/cachées et redimensionnement. Ils utilisent
+Bubble réel avec un environnement HA simulé ; aucun essai Safari/HA installé.
+
 ## 1.4.9 — 27 octobre 2026 — colonnes centrées avec commandes
 
 Les en-têtes avec commandes utilisent une zone centrée par mesure, une pour
