@@ -87,6 +87,7 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
   if(kind!=='strip'){
    for(const field of m.fields.filter(f=>!f.cls.includes('settings')))
     assert.ok(field.right<=width-m.artwork.right-m.artwork.width+2,'reserve artwork space: '+hint);
+   assert.ok(m.artwork.width<=m.height+1,'artwork must not be clipped vertically: '+hint);
    if(width===1000&&kind!=='none')assert.ok(m.artwork.width>=250,'desktop artwork must fill the header: '+hint);
   }
   if(kind==='none'){assert.equal(m.count,'0');assert.ok(!m.fields.some(f=>f.cls.includes('state')),hint);assert.ok(m.height<120,hint);}

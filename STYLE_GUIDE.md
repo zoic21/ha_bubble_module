@@ -965,7 +965,8 @@ plusieurs mesures, les commandes passent sous les valeurs entre 521 et
 760 px ; sous 520 px, toutes les commandes passent dessous, à gauche du dessin.
 Les titres utilisent 28 px sur ordinateur, 22 px sur petite carte ; les valeurs
 36 px sur ordinateur, leur taille adaptative précédente sur petite carte.
-La hauteur minimale varie de 156 à 224 px selon la largeur. L’illustration
+La hauteur minimale varie de 156 à 280 px selon la largeur et réserve
+au moins le carré décoratif pour ne pas couper les dessins. L’illustration
 varie de 120 à 280 px sur ordinateur et de 88 à 136 px sur petite carte ; son
 calque absolu est centré verticalement et sa colonne réservée est recalculée
 au même niveau CSS que sa taille. Sans mesure, conserver un bandeau compact

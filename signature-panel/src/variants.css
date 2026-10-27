@@ -8,7 +8,7 @@ ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] .bubble-contain
   --bubble-sub-button-background-color: color-mix(in srgb,var(--dp-accent) 12%,var(--signature-card-background,var(--ha-card-background,var(--card-background-color,#fff))));
   --dp-panel-heading-row: 1; --dp-panel-name-row: 2;
   --dp-panel-value-row: 3; --dp-panel-detail-row: 4; --dp-panel-footer-row: 5;
-  position: relative; height: auto !important; min-height: clamp(156px,22cqw,224px) !important;
+  position: relative; height: auto !important; min-height: max(clamp(156px,22cqw,224px),var(--dp-panel-artwork-size)) !important;
   padding: 20px 24px; column-gap: clamp(16px,4cqw,48px); row-gap: 0;
   /* Group measurements and controls together; only the spacer absorbs width. */
   grid-template-columns: repeat(var(--dp-panel-count),minmax(0,max-content)) max-content minmax(0,1fr) var(--dp-panel-artwork-width);

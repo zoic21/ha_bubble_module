@@ -5,7 +5,8 @@
 Les en-têtes illustrés réservent une vraie place au dessin (120–280 px sur
 ordinateur, 88–136 px sur petite carte). Le titre passe à 28 px sur ordinateur
 et 22 px sur mobile ; la valeur principale atteint 36 px sur ordinateur.
-La hauteur suit la largeur de la carte, de 156 à 224 px minimum.
+La hauteur suit la largeur et réserve le dessin complet, de 156 à 280 px
+minimum.
 
 Les sélecteurs restent près des valeurs, sur la même ligne sur ordinateur,
 avec un fond discret. Ils passent dessous sur mobile, toujours à gauche du
