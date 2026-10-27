@@ -1,5 +1,30 @@
 # Signature Panel
 
+## 1.4.6 — 27 octobre 2026 — mesures rapprochées et mieux réparties
+
+Les en-têtes illustrés suppriment la rangée extensible qui éloignait les
+valeurs du titre. Retraits verticaux de **8 px**, écart de **4 px** entre
+le titre et les valeurs, cible de mesure conservée à **44 px**. La base
+passe à environ **114–116 px sur ordinateur** et **96–100 px sur téléphone**
+avec un titre sur une ligne. Un titre long ou des commandes supplémentaires
+augmentent seulement la place nécessaire.
+
+Sans commande, chaque mesure et l’illustration occupent une colonne de
+largeur égale, avec leur contenu centré. Une seule mesure ne reste plus
+collée au bord ; deux mesures et le dessin forment trois zones régulières
+sur ordinateur comme sur mobile. Illustration **96 px** sur ordinateur,
+**80 px** sur téléphone. Le sélecteur Piscine reste à côté de la température
+dès 350 px et les commandes supplémentaires gardent leur repli.
+
+Les seuils de largeur des en-têtes consultent le même conteneur CSS nommé.
+Les hauteurs restent automatiques ; pas de déplacement de nœud, calcul de
+largeur JavaScript ou CSS local. Les panneaux classiques, lecteurs, bandeaux
+de traitement et autres modules gardent leur présentation.
+
+Importer uniquement **Signature Panel 1.4.6**, puis recharger le frontend.
+Les contrôles Chromium utilisent Bubble réel avec un environnement HA
+simulé ; ils ne constituent pas un essai dans HA réel ou Safari/iOS.
+
 ## 1.4.5 — 27 octobre 2026 — sélecteur à côté de la mesure
 
 Sur les en-têtes illustrés avec une seule mesure et un sélecteur natif,

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.5**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.6**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1060,3 +1060,30 @@ de 44 px, mesures multiples, bandes de traitement et autres Panels restent
 inchangés. Aucun déplacement de nœud, observateur, abonnement ou calcul de
 largeur. Vérifier Normal/Hivers aux seuils et le redimensionnement des
 mêmes nœuds natifs, en plus de la matrice clair/sombre avec/sans thème.
+
+
+### Panel 1.4.6 — retirer les rangées vides et équilibrer les mesures
+
+Heading : padding vertical 8 px, titre sur une piste de 32 px (28 px mobile),
+espace de 4 px et valeurs sur une piste intrinsèque d’au moins 44 px. Retirer
+le `1fr` vertical qui gonflait l’écart titre/valeurs. Minimum 112 px ou dessin
+avec 16 px de dégagement sur ordinateur ; 96 px sur mobile. Les bordures et
+le contenu natif donnent environ 114–116 px sur ordinateur. Un titre sur
+deux lignes ou une rangée de commandes ajoute seulement sa hauteur utile.
+Les valeurs gardent leurs rôles de taille précédents et leurs cibles natives.
+
+Sans commande visible, une colonne égale par mesure et une pour le dessin ;
+centrer les mesures et le pseudo-élément dans leur zone, sans piste de
+commande vide. Le dessin participe à la grille, mesure 96 px sur ordinateur
+et 80 px sous 520 px. Les en-têtes sans mesure gardent leurs formats. Avec
+commandes sur grand écran, réserver une piste intrinsèque ; sous 760 px,
+le groupe va dessous. Une seule mesure avec sélecteur garde l’exception de
+350 px et sa place à côté de la valeur. Les requêtes heading visent le
+conteneur nommé de la carte, même pour les descendants d’un autre conteneur.
+Strip garde ses requêtes et sa présentation.
+
+Vérifier l’égalité des distances entre les centres température/humidité/dessin,
+l’écart au titre et le retrait sous les valeurs, sur téléphone et ordinateur.
+Préserver les titres longs, les modes Normal/Hivers, les cibles de 44 px, les
+actions et les nœuds au redimensionnement. Aucun observateur, abonnement,
+timer ou mesure JavaScript supplémentaire ; pas de CSS dans les cartes.

@@ -11,8 +11,8 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
    const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect();
    const visible=el=>{const r=el.getBoundingClientRect();return getComputedStyle(el).display!=='none'&&r.width>0&&r.height>0};
    const fields=[...root.querySelectorAll('.bubble-state,.dp-panel-state,.dp-panel-title,.bubble-name,.dp-panel-name,.dp-secondary,.dp-panel-secondary,.bubble-sub-button')].filter(visible);
-   const artwork=getComputedStyle(host,'::after');
-   return{width:frame.width,left:frame.left-document.querySelector('#cards').getBoundingClientRect().left,artwork:{width:parseFloat(artwork.width),right:parseFloat(artwork.right)},height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,fontSize:parseFloat(getComputedStyle(el).fontSize),overflow:el.scrollWidth-el.clientWidth}})};
+   const artwork=getComputedStyle(host,'::after'),layout=getComputedStyle(host),lastTrack=parseFloat(layout.gridTemplateColumns.split(' ').at(-1));
+   return{width:frame.width,left:frame.left-document.querySelector('#cards').getBoundingClientRect().left,artwork:{width:parseFloat(artwork.width),right:parseFloat(layout.paddingRight)+(lastTrack-parseFloat(artwork.width))/2},height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,fontSize:parseFloat(getComputedStyle(el).fontSize),overflow:el.scrollWidth-el.clientWidth}})};
   });
   const hint=JSON.stringify({width,mode,kind,m});
   if(process.env.PANEL_CAPTURE_DIR&&[382,900,1568].includes(width)){
@@ -37,13 +37,20 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
     assert.ok(field.right<=m.width-m.artwork.right-m.artwork.width+2,'reserve artwork space: '+hint);
    assert.ok(m.artwork.width<=m.height+1,'artwork must not be clipped vertically: '+hint);
    if(m.width>=600&&kind!=='none'){
-    assert.ok(m.height>=160&&m.height<=180,'desktop heading must retain its reduced height: '+hint);
+    const title=m.fields.find(f=>f.cls.includes('dp-panel-title'));
+    const footer=m.fields.filter(f=>f.cls.includes('bubble-sub-button')&&!f.cls.includes('settings')).some(f=>f.top>=m.fields.find(f=>f.cls.includes('bubble-state')).bottom);
+    assert.ok(m.height>=112&&m.height<=118+Math.max(0,title.bottom-title.top-32)+(footer?44:0),'heading grows only for wrapped titles or required controls: '+hint);
     for(const field of m.fields.filter(f=>f.cls.includes('bubble-state')||f.cls.includes('dp-panel-state')))assert.ok(field.fontSize>=30&&field.fontSize<=40,'keep summary values readable without oversized numbers: '+hint);
-    assert.equal(m.artwork.width,128,'illustration uses the compact size: '+hint);
+    assert.equal(m.artwork.width,96,'illustration uses the compact size: '+hint);
    }
-   if(m.width>=600&&kind==='double'){
-    const humidity=m.fields.find(f=>f.cls.includes('dp-panel-state'));
-    assert.ok(humidity.left>=m.width*.35&&humidity.left<=m.width*.6,'humidity must use the middle of the card: '+hint);
+   if(kind==='double'){
+    const temperature=m.fields.find(f=>f.cls.includes('bubble-state')),humidity=m.fields.find(f=>f.cls.includes('dp-panel-state'));
+    const centers=[(temperature.left+temperature.right)/2,(humidity.left+humidity.right)/2,m.width-m.artwork.right-m.artwork.width/2];
+    assert.ok(Math.abs((centers[1]-centers[0])-(centers[2]-centers[1]))<2,'the two measurements and artwork must be evenly spaced: '+hint);
+    const title=m.fields.find(f=>f.cls.includes('dp-panel-title'));
+    assert.ok(temperature.top-title.bottom<=8,'bring the measurements close to the title: '+hint);
+    assert.ok(m.height-temperature.bottom<=30,'remove unused space below measurements: '+hint);
+    if(m.width<=520)assert.ok(m.height<=102+Math.max(0,title.bottom-title.top-28),'phone summary grows only for wrapped titles: '+hint);
    }
   }
   if(kind==='none'){assert.equal(m.count,'0');assert.ok(!m.fields.some(f=>f.cls.includes('state')),hint);assert.ok(m.height<120,hint);}
@@ -90,8 +97,8 @@ test('a single-reading heading keeps Normal and Hivers beside temperature from 3
   const m=await page.evaluate(()=>{
    const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect();
    const rect=el=>{const r=el.getBoundingClientRect();return{left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,width:r.width,height:r.height}};
-   const value=rect(root.querySelector('.bubble-state')),select=root.querySelector('.is-select'),label=select.querySelector('.bubble-sub-button-name-container'),art=getComputedStyle(host,'::after');
-   return{value,control:rect(select),text:label.textContent,overflow:label.scrollWidth-label.clientWidth,artStart:frame.width-parseFloat(art.right)-parseFloat(art.width)};
+   const value=rect(root.querySelector('.bubble-state')),select=root.querySelector('.is-select'),label=select.querySelector('.bubble-sub-button-name-container'),art=getComputedStyle(host,'::after'),layout=getComputedStyle(host),lastTrack=parseFloat(layout.gridTemplateColumns.split(' ').at(-1));
+   return{value,control:rect(select),text:label.textContent,overflow:label.scrollWidth-label.clientWidth,artStart:frame.width-parseFloat(layout.paddingRight)-(lastTrack+parseFloat(art.width))/2};
   });
   const hint=JSON.stringify({width,poolMode,m});
   assert.equal(m.text.trim(),poolMode,hint);assert.ok(m.overflow<=1,hint);assert.equal(m.control.height,44,hint);
