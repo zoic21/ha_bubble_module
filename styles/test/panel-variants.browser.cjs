@@ -51,6 +51,7 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
     assert.ok(temperature.top-title.bottom<=8,'bring the measurements close to the title: '+hint);
     assert.ok(m.height-temperature.bottom<=30,'remove unused space below measurements: '+hint);
     if(m.width<=520)assert.ok(m.height<=102+Math.max(0,title.bottom-title.top-28),'phone summary grows only for wrapped titles: '+hint);
+    if(m.width>=382&&m.width<=520)assert.ok(title.bottom-title.top<=30,'use the space before the artwork to avoid an unnecessary second title line: '+hint);
    }
   }
   if(kind==='none'){assert.equal(m.count,'0');assert.ok(!m.fields.some(f=>f.cls.includes('state')),hint);assert.ok(m.height<120,hint);}

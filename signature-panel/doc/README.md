@@ -7,7 +7,8 @@ valeurs du titre. Retraits verticaux de **8 px**, écart de **4 px** entre
 le titre et les valeurs, cible de mesure conservée à **44 px**. La base
 passe à environ **114–116 px sur ordinateur** et **96–100 px sur téléphone**
 avec un titre sur une ligne. Un titre long ou des commandes supplémentaires
-augmentent seulement la place nécessaire.
+augmentent seulement la place nécessaire. Le titre mobile utilise aussi
+la place libre avant le dessin pour éviter les retours inutiles à la ligne.
 
 Sans commande, chaque mesure et l’illustration occupent une colonne de
 largeur égale, avec leur contenu centré. Une seule mesure ne reste plus

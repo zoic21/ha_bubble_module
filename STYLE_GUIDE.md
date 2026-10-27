@@ -1080,7 +1080,9 @@ commandes sur grand écran, réserver une piste intrinsèque ; sous 760 px,
 le groupe va dessous. Une seule mesure avec sélecteur garde l’exception de
 350 px et sa place à côté de la valeur. Les requêtes heading visent le
 conteneur nommé de la carte, même pour les descendants d’un autre conteneur.
-Strip garde ses requêtes et sa présentation.
+Strip garde ses requêtes et sa présentation. Sur mobile, le titre peut utiliser
+la place libre avant le dessin, avec une réserve latérale calculée en CSS ;
+ne pas imposer une deuxième ligne si le texte tient.
 
 Vérifier l’égalité des distances entre les centres température/humidité/dessin,
 l’écart au titre et le retrait sous les valeurs, sur téléphone et ordinateur.
