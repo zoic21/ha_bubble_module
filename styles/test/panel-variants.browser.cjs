@@ -9,12 +9,14 @@ async function setup(t){
  const bytes=fs.readFileSync(nativePath);
  assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),'5fe8799e8070e3169e1b2889c6d5d268632f9082');
  const page=await fixture(t,{prepare:null});
+ page.on('console',message=>{if(message.type()==='error')console.error(message.text());});
  await page.route('**/*',r=>r.fulfill({contentType:'application/json',body:'{}'}));
  await page.setContent('<style>body{margin:16px}#cards{width:400px}</style><home-assistant></home-assistant><div id="cards"></div>');
  await page.evaluate(()=>{
   customElements.define('ha-card',class extends HTMLElement{connectedCallback(){this.attachShadow({mode:'open'}).innerHTML='<style>:host{display:block;position:relative}</style><slot></slot>'}});
   customElements.define('ha-icon',class extends HTMLElement{get icon(){return this.getAttribute('icon')}set icon(v){this.setAttribute('icon',v)}connectedCallback(){if(!this.shadowRoot)this.attachShadow({mode:'open'}).innerHTML='<style>:host{display:inline-flex;width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px)}</style>'}});
   customElements.define('ha-ripple',class extends HTMLElement{});
+  customElements.define('ha-select',class extends HTMLElement{constructor(){super();this.updateComplete=Promise.resolve();}});
   document.querySelector('home-assistant').attachShadow({mode:'open'});
  });
  await page.addScriptTag({path:nativePath});
@@ -30,7 +32,7 @@ async function draw(page,scenario){
   window.hass={states:{'sensor.temperature':state(22.8,'°C'),'sensor.humidity':state(64,'%'),'sensor.salt':state(2.8,'g/L'),'sensor.ph':state(7.2,''),'sensor.redox':state(720,'mV'),'switch.ph':state('on',''),'switch.redox':state('off',''),'device_tracker.mower':state('home',''),'lawn_mower.demo':state('docked',''),'input_select.mode':{state:'Normal',attributes:{options:['Normal','Hivers']}}},
    locale:{language:'fr',number_format:'language'},language:'fr',themes:{darkMode:mode==='dark'},config:{unit_system:{temperature:'°C'},time_zone:'Europe/Paris'},hassUrl:p=>new URL(p,'https://ha.example.test').href,
    localize:()=>undefined,formatEntityState:s=>s.state,formatEntityAttributeValue:(s,k,v)=>v,
-   connection:{subscribeMessage:async(cb,msg)=>{if(msg.type==='render_template')cb({result:msg.template==='{{ primary }}'?String(primary):'0 %'});return()=>{}},subscribeEvents:async()=>()=>{}},
+   connection:{subscribeMessage:async(cb,msg)=>{if(msg.type==='render_template'){window.templateMessages ||= [];templateMessages.push(msg.template);cb({result:msg.template.includes('primary')?String(primary):'0 %'});}return()=>{}},subscribeEvents:async()=>()=>{}},
    callWS:async msg=>msg.type==='frontend/get_icons'?{resources:{sensor:{},switch:{},input_select:{},lawn_mower:{}}}:{},callService:async()=>{}};
   Object.entries(hass.states).forEach(([entity_id,value])=>value.entity_id=entity_id);document.querySelector('home-assistant').hass=hass;
   const badge={css_class:'settings',name:'Scénarios',icon:'mdi:cog',show_name:false,show_state:false,show_icon:true,show_background:false,tap_action:{action:'navigate',navigation_path:'#scenarios'}};
@@ -42,18 +44,23 @@ async function draw(page,scenario){
   if(kind==='mower')config.sub_button.main.unshift({entity:'lawn_mower.demo',icon:'mdi:robot-mower',show_state:true,show_name:false,visibility:[{condition:'state',entity:'device_tracker.mower',state:'home'}]});
   if(kind==='strip'){
    Object.assign(config,{entity:'sensor.salt',name:'Sel',show_name:true,sub_button:{main:[{entity:'switch.ph',css_class:'ph-control',icon:'mdi:power',show_name:false,show_state:false,tap_action:{action:'toggle'}},{entity:'switch.redox',css_class:'redox-control',icon:'mdi:power',show_name:false,show_state:false,tap_action:{action:'toggle'}}]}});
-   config.signature_panel={variant:'strip',metric_icon:'mdi:water-sync',primary_enabled:'{{ primary }}',information:[{entity:'sensor.ph',name:'pH',icon:'mdi:flask-outline',secondary:'{{ detail }}'},{entity:'sensor.redox',name:'Redox',icon:'mdi:lightning-bolt-outline',secondary:'{{ detail }}'}],sub_button_styles:{'ph-control':{type:'switch',column:2,color:'#368ACB'},'redox-control':{type:'switch',column:3,color:'#368ACB'}}};
+   config.signature_panel={variant:'strip',metric_icon:'mdi:water-sync',primary_enabled:primary ? '{{ primary }}' : false,information:[{entity:'sensor.ph',name:'pH',icon:'mdi:flask-outline',secondary:'{{ detail }}'},{entity:'sensor.redox',name:'Redox',icon:'mdi:lightning-bolt-outline',secondary:'{{ detail }}'}],sub_button_styles:{'ph-control':{type:'switch',column:2,color:'#368ACB'},'redox-control':{type:'switch',column:3,color:'#368ACB'}}};
   }
   window.card=document.createElement('bubble-card');card.setConfig(config);document.querySelector('#cards').append(card);card.hass=hass;
   window.calls=[];card.addEventListener('hass-action',e=>calls.push(e.detail));
  },{scenario,code,theme,nativeModes});
- await page.waitForFunction(()=>card?._signaturePanelRuntime&&!card.initialLoad,{},{timeout:5000});
+ try { await page.waitForFunction(()=>card?._signaturePanelRuntime&&!card.initialLoad,{},{timeout:5000}); }
+ catch(error){throw new Error(JSON.stringify({scenario,debug:await page.evaluate(()=>({initialLoad:card?.initialLoad,keys:Object.keys(card||{}),content:card?.card?.innerHTML?.slice(-1400)}))})+'\n'+error.message);}
+ if(scenario.kind==='strip'){
+  try{await page.waitForFunction(expected=>card.card.getAttribute('data-dp-panel-count')===expected,scenario.primary===false?'2':'3',{timeout:5000});}
+  catch(error){throw new Error(JSON.stringify({scenario,debug:await page.evaluate(()=>({messages:window.templateMessages,config:card.config.signature_panel,count:card.card.getAttribute('data-dp-panel-count')}))})+'\n'+error.message);}
+ }
  await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
 }
 test('illustrated headings and measurement strips fit real Bubble at phone and desktop widths',{skip:!nativePath},async t=>{
  const page=await setup(t);
- for(const width of [288,328,358,382,600,1000])for(const mode of ['light','dark'])for(const kind of ['none','single','double','mode','mower','strip']){
-  await draw(page,{width,mode,kind});
+ for(const width of [288,328,358,382,600,1000])for(const mode of ['light','dark'])for(const plain of [false,true])for(const kind of ['none','single','double','mode','mower','strip']){
+  await draw(page,{width,mode,plain,kind});
   const m=await page.evaluate(()=>{
    const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect();
    const visible=el=>{const r=el.getBoundingClientRect();return getComputedStyle(el).display!=='none'&&r.width>0&&r.height>0};
@@ -84,5 +91,5 @@ test('native treatment toggles, value details, settings and primary visibility k
  await page.locator('bubble-card').locator('.settings').click();await page.waitForFunction(()=>calls.length>0);
  assert.equal((await page.evaluate(()=>calls.at(-1))).config.tap_action.navigation_path,'#scenarios');
  await page.evaluate(()=>window.calls=[]);await page.locator('bubble-card').locator('.dp-panel-state').click();await page.waitForFunction(()=>calls.length>0);
- assert.equal((await page.evaluate(()=>calls.at(-1))).entity,'sensor.humidity');
+ assert.equal((await page.evaluate(()=>calls.at(-1))).config.entity,'sensor.humidity');
 });

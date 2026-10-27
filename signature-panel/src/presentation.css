@@ -116,7 +116,7 @@ ha-card[data-dp-layout="panel"] .bubble-container:has(:is(.bubble-sub-button-con
 ${commandStyles.length ? `
 /* @include signature-panel/src/command-controls.css */
 ` : ''}
-${kind === 'button' ? `
+${kind === 'button' && !panelVariant ? `
 ha-card[data-dp-layout="panel"] :is(.dp-secondary,.dp-panel-secondary):not(:empty) { margin-top: 3px; }
 /* Empty detail rows collapse and equal outer tracks center the actual group. */
 ha-card[data-dp-layout="panel"]:not([data-dp-panel-title="yes"]) .bubble-container:not(:has(:is(.bubble-sub-button-container,.bubble-buttons-container) :is(.bubble-sub-button,.bubble-media-button):not(.hidden):not([hidden]))) {
