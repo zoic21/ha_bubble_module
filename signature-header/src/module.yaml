@@ -1,5 +1,5 @@
 name: Signature Header
-version: 1.2.1
+version: 1.2.2
 creator: Loïc
 supported:
   - button
@@ -15,6 +15,12 @@ editor:
       color:
         $field: color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
+      align_section_columns:
+        name: Aligner les colonnes de la section
+        description: Pour une section native élargie, reprendre son écart de colonnes dans la vue. Partagé entre les titres, restauré au retrait du module.
+        selector:
+          boolean: {}
+        visible_if: (!card || card.card_type === 'separator')
       sub_button_styles:
         $field: sub_button_styles
         visible_if: (!card || card.card_type === 'separator' || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))

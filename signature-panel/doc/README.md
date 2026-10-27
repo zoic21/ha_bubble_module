@@ -1,5 +1,23 @@
 # Signature Panel
 
+## 1.4.3 — 27 octobre 2026 — synthèse sur toute une page contenue
+
+L’en-tête remplit désormais sa section native, sans plafond isolé à 900 px.
+La largeur contenue appartient à la vue Sections : **deux colonnes maximum**,
+en-tête et sécurité sur deux colonnes, commandes principales sur une colonne
+chacune, placement dense désactivé. Les bords du haut et du bas correspondent.
+
+Le titre passe à 32 px, les valeurs à 32–64 px selon la largeur et le dessin
+à 144–240 px. La hauteur réserve au moins 216 px ou le dessin avec 24 px
+de dégagement vertical.
+Les adaptations mobiles et les formats sans mesure sont conservés. Aucun
+changement des panneaux classiques, lecteurs et bandeaux de traitement.
+
+Pour cette organisation de page, importer **Panel 1.4.3**, **Header 1.2.2**,
+puis les dashboards. Le rôle `align_section_columns` de Header aligne les
+demi-cartes des sections élargies sur les colonnes de commandes. Il garde
+le CSS centralisé ; les cartes conservent leurs fonctions et leurs conditions.
+
 ## 1.4.2 — 27 octobre 2026 — largeur contenue sur grand écran
 
 Les en-têtes `variant: heading` occupent la largeur disponible jusqu’à
@@ -104,7 +122,7 @@ icône. Le défaut reste le fond doux à 16 %. Voir le
 [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **1.4.2**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.4.3**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 

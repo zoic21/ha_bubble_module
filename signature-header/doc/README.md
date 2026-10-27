@@ -1,5 +1,30 @@
 # Signature Header
 
+## 1.2.2 — 27 octobre 2026 — demi-cartes alignées dans une section élargie
+
+Sur le séparateur d’une section native de **deux colonnes**, activer :
+
+```yaml
+signature_header:
+  align_section_columns: true
+```
+
+Les cartes utilisent `columns: full` ou `grid_options.columns: 12` pour une
+demi-largeur. Les demi-cartes s’alignent avec les deux sections d’une colonne
+situées au-dessus : compensation entre la gouttière native interne de 8 px
+et celle de la vue de 32 px. La sous-grille conserve ses 24 pistes, sans risque
+de débordement en largeur moyenne. Sur téléphone, les cartes de 12 unités
+occupent leur ligne et le retrait disparaît. Les variables de thème restent
+dynamiques et les cartes masquées ne comptent pas dans l’alternance.
+
+Le style est partagé entre titres de la même section et retiré avec son dernier
+propriétaire. Les nœuds, actions et visibilités restent natifs. L’option est
+sans effet hors d’un `hui-grid-section` et ne vise pas les sous-grilles avec
+plusieurs fractions de largeur. Aucun CSS par carte, observateur ou timer.
+La page entière doit être contenue par les réglages natifs de la vue ; cette
+option ne réduit pas sa largeur. Les fixtures testent l’alignement, le thème,
+le partage et le démontage ; aucun essai Home Assistant réel ni Safari/iOS.
+
 ## 1.2.1 — 20 octobre 2026 — icônes de seuils sans fond
 
 L’option booléenne `color_thresholds.background: false` supprime le fond
@@ -16,7 +41,7 @@ pour les petites mesures des séparateurs. Les règles de retour à la ligne,
 couleurs, conditions et actions restent natives. Les mesures SolarFlow
 peuvent retirer leur CSS local. Tests de thème et de disposition inclus.
 
-Version **1.2.0**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.2.2**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
