@@ -1,5 +1,22 @@
 # Signature Panel
 
+## 1.4.1 — 27 octobre 2026 — proportions des en-têtes
+
+Les en-têtes illustrés réservent une vraie place au dessin (120–280 px sur
+ordinateur, 88–136 px sur petite carte). Le titre passe à 28 px sur ordinateur
+et 22 px sur mobile ; la valeur principale atteint 36 px sur ordinateur.
+La hauteur suit la largeur de la carte, de 156 à 224 px minimum.
+
+Les sélecteurs restent près des valeurs, sur la même ligne sur ordinateur,
+avec un fond discret. Ils passent dessous sur mobile, toujours à gauche du
+dessin. Les rangées de l’en-tête sont isolées des règles du panneau classique.
+Sans mesure, le bandeau reste compact (112/100 px). Aucun CSS par carte ni
+changement des entités, actions ou conditions ; les panneaux classiques,
+lecteurs et bandeaux de traitement gardent leur présentation.
+
+Mettre à jour uniquement **Signature Panel 1.4.1**, puis recharger le frontend.
+Aucune réimportation de dashboard ni nouvelle image nécessaire.
+
 ## 1.4.0 — 27 octobre 2026 — en-têtes et bandeaux de mesures
 
 Deux présentations facultatives réutilisent les mesures et commandes natives.
@@ -66,7 +83,7 @@ icône. Le défaut reste le fond doux à 16 %. Voir le
 [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **1.3.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.4.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 

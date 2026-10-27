@@ -16,7 +16,7 @@ async function setup(t){
   customElements.define('ha-card',class extends HTMLElement{connectedCallback(){this.attachShadow({mode:'open'}).innerHTML='<style>:host{display:block;position:relative}</style><slot></slot>'}});
   customElements.define('ha-icon',class extends HTMLElement{get icon(){return this.getAttribute('icon')}set icon(v){this.setAttribute('icon',v)}connectedCallback(){if(!this.shadowRoot)this.attachShadow({mode:'open'}).innerHTML='<style>:host{display:inline-flex;width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px)}</style>'}});
   customElements.define('ha-ripple',class extends HTMLElement{});
-  customElements.define('ha-select',class extends HTMLElement{constructor(){super();this.updateComplete=Promise.resolve();}});
+  customElements.define('ha-select',class extends HTMLElement{constructor(){super();this.updateComplete=Promise.resolve();this.attachShadow({mode:'open'}).innerHTML='<style>:host{display:block}</style>';}});
   document.querySelector('home-assistant').attachShadow({mode:'open'});
  });
  await page.addScriptTag({path:nativePath});
@@ -64,8 +64,9 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
   const m=await page.evaluate(()=>{
    const root=card.card,host=root.querySelector('.bubble-container'),frame=host.getBoundingClientRect();
    const visible=el=>{const r=el.getBoundingClientRect();return getComputedStyle(el).display!=='none'&&r.width>0&&r.height>0};
-   const fields=[...root.querySelectorAll('.bubble-state,.dp-panel-state,.dp-panel-title,.dp-secondary,.dp-panel-secondary,.bubble-sub-button')].filter(visible);
-   return{height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,overflow:el.scrollWidth-el.clientWidth}})};
+   const fields=[...root.querySelectorAll('.bubble-state,.dp-panel-state,.dp-panel-title,.bubble-name,.dp-panel-name,.dp-secondary,.dp-panel-secondary,.bubble-sub-button')].filter(visible);
+   const artwork=getComputedStyle(host,'::after');
+   return{artwork:{width:parseFloat(artwork.width),right:parseFloat(artwork.right)},height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,overflow:el.scrollWidth-el.clientWidth}})};
   });
   const hint=JSON.stringify({width,mode,kind,m});
   if(process.env.PANEL_CAPTURE_DIR&&[382,1000].includes(width)){
@@ -74,6 +75,20 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
   }
   assert.ok(m.height>=80,hint);
   for(const f of m.fields){assert.ok(f.left>=-1&&f.right<=width+1&&f.top>=-1&&f.bottom<=m.height+1,hint);if(!f.cls.includes('bubble-sub-button'))assert.ok(f.overflow<=1,hint);}
+  for(let i=0;i<m.fields.length;i++)for(let j=i+1;j<m.fields.length;j++){
+   const a=m.fields[i],b=m.fields[j];
+   assert.ok(Math.min(a.right,b.right)-Math.max(a.left,b.left)<=1||Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)<=1,'overlapping native fields: '+hint);
+  }
+  if(kind==='mode'&&width>=600){
+   const value=m.fields.find(f=>f.cls.includes('bubble-state')),control=m.fields.find(f=>f.cls.includes('is-select'));
+   assert.ok(Math.abs((value.top+value.bottom-control.top-control.bottom)/2)<1,'mode must align with temperature: '+hint);
+   assert.ok(control.left-value.right>=12&&control.left-value.right<=56,'mode must stay beside temperature: '+hint);
+  }
+  if(kind!=='strip'){
+   for(const field of m.fields.filter(f=>!f.cls.includes('settings')))
+    assert.ok(field.right<=width-m.artwork.right-m.artwork.width+2,'reserve artwork space: '+hint);
+   if(width===1000&&kind!=='none')assert.ok(m.artwork.width>=250,'desktop artwork must fill the header: '+hint);
+  }
   if(kind==='none'){assert.equal(m.count,'0');assert.ok(!m.fields.some(f=>f.cls.includes('state')),hint);assert.ok(m.height<120,hint);}
   if(kind==='strip')assert.equal(m.count,'3');
  }

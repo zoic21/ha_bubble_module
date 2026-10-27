@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.4.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.4.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -954,3 +954,23 @@ hors cache, indépendamment pour chaque source. Aucun nouvel observateur,
 abonnement, timer ou mesure JavaScript. Les cartes n’embarquent aucun CSS.
 La CI teste ces variantes avec une source Bubble 3.4.1 épinglée et un backend
 simulé ; les captures de fixtures ne valident pas l’installation réelle.
+
+
+### Panel 1.4.1 — proportions et alignement des en-têtes
+
+Les en-têtes utilisent leur propre grille, prioritaire sur les pistes du titre
+classique. Les contrôles partagent la ligne des valeurs et restent groupés
+près d’elles ; seule une colonne vide absorbe la largeur disponible. Avec
+plusieurs mesures, les commandes passent sous les valeurs entre 521 et
+760 px ; sous 520 px, toutes les commandes passent dessous, à gauche du dessin.
+Les titres utilisent 28 px sur ordinateur, 22 px sur petite carte ; les valeurs
+36 px sur ordinateur, leur taille adaptative précédente sur petite carte.
+La hauteur minimale varie de 156 à 224 px selon la largeur. L’illustration
+varie de 120 à 280 px sur ordinateur et de 88 à 136 px sur petite carte ; son
+calque absolu est centré verticalement et sa colonne réservée est recalculée
+au même niveau CSS que sa taille. Sans mesure, conserver un bandeau compact
+de 112 px (100 px sur petite carte), sans créer de valeur. Le fond des
+sous-boutons natifs utilise l’accent à 12 %, sauf choix explicite sans fond.
+Aucun changement des panneaux classiques, bandeaux de mesures ou lecteurs.
+Les fixtures vérifient désormais les intersections entre les champs, la
+réservation du dessin et l’alignement réel température/sélecteur.
