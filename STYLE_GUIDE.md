@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.10**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.11**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1167,3 +1167,19 @@ les thèmes, le masquage et le passage du seuil sur les mêmes nœuds natifs.
 La distribution Panel reste sous 72 ko après mutualisation des pistes CSS ;
 les autres présentations gardent leur budget de 70 ko. Les essais Chromium
 avec Bubble réel et contexte HA simulé ne valident pas Safari ou HA installé.
+
+
+### Panel 1.4.11 — piste du nom intrinsèque sur ordinateur
+
+Sur les bandeaux d’au moins 761 px, remplacer la piste `minmax(0,1fr)`
+du titre par `fit-content(30%)`. Sa largeur suit le texte rendu, plafonnée
+à 30 % de la largeur intérieure pour garder la place des mesures et du dessin.
+Les noms courts n’occupent plus une grande colonne vide ; les noms longs
+peuvent se replier. Les pistes souples des mesures/commandes se partagent
+le reste. Garder le dessin au bord droit, la base de 100 px, les cibles
+natives et les cartes sans valeur. Aucun changement des cartes étroites.
+
+Vérifier la largeur naturelle d’un nom court, les noms longs aux différentes
+largeurs, le centre réel du groupe entre la fin du nom et le dessin, le
+changement de texte sur les mêmes nœuds, Piscine/Jardin et les replis mobiles.
+Aucune mesure de texte JavaScript au runtime, observateur ou CSS par carte.

@@ -1,5 +1,23 @@
 # Signature Panel
 
+## 1.4.11 — 27 octobre 2026 — largeur du nom prise en compte
+
+Sur les bandeaux de 761 px ou plus, la colonne du nom utilise sa largeur
+intrinsèque, plafonnée à 30 % de la largeur intérieure. Un nom court libère
+immédiatement sa place ; un nom long peut se replier sans pousser les valeurs
+sur le dessin. Les valeurs et commandes se répartissent dans l’espace restant
+entre cette colonne et l’illustration au bord droit. Leur groupe est centré
+dans cet espace, indépendamment de la longueur du nom.
+
+La hauteur compacte, le centrage vertical, les cibles et les actions sont
+conservés. Les cartes étroites et le rendu mobile gardent leurs réglages.
+Seul le CSS centralisé du module change, sans mesure JavaScript ni CSS local.
+Importer uniquement **Signature Panel 1.4.11**, puis recharger le frontend.
+
+Les essais Chromium avec Bubble réel et un environnement HA simulé couvrent
+les noms courts/longs, la piscine, le jardin, le redimensionnement et les
+modes clair/sombre. Ils ne constituent pas un essai dans HA installé/Safari.
+
 ## 1.4.10 — 27 octobre 2026 — une ligne compacte sur ordinateur
 
 Les en-têtes d’au moins **761 px de large** placent le nom à gauche, les

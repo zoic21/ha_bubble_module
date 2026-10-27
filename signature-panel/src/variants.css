@@ -135,7 +135,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
     --dp-panel-artwork-size: var(--signature-panel-heading-illustration-size,80px);
     --dp-panel-value-row: 1; --dp-panel-detail-row: 2;
     min-height: max(100px,calc(var(--dp-panel-artwork-size) + 16px)) !important;
-    --dp-panel-title-track: minmax(0,1fr); --dp-panel-artwork-track: var(--dp-panel-artwork-width);
+    --dp-panel-title-track: fit-content(30%); --dp-panel-artwork-track: var(--dp-panel-artwork-width);
     --dp-panel-heading-shift: 1;
     grid-template-rows: minmax(44px,1fr) auto !important;
   }

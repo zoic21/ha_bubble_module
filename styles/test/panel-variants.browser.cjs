@@ -229,3 +229,38 @@ test('wide room headers center the name, readings and native controls on one com
   assert.equal(await page.evaluate(()=>inlineNodes.every(n=>card.card.contains(n))),true);
  }
 });
+
+
+test('wide headings size the title by its text and center readings in the space left before artwork',{skip:!nativePath},async t=>{
+ const page=await setup(t);await page.setViewportSize({width:1700,height:900});
+ for(const width of [761,1032,1568])for(const mode of ['light','dark'])for(const kind of ['double','mode','mower'])for(const title of ['Centre','Chambre principale','Salle de bain du deuxième étage']){
+  await draw(page,{width,mode,kind,title});
+  const m=await page.evaluate(()=>{
+   const host=card.card.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),tracks=s.gridTemplateColumns.split(' ').map(parseFloat),title=host.querySelector('.dp-panel-title');
+   const range=document.createRange();range.selectNodeContents(title);const text=range.getBoundingClientRect();
+   const fields=[...host.querySelectorAll('.bubble-state,.dp-panel-state,.bubble-sub-button-container')].filter(e=>e.getBoundingClientRect().height>0).map(e=>{const b=e.getBoundingClientRect();return{left:b.left-r.left,right:b.right-r.left,center:(b.left+b.right)/2-r.left}});
+   const titleBox=title.getBoundingClientRect(),left=parseFloat(s.paddingLeft)+parseFloat(s.borderLeftWidth),right=r.width-parseFloat(s.paddingRight)-parseFloat(s.borderRightWidth),gap=parseFloat(s.columnGap);
+   return{width:r.width,height:r.height,tracks,left,right,gap,textWidth:text.width,titleHeight:titleBox.height,titleRight:titleBox.right-r.left,fields};
+  });
+  const hint=JSON.stringify({width,mode,kind,title,m});
+  const content=m.right-m.left,artStart=m.right-m.tracks.at(-1),readingStart=m.left+m.tracks[0]+m.gap;
+  assert.ok(m.tracks[0]<=content*.3+1,'cap a long name so readings keep enough room: '+hint);
+  if(title==='Centre')assert.ok(Math.abs(m.tracks[0]-m.textWidth)<1,'a short name must reserve only its actual text width: '+hint);
+  if(title==='Chambre principale'&&width>=1032)assert.ok(m.titleHeight<33&&Math.abs(m.tracks[0]-m.textWidth)<1,'a fitting full room name stays on one line at its intrinsic width: '+hint);
+  assert.ok(Math.abs((m.fields[0].center+m.fields.at(-1).center)/2-(readingStart+artStart-m.gap)/2)<1,'center the whole reading/control group between the name and artwork: '+hint);
+  assert.ok(m.fields[0].left>=m.titleRight+m.gap-1,'keep values clear of the actual name: '+hint);
+  assert.ok(m.fields.at(-1).right<=artStart-m.gap+1,'keep controls clear of the right artwork: '+hint);
+  const gaps=m.fields.slice(1).map((f,i)=>f.center-m.fields[i].center);
+  assert.ok(Math.max(...gaps)-Math.min(...gaps)<1,'distribute readings and commands regularly in the remaining space: '+hint);
+  assert.ok(Math.abs(m.height-Math.max(100,m.titleHeight+18))<1,'keep the compact height and grow only for text taller than its available row: '+hint);
+ }
+ await draw(page,{width:1032,mode:'dark',kind:'mode',title:'Centre'});
+ const measure=()=>{const host=card.card.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),tracks=s.gridTemplateColumns.split(' ').map(parseFloat);return{title:tracks[0],value:card.card.querySelector('.bubble-state').getBoundingClientRect().left,artRight:r.right-parseFloat(s.paddingRight)}};
+ const short=await page.evaluate(measure);
+ await page.evaluate(()=>{window.intrinsicNodes=[...card.card.querySelectorAll('.dp-panel-title,.bubble-state,.is-select,.settings')];card.card.querySelector('.dp-panel-title').textContent='Chambre principale';});
+ await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+ const long=await page.evaluate(measure);
+ assert.ok(long.title>short.title+100,'a longer live title claims its own width');
+ assert.ok(long.value>short.value,'readings move with the text length');assert.equal(long.artRight,short.artRight,'artwork stays at the right edge');
+ assert.equal(await page.evaluate(()=>intrinsicNodes.every(n=>card.card.contains(n))),true);
+});
