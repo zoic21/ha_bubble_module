@@ -24,7 +24,7 @@ if (layout === 'room' && o.room_auto_colors !== false) roles.forEach(({b,selecto
   if (!structure.styledButtons.has(b)) paint(selector,b,{},true);
 });
 if (layout === 'header') flat.forEach((b,i) => paint('ha-card .bubble-sub-button-'+(i+1), b, {background:'color-mix(in srgb, '+accent+' 12%, '+neutralSurface+')'}));
-const visualSwitches = (layout === 'square' || layout === 'compact') && structure.hasSwitches;
+const visualSwitches = (layout === 'square' || layout === 'compact' || layout === 'panel') && structure.hasSwitches;
 if (visualSwitches && !structure.switchCSS) {
   const targets = styles.filter(style => style.visualSwitch).map(style => '.bubble-sub-button.'+style.cls);
   // Every target has the same specificity; :is() factors the scope only.

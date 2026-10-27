@@ -1,7 +1,10 @@
 // The native name/state/secondary form the first information column.
 // Up to two more columns use the same roles and Bubble's delegated actions.
-const information = Array.isArray(o.information) ? o.information.filter(item => item?.enabled !== false).slice(0,2) : [];
-attr('data-dp-panel-count', String(information.length + 1));
+const panelEntryEnabled = value => value === undefined || render(value).trim().toLowerCase() === 'true';
+const panelPrimaryEnabled = !panelVariant || (c.show_state !== false && panelEntryEnabled(o.primary_enabled));
+const information = Array.isArray(o.information) ? o.information.filter(item => item && panelEntryEnabled(item.enabled)).slice(0,2) : [];
+attr('data-dp-panel-count', String(information.length + (panelPrimaryEnabled ? 1 : 0)));
+attr('data-dp-panel-primary', panelPrimaryEnabled ? 'yes' : 'no');
 attr('data-dp-panel-shared-name',!panelTitle && information.length && information.every(item => !item?.name) ? 'yes' : 'no');
 let items = runtime.information || (runtime.information = []);
 if (!runtime.informationCleanup) {
@@ -35,7 +38,7 @@ information.forEach((spec, index) => {
     content.appendChild(el);
     item = items[index] = {el, target};
   }
-  item.el.style.setProperty('--dp-panel-column', String(index + 2));
+  item.el.style.setProperty('--dp-panel-column', String(index + (panelPrimaryEnabled ? 2 : 1)));
   const name = item.el.querySelector('.dp-panel-name');
   const state = item.el.querySelector('.dp-panel-state');
   let detail = item.el.querySelector('.dp-panel-secondary');
@@ -93,5 +96,10 @@ information.forEach((spec, index) => {
     }
   });
   else item.summaryStatistics = null;
-  item.el.style.setProperty('--dp-panel-information-color',color(spec.color,accent,entity));
+  if (item.thresholdOptions !== spec.color_thresholds) {
+    item.thresholdOptions = spec.color_thresholds;
+    item.thresholdScale = prepareColorThresholds(spec.color_thresholds);
+  }
+  item.el.style.setProperty('--dp-panel-information-color',entityThresholdColor(item.thresholdScale,entity) || color(spec.color,accent,entity));
+  item.el.style.setProperty('--dp-panel-information-opacity',String(spec.icon_opacity == null ? 1 : number(render(spec.icon_opacity,entity),1,0,1)));
 });

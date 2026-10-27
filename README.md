@@ -14,7 +14,7 @@ computed styles. Includes measured CSS sizes, operation counts and import versio
 |---|---|---|---|
 | Signature Square — square tiles | 2.0.9 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.6.8 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.3.2 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.4.0 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.3 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.2.1 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
@@ -128,3 +128,10 @@ Group’s optional `hide_empty: true` hides an empty summary through the native 
 Signature Panel 1.0.0 owns the two-step (118px) full-width format: 80px artwork at the right, one to three information columns with details, and up to three visible native commands. URLs, sprite indexes and conditions remain in the card, with Jinja support. Media keeps its native track, volume and controls. Daily energy/consumption/cost calculations retain Recorder's timezone and reset handling.
 
 Square 2.0.0 removes `summary` and `activity`; Room 1.4.0 removes equipment-only `room_compact`, `room_inline_metrics` and `room_state_centered`. Room remains for room summaries, Square for measurement tiles. Install Panel and migrate wide equipment cards before upgrading these modules. Group 1.1.1 reads Panel illustrations for its activity chips. See the [Panel migration guide](signature-panel/doc/README.md#migration).
+
+
+Panel 1.4.0 adds opt-in `variant: heading` for illustrated room page headers
+and `variant: strip` for responsive measurement bands with native controls.
+Metric icons stay unboxed, units stay inline, and missing room measurements
+create no placeholder. Existing equipment and media Panels remain unchanged.
+See the [Panel guide](signature-panel/doc/README.md).

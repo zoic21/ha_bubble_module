@@ -58,6 +58,7 @@ ha-card[data-dp-layout="panel"] .dp-unit.dp-duration-unit { margin-inline-start:
 ha-card[data-dp-layout="panel"] .dp-panel-icon {
   --mdc-icon-size: 16px; flex: 0 0 16px; margin-inline-end: 4px;
   color: var(--dp-panel-information-color,var(--dp-accent));
+  opacity: var(--dp-panel-information-opacity,1);
 }
 ha-card[data-dp-layout="panel"] :is(.dp-secondary,.dp-panel-secondary) {
   /* @include shared/src/styles/secondary-line.css {"SIZE":"var(--dp-panel-detail-size)"} */

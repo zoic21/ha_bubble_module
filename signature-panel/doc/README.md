@@ -1,5 +1,63 @@
 # Signature Panel
 
+## 1.4.0 — 27 octobre 2026 — en-têtes et bandeaux de mesures
+
+Deux présentations facultatives réutilisent les mesures et commandes natives.
+Le panneau classique et les lecteurs conservent leurs dimensions.
+
+- `variant: heading` : titre de pièce 22 px (20 px sur petite carte), valeurs
+  et unités sur une ligne, icônes sans fond et dessin à droite. Minimum 156 px
+  avec mesures ; bandeau compact sans mesure. `show_state: false` et une liste
+  `information` vide ne créent aucune valeur. Les sélecteurs et états natifs
+  restent à gauche du dessin. Un badge natif `type: badge` devient une action
+  discrète dans une cible de 44 px en haut à droite ; garder son nom et ses actions.
+- `variant: strip` : une à trois mesures dans une seule surface, sans dessin.
+  Les commandes natives reçoivent leur colonne par
+  `sub_button_styles.<classe>.column` (1 à 3). À 520 px et moins, les mesures
+  s’empilent, commandes à droite et hauteur automatique.
+  `type: switch` reprend le switch partagé et son état natif.
+
+`metric_icon` ajoute une icône sans fond devant la première valeur ; les autres
+icônes restent dans `information[].icon`. `color_thresholds` et `icon_opacity`
+sont pris en charge pour chaque mesure. Les seuils colorent seulement les
+icônes. `primary_enabled` et `information[].enabled` acceptent un booléen ou
+un template produisant `true`/`false` ; une valeur non résolue reste masquée.
+Retirer la première mesure décale les suivantes et leurs commandes.
+Ces options sont sans effet sur les lecteurs. Utiliser
+`grid_options.rows: auto`. Aucun CSS dans les cartes, capteur fictif,
+nouvel observateur, abonnement ou timer.
+
+```yaml
+type: custom:bubble-card
+card_type: button
+button_type: state
+entity: sensor.temperature
+name: Chambre
+show_name: false
+show_icon: false
+show_state: true
+rows: 2
+grid_options:
+  columns: full
+  rows: auto
+modules: [signature_panel]
+signature_panel:
+  variant: heading
+  title: Chambre
+  metric_icon: mdi:thermometer
+  illustration:
+    image: /local/illustrations/chambre.png
+  information:
+    - entity: sensor.humidity
+      icon: mdi:water-percent
+```
+
+Les fixtures Chromium utilisent le vrai Bubble 3.4.1 épinglé et un backend HA
+simulé : 288/328/358/382/600/1000 px, clair/sombre, zéro/une/deux mesures,
+sélecteur, état conditionnel, bandeau à trois mesures et interactions.
+Elles ne valident pas Home Assistant réel ni Safari/iOS.
+
+
 ## 1.3.2 — 20 octobre 2026 — pastilles de seuils sans fond
 
 L’option `sub_button_styles.<clé>.color_thresholds.background: false` rend

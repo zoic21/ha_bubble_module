@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.3.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.4.0**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -933,3 +933,24 @@ de seuil, ainsi que Cave à vin avec trois mesures et un switch.
 La carte Cave à vin utilise `flat_button_padding: 2` : gain de 36 px pour
 ses trois mesures et titre sur une ligne à 376 px dans la fixture. Le
 défaut de 4 px reste celui des autres cartes sans réglage explicite.
+
+
+### Panel 1.4.0 — en-têtes de pièces et bandeaux de mesures
+
+Les présentations facultatives `variant: heading` et `variant: strip` sont
+propres aux boutons et gardent les surfaces neutres et les actions Panel.
+Le format classique reste de 118 px. Heading : titre 22 px/600 (20 px sous
+520 px), valeurs 30 px/500 et unités 16 px ; petites cartes : 22–30 px et
+unités 13 px. Minimum 156 px avec mesures ; sans mesure, minimum 88 px et
+illustration 68 px. Illustration ordinaire 112 px (88 px sur petite carte),
+à droite ; cibles des actions du titre 44 px avec fond visuel discret 30 px.
+Aucun libellé de mesure n’est ajouté aux en-têtes.
+Strip : minimum 108 px, trois colonnes au plus, mêmes valeurs/unités que Panel,
+commandes natives dans leur colonne. Sous 520 px, mesures empilées et commandes
+à droite. Le switch reprend les fragments communs 52 × 34 px, sans duplication.
+Toutes les hauteurs sont automatiques et les valeurs restent actionnables.
+Les icônes de mesure n’ont aucun fond ; leurs seuils et opacités restent lus
+hors cache, indépendamment pour chaque source. Aucun nouvel observateur,
+abonnement, timer ou mesure JavaScript. Les cartes n’embarquent aucun CSS.
+La CI teste ces variantes avec une source Bubble 3.4.1 épinglée et un backend
+simulé ; les captures de fixtures ne valident pas l’installation réelle.
