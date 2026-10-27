@@ -55,7 +55,12 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
     if(m.width>=382&&m.width<=520)assert.ok(title.bottom-title.top<=30,'use the space before the artwork to avoid an unnecessary second title line: '+hint);
    }
   }
-  if(kind==='none'){assert.equal(m.count,'0');assert.ok(!m.fields.some(f=>f.cls.includes('state')),hint);assert.ok(m.height<120,hint);}
+  if(kind==='none'){
+   assert.equal(m.count,'0');assert.ok(!m.fields.some(f=>f.cls.includes('state')),hint);assert.ok(m.height<120,hint);
+   const title=m.fields.find(f=>f.cls.includes('dp-panel-title'));
+   assert.ok(Math.abs((title.top+title.bottom-m.height)/2)<1,'the no-reading title stays vertically centered at every width: '+hint);
+   assert.equal(m.artwork.right,m.width<=520?12:18,'the no-reading artwork keeps its fixed edge track: '+hint);
+  }
   if(kind==='strip')assert.equal(m.count,'3');
  }
 });
