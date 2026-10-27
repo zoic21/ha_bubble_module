@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.12**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.3.0**, **Room 1.4.3**, **Panel 1.4.12**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -395,6 +395,31 @@ et la variable de taille du thème restent applicables. Comparer explicitement
 la géométrie du dessin avec zéro/un/deux/trois badges ; couvrir aussi
 les changements de nom et de visibilité sans rendu, les mises à jour natives,
 le retrait de l’option, le teardown et les thèmes.
+
+### Sections natives indépendantes — Header 1.3.0
+
+`masonry_sections: true` sur un titre ou un en-tête est facultatif et partagé
+par toute sa vue `hui-sections-view`. Hors vue mono-colonne et hors édition,
+la grille conserve ses colonnes et largeurs natives, avec des pistes de 4 px
+et un placement dense. Une seule paire ResizeObserver / MutationObserver
+par vue suit les hauteurs et les ajouts/retraits de sections ; les lectures
+sont regroupées avant les écritures dans une animation frame. Le seul écart
+résiduel est l’espacement natif de section et son arrondi inférieur à 4 px.
+Ne pas déplacer les nœuds, changer les entités, les conditions ni les actions.
+Le dernier retrait du module supprime style, observateurs, frame et variables
+locales. Les vues non activées, le mobile et l’édition gardent la grille native.
+
+`minimum_card_width` sur un titre protège uniquement sa section native :
+un container query remet les demi-cartes sur une ligne entière sous
+`2 × largeur minimale + 8 px`. Avec 220 px, le seuil de section est 448 px.
+Aucune réduction des textes ou commandes. Les titres restent pleine largeur.
+Ce réglage suppose l’écart interne natif de 8 px ; il ne mesure pas le nom
+d’une entité. Retirer l’option restaure la grille sans résidu.
+
+Vérifier les sections de hauteurs inégales, les changements de hauteur,
+les colonnes 1/2/3/4, les sections larges, masquées et ajoutées/supprimées,
+l’édition et le nettoyage partagé ; contrôler les demi-cartes des deux côtés
+du seuil avec Bubble natif et des libellés représentatifs.
 
 ## 7. Contrôles obligatoires lors d'une évolution
 

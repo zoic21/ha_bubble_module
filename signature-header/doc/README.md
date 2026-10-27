@@ -1,5 +1,50 @@
 # Signature Header
 
+## 1.3.0 — 27 octobre 2026 — sections indépendantes et demi-cartes adaptatives
+
+Pour supprimer les espaces verticaux sous une section plus courte que sa
+voisine, activer sur **un seul** titre/en-tête de la vue Sections :
+
+```yaml
+signature_header:
+  masonry_sections: true
+```
+
+Sur ordinateur, chaque section rejoint la première place libre dans la grille,
+sans attendre le bas de sa voisine. Les largeurs natives restent conservées,
+y compris les bandeaux qui occupent plusieurs colonnes. L’espacement vertical
+natif reste présent, avec moins de 4 px d’arrondi. L’ordre visuel sur ordinateur
+peut changer lorsque la grille comble un vide ; l’ordre enregistré et celui
+du mobile restent identiques. En mode édition et avec une seule colonne,
+Home Assistant garde son placement natif. Les cartes, conditions et actions
+ne sont ni déplacées ni recopiées. Un ResizeObserver partagé suit les hauteurs
+et un MutationObserver partagé suit la liste de sections, sans polling.
+Tous les styles, observateurs et variables sont retirés avec le dernier titre
+qui active l’option. Hors d’une vue Sections, le réglage est sans effet.
+
+Pour des lumières en demi-largeur, conserver `grid_options.columns: 6`
+sur les cartes et configurer leur titre :
+
+```yaml
+signature_header:
+  minimum_card_width: 220
+```
+
+Sous **448 px de largeur de section**, les cartes passent chacune sur une ligne
+entière ; à partir de 448 px, deux cartes d’au moins 220 px tiennent avec
+leur écart natif de 8 px. Le titre reste pleine largeur. Le navigateur suit
+la largeur en CSS, sans observateur supplémentaire, sans réduire le texte
+ni l’interrupteur. Valeur configurable de 120 à 500 px ; plusieurs titres
+partagent le plus grand minimum. Ce seuil protège l’espace disponible ;
+il ne mesure pas les noms live des entités. Ajuster le minimum pour des
+libellés exceptionnellement longs. Une section élargie conserve ses unités
+natives : l’option est conçue pour des demi-cartes de section simple.
+
+Importer **Header 1.3.0**, puis réimporter les dashboards configurés et
+recharger le frontend. Les autres modules restent identiques. Vérifications
+Chromium sur DOM de vue HA simulé et Bubble 3.4.1 ; rendu dans l’installation
+réelle et Safari/iOS à confirmer.
+
 ## 1.2.2 — 27 octobre 2026 — demi-cartes alignées dans une section élargie
 
 Sur le séparateur d’une section native de **deux colonnes**, activer :

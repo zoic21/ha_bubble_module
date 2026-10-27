@@ -33,9 +33,12 @@ test('presentation fields keep media/header exceptions and custom Header help ou
   const compact=fields('signature-compact'),square=fields('signature-square'),room=fields('signature-room'),header=fields('signature-header');
   assert.equal(compact.color.label,square.color.label);assert.deepEqual(compact.color.selector,header.color.selector);
   assert.match(compact.color.visible_if,/media-player/);assert.doesNotMatch(compact.icon_color.visible_if,/media-player/);
-  assert.equal(room.color_thresholds,undefined);assert.deepEqual(Object.keys(header),['color','align_section_columns','sub_button_styles']);
+  assert.equal(room.color_thresholds,undefined);assert.deepEqual(Object.keys(header),['color','align_section_columns','minimum_card_width','masonry_sections','sub_button_styles']);
   assert.match(header.sub_button_styles.description,/titres de section/i);
   assert.deepEqual(header.align_section_columns.selector,{boolean:{}});
+  assert.deepEqual(header.masonry_sections.selector,{boolean:{}});
+  assert.equal(header.minimum_card_width.selector.number.min,120);
+  assert.equal(header.minimum_card_width.selector.number.max,500);
   const visible=new Function('card','return '+header.align_section_columns.visible_if);
   assert.equal(visible({card_type:'separator'}),true);assert.equal(visible({card_type:'button',button_type:'name'}),false);
 });

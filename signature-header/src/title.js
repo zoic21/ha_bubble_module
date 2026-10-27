@@ -1,4 +1,6 @@
 /* @include signature-header/src/section-columns.js */
+/* @include signature-header/src/section-min-width.js */
+/* @include signature-header/src/view-masonry.js */
 // Labels stay readable while their parent tint still colors icons and currentColor backgrounds.
 const headerTextCSS = `
   ha-card .bubble-sub-button :is(.bubble-sub-button-name-container,.bubble-range-value) {
