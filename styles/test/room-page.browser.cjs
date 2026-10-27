@@ -73,6 +73,7 @@ test('the room page keeps one shared width, aligned control rows and security be
   const hint=JSON.stringify({width,mode,m});
   assert.ok(Math.abs(m.summary.left-m.page.left)<=1&&Math.abs(m.summary.right-m.page.right)<=1,hint);
   assert.ok(m.page.width<=1032,hint);
+  if(width>=1100)assert.ok(m.summary.height>=160&&m.summary.height<=164,'summary must retain the reduced height: '+hint);
   for(const group of [m.lights,m.climate,m.security])for(const c of group)assert.ok(c.left>=m.page.left-1&&c.right<=m.page.right+1,hint);
   if(width>=760){
    for(let i=0;i<3;i++)assert.ok(Math.abs(m.lights[i].top-m.climate[i].top)<=1,'control rows must align: '+hint);

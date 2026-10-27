@@ -1,5 +1,16 @@
 # Signature Panel
 
+## 1.4.4 — 27 octobre 2026 — synthèse réduite
+
+La synthèse illustrée devient plus compacte sur ordinateur : **160 px de
+hauteur de base**, valeurs jusqu’à **40 px** (64 px auparavant), illustration
+**128 px** (240 px auparavant) et titre **26 px**. La réduction porte sur
+le bandeau ; les deux colonnes, la sécurité alignée, les commandes et les
+réglages mobiles sont conservés. Les bandeaux sans mesure restent compacts.
+
+Mettre à jour uniquement **Signature Panel 1.4.4**, puis recharger le frontend.
+Aucun dashboard, thème ou illustration à réimporter pour ce réglage.
+
 ## 1.4.3 — 27 octobre 2026 — synthèse sur toute une page contenue
 
 L’en-tête remplit désormais sa section native, sans plafond isolé à 900 px.
@@ -122,7 +133,7 @@ icône. Le défaut reste le fond doux à 16 %. Voir le
 [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **1.4.3**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.4.4**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 

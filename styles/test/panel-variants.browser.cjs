@@ -12,7 +12,7 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
    const visible=el=>{const r=el.getBoundingClientRect();return getComputedStyle(el).display!=='none'&&r.width>0&&r.height>0};
    const fields=[...root.querySelectorAll('.bubble-state,.dp-panel-state,.dp-panel-title,.bubble-name,.dp-panel-name,.dp-secondary,.dp-panel-secondary,.bubble-sub-button')].filter(visible);
    const artwork=getComputedStyle(host,'::after');
-   return{width:frame.width,left:frame.left-document.querySelector('#cards').getBoundingClientRect().left,artwork:{width:parseFloat(artwork.width),right:parseFloat(artwork.right)},height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,overflow:el.scrollWidth-el.clientWidth}})};
+   return{width:frame.width,left:frame.left-document.querySelector('#cards').getBoundingClientRect().left,artwork:{width:parseFloat(artwork.width),right:parseFloat(artwork.right)},height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,fontSize:parseFloat(getComputedStyle(el).fontSize),overflow:el.scrollWidth-el.clientWidth}})};
   });
   const hint=JSON.stringify({width,mode,kind,m});
   if(process.env.PANEL_CAPTURE_DIR&&[382,900,1568].includes(width)){
@@ -36,7 +36,11 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
    for(const field of m.fields.filter(f=>!f.cls.includes('settings')))
     assert.ok(field.right<=m.width-m.artwork.right-m.artwork.width+2,'reserve artwork space: '+hint);
    assert.ok(m.artwork.width<=m.height+1,'artwork must not be clipped vertically: '+hint);
-   if(m.width>=600&&kind!=='none')assert.ok(m.height>=216&&m.height<=270,'desktop heading must retain its illustrated proportions: '+hint);
+   if(m.width>=600&&kind!=='none'){
+    assert.ok(m.height>=160&&m.height<=180,'desktop heading must retain its reduced height: '+hint);
+    for(const field of m.fields.filter(f=>f.cls.includes('bubble-state')||f.cls.includes('dp-panel-state')))assert.ok(field.fontSize>=30&&field.fontSize<=40,'keep summary values readable without oversized numbers: '+hint);
+    assert.equal(m.artwork.width,128,'illustration uses the compact size: '+hint);
+   }
    if(m.width>=600&&kind==='double'){
     const humidity=m.fields.find(f=>f.cls.includes('dp-panel-state'));
     assert.ok(humidity.left>=m.width*.35&&humidity.left<=m.width*.6,'humidity must use the middle of the card: '+hint);
