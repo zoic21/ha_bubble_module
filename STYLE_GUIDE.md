@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.4.1**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.1**, **Room 1.4.3**, **Panel 1.4.2**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -975,3 +975,21 @@ sous-boutons natifs utilise l’accent à 12 %, sauf choix explicite sans fond.
 Aucun changement des panneaux classiques, bandeaux de mesures ou lecteurs.
 Les fixtures vérifient désormais les intersections entre les champs, la
 réservation du dessin et l’alignement réel température/sélecteur.
+
+
+### Panel 1.4.2 — en-têtes plafonnés sur grand écran
+
+`variant: heading` plafonne son ha-card à 900 px, aligné à gauche dans la grille
+native, tout en occupant 100 % de la place disponible sur une carte plus étroite.
+Le réglage facultatif `signature-panel-heading-max-width` reste une variable CSS
+de thème. La grille de page, les sections et les autres variantes ne changent pas.
+La hauteur minimale avec mesures revient à 170 px ; le dessin de 144 px ne
+croît plus avec l’écran. Un dessin plus grand explicitement demandé agrandit
+encore la hauteur pour éviter une coupe. Titre 24 px et valeurs 32 px sur
+ordinateur ; adaptations mobiles précédentes conservées. Avec deux mesures,
+les pistes souples distribuent température à gauche et humidité vers le centre.
+Avec une seule mesure, le sélecteur reste près de sa valeur, avant l’espace
+souple et le dessin. Les commandes gardent leur repli mobile et leurs cibles.
+Sans mesure, garder le format compact 112/100 px. Les fixtures couvrent aussi
+900, 1 036, 1 568 et 2 000 px, en vérifiant plafond, alignement, hauteur compacte,
+absence de chevauchement et place de l’humidité. Aucun CSS local de carte.

@@ -1,25 +1,30 @@
 /* Opt-in variants only: existing equipment/media Panels keep their geometry. */
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"], ha-card[data-dp-layout="panel"][data-dp-panel-variant="strip"] { container-type: inline-size; }
+/* The page grid keeps its full width; only the illustrated card is capped. */
+ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] {
+  width: 100%; max-width: var(--signature-panel-heading-max-width,900px);
+  margin-inline: 0; box-sizing: border-box;
+}
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] .bubble-container {
-  --dp-panel-artwork-size: var(--signature-panel-heading-illustration-size,clamp(120px,28cqw,280px));
+  --dp-panel-artwork-size: var(--signature-panel-heading-illustration-size,144px);
   --dp-panel-artwork-width: calc(var(--dp-panel-artwork-size) * var(--dp-panel-artwork-ratio,1));
-  --dp-panel-value-size: calc(var(--signature-temperature-font-size,30px) + 6px);
+  --dp-panel-value-size: calc(var(--signature-temperature-font-size,30px) + 2px);
   --dp-panel-unit-size: var(--signature-value-unit-font-size,16px);
   --bubble-sub-button-background-color: color-mix(in srgb,var(--dp-accent) 12%,var(--signature-card-background,var(--ha-card-background,var(--card-background-color,#fff))));
   --dp-panel-heading-row: 1; --dp-panel-name-row: 2;
   --dp-panel-value-row: 3; --dp-panel-detail-row: 4; --dp-panel-footer-row: 5;
-  position: relative; height: auto !important; min-height: max(clamp(156px,22cqw,224px),var(--dp-panel-artwork-size)) !important;
-  padding: 20px 24px; column-gap: clamp(16px,4cqw,48px); row-gap: 0;
-  /* Group measurements and controls together; only the spacer absorbs width. */
-  grid-template-columns: repeat(var(--dp-panel-count),minmax(0,max-content)) max-content minmax(0,1fr) var(--dp-panel-artwork-width);
-  grid-template-rows: minmax(34px,max-content) 8px minmax(56px,1fr) auto auto !important;
+  position: relative; height: auto !important; min-height: max(170px,var(--dp-panel-artwork-size)) !important;
+  padding: 16px 20px; column-gap: clamp(16px,3cqw,24px); row-gap: 0;
+  /* Equal measurement tracks spread two readings across a compact card. */
+  grid-template-columns: repeat(var(--dp-panel-count),minmax(0,1fr)) max-content var(--dp-panel-artwork-width);
+  grid-template-rows: minmax(29px,max-content) 4px minmax(56px,1fr) auto auto !important;
   justify-content: normal;
 }
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] :is(.dp-panel-title,.dp-panel-heading) {
   grid-row: 1; grid-column: 1 / -2; line-height: 1.2;
 }
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] .dp-panel-title {
-  font-size: calc(var(--signature-name-font-size,14px) + 14px);
+  font-size: calc(var(--signature-name-font-size,14px) + 10px);
   font-weight: var(--signature-font-weight-semibold,600);
   white-space: normal; overflow: visible; overflow-wrap: anywhere;
   max-width: 100% !important;
@@ -51,6 +56,10 @@ ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] .bubble-sub-but
   font-size: var(--signature-secondary-font-size,13px); border-radius: var(--signature-control-border-radius,14px);
 }
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] .is-select .bubble-sub-button-icon { color: var(--dp-accent); }
+/* A selector beside a single reading stays close to that reading. */
+ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"][data-dp-panel-count="1"] .bubble-container {
+  grid-template-columns: minmax(0,max-content) max-content minmax(0,1fr) var(--dp-panel-artwork-width);
+}
 ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"][data-dp-panel-count="0"] .bubble-container {
   min-height: 112px !important; --dp-panel-artwork-size: 96px;
   grid-template-columns: minmax(0,1fr) var(--dp-panel-artwork-width);
@@ -81,7 +90,8 @@ ha-card[data-dp-layout="panel"][data-dp-panel-variant="strip"] :is(.dp-secondary
   ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"]:not([data-dp-panel-count="1"]) .bubble-sub-button-container { grid-row: 5; grid-column: 1 / -2; }
 }
 @container (max-width: 520px) {
-  ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] .bubble-container {
+  ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"] .bubble-container,
+  ha-card[data-dp-layout="panel"][data-dp-panel-variant="heading"][data-dp-panel-count="1"] .bubble-container {
     --dp-panel-artwork-size: clamp(88px,28cqw,136px); --dp-panel-value-size: clamp(22px,7.5cqw,var(--signature-temperature-font-size,30px));
     --dp-panel-unit-size: 13px; column-gap: 8px; padding: 14px 12px;
     grid-template-columns: repeat(var(--dp-panel-count),minmax(0,max-content)) minmax(0,1fr) var(--dp-panel-artwork-width);

@@ -1,5 +1,25 @@
 # Signature Panel
 
+## 1.4.2 — 27 octobre 2026 — largeur contenue sur grand écran
+
+Les en-têtes `variant: heading` occupent la largeur disponible jusqu’à
+**900 px maximum**, alignés à gauche. Les sections de commandes gardent leur
+grille native. Avec mesures, la hauteur revient à **170 px minimum** et le
+dessin à 144 px ; le titre utilise 24 px et les valeurs 32 px sur ordinateur.
+Les deux mesures se distribuent entre la gauche et le centre. Le sélecteur
+d’une mesure unique reste près de sa valeur et à gauche du dessin.
+
+Sur mobile, la carte occupe toute la largeur disponible ; les adaptations des
+textes et des commandes sont conservées. Un titre long ou des commandes
+supplémentaires peuvent augmenter la hauteur. Le thème peut ajuster le plafond
+avec `signature-panel-heading-max-width`, sans CSS dans chaque carte.
+Les panneaux classiques, lecteurs et bandeaux de traitement ne changent pas.
+
+Mettre à jour uniquement **Signature Panel 1.4.2**, puis recharger le frontend.
+Aucun dashboard, atlas ou thème à réimporter pour cette correction. Les
+contrôles Chromium incluent des cartes de 1 568 et 2 000 px et restent des
+simulations, sans essai dans Home Assistant réel ni Safari/iOS.
+
 ## 1.4.1 — 27 octobre 2026 — proportions des en-têtes
 
 Les en-têtes illustrés réservent une vraie place au dessin (120–280 px sur
@@ -84,7 +104,7 @@ icône. Le défaut reste le fond doux à 16 %. Voir le
 [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **1.4.1**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.4.2**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
