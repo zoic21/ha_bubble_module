@@ -40,12 +40,14 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container::
   position: relative; inset-inline-end: auto; top: auto; transform: none;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-badges {
-  position: absolute !important; top: 4px; right: 4px;
-  width: 44px; height: 44px; padding: 0; background: transparent;
+  position: absolute !important; inset: 0;
+  width: auto; height: auto; padding: 0; background: transparent;
+  align-items: flex-start; justify-content: flex-end; pointer-events: none;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-badges .bubble-sub-button {
+  position: var(--dp-panel-badge-position,relative) !important; inset: var(--dp-panel-badge-inset,auto) !important;
   width: 44px; min-width: 44px !important; height: 44px; flex-basis: 44px;
-  background: radial-gradient(circle,var(--signature-control-background,color-mix(in srgb,var(--primary-text-color) 5%,var(--card-background-color))) 0 15px,transparent 16px) !important;
+  background: radial-gradient(circle,var(--signature-control-background,color-mix(in srgb,var(--primary-text-color) 5%,var(--card-background-color))) 0 16px,transparent 16px) !important;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-badges .bubble-sub-button-icon { --mdc-icon-size: 18px; }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container {

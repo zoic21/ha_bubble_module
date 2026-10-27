@@ -1,5 +1,42 @@
 # Signature Panel
 
+## 1.4.12 — 27 octobre 2026 — pastilles aux coins des en-têtes
+
+Les badges `type: badge` d’un en-tête illustré utilisent le même cercle neutre
+et les mêmes marges : cible native **44 × 44 px**, cercle visible **32 px**,
+icône **18 px**. Les cibles restent à l’intérieur de la bordure ; les 6 px
+entre cible et cercle donnent des retraits visibles identiques en haut,
+à droite et en bas. Le groupe est superposé au bandeau, sans colonne réservée.
+
+`sub_button_styles.<classe>.position: bottom-right` place un badge en bas
+à droite. Les autres restent en haut à droite. L’illustration, les valeurs
+et la hauteur ne changent pas lorsqu’un badge apparaît ou disparaît. Le
+conteneur superposé laisse passer les clics vers les mesures et sélecteurs ;
+seuls les boutons natifs gardent leur cible active. Les nœuds, actions et
+conditions de visibilité sont conservés, avec le mécanisme existant de badges.
+
+```yaml
+signature_panel:
+  variant: heading
+  sub_button_styles:
+    robot-status:
+      type: badge
+      position: bottom-right
+      icon: mdi:robot-mower
+      color: '#29958A'
+```
+
+La configuration Bubble native du bouton garde `css_class: robot-status`,
+`show_name: false`, `show_state: false`, `show_icon: true` et ses actions.
+L’icône, la couleur et l’opacité acceptent les templates existants ; la logique
+d’état appartient au dashboard. La position est propre aux badges `heading`.
+Les Panels classiques, bandeaux de traitement, lecteurs et autres modules
+conservent leur présentation. Aucun nouvel observateur, abonnement ou timer.
+
+Importer **Panel 1.4.12** avant les cartes utilisant cette position, puis
+recharger le frontend. Les essais Chromium utilisent Bubble réel avec un
+contexte HA simulé ; ils ne constituent pas une validation HA installé/Safari.
+
 ## 1.4.11 — 27 octobre 2026 — largeur du nom prise en compte
 
 Sur les bandeaux de 761 px ou plus, la colonne du nom utilise sa largeur

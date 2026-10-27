@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.11**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.2.2**, **Room 1.4.3**, **Panel 1.4.12**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1183,3 +1183,27 @@ Vérifier la largeur naturelle d’un nom court, les noms longs aux différentes
 largeurs, le centre réel du groupe entre la fin du nom et le dessin, le
 changement de texte sur les mêmes nœuds, Piscine/Jardin et les replis mobiles.
 Aucune mesure de texte JavaScript au runtime, observateur ou CSS par carte.
+
+
+### Panel 1.4.12 — pastilles de coin symétriques sans piste réservée
+
+Heading : groupe de badges absolu sur la surface complète, fond transparent
+et `pointer-events: none`. Ses boutons gardent les gestes natifs et une cible
+active de 44 px, avec cercle neutre de 32 px et icône de 18 px. Les boutons
+ordinaires s’alignent en haut à droite ; `position: bottom-right` retire un
+badge du flux du groupe et l’ancre au coin inférieur droit. Les cibles sont
+à zéro du bord intérieur, avec 6 px entre leur limite et le cercle visible :
+retraits haut/droite/bas identiques, mêmes dimensions et axe vertical.
+
+Le groupe n’ajoute aucune piste de grille ni hauteur. Garder le dessin à sa
+position habituelle ; un badge visible ou caché ne doit changer ni le titre,
+ni les valeurs, ni le sélecteur. L’accès aux données sous le groupe reste actif.
+Utiliser les nœuds et la restauration existants ; aucune mesure de géométrie,
+nouvel observateur, abonnement ou timer. La couleur ne teinte que le glyphe ;
+le fond reste neutre. Les templates d’état et actions restent dans les cartes.
+Les autres présentations et modules ne changent pas.
+
+Contrôler les retraits visibles et cibles 44 px, l’absence de chevauchement
+des deux cibles, les actions natives, le masquage, les icônes/couleurs mises
+à jour et la géométrie strictement identique avec/sans badge sur téléphone
+et ordinateur, avec/sans thème et en clair/sombre.

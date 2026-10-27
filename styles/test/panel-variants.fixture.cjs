@@ -24,11 +24,11 @@ async function setup(t){
 async function draw(page,scenario){
  await page.evaluate(({scenario,code,theme,nativeModes})=>{
   window.card?.remove();
-  const {width,mode,plain,kind,primary=true,poolMode='Normal',mowerHome=true,title}=scenario;
+  const {width,mode,plain,kind,primary=true,poolMode='Normal',mowerHome=true,title,robotBadge=false,robotState='docked',robotIcon,robotColor,robotOpacity=1}=scenario;
   document.documentElement.style.cssText=Object.entries({...nativeModes[mode],...(plain?{}:{...theme,...theme.modes[mode]})}).filter(([k])=>k!=='modes').map(([k,v])=>'--'+k+':'+v).join(';');
   document.querySelector('#cards').style.width=width+'px';
   const state=(v,u)=>({state:String(v),attributes:{unit_of_measurement:u}});
-  window.hass={states:{'sensor.temperature':state(22.8,'°C'),'sensor.humidity':state(64,'%'),'sensor.salt':state(2.8,'g/L'),'sensor.ph':state(7.2,''),'sensor.redox':state(720,'mV'),'switch.ph':state('on',''),'switch.redox':state('off',''),'device_tracker.mower':state(mowerHome?'home':'not_home',''),'lawn_mower.demo':state('docked',''),'input_select.mode':{state:poolMode,attributes:{options:['Normal','Hivers']}}},
+  window.hass={states:{'sensor.temperature':state(22.8,'°C'),'sensor.humidity':state(64,'%'),'sensor.salt':state(2.8,'g/L'),'sensor.ph':state(7.2,''),'sensor.redox':state(720,'mV'),'switch.ph':state('on',''),'switch.redox':state('off',''),'device_tracker.mower':state(mowerHome?'home':'not_home',''),'lawn_mower.demo':state(robotState,''),'vacuum.demo':state(robotState,''),'input_select.mode':{state:poolMode,attributes:{options:['Normal','Hivers']}}},
    locale:{language:'fr',number_format:'language'},language:'fr',themes:{darkMode:mode==='dark'},config:{unit_system:{temperature:'°C'},time_zone:'Europe/Paris'},hassUrl:p=>new URL(p,'https://ha.example.test').href,
    localize:()=>undefined,formatEntityState:s=>s.state,formatEntityAttributeValue:(s,k,v)=>v,
    connection:{subscribeMessage:async(cb,msg)=>{if(msg.type==='render_template'){window.templateMessages ||= [];templateMessages.push(msg.template);cb({result:msg.template.includes('primary')?String(primary):'0 %'});}return()=>{}},subscribeEvents:async()=>()=>{}},
@@ -41,6 +41,12 @@ async function draw(page,scenario){
   if(kind==='single')options.information=[];
   if(kind==='mode'){options.title='Piscine';options.information=[];config.sub_button.main.unshift({entity:'input_select.mode',sub_button_type:'select',icon:'mdi:pool',show_state:true,show_name:false,show_icon:true});}
   if(kind==='mower')config.sub_button.main.unshift({entity:'lawn_mower.demo',icon:'mdi:robot-mower',show_state:true,show_name:false,visibility:[{condition:'state',entity:'device_tracker.mower',state:'home'}]});
+  if(robotBadge&&['mower','mode'].includes(kind)){
+   const robot=kind==='mower'?config.sub_button.main[0]:{entity:'vacuum.demo',show_icon:true};
+   Object.assign(robot,{name:kind==='mower'?'Mova 600':'Robot piscine',css_class:'robot-status',show_state:false,show_name:false,show_background:false,tap_action:{action:'navigate',navigation_path:kind==='mower'?'#mower':'#dolphin'}});
+   if(kind==='mode')config.sub_button.main.push(robot);
+   options.sub_button_styles['robot-status']={type:'badge',position:'bottom-right',icon:robotIcon||(kind==='mode'?'mdi:robot-vacuum-off':'mdi:robot-mower-outline'),color:robotColor||'#818181',opacity:robotOpacity};
+  }
   if(kind==='strip'){
    Object.assign(config,{entity:'sensor.salt',name:'Sel',show_name:true,sub_button:{main:[{entity:'switch.ph',css_class:'ph-control',icon:'mdi:power',show_name:false,show_state:false,tap_action:{action:'toggle'}},{entity:'switch.redox',css_class:'redox-control',icon:'mdi:power',show_name:false,show_state:false,tap_action:{action:'toggle'}}]}});
    config.signature_panel={variant:'strip',metric_icon:'mdi:water-sync',primary_enabled:primary ? '{{ primary }}' : false,information:[{entity:'sensor.ph',name:'pH',icon:'mdi:flask-outline',secondary:'{{ detail }}'},{entity:'sensor.redox',name:'Redox',icon:'mdi:lightning-bolt-outline',secondary:'{{ detail }}'}],sub_button_styles:{'ph-control':{type:'switch',column:2,color:'#368ACB'},'redox-control':{type:'switch',column:3,color:'#368ACB'}}};

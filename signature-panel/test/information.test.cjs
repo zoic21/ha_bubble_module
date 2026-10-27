@@ -149,3 +149,18 @@ test('real media artwork keeps its full track while an atlas fallback retains it
  delete f.hass.states['sensor.power'].attributes.entity_picture;
  assert.match(f.run(),/--dp-panel-artwork-ratio:0.65;/);
 });
+
+test('heading corner placement follows live badge options and preserves template icons and native restoration',t=>{
+ const f=fixture();t.after(()=>f.ctx.teardown());const {Element}=context;
+ const group=new Element(),badge=new Element(),icon=new Element();group.className='bubble-sub-button-group';badge.className='bubble-sub-button robot';icon.className='bubble-sub-button-icon';icon.setAttribute('icon','mdi:robot-mower-outline');badge.append(icon);group.append(badge);f.root.append(group);
+ f.ctx.config.sub_button={main:[{entity:'sensor.temp',css_class:'robot',show_name:false,show_state:false,show_icon:true,tap_action:{action:'navigate',navigation_path:'#robot'}}]};
+ f.options.variant='heading';f.options.title='Jardin';f.options.sub_button_styles={robot:{type:'badge',position:'bottom-right',icon:'{{ icon }}',color:'#29958A'}};
+ f.setIcon('mdi:robot-mower');const css=f.run(),geometry=f.ctx._signaturePanelRuntime.styleCSS;
+ assert.match(css,/\.robot\{--dp-panel-badge-position:absolute;--dp-panel-badge-inset:auto 0 0 auto;/);
+ assert.equal(icon.getAttribute('icon'),'mdi:robot-mower');assert.equal(f.root.querySelector('.dp-panel-badges').firstElementChild,badge);
+ f.options.sub_button_styles.robot.position='top-right';f.options.sub_button_styles.robot.color='#B97918';f.setIcon('mdi:pause-circle-outline');
+ const next=f.run();assert.doesNotMatch(next,/\.robot\{--dp-panel-badge-position:absolute/);assert.match(next,/color:#B97918\s*!important/);
+ assert.equal(icon.getAttribute('icon'),'mdi:pause-circle-outline');assert.equal(f.root.querySelector('.dp-panel-badges').firstElementChild,badge);assert.equal(f.ctx._signaturePanelRuntime.styleCSS,geometry);
+ f.options.sub_button_styles.robot.position='bottom-right';f.options.variant='strip';assert.doesNotMatch(f.run(),/\.robot\{--dp-panel-badge-position:absolute/);
+ delete f.options.sub_button_styles;f.run();assert.equal(badge.parentNode,group);assert.equal(icon.getAttribute('icon'),'mdi:robot-mower-outline');
+});
