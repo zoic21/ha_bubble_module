@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.14**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.15**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1263,3 +1263,25 @@ précédente sur les mêmes nœuds ; couvrir 288/328/349/350/358/382/386/480/
 Vérifier les couleurs indépendantes, les cibles et les clics sur téléphone
 comme sur ordinateur. Aucun déplacement de nœud ou calcul de taille JavaScript.
 Les fixtures Bubble/Chromium ne valident pas Home Assistant installé/Safari.
+
+### Panel 1.4.15 — agrandissement décoratif des en-têtes
+
+Conserver la boîte et la piste du dessin, ainsi que toutes les dimensions de
+la grille. Agrandir uniquement le pseudo-élément décoratif autour de son centre :
+1,2 sur desktop (96 px visuels dans le cadre de 80 px), 1,1 sous 521 px
+(88 px visuels dans le cadre de 80 px). Entre 521 et 760 px, garder les 96 px
+existants. Les hauteurs, titres, mesures, cibles et badges restent identiques.
+Les illustrations sans mesure suivent la même règle ; les autres Panels ne
+changent pas. Les images et leur cadrage clair/sombre ne sont pas réécrits.
+
+Une taille desktop explicite du thème garde sa valeur littérale, en calculant
+le rapport entre cette taille cible et le cadre ; le repli de transformation
+conserve l’agrandissement par défaut. Les variables restent dans le CSS pour
+réagir sans exécution du module. Aucun nœud, abonnement ou mesure JavaScript.
+
+Les tests utilisent les coordonnées du pseudo-élément effectivement peint,
+transformations comprises, via Chromium : vérifier son centre et sa taille,
+les bords de carte, et comparer le reste de la géométrie avec la transformation
+neutralisée sur les mêmes nœuds natifs. Couvrir les thèmes, les cartes sans
+mesure, les commandes et les badges de coin. Ces fixtures Bubble ne valident
+pas l’installation Home Assistant ni Safari/iOS.

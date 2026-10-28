@@ -112,6 +112,8 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
     padding-inline-end: calc((100% / (var(--dp-panel-count) + 1) + var(--dp-panel-artwork-width)) / 2 + 8px);
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="0"] .bubble-container { --dp-panel-artwork-size: 80px; min-height: 100px !important; }
+  /* Enlarge only the painted artwork: keep its track, center and card height. */
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container::after { transform: scale(1.1); }
 }
 @container (max-width: 520px) {
   ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] .bubble-container {
@@ -152,5 +154,10 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="0"] .bubble-container {
     grid-template-columns: minmax(0,1fr) var(--dp-panel-artwork-width);
     grid-template-rows: 1fr !important;
+  }
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container::after {
+    transform: scale(1.2);
+    /* An explicitly themed size already sets the frame and stays literal. */
+    transform: scale(calc(var(--signature-panel-heading-illustration-size,96px) / var(--dp-panel-artwork-size)));
   }
 }

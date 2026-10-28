@@ -1,5 +1,28 @@
 # Signature Panel
 
+## 1.4.15 — 28 octobre 2026 — illustration plus présente
+
+Le dessin des en-têtes passe visuellement de 80 à **96 px sur desktop**
+(761 px et plus), et de 80 à **88 px sur téléphone** (520 px et moins).
+Entre 521 et 760 px, il conserve ses 96 px. Le dessin s’agrandit autour de
+son centre existant, par transformation de son calque décoratif uniquement.
+
+La grille, la hauteur du bandeau, le titre, les mesures et les positions de
+l’engrenage et des badges restent identiques. Le cadrage de l’atlas et ses
+variantes clair/sombre sont conservés. Les cibles natives, actions et couleurs
+ne changent pas. Les bandeaux sans mesure utilisent le même agrandissement ;
+les Panels classiques, lecteurs et bandes de traitement gardent leur dessin.
+
+Une taille desktop explicitement fournie par le thème avec
+`signature-panel-heading-illustration-size` reste sa taille visuelle, sans
+second agrandissement ; ses changements suivent le CSS en direct.
+
+Mettre à jour uniquement **Signature Panel 1.4.15**, puis recharger le frontend.
+Aucun dashboard, thème ou atlas à réimporter. Les tests Chromium mesurent le
+vrai pseudo-élément peint de Bubble 3.4.1 : dimensions, centre, absence de coupe
+aux bords et géométrie inchangée du texte et des contrôles. Contexte HA simulé ;
+le rendu dans Home Assistant installé et Safari/iOS reste à confirmer.
+
 ## 1.4.14 — 28 octobre 2026 — mesures regroupées aussi sur mobile
 
 Les en-têtes de **760 px ou moins** reprennent les petites mesures regroupées
