@@ -12,7 +12,7 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
    const visible=el=>{const r=el.getBoundingClientRect();return getComputedStyle(el).display!=='none'&&r.width>0&&r.height>0};
    const fields=[...root.querySelectorAll('.bubble-state,.dp-panel-state,.dp-panel-title,.bubble-name,.dp-panel-name,.dp-secondary,.dp-panel-secondary,.bubble-sub-button')].filter(visible);
    const artwork=getComputedStyle(host,'::after'),layout=getComputedStyle(host),lastTrack=parseFloat(layout.gridTemplateColumns.split(' ').at(-1));
-   return{width:frame.width,left:frame.left-document.querySelector('#cards').getBoundingClientRect().left,artwork:{width:parseFloat(artwork.width),right:parseFloat(layout.paddingRight)+(lastTrack-parseFloat(artwork.width))/2},height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,fontSize:parseFloat(getComputedStyle(el).fontSize),overflow:el.scrollWidth-el.clientWidth}})};
+   return{width:frame.width,left:frame.left-document.querySelector('#cards').getBoundingClientRect().left,gap:parseFloat(layout.columnGap),artwork:{width:parseFloat(artwork.width),right:parseFloat(layout.paddingRight)+(lastTrack-parseFloat(artwork.width))/2},height:frame.height,count:root.getAttribute('data-dp-panel-count'),fields:fields.map(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,cls:el.className,left:r.left-frame.left,right:r.right-frame.left,top:r.top-frame.top,bottom:r.bottom-frame.top,fontSize:parseFloat(getComputedStyle(el).fontSize),overflow:el.scrollWidth-el.clientWidth}})};
   });
   const hint=JSON.stringify({width,mode,kind,m});
   if(process.env.PANEL_CAPTURE_DIR&&[382,900,1568].includes(width)){
@@ -31,7 +31,7 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
    const value=m.fields.find(f=>f.cls.includes('bubble-state')),control=m.fields.find(f=>f.cls.includes('is-select'));
    assert.ok(Math.abs((value.top+value.bottom-control.top-control.bottom)/2)<1,'mode must align with temperature: '+hint);
    const centers=[(value.left+value.right)/2,(control.left+control.right)/2,m.width-m.artwork.right-m.artwork.width/2];
-   assert.ok(control.left-value.right>=8&&Math.abs((centers[1]-centers[0])-(centers[2]-centers[1]))<2,'temperature, mode and illustration must occupy balanced centered zones: '+hint);
+   assert.ok(control.left-value.right>=8&&control.right<=m.width-m.artwork.right-m.artwork.width+1,'keep the selector between the compact reading and the unchanged illustration: '+hint);
   }
   if(kind!=='strip'){
    for(const field of m.fields.filter(f=>!f.cls.includes('settings')))
@@ -41,14 +41,14 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
     const title=m.fields.find(f=>f.cls.includes('dp-panel-title'));
     const footer=m.fields.filter(f=>f.cls.includes('bubble-sub-button')&&!f.cls.includes('settings')).some(f=>f.top>=m.fields.find(f=>f.cls.includes('bubble-state')).bottom);
     assert.ok(m.width>760?m.height===100:m.height>=112&&m.height<=118+Math.max(0,title.bottom-title.top-32)+(footer?44:0),'wide headings share the compact height, narrow headings grow only for required content: '+hint);
-    for(const field of m.fields.filter(f=>f.cls.includes('bubble-state')||f.cls.includes('dp-panel-state')))assert.ok(m.width>760?field.fontSize===16:field.fontSize>=30&&field.fontSize<=40,'wide readings use the secondary role; narrow values keep their size: '+hint);
+    for(const field of m.fields.filter(f=>f.cls.includes('bubble-state')||f.cls.includes('dp-panel-state')))assert.equal(field.fontSize,16,'use the same secondary reading size on phone and desktop: '+hint);
     assert.equal(m.artwork.width,m.width>760?80:96,'illustration uses the compact size: '+hint);
    }
    if(kind==='double'&&width<=760){
     const temperature=m.fields.find(f=>f.cls.includes('bubble-state')),humidity=m.fields.find(f=>f.cls.includes('dp-panel-state'));
-    const centers=[(temperature.left+temperature.right)/2,(humidity.left+humidity.right)/2,m.width-m.artwork.right-m.artwork.width/2];
-    assert.ok(Math.abs((centers[1]-centers[0])-(centers[2]-centers[1]))<2,'the two measurements and artwork must be evenly spaced: '+hint);
     const title=m.fields.find(f=>f.cls.includes('dp-panel-title'));
+    assert.equal(temperature.left,title.left,'align compact readings under the title: '+hint);
+    assert.ok(Math.abs(humidity.left-temperature.right-m.gap)<1,'group the two measurements without spreading them across the card: '+hint);
     assert.ok(Math.abs(m.height-temperature.bottom-title.top)<1,'balance the top title margin and bottom value margin: '+hint);
     assert.ok(m.height-temperature.bottom<=30,'remove unused space below measurements: '+hint);
     if(m.width<=520)assert.ok(m.height<=102+Math.max(0,title.bottom-title.top-28),'phone summary grows only for wrapped titles: '+hint);
@@ -97,7 +97,7 @@ test('a heading fills its section through resize and preserves a live explicit w
  assert.equal((await page.evaluate(()=>calls.at(-1))).config.entity,'sensor.humidity');
 });
 
-test('a single-reading heading centers Normal and Hivers between temperature and artwork from 350 px, with a narrow fallback',{skip:!nativePath},async t=>{
+test('a single-reading heading keeps Normal and Hivers clear of compact readings and artwork, with a narrow fallback',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [288,328,349,350,358,382,386,480,520,521,600,1032])for(const mode of ['light','dark'])for(const poolMode of ['Normal','Hivers']){
   await draw(page,{width,mode,kind:'mode',poolMode});
@@ -113,7 +113,7 @@ test('a single-reading heading centers Normal and Hivers between temperature and
   if(width>=350&&width<=760){
    assert.ok(Math.abs((m.value.top+m.value.bottom-m.control.top-m.control.bottom)/2)<1,'align selector and temperature: '+hint);
    const centers=[(m.value.left+m.value.right)/2,(m.control.left+m.control.right)/2,m.artCenter];
-   assert.ok(m.control.left-m.value.right>=8&&Math.abs((centers[1]-centers[0])-(centers[2]-centers[1]))<2,'center each item in a balanced zone: '+hint);
+   assert.ok(m.control.left-m.value.right>=8,'keep the native selector clear of the compact reading: '+hint);
   }else if(width<350)assert.ok(m.control.top>=m.value.bottom,'keep the selector below when the row is too narrow: '+hint);
   else assert.ok(Math.abs((m.value.top+m.value.bottom-m.control.top-m.control.bottom)/2)<1,'wide inline commands remain vertically centered: '+hint);
  }
@@ -148,7 +148,7 @@ test('headings reuse existing vertical space without increasing height or moving
  }
 });
 
-test('conditional garden controls keep narrow zones and follow wide grouped readings',{skip:!nativePath},async t=>{
+test('conditional garden controls preserve their reserved area beside grouped readings',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [328,382,600,900,1032])for(const mode of ['light','dark'])for(const mowerHome of [true,false]){
   await draw(page,{width,mode,kind:'mower',mowerHome});
@@ -156,15 +156,15 @@ test('conditional garden controls keep narrow zones and follow wide grouped read
    const root=card.card,host=root.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),art=getComputedStyle(host,'::after'),tracks=s.gridTemplateColumns.split(' ').map(parseFloat);
    const center=e=>{const b=e.getBoundingClientRect();return(b.left+b.right)/2-r.left};
    const button=root.querySelector('.bubble-sub-button-container .bubble-sub-button'),values=[...root.querySelectorAll('.bubble-state,.dp-panel-state')].map(center);
-   return{columns:tracks.length,values,control:center(button),visible:getComputedStyle(button).display!=='none',art:r.width-parseFloat(s.paddingRight)-tracks.at(-1)/2};
+   return{columns:tracks.length,values,control:center(button),visible:getComputedStyle(button).display!=='none',art:r.width-parseFloat(s.paddingRight)-tracks.at(-1)/2,readingAreaCenter:(parseFloat(s.paddingLeft)+r.width-parseFloat(s.paddingRight)-tracks.at(-1)-parseFloat(s.columnGap))/2};
   });
   const hint=JSON.stringify({width,mode,mowerHome,m});
-  assert.equal(m.visible,mowerHome,hint);assert.equal(m.columns,width>760?4:3,hint);
+  assert.equal(m.visible,mowerHome,hint);assert.equal(m.columns,4,hint);
   if(mowerHome&&width>760){
    assert.ok(m.control>m.values.at(-1)&&m.control<m.art,'keep commands after compact readings and before the fixed artwork: '+hint);
   }else if(width<=760){
-   assert.ok(Math.abs((m.values[1]-m.values[0])-(m.art-m.values[1]))<2,'keep readings and artwork balanced when controls wrap or disappear: '+hint);
-   if(mowerHome)assert.ok(Math.abs(m.control-(m.values[0]+m.values[1])/2)<2,'center footer commands under the readings: '+hint);
+   assert.ok(m.values[0]<m.values[1]&&m.values[1]<m.art,'keep grouped readings before the unchanged illustration: '+hint);
+   if(mowerHome)assert.ok(Math.abs(m.control-m.readingAreaCenter)<2,'keep footer commands in the same reserved area before the illustration: '+hint);
   }
  }
  await draw(page,{width:1032,mode:'dark',kind:'mower'});
@@ -176,18 +176,48 @@ test('conditional garden controls keep narrow zones and follow wide grouped read
  }
 });
 
-test('hiding a native selector preserves grouped wide readings and native nodes',{skip:!nativePath},async t=>{
+test('hiding a native selector preserves grouped readings and native nodes',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [386,1032]){
   await draw(page,{width,mode:'dark',kind:'mode',poolMode:'Hivers'});
   await page.evaluate(()=>window.savedMode=card.card.querySelector('.is-select'));
   for(const method of ['class','attribute']){
    await page.evaluate(method=>{if(method==='class')savedMode.classList.add('hidden');else savedMode.hidden=true;},method);
-   await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,width>760?3:2);
+   await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,3);
    await page.evaluate(method=>{if(method==='class')savedMode.classList.remove('hidden');else savedMode.hidden=false;},method);
    await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,3);
    assert.equal(await page.evaluate(()=>savedMode===card.card.querySelector('.is-select')),true);
   }
+ }
+});
+
+test('mobile headings group compact readings without moving their existing artwork or corner controls',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,328,349,350,358,382,386,480,520,521,600,760])for(const mode of ['light','dark'])for(const plain of [false,true])for(const kind of ['single','double','mower']){
+  await draw(page,{width,mode,plain,kind,robotBadge:kind==='mower'});
+  const m=await page.evaluate(async()=>{
+   const root=card.card,host=root.querySelector('.bubble-container');
+   const read=()=>{
+    const r=host.getBoundingClientRect(),s=getComputedStyle(host),a=getComputedStyle(host,'::after'),track=parseFloat(s.gridTemplateColumns.split(' ').at(-1)),art=parseFloat(a.width);
+    const box=e=>{const b=e.getBoundingClientRect();return{left:b.left-r.left,right:b.right-r.left,top:b.top-r.top,bottom:b.bottom-r.top}};
+    return{height:r.height,artLeft:r.width-parseFloat(s.borderRightWidth)-parseFloat(s.paddingRight)-(track+art)/2,artTop:(r.height-art)/2,artWidth:art,settings:box(root.querySelector('.settings')),robot:root.querySelector('.robot-status')?box(root.querySelector('.robot-status')):null,title:box(root.querySelector('.dp-panel-title')),gap:parseFloat(s.columnGap),values:[...root.querySelectorAll('.bubble-state,.dp-panel-state')].map(e=>({...box(e),font:getComputedStyle(e).fontSize}))};
+   };
+   const current=read();
+   // Reproduce 1.4.13's equal tracks on these same native nodes. The new
+   // reading widths must not change the reserved artwork or badge geometry.
+   host.style.setProperty('grid-template-columns','repeat(calc(var(--dp-panel-count) + 1),minmax(0,1fr))','important');
+   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+   const previous=read();host.style.removeProperty('grid-template-columns');
+   return{current,previous};
+  });
+  const hint=JSON.stringify({width,mode,plain,kind,m});
+  for(const key of ['height','artLeft','artTop','artWidth'])assert.ok(Math.abs(m.current[key]-m.previous[key])<.05,'preserve the old artwork geometry: '+hint);
+  for(const key of ['title','settings','robot'])assert.deepEqual(m.current[key],m.previous[key],'preserve title wrapping and native controls: '+hint);
+  assert.equal(m.current.values[0].left,m.current.title.left,hint);
+  m.current.values.forEach((v,i)=>{
+   assert.equal(v.font,'16px',hint);assert.ok(v.top>=m.current.title.bottom,hint);
+   if(i)assert.ok(Math.abs(v.left-m.current.values[i-1].right-m.current.gap)<1,'keep readings grouped under the name: '+hint);
+  });
  }
 });
 
@@ -227,8 +257,10 @@ test('wide headings group small readings under the title with fixed artwork and 
  }
 });
 
-test('grouped readings keep live icon thresholds, independent clicks and theme sizing',{skip:!nativePath},async t=>{
- const page=await setup(t);await draw(page,{width:1032,kind:'double',mode:'light'});
+test('grouped readings keep live icon thresholds, independent clicks and theme sizing on phone and desktop',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [288,382,600,1032]){
+ await draw(page,{width,kind:'double',mode:'light'});
  await page.evaluate(()=>{
   const o=card.config.signature_panel;
   o.color_thresholds={enabled:true,transition:'hard',values:[{value:0,color:'#36993B'},{value:24,color:'#EB403C'}]};
@@ -247,9 +279,10 @@ test('grouped readings keep live icon thresholds, independent clicks and theme s
   if(entity)assert.equal(action.entity,entity);else assert.equal(action.tap_action.navigation_path,'#scenarios');
  }
  const before=await page.evaluate(()=>{const h=card.card.querySelector('.bubble-container'),r=h.getBoundingClientRect();return{height:r.height,settings:card.card.querySelector('.settings').getBoundingClientRect().x,art:getComputedStyle(h,'::after').width}});
- await page.evaluate(()=>{card.card.querySelector('.dp-panel-title').textContent='Salle de bain du deuxième étage';document.documentElement.style.setProperty('--signature-secondary-font-size','17px');});
+ await page.evaluate(width=>{if(width>760)card.card.querySelector('.dp-panel-title').textContent='Salle de bain du deuxième étage';document.documentElement.style.setProperty('--signature-secondary-font-size','17px');},width);
  const after=await page.evaluate(()=>{const h=card.card.querySelector('.bubble-container'),r=h.getBoundingClientRect();return{height:r.height,settings:card.card.querySelector('.settings').getBoundingClientRect().x,art:getComputedStyle(h,'::after').width}});
  assert.deepEqual(after,before,'the title and theme do not move artwork or settings');
  assert.equal(await page.evaluate(()=>getComputedStyle(card.card.querySelector('.bubble-state')).fontSize),'20px');
  assert.equal(await page.evaluate(()=>metricNodes.every(n=>card.card.contains(n))),true);
+ }
 });

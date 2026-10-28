@@ -9,8 +9,8 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] {
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container {
   --dp-panel-artwork-size: var(--signature-panel-heading-illustration-size,96px);
   --dp-panel-artwork-width: calc(var(--dp-panel-artwork-size) * var(--dp-panel-artwork-ratio,1));
-  --dp-panel-value-size: clamp(30px,5cqw,calc(var(--signature-temperature-font-size,30px) + 10px));
-  --dp-panel-unit-size: var(--signature-value-unit-font-size,16px);
+  --dp-panel-value-size: calc(var(--signature-secondary-font-size,13px) + 3px);
+  --dp-panel-unit-size: var(--signature-secondary-font-size,13px);
   --bubble-sub-button-background-color: color-mix(in srgb,var(--dp-accent) 12%,var(--signature-card-background,var(--ha-card-background,var(--card-background-color,#fff))));
   --dp-panel-heading-row: 1; --dp-panel-name-row: 2;
   --dp-panel-value-row: 3; --dp-panel-detail-row: 4; --dp-panel-footer-row: 5;
@@ -31,10 +31,12 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-title {
   max-width: 100% !important;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] :is(.bubble-state,.dp-panel-state) {
-  min-height: 44px; align-items: center; align-self: center; justify-self: center;
+  min-width: 44px; min-height: 44px; align-items: center; align-self: center;
+  justify-content: flex-start; justify-self: start;
+  color: var(--secondary-text-color); font-weight: var(--signature-font-weight-normal,400); letter-spacing: 0;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-icon {
-  --mdc-icon-size: 18px; flex-basis: 18px; margin-inline-end: 6px;
+  --mdc-icon-size: 14px; flex-basis: 14px; margin-inline-end: 4px;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container::after {
   position: relative; inset-inline-end: auto; top: auto; transform: none;
@@ -90,18 +92,21 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] .bubble-sub-button {
 ha-card[data-dp-layout=panel][data-dp-panel-variant] :is(.hidden,[hidden]) { display: none !important; }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp-panel-secondary) { max-width: calc(100% - 56px); }
 @container signature-panel-heading (max-width: 760px) {
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container { grid-template-columns: repeat(calc(var(--dp-panel-count) + 1),minmax(0,1fr)); }
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container {
+    /* Preserve the former equal-zone artwork track while readings use their
+       natural widths at the left. The spacer absorbs only their released room. */
+    --dp-panel-heading-gap: clamp(8px,1.5cqw,20px);
+    grid-template-columns: repeat(var(--dp-panel-count),minmax(44px,max-content)) minmax(0,1fr) calc((100% - var(--dp-panel-count) * var(--dp-panel-heading-gap)) / (var(--dp-panel-count) + 1));
+  }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container { grid-row: 5; grid-column: 1 / -2; }
 }
 @container signature-panel-heading (max-width: 520px) {
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container {
-    --dp-panel-artwork-size: 80px; --dp-panel-value-size: clamp(22px,7.5cqw,var(--signature-temperature-font-size,30px));
-    --dp-panel-unit-size: 13px; min-height: max(96px,calc(var(--dp-panel-artwork-size) + 16px)) !important; column-gap: 8px; padding: 8px 12px;
-    grid-template-columns: repeat(calc(var(--dp-panel-count) + 1),minmax(0,1fr));
+    --dp-panel-artwork-size: 80px; --dp-panel-heading-gap: 8px;
+    min-height: max(96px,calc(var(--dp-panel-artwork-size) + 16px)) !important; column-gap: 8px; padding: 8px 12px;
     grid-template-rows: minmax(28px,max-content) minmax(4px,1fr) minmax(44px,max-content) auto auto !important;
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-title { font-size: calc(var(--signature-name-font-size,14px) + 8px); }
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-icon { --mdc-icon-size: 14px; flex-basis: 14px; margin-inline-end: 3px; }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading]:not([data-dp-panel-count="0"]) .dp-panel-heading {
     grid-column: 1 / -1; box-sizing: border-box;
     padding-inline-end: calc((100% / (var(--dp-panel-count) + 1) + var(--dp-panel-artwork-width)) / 2 + 8px);
@@ -131,25 +136,15 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
   }
 }
 
-/* Wide room headers group compact readings under the name. The artwork and
-   corner badges keep their existing geometry; narrow cards retain theirs. */
+/* Wide headers keep the same compact readings and their fixed edge artwork. */
 @container signature-panel-heading (min-width: 761px) {
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count] .bubble-container {
     --dp-panel-artwork-size: var(--signature-panel-heading-illustration-size,80px);
-    --dp-panel-value-size: calc(var(--signature-secondary-font-size,13px) + 3px);
-    --dp-panel-unit-size: var(--signature-secondary-font-size,13px);
     --dp-panel-value-row: 2; --dp-panel-detail-row: 3;
     min-height: max(100px,calc(var(--dp-panel-artwork-size) + 16px)) !important;
     grid-template-columns: repeat(var(--dp-panel-count),minmax(44px,max-content)) minmax(0,1fr) var(--dp-panel-artwork-width);
     grid-template-rows: minmax(32px,max-content) minmax(44px,max-content) auto !important;
     align-content: center;
-  }
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] :is(.bubble-state,.dp-panel-state) {
-    min-width: 44px; justify-content: flex-start; justify-self: start;
-    color: var(--secondary-text-color); font-weight: var(--signature-font-weight-normal,400); letter-spacing: 0;
-  }
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-icon {
-    --mdc-icon-size: 14px; flex-basis: 14px; margin-inline-end: 4px;
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container {
     grid-row: 2; grid-column: calc(var(--dp-panel-count) + 1); justify-self: start;

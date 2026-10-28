@@ -1,5 +1,29 @@
 # Signature Panel
 
+## 1.4.14 — 28 octobre 2026 — mesures regroupées aussi sur mobile
+
+Les en-têtes de **760 px ou moins** reprennent les petites mesures regroupées
+sous le titre : valeurs **16 px**, unités **13 px**, icônes **14 px** avec leurs
+couleurs, seuils et opacités indépendants. La première mesure s’aligne à gauche
+sur le nom ; les suivantes gardent leur largeur naturelle et l’écart existant.
+La typographie reste liée aux mêmes variables de thème que sur ordinateur.
+
+La piste de l’illustration réserve exactement sa largeur précédente : son
+image, son cadrage, ses dimensions et sa position sont conservés. Le titre
+garde sa largeur disponible, ses retours à la ligne et les rangées existantes,
+sans changement de hauteur. L’engrenage et les badges de coin restent à leur
+place, avec leurs cibles natives de 44 px. Le sélecteur éventuel et le repli des
+commandes gardent leur zone ; les mesures restent actionnables séparément.
+
+Le rendu desktop validé par l’utilisateur est conservé, ainsi que les bandeaux
+sans mesure, les Panels classiques, les lecteurs et les bandes de traitement.
+Aucun nœud, calcul JavaScript de largeur, observateur ou abonnement ajouté.
+
+Mettre à jour uniquement **Signature Panel 1.4.14**, puis recharger le frontend.
+Comparaisons de géométrie, couleurs et actions avec Bubble 3.4.1 dans Chromium,
+dont 288–760 px, clair/sombre et avec/sans thème ; environnement HA simulé.
+Le rendu dans Home Assistant installé et Safari/iOS reste à confirmer.
+
 ## 1.4.13 — 28 octobre 2026 — mesures regroupées sous le titre
 
 Sur les en-têtes d’au moins **761 px**, les mesures sont regroupées à gauche,

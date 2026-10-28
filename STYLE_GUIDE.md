@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.13**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.14**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1239,3 +1239,27 @@ seuil indépendantes et les vrais clics sur chaque mesure et l’engrenage.
 Comparer avant/après la hauteur, la géométrie du dessin et les cibles des
 badges ; couvrir les titres longs, les seuils de largeur, les commandes
 masquées et les thèmes. Les fixtures Chromium ne valident pas HA réel/Safari.
+
+### Panel 1.4.14 — même hiérarchie sur téléphone
+
+Étendre le rôle secondaire des mesures et leur regroupement à gauche aux
+cartes de 760 px ou moins. Partager les valeurs, unités et icônes avec le
+desktop (16/13/14 px par défaut), en conservant les couleurs, seuils et opacités
+par source. Les cibles restent de 44 px. La première mesure commence sous le
+bord gauche du titre ; les suivantes utilisent leur largeur intrinsèque.
+
+Réserver au dessin la largeur de sa dernière zone précédente : largeur
+intérieure moins les écarts, divisée par le nombre de mesures plus un. Une
+piste souple absorbe la place libérée par les petites valeurs. Conserver les
+rangées, la hauteur, les marges, le cadrage, la taille et les coordonnées du
+dessin ainsi que les cibles des badges. Le titre garde sa largeur et ses
+retours à la ligne. L’exception du sélecteur natif dès 350 px et son repli
+étroit gardent leurs pistes ; le nom et la mesure restent alignés à gauche.
+Les bandeaux sans mesure et le desktop ne changent pas.
+
+Comparer les coordonnées du dessin et des badges avec la disposition
+précédente sur les mêmes nœuds ; couvrir 288/328/349/350/358/382/386/480/
+520/521/600/760 px, les thèmes, les titres longs et les contrôles cachés.
+Vérifier les couleurs indépendantes, les cibles et les clics sur téléphone
+comme sur ordinateur. Aucun déplacement de nœud ou calcul de taille JavaScript.
+Les fixtures Bubble/Chromium ne valident pas Home Assistant installé/Safari.

@@ -14,7 +14,7 @@ computed styles. Includes measured CSS sizes, operation counts and import versio
 |---|---|---|---|
 | Signature Square — square tiles | 2.0.9 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.6.9 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.4.13 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.4.14 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.3 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.4.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
@@ -136,7 +136,7 @@ Metric icons stay unboxed, units stay inline, and missing room measurements
 create no placeholder. Existing equipment and media Panels remain unchanged.
 See the [Panel guide](signature-panel/doc/README.md).
 
-Panel 1.4.13 groups compact readings below the room title on headings at least
-761px wide. Metric icons retain their live colors; right-edge artwork and
-corner settings keep their existing positions. Narrow headings retain their
-layout. Update only Panel; existing dashboard configurations remain compatible.
+Panel 1.4.14 groups compact readings below the room title on phone and desktop
+headings. Metric icons retain their live colors; artwork and corner settings
+keep their existing positions. Update only Panel; existing dashboard
+configurations remain compatible.
