@@ -1,5 +1,5 @@
 /* Opt-in variants only: existing equipment/media Panels keep their geometry. */
-ha-card[data-dp-layout=panel][data-dp-panel-variant=heading], ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] { container-type: inline-size; }
+ha-card[data-dp-layout=panel][data-dp-panel-variant] { container-type: inline-size; }
 /* Native two-column pages contain the whole view; the heading fills its section. */
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] {
   container-name: signature-panel-heading;
@@ -15,7 +15,8 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container {
   --dp-panel-heading-row: 1; --dp-panel-name-row: 2;
   --dp-panel-value-row: 3; --dp-panel-detail-row: 4; --dp-panel-footer-row: 5;
   position: relative; height: auto !important; min-height: max(112px,calc(var(--dp-panel-artwork-size) + 16px)) !important;
-  padding: 8px 18px; column-gap: clamp(8px,1.5cqw,20px); row-gap: 0; align-content: start;
+  padding: 8px 18px; padding-inline-end: 58px;
+  column-gap: clamp(8px,1.5cqw,20px); row-gap: 0; align-content: start;
   /* Measurements and artwork occupy equal zones; no empty control track. */
   grid-template-columns: repeat(var(--dp-panel-count),minmax(0,1fr)) minmax(0,1fr);
   grid-template-rows: minmax(32px,max-content) minmax(4px,1fr) minmax(44px,max-content) auto auto !important;
@@ -103,13 +104,19 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
 @container signature-panel-heading (max-width: 520px) {
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container {
     --dp-panel-artwork-size: 80px; --dp-panel-heading-gap: 8px;
-    min-height: max(96px,calc(var(--dp-panel-artwork-size) + 16px)) !important; column-gap: 8px; padding: 8px 12px;
+    min-height: max(96px,calc(var(--dp-panel-artwork-size) + 16px)) !important; column-gap: 8px;
+    padding: 8px 12px; padding-inline-end: 52px;
     grid-template-rows: minmax(28px,max-content) minmax(4px,1fr) minmax(44px,max-content) auto auto !important;
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-title { font-size: calc(var(--signature-name-font-size,14px) + 8px); }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading]:not([data-dp-panel-count="0"]) .dp-panel-heading {
     grid-column: 1 / -1; box-sizing: border-box;
     padding-inline-end: calc((100% / (var(--dp-panel-count) + 1) + var(--dp-panel-artwork-width)) / 2 + 8px);
+  }
+  /* Keep the same title width when no badge wrapper is present. */
+  ha-card[data-dp-panel-variant=heading]:not([data-dp-panel-count="0"]) .dp-panel-title:not(.dp-panel-heading *) {
+    grid-column: 1 / -1;
+    max-width: calc(100% - (100% / (var(--dp-panel-count) + 1) + var(--dp-panel-artwork-width)) / 2 - 8px) !important;
   }
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="0"] .bubble-container { --dp-panel-artwork-size: 80px; min-height: 100px !important; }
   /* Enlarge only the painted artwork: keep its track, center and card height. */

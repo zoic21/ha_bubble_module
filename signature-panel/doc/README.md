@@ -1,5 +1,26 @@
 # Signature Panel
 
+## 1.4.16 — 28 octobre 2026 — illustration dégagée des boutons de coin
+
+Les en-têtes réservent **40 px supplémentaires à droite**, en permanence.
+L’illustration se décale ainsi vers la gauche et les pastilles Scénarios,
+robot et autres badges de coin gardent leurs positions et leurs cibles.
+Le retrait est appliqué même sans aucun bouton, sans condition de visibilité.
+Les tailles visuelles restent **96 px sur desktop** et **88 px sur téléphone**.
+
+Le titre et les mesures restent à gauche avec leurs couleurs et leurs actions.
+La hauteur minimale est conservée ; sur téléphone, un nom long peut revenir à
+la ligne pour rester dégagé du dessin. Le nom dispose de la même largeur avec
+ou sans groupe de badges, afin que retirer le dernier bouton ne change pas
+la hauteur ou la position de l’illustration. Les panneaux classiques, lecteurs
+et bandes de traitement ne changent pas.
+
+Mettre à jour uniquement **Signature Panel 1.4.16**, puis recharger le frontend.
+Aucun dashboard ou atlas à réimporter. Les tests Chromium mesurent le dessin
+réellement peint et vérifient son dégagement des cercles de coin, les cartes
+sans bouton, les thèmes et les noms longs, avec Bubble 3.4.1 et un contexte HA
+simulé. Le rendu dans Home Assistant installé et Safari/iOS reste à confirmer.
+
 ## 1.4.15 — 28 octobre 2026 — illustration plus présente
 
 Le dessin des en-têtes passe visuellement de 80 à **96 px sur desktop**

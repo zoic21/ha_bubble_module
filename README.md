@@ -14,7 +14,7 @@ computed styles. Includes measured CSS sizes, operation counts and import versio
 |---|---|---|---|
 | Signature Square — square tiles | 2.0.9 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.6.9 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.4.15 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.4.16 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.3 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.4.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.2 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
@@ -136,7 +136,8 @@ Metric icons stay unboxed, units stay inline, and missing room measurements
 create no placeholder. Existing equipment and media Panels remain unchanged.
 See the [Panel guide](signature-panel/doc/README.md).
 
-Panel 1.4.15 keeps compact readings below the room title and enlarges heading
-artwork to 96px on desktop and 88px on phones, around its existing center.
-Card height, text, icon colors and corner settings keep their geometry.
-Update only Panel; existing dashboard configurations remain compatible.
+Panel 1.4.16 keeps compact readings below the room title and reserves a permanent
+right-side lane for corner controls. Artwork stays 96px on desktop and 88px on
+phones, shifted left even without buttons. Corner controls and icon colors stay
+unchanged; long mobile titles wrap as needed. Update only Panel; existing
+dashboard configurations remain compatible.

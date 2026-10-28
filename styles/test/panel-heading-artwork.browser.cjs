@@ -50,3 +50,27 @@ test('explicit desktop artwork sizes remain literal and react to live theme chan
  assert.ok(Math.abs((await artworkBox(cdp)).width-96)<.05,'removing the theme override restores the new default');
  await cdp.detach();
 });
+
+test('heading artwork keeps a permanent clear lane beside corner controls even without any buttons',{skip:!nativePath},async t=>{
+ const page=await setup(t);await page.setViewportSize({width:1700,height:900});
+ const cdp=await page.context().newCDPSession(page);
+ for(const width of [288,328,382,420,520,600,760,761,1032])for(const mode of ['light','dark'])for(const plain of [false,true])for(const kind of ['none','single','double','mower']){
+  const title={none:'Patio',single:'Entrée',double:'Chambre principale',mower:'Jardin'}[kind];
+  const scenario={width,mode,plain,kind,title,robotBadge:kind==='mower'};
+  await draw(page,scenario);
+  const current=await artworkBox(cdp),layout=await page.evaluate(geometry);
+  const corners=await page.evaluate(()=>[...card.card.querySelectorAll('.dp-panel-badges .bubble-sub-button')].filter(e=>e.getBoundingClientRect().width>0).map(e=>{const r=e.getBoundingClientRect();return{left:r.left+6,top:r.top+6,right:r.right-6,bottom:r.bottom-6}}));
+  const hint=JSON.stringify({scenario,current,corners});
+  for(const circle of corners)assert.ok(current.right<=circle.left-3.9,'the visible 32px circles must stay clear of the whole drawing: '+hint);
+  if(kind==='mower')continue; // Corner clearance is checked above; other cases cover no-button cards.
+  await draw(page,{...scenario,settings:false,robotBadge:false});
+  const without=await artworkBox(cdp),empty=await page.evaluate(geometry);
+  assert.ok(Math.abs(current.x-without.x)<.05&&Math.abs(current.y-without.y)<.05,'adding/removing settings must not move the illustration: '+hint);
+  assert.equal(empty.frame.height,layout.frame.height,'button presence must not change title wrapping or height: '+hint);
+  await page.evaluate(width=>card.card.querySelector('.bubble-container').style.setProperty('padding-inline-end',width<=520?'12px':'18px','important'),width);
+  const old=await artworkBox(cdp);
+  assert.ok(current.x<old.x-20,'apply the left shift even when no button is configured: '+hint);
+  assert.ok(Math.abs(old.width-current.width)<.05&&Math.abs(old.height-current.height)<.05,'preserve the accepted illustration size: '+hint);
+ }
+ await cdp.detach();
+});

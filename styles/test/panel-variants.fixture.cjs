@@ -24,7 +24,7 @@ async function setup(t){
 async function draw(page,scenario){
  await page.evaluate(({scenario,code,theme,nativeModes})=>{
   window.card?.remove();
-  const {width,mode,plain,kind,primary=true,poolMode='Normal',mowerHome=true,title,robotBadge=false,robotState='docked',robotIcon,robotColor,robotOpacity=1}=scenario;
+  const {width,mode,plain,kind,primary=true,poolMode='Normal',mowerHome=true,title,robotBadge=false,robotState='docked',robotIcon,robotColor,robotOpacity=1,settings=true}=scenario;
   document.documentElement.style.cssText=Object.entries({...nativeModes[mode],...(plain?{}:{...theme,...theme.modes[mode]})}).filter(([k])=>k!=='modes').map(([k,v])=>'--'+k+':'+v).join(';');
   document.querySelector('#cards').style.width=width+'px';
   const state=(v,u)=>({state:String(v),attributes:{unit_of_measurement:u}});
@@ -52,6 +52,7 @@ async function draw(page,scenario){
    config.signature_panel={variant:'strip',metric_icon:'mdi:water-sync',primary_enabled:primary ? '{{ primary }}' : false,information:[{entity:'sensor.ph',name:'pH',icon:'mdi:flask-outline',secondary:'{{ detail }}'},{entity:'sensor.redox',name:'Redox',icon:'mdi:lightning-bolt-outline',secondary:'{{ detail }}'}],sub_button_styles:{'ph-control':{type:'switch',column:2,color:'#368ACB'},'redox-control':{type:'switch',column:3,color:'#368ACB'}}};
   }
   if(title!==undefined)options.title=title;
+  if(!settings)config.sub_button.main=config.sub_button.main.filter(button=>button.css_class!=='settings');
   window.card=document.createElement('bubble-card');card.setConfig(config);document.querySelector('#cards').append(card);card.hass=hass;
   window.calls=[];card.addEventListener('hass-action',e=>calls.push(e.detail));
  },{scenario,code,theme,nativeModes});
