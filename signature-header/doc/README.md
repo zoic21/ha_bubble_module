@@ -1,74 +1,28 @@
 # Signature Header
 
-## 1.3.0 — 27 octobre 2026 — sections indépendantes et demi-cartes adaptatives
+## 1.4.0 — 28 octobre 2026 — présentation limitée à la carte
 
-Pour supprimer les espaces verticaux sous une section plus courte que sa
-voisine, activer sur **un seul** titre/en-tête de la vue Sections :
+Header habille uniquement ses titres, en-têtes et sous-boutons. Il n’injecte
+plus de CSS dans une section ou une vue parente et ne crée aucun observateur
+de mise en page. Les options expérimentales `masonry_sections`,
+`minimum_card_width` et `align_section_columns` sont retirées ; leurs anciennes
+valeurs restent sans effet. Les couleurs, polices, boutons, seuils et actions
+natives conservent leur comportement.
 
-```yaml
-signature_header:
-  masonry_sections: true
-```
+Pour des colonnes indépendantes, utiliser une section native par colonne et
+y regrouper plusieurs catégories avec leurs séparateurs. Conserver les bandeaux
+pleine largeur dans leurs propres sections. Sur mobile, l’ordre est celui de
+la première colonne complète, puis de la suivante. Les réglages de grille et
+les conditions de visibilité appartiennent aux cartes et sections Home Assistant.
+Aucun module Bubble n’a à modifier son parent.
 
-Sur ordinateur, chaque section rejoint la première place libre dans la grille,
-sans attendre le bas de sa voisine. Les largeurs natives restent conservées,
-y compris les bandeaux qui occupent plusieurs colonnes. L’espacement vertical
-natif reste présent, avec moins de 4 px d’arrondi. L’ordre visuel sur ordinateur
-peut changer lorsque la grille comble un vide ; l’ordre enregistré et celui
-du mobile restent identiques. En mode édition et avec une seule colonne,
-Home Assistant garde son placement natif. Les cartes, conditions et actions
-ne sont ni déplacées ni recopiées. Un ResizeObserver partagé suit les hauteurs
-et un MutationObserver partagé suit la liste de sections, sans polling.
-Tous les styles, observateurs et variables sont retirés avec le dernier titre
-qui active l’option. Hors d’une vue Sections, le réglage est sans effet.
+Importer **Header 1.4.0**, réimporter les dashboards réorganisés et recharger
+le frontend. Le remplacement de 1.3.0 sur une carte existante appelle le
+nettoyage de son ancien runtime et retire ses styles et observateurs.
+Le rendu des titres et en-têtes sans ces options reste identique.
 
-Pour des lumières en demi-largeur, conserver `grid_options.columns: 6`
-sur les cartes et configurer leur titre :
-
-```yaml
-signature_header:
-  minimum_card_width: 220
-```
-
-Sous **448 px de largeur de section**, les cartes passent chacune sur une ligne
-entière ; à partir de 448 px, deux cartes d’au moins 220 px tiennent avec
-leur écart natif de 8 px. Le titre reste pleine largeur. Le navigateur suit
-la largeur en CSS, sans observateur supplémentaire, sans réduire le texte
-ni l’interrupteur. Valeur configurable de 120 à 500 px ; plusieurs titres
-partagent le plus grand minimum. Ce seuil protège l’espace disponible ;
-il ne mesure pas les noms live des entités. Ajuster le minimum pour des
-libellés exceptionnellement longs. Une section élargie conserve ses unités
-natives : l’option est conçue pour des demi-cartes de section simple.
-
-Importer **Header 1.3.0**, puis réimporter les dashboards configurés et
-recharger le frontend. Les autres modules restent identiques. Vérifications
-Chromium sur DOM de vue HA simulé et Bubble 3.4.1 ; rendu dans l’installation
-réelle et Safari/iOS à confirmer.
-
-## 1.2.2 — 27 octobre 2026 — demi-cartes alignées dans une section élargie
-
-Sur le séparateur d’une section native de **deux colonnes**, activer :
-
-```yaml
-signature_header:
-  align_section_columns: true
-```
-
-Les cartes utilisent `columns: full` ou `grid_options.columns: 12` pour une
-demi-largeur. Les demi-cartes s’alignent avec les deux sections d’une colonne
-situées au-dessus : compensation entre la gouttière native interne de 8 px
-et celle de la vue de 32 px. La sous-grille conserve ses 24 pistes, sans risque
-de débordement en largeur moyenne. Sur téléphone, les cartes de 12 unités
-occupent leur ligne et le retrait disparaît. Les variables de thème restent
-dynamiques et les cartes masquées ne comptent pas dans l’alternance.
-
-Le style est partagé entre titres de la même section et retiré avec son dernier
-propriétaire. Les nœuds, actions et visibilités restent natifs. L’option est
-sans effet hors d’un `hui-grid-section` et ne vise pas les sous-grilles avec
-plusieurs fractions de largeur. Aucun CSS par carte, observateur ou timer.
-La page entière doit être contenue par les réglages natifs de la vue ; cette
-option ne réduit pas sa largeur. Les fixtures testent l’alignement, le thème,
-le partage et le démontage ; aucun essai Home Assistant réel ni Safari/iOS.
+Les versions 1.2.2 et 1.3.0 avaient ajouté ces interventions sur les parents.
+Cette approche est abandonnée au profit de la disposition native ci-dessus.
 
 ## 1.2.1 — 20 octobre 2026 — icônes de seuils sans fond
 

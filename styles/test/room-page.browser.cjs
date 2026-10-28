@@ -1,110 +1,133 @@
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const {test}=require('node:test');
 const {setup,draw}=require('./panel-variants.fixture.cjs');
+const {fixture}=require('./browser.cjs');
 const {loadModule}=require('../../shared/test/module.cjs');
 const nativePath=process.env.BUBBLE_VARIANTS_NATIVE_SCRIPT_PATH;
 const scripts=Object.fromEntries(['signature-compact','signature-header'].map(name=>[name,loadModule(name).code]));
-// Source-derived HA Sections geometry, not a running Home Assistant frontend.
-// home-assistant/frontend 76ee92807a717b0293ef8636db84ead3da249735:
-// views/hui-sections-view.ts and sections/hui-grid-section.ts. Native Bubble
-// components below are real; backend, HA primitives and page shell are fixtures.
+
+// Native Bubble 3.4.1, with a source-derived HA Sections shell:
+// frontend 20260930.5, hui-grid-section.ts and hui-sections-view.ts.
+// Visibility and HA backend are simulated; this is not a running HA frontend.
 async function room(page,width,mode){
- await page.evaluate(()=>document.querySelector('#cards').replaceChildren());
  await draw(page,{width,mode,kind:'double'});
  await page.evaluate(({width,scripts})=>{
-  const columns=Math.max(1,Math.min(2,Math.floor((width-(width<=600?16:64)+(width<=600?8:32))/(320+(width<=600?8:32)))));
-  const pageHost=document.querySelector('#cards');pageHost.style.width=width+'px';
+  const gap=width<=600?8:32;
+  const columns=Math.max(1,Math.min(2,Math.floor((width-gap)/(320+gap))));
+  const host=document.querySelector('#cards'),heading=window.card;host.replaceChildren();host.style.width='auto';
   document.body.style.cssText='margin:0;background:var(--primary-background-color);font-family:var(--signature-font-family,Arial,sans-serif)';
-  const heading=window.card;pageHost.replaceChildren();
-  if(!customElements.get('hui-grid-section'))customElements.define('hui-grid-section',class extends HTMLElement{});
-  const style=document.createElement('style');style.textContent=`
-   #cards{--column-count:${columns};--column-gap:${width<=600?8:32}px;--column-max-width:500px}
-   .page-wrapper{padding:0 var(--column-gap);box-sizing:content-box;margin:0 auto;max-width:calc(var(--column-count)*var(--column-max-width) + (var(--column-count) - 1)*var(--column-gap))}
-   .page-content{display:grid;grid-template-columns:repeat(var(--column-count),minmax(0,1fr));align-items:start;gap:24px var(--column-gap);padding:24px 0}
-   .page-section{grid-column:span var(--column-span)}
-   .section-grid{display:grid;grid-template-columns:repeat(calc(12*var(--column-span)),minmax(0,1fr));grid-auto-rows:auto;gap:8px}
-   .page-card{min-width:0;grid-column:span min(var(--column-size,12),calc(12*var(--column-span)))}
-   .page-card.full{grid-column:1 / -1}.page-card.fit{height:56px}
-  `;pageHost.append(style);
-  const wrapper=document.createElement('div');wrapper.className='page-wrapper';pageHost.append(wrapper);
-  const content=document.createElement('div');content.className='page-content';wrapper.append(content);
-  const section=(name,span)=>{const el=document.createElement('section');el.dataset.section=name;el.className='page-section';el.style.setProperty('--column-span',Math.min(span,columns));const grid=document.createElement('hui-grid-section');el.append(grid);content.append(el);const shadow=grid.attachShadow({mode:'open'});shadow.innerHTML='<style>:host{display:block;--column-gap:var(--ha-section-grid-column-gap,8px)}.section-grid{display:grid;grid-template-columns:repeat(calc(12*var(--column-span)),minmax(0,1fr));grid-auto-rows:auto;gap:8px var(--column-gap)}.page-card{min-width:0;grid-column:span min(var(--column-size,12),calc(12*var(--column-span)))}.page-card.full{grid-column:1/-1}.page-card.fit{height:56px}</style><div class="section-grid container"></div>';return shadow.querySelector('.section-grid');};
-  const append=(parent,card,columns='full',fit=false)=>{const frame=document.createElement('div');frame.className='page-card card'+(columns==='full'?' full full-width':'')+(fit?' fit':'');if(columns!=='full')frame.style.setProperty('--column-size',columns);frame.append(card);parent.append(frame);card.hass=hass;};
+  host.innerHTML='<div class="page-wrapper"><div class="page-content"></div></div>';
+  const style=document.createElement('style');style.textContent=
+   '.page-wrapper{padding:0 '+gap+'px;box-sizing:content-box;margin:auto;max-width:'+(columns*500+(columns-1)*gap)+'px}'+
+   '.page-content{display:grid;grid-template-columns:repeat('+columns+',minmax(0,1fr));align-items:start;gap:24px '+gap+'px;padding:24px 0}'+
+   '.page-section{grid-column:span var(--column-span);min-width:0}';
+  host.prepend(style);
+  const content=host.querySelector('.page-content');
+  const section=(name,span)=>{
+   const shell=document.createElement('section');shell.className='page-section';shell.dataset.section=name;
+   shell.style.setProperty('--column-span',Math.min(span,columns));content.append(shell);
+   const grid=document.createElement('hui-grid-section');grid.style.display='block';shell.append(grid);
+   const shadow=grid.attachShadow({mode:'open'});
+   shadow.innerHTML='<style>.container{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px}.card{min-width:0;grid-column:span var(--columns)}.full-width{grid-column:1/-1}.hidden{display:none}</style><div class="container"></div>';
+   return shadow.querySelector('.container');
+  };
+  const append=(parent,card,columns='full',show=true)=>{
+   const frame=document.createElement('div');frame.className='card'+(columns==='full'?' full-width':'')+(show?'':' hidden');
+   frame.style.setProperty('--columns',columns);frame.append(card);parent.append(frame);card.hass=hass;
+  };
   append(section('summary',2),heading);
-  const st=(entity_id,state,attributes)=>({entity_id,state,attributes});
+  const state=(entity_id,s,attributes)=>({entity_id,state:s,attributes});
   Object.assign(hass.states,{
-   'light.main':st('light.main','off',{friendly_name:'Lumière',supported_color_modes:['brightness'],color_mode:'brightness',brightness:0}),
-   'light.ambient':st('light.ambient','on',{friendly_name:'Ambiance',supported_color_modes:['brightness'],color_mode:'brightness',brightness:140}),
-   'cover.shutter':st('cover.shutter','open',{friendly_name:'Volet',current_position:100,supported_features:15,device_class:'shutter'}),
-   'climate.heating':st('climate.heating','heat',{friendly_name:'Chauffage',temperature:20.5,current_temperature:22.9,hvac_action:'idle',hvac_modes:['off','heat'],min_temp:7,max_temp:30,target_temp_step:.5,supported_features:385}),
-   'binary_sensor.window':st('binary_sensor.window','off',{friendly_name:'Fenêtre',device_class:'window'}),
-   'binary_sensor.smoke':st('binary_sensor.smoke','off',{friendly_name:'Fumée',device_class:'smoke'})
+   'light.main':state('light.main','off',{friendly_name:'Lumière'}),
+   'light.ambient':state('light.ambient','on',{friendly_name:'Ambiance'}),
+   'cover.shutter':state('cover.shutter','open',{friendly_name:'Volet',current_position:100,supported_features:15,device_class:'shutter'}),
+   'climate.heating':state('climate.heating','heat',{friendly_name:'Chauffage',temperature:20.5,current_temperature:22.9,hvac_action:'idle',hvac_modes:['off','heat'],min_temp:7,max_temp:30,target_temp_step:.5,supported_features:385}),
+   'binary_sensor.window':state('binary_sensor.window','off',{friendly_name:'Fenêtre',device_class:'window'}),
+   'binary_sensor.smoke':state('binary_sensor.smoke','off',{friendly_name:'Fumée',device_class:'smoke'})
   });
   const make=(kind,entity,name,icon)=>{
-   const separator=kind==='separator',module=separator?'signature-header':'signature-compact';
-   const c={type:'custom:bubble-card',card_type:kind,entity,name,icon,card_layout:'large',rows:1,show_name:true,show_state:false,styles:scripts[module],modules:[],tap_action:{action:'more-info'},button_action:{tap_action:{action:'none'}}};
-   if(kind==='button')c.button_type=entity.startsWith('light.')?'switch':'state';
-   if(separator&&name==='Sécurité')c.signature_header={align_section_columns:true};
-   const el=document.createElement('bubble-card');el.setConfig(c);return el;
+   const c={type:'custom:bubble-card',card_type:kind,entity,name,icon,card_layout:'large',rows:1,show_name:true,show_state:false,styles:scripts[kind==='separator'?'signature-header':'signature-compact'],modules:[],scrolling_effect:false};
+   if(kind==='button'){
+    c.button_type='state';c.tap_action={action:'more-info'};
+    if(entity.startsWith('light.')){
+     c.sub_button={main:[{entity,css_class:'power',icon:'mdi:power',show_background:false,tap_action:{action:'toggle'}}]};
+     c.signature_compact={sub_button_styles:{power:{type:'switch'}}};
+    }
+   }
+   const card=document.createElement('bubble-card');card.setConfig(c);return card;
   };
-  for(const [name,kind,entity,label,icon]of [['lights','button','light.main','Lumière','mdi:lightbulb'],['climate','cover','cover.shutter','Volet','mdi:window-shutter']]){
-   const inner=section(name,1);append(inner,make('separator',undefined,name==='lights'?'Lumières':'Climat',name==='lights'?'mdi:floor-lamp':'mdi:home-thermometer'));
-   append(inner,make(kind,entity,label,icon),'full',true);
-   append(inner,make(name==='lights'?'button':'climate',name==='lights'?'light.ambient':'climate.heating',name==='lights'?'Ambiance':'Chauffage',name==='lights'?'mdi:floor-lamp':'mdi:radiator'),'full',true);
+  const left=section('left',1),right=section('right',1);
+  append(left,make('separator',undefined,'Lumières','mdi:floor-lamp'));
+  for(const [entity,name] of [['light.main','Lumière'],['light.ambient','Ambiance']]){
+   append(left,make('button',entity,name,'mdi:lightbulb'),6,width>=1280);
+   append(left,make('button',entity,name,'mdi:lightbulb'),'full',width<1280);
   }
-  const safety=section('security',2);append(safety,make('separator',undefined,'Sécurité','mdi:shield-half-full'));
-  append(safety,make('button','binary_sensor.window','Fenêtre','mdi:window-closed'),12,true);
-  append(safety,make('button','binary_sensor.smoke','Fumée','mdi:smoke-detector'),12,true);
-  window.pageCards=[...pageHost.querySelectorAll('hui-grid-section')].flatMap(g=>[...g.shadowRoot.querySelectorAll('bubble-card')]);
+  append(left,make('separator',undefined,'Sécurité','mdi:shield-half-full'));
+  append(left,make('button','binary_sensor.window','Fenêtre','mdi:window-closed'),6);
+  append(left,make('button','binary_sensor.smoke','Fumée','mdi:smoke-detector'),6);
+  append(right,make('separator',undefined,'Climat','mdi:home-thermometer'));
+  append(right,make('cover','cover.shutter','Volet','mdi:window-shutter'));
+  append(right,make('climate','climate.heating','Chauffage','mdi:radiator'));
+  append(right,make('climate','climate.heating','Climatisation','mdi:air-conditioner'));
+  window.pageCards=[...host.querySelectorAll('hui-grid-section')].flatMap(g=>[...g.shadowRoot.querySelectorAll('bubble-card')]);
  },{width,scripts});
  await page.waitForFunction(()=>pageCards.every(c=>!c.initialLoad));
  await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
 }
-test('the room page keeps one shared width, aligned control rows and security below both columns',{skip:!nativePath},async t=>{
- const page=await setup(t);let desktop;
- for(const width of [382,760,1100,1568,2000])for(const mode of ['light','dark']){
+
+test('native columns place Security directly after Lights and preserve full-width headings and mobile order',{skip:!nativePath},async t=>{
+ const page=await setup(t);
+ for(const width of [328,382,760,1100,1279,1280,1568])for(const mode of ['light','dark']){
   await page.setViewportSize({width,height:1100});await room(page,width,mode);
   const m=await page.evaluate(()=>{
-   const box=e=>{const r=e.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
-   const section=n=>document.querySelector(`[data-section="${n}"]`);
-   const cards=n=>[...section(n).querySelector('hui-grid-section').shadowRoot.querySelectorAll('bubble-card')].map(c=>box(c.card.querySelector('.bubble-container')));
-   return{page:box(document.querySelector('.page-content')),summary:cards('summary')[0],lights:cards('lights'),climate:cards('climate'),security:cards('security')};
+   const box=e=>{const b=e.getBoundingClientRect();return{left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:b.width,height:b.height};};
+   const cards=n=>[...document.querySelector('[data-section="'+n+'"] hui-grid-section').shadowRoot.querySelectorAll('.card:not(.hidden)>bubble-card')].map(c=>({name:c.config.name,box:box(c.card.querySelector('.bubble-container')),needed:c.card.querySelector('.bubble-name')?.scrollWidth,available:c.card.querySelector('.bubble-name')?.clientWidth}));
+   return{page:box(document.querySelector('.page-content')),summary:cards('summary')[0],left:cards('left'),right:cards('right'),styles:[...document.querySelectorAll('hui-grid-section')].reduce((n,g)=>n+g.shadowRoot.querySelectorAll('style[data-signature-section-columns],style[data-signature-section-min-width]').length,0)};
   });
-  const hint=JSON.stringify({width,mode,m});
-  assert.ok(Math.abs(m.summary.left-m.page.left)<=1&&Math.abs(m.summary.right-m.page.right)<=1,hint);
-  assert.ok(m.page.width<=1032,hint);
-  if(width>=1100)assert.equal(m.summary.height,100,'wide summary must use the single-row compact height: '+hint);
-  for(const group of [m.lights,m.climate,m.security])for(const c of group)assert.ok(c.left>=m.page.left-1&&c.right<=m.page.right+1,hint);
-  if(width>=760){
-   for(let i=0;i<3;i++)assert.ok(Math.abs(m.lights[i].top-m.climate[i].top)<=1,'control rows must align: '+hint);
-   assert.ok(m.security[0].top>=Math.max(m.lights[2].bottom,m.climate[2].bottom),'security follows both columns: '+hint);
-   assert.ok(Math.abs(m.security[1].left-m.lights[1].left)<=1&&Math.abs(m.security[1].right-m.lights[1].right)<=1,hint);
-   assert.ok(Math.abs(m.security[2].left-m.climate[1].left)<=1&&Math.abs(m.security[2].right-m.climate[1].right)<=1,hint);
-   if(desktop&&width>=1100)assert.equal(m.page.width,desktop);
-   if(width>=1100)desktop=m.page.width;
-  }else{
-   assert.ok(m.climate[0].top>=m.lights[2].bottom,hint);assert.ok(m.security[2].top>=m.security[1].bottom,hint);
+  const hint=JSON.stringify({width,mode,m});assert.equal(m.styles,0,hint);
+  assert.ok(Math.abs(m.summary.box.width-m.page.width)<1,hint);assert.ok(m.page.width<=1032.1,hint);
+  const safety=m.left.find(c=>c.name==='Sécurité');
+  const lastLight=m.left.filter(c=>['Lumière','Ambiance'].includes(c.name)).at(-1);
+  assert.ok(Math.abs(safety.box.top-lastLight.box.bottom-8)<1,hint);
+  for(const c of m.left.filter(c=>['Lumière','Ambiance'].includes(c.name))){
+   assert.ok(c.needed<=c.available+1,hint);
+   const expected=width>=1280?(m.left[0].box.width-8)/2:m.left[0].box.width;
+   assert.ok(Math.abs(c.box.width-expected)<1,hint);
   }
-  if(process.env.PANEL_CAPTURE_DIR){fs.mkdirSync(process.env.PANEL_CAPTURE_DIR,{recursive:true});await page.screenshot({path:process.env.PANEL_CAPTURE_DIR+'/room-page-'+width+'-'+mode+'.png'});}
+  if(width>=760)assert.ok(safety.box.top<m.right.at(-1).box.bottom,hint);
+  else assert.ok(m.right[0].box.top>=m.left.at(-1).box.bottom+23.9,hint);
+  if(process.env.PANEL_CAPTURE_DIR){
+   fs.mkdirSync(process.env.PANEL_CAPTURE_DIR,{recursive:true});
+   await page.screenshot({path:process.env.PANEL_CAPTURE_DIR+'/native-room-'+width+'-'+mode+'.png',fullPage:true});
+  }
  }
 });
-test('section alignment shares one style, follows live gaps and releases it after the last title leaves',{skip:!nativePath},async t=>{
- const page=await setup(t);await page.setViewportSize({width:1568,height:1100});await room(page,1568,'light');
- await page.evaluate(({scripts})=>{
-  window.sectionGrid=document.querySelector('[data-section="security"] hui-grid-section');
-  window.firstTitle=[...sectionGrid.shadowRoot.querySelectorAll('bubble-card')].find(c=>c.config.card_type==='separator');
-  const extra=document.createElement('bubble-card');extra.setConfig({...firstTitle.config,name:'Second title',styles:scripts['signature-header'],signature_header:{align_section_columns:true}});
-  sectionGrid.shadowRoot.querySelector('.container').append(extra);window.extraTitle=extra;extra.hass=hass;
- },{scripts});
- await page.waitForFunction(()=>extraTitle._signatureHeaderRuntime&&!extraTitle.initialLoad);
- const count=()=>page.evaluate(()=>sectionGrid.shadowRoot.querySelectorAll('style[data-signature-section-columns]').length);
- assert.equal(await count(),1);
- await page.evaluate(()=>{firstTitle.setConfig({...firstTitle.config,signature_header:{}});firstTitle.hass=hass;});
- await page.waitForFunction(()=>!firstTitle._signatureHeaderRuntime?.sectionColumns);
- assert.equal(await count(),1,'remaining title owns the shared alignment style');
- await page.evaluate(()=>document.documentElement.style.setProperty('--ha-view-sections-column-gap','40px'));
- await page.waitForFunction(()=>getComputedStyle(sectionGrid).getPropertyValue('--signature-section-view-gap').trim()==='40px');
- await page.evaluate(()=>extraTitle.remove());
- await page.waitForFunction(()=>!sectionGrid.shadowRoot.querySelector('style[data-signature-section-columns]'));
- assert.equal(await count(),0);
+
+test('Header confines its styles to its card and ignores retired parent-layout options',async t=>{
+ const page=await fixture(t);
+ for(const kind of ['separator','button']){
+  const result=await page.evaluate(({code,kind})=>{
+   window.contexts?.forEach(c=>c.teardown?.());window.contexts=[];
+   document.body.innerHTML='<hui-sections-view></hui-sections-view>';
+   const view=document.querySelector('hui-sections-view'),vs=view.attachShadow({mode:'open'});
+   vs.innerHTML='<style>.content{display:grid;grid-template-columns:1fr 1fr;gap:24px 32px}</style><div class="content"><hui-grid-section></hui-grid-section></div>';
+   const grid=vs.querySelector('hui-grid-section'),gs=grid.attachShadow({mode:'open'});
+   gs.innerHTML='<style>.container{display:block}</style><div class="container"><div id="card"></div></div>';
+   const host=gs.querySelector('#card'),shadow=host.attachShadow({mode:'open'});
+   shadow.innerHTML='<ha-card><div class="bubble-container"><div class="bubble-name">Titre</div></div></ha-card>';
+   const root=shadow.querySelector('ha-card');
+   const ctx={card:root,config:{card_type:kind,button_type:'name',signature_header:{masonry_sections:true,minimum_card_width:220,align_section_columns:true}},elements:{mainContainer:root.querySelector('.bubble-container')}};
+   const before=[vs.innerHTML,gs.innerHTML,view.getAttribute('style'),grid.getAttribute('style')];
+   const ro=window.ResizeObserver;let observers=0;window.ResizeObserver=class{constructor(){observers++}};
+   let css;const tick=String.fromCharCode(96);
+   try{css=new Function('hass','onTeardown','renderTemplate','return '+tick+code+tick+';').call(ctx,{states:{}},fn=>ctx.teardown=fn,v=>v);}
+   finally{window.ResizeObserver=ro;}
+   window.contexts=[ctx];
+   const after=[vs.innerHTML,gs.innerHTML,view.getAttribute('style'),grid.getAttribute('style')];
+   return{before,after,observers,css,version:ctx._signatureHeaderRuntime.version};
+  },{code:scripts['signature-header'],kind});
+  assert.deepEqual(result.after,result.before);
+  assert.equal(result.observers,0);assert.equal(result.version,'1.4.0');assert.ok(result.css.length>0);
+ }
+ assert.doesNotMatch(scripts['signature-header'],/hui-grid-section|hui-sections-view|signature-masonry-rows|signatureSectionMinWidth/);
 });

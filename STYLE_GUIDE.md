@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.3.0**, **Room 1.4.3**, **Panel 1.4.12**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.8**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.12**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -396,30 +396,26 @@ la géométrie du dessin avec zéro/un/deux/trois badges ; couvrir aussi
 les changements de nom et de visibilité sans rendu, les mises à jour natives,
 le retrait de l’option, le teardown et les thèmes.
 
-### Sections natives indépendantes — Header 1.3.0
+### Colonnes natives et portée de Header — 1.4.0
 
-`masonry_sections: true` sur un titre ou un en-tête est facultatif et partagé
-par toute sa vue `hui-sections-view`. Hors vue mono-colonne et hors édition,
-la grille conserve ses colonnes et largeurs natives, avec des pistes de 4 px
-et un placement dense. Une seule paire ResizeObserver / MutationObserver
-par vue suit les hauteurs et les ajouts/retraits de sections ; les lectures
-sont regroupées avant les écritures dans une animation frame. Le seul écart
-résiduel est l’espacement natif de section et son arrondi inférieur à 4 px.
-Ne pas déplacer les nœuds, changer les entités, les conditions ni les actions.
-Le dernier retrait du module supprime style, observateurs, frame et variables
-locales. Les vues non activées, le mobile et l’édition gardent la grille native.
+Header limite tous ses styles au contenu de sa carte. Aucun style, observateur
+ou variable de grille ne doit être ajouté à `hui-grid-section` ou
+`hui-sections-view`. Les anciens paramètres `masonry_sections`,
+`minimum_card_width` et `align_section_columns` sont retirés et ignorés.
+Le remplacement d’une ancienne distribution doit appeler son teardown pour
+retirer les interventions parentales encore actives.
 
-`minimum_card_width` sur un titre protège uniquement sa section native :
-un container query remet les demi-cartes sur une ligne entière sous
-`2 × largeur minimale + 8 px`. Avec 220 px, le seuil de section est 448 px.
-Aucune réduction des textes ou commandes. Les titres restent pleine largeur.
-Ce réglage suppose l’écart interne natif de 8 px ; il ne mesure pas le nom
-d’une entité. Retirer l’option restaure la grille sans résidu.
+Une vue utilise une section native par colonne ; chacune peut contenir
+plusieurs catégories avec des séparateurs pleine largeur. Les cartes conservent
+leurs unités, entités, conditions et actions. Les bandeaux restent dans leurs
+sections larges. L’ordre mobile est la première colonne complète, puis la
+suivante ; il doit être décrit dans le suivi. Les visibilités écran natives
+peuvent sélectionner une présentation étroite ou large d’une même commande,
+avec conditions exclusives et une seule version visible par état.
 
-Vérifier les sections de hauteurs inégales, les changements de hauteur,
-les colonnes 1/2/3/4, les sections larges, masquées et ajoutées/supprimées,
-l’édition et le nettoyage partagé ; contrôler les demi-cartes des deux côtés
-du seuil avec Bubble natif et des libellés représentatifs.
+Contrôler l’absence d’injection dans les ancêtres, même en présence d’anciennes
+options ; vérifier hauteur indépendante, textes, clics, conditions, édition et
+rendu étroit/large avec les distributions réelles.
 
 ## 7. Contrôles obligatoires lors d'une évolution
 
@@ -1023,15 +1019,16 @@ absence de chevauchement et place de l’humidité. Aucun CSS local de carte.
 ### Panel 1.4.3 / Header 1.2.2 — pages de pièces sur une grille régulière
 
 La largeur de la page appartient à la vue native Sections : `max_columns: 2`,
-`dense_section_placement: false`. Un en-tête `column_span: 2` occupe toute sa
-section ; le plafond isolé de 900 px est retiré par défaut. Les commandes
-principales utilisent deux sections d’une colonne ; la sécurité suivante
-occupe deux colonnes. Sans deux groupes principaux, utiliser seulement les
-groupes présents, sans section vide. Les popups et barres flottantes conservent
-leurs configurations. Les cartes demi-largeur des sections agrandies utilisent
-`grid_options.columns: 12` (24 sous-colonnes sur ordinateur, 12 sur téléphone).
-Les graphiques et cartes implicitement pleine largeur restent explicitement
-`columns: full` lors de cet élargissement.
+`dense_section_placement: false`. Le bandeau `column_span: 2` reste pleine
+largeur. Les catégories de contenu sont regroupées dans une section native
+par colonne : Lumières puis Sécurité à gauche, Climat puis les autres groupes
+à droite, avec répartition alternée des groupes supplémentaires. Chaque titre
+reste pleine largeur ; les petites cartes gardent leurs six unités dans une
+colonne de douze. Une seule catégorie peut suffire à une colonne ; ne pas
+créer de colonne vide. Sur mobile, toute la première colonne précède la
+suivante. Les popups et barres flottantes conservent leurs configurations.
+Les sections larges de Piscine et les vues déjà organisées par colonnes
+restent conservées. Aucun module de présentation ne modifie la grille parente.
 
 Heading : titre 32 px sur ordinateur, valeurs adaptatives 32–64 px, unités
 20 px, dessin adaptatif 144–240 px ; hauteur minimale 216 px ou le carré du
@@ -1039,23 +1036,9 @@ dessin augmenté de 24 px. Les petites cartes gardent les rôles précédents, u
 et des commandes sous les valeurs. Les bandeaux sans mesure restent compacts.
 Les autres Panels et la typographie des commandes Compact sont conservés.
 
-Sur un séparateur de section, `signature_header.align_section_columns: true`
-aligne les demi-cartes d’une section native élargie à **deux colonnes** avec
-les deux sections indépendantes de la vue. Conserver l’écart interne de la
-sous-grille HA : augmenter ses 23 gouttières provoquerait un débordement à
-largeur moyenne. Un retrait CSS latéral des seules demi-cartes compense la
-différence entre cet écart interne et celui de la vue ; les cartes paires
-s’alignent à droite. Les cartes `full` et les nœuds/actions restent conservés.
-L’option vise des sections avec cartes `full` ou demi-cartes de 12 unités,
-comme celles des pièces ; elle n’est pas un placement de sous-grilles mixtes.
-
-Ce CSS est installé une seule fois dans le shadowRoot `hui-grid-section`,
-avec propriétaires partagés entre titres. La dernière désactivation ou le
-démontage restaure le rendu natif. Variables de thème et règle mobile suivent
-le CSS, sans calcul de géométrie, nouvel observateur, abonnement ni timer.
-Sans option ou hors d’une section native, aucune règle de section n’est ajoutée.
-Les fixtures combinent le vrai Bubble et une coque reprenant la géométrie des
-sources HA ; elles ne constituent pas un essai de l’installation réelle.
+Depuis Header 1.4.0, l’alignement des colonnes est entièrement géré par les
+sections natives de la vue ; l’ancien réglage de parent `align_section_columns`
+est retiré. Voir « Colonnes natives et portée de Header » ci-dessus.
 
 
 ### Panel 1.4.4 — synthèse plus compacte sur les pages alignées
