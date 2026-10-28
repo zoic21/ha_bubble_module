@@ -176,16 +176,16 @@ test('small value buttons precede native actions and keep switches last at narro
   assert.equal((await geometry(page)).state.background,'rgba(0, 0, 0, 0)');
 });
 
-test('compact trailing measurements and native badges share the consumption row spacing',async t=>{
+test('compact trailing measurements use the reduced content gap while native badges keep their group spacing',async t=>{
   const page=await fixture(t);
   for(const width of [288,328,358,382,600])for(const mode of ['light','dark'])for(const grouped of [false,true]){
     await prepare(page,{width,mode,grouped,controls:'temperatures',fill:false,value:45,name:'Citronnier'});
     let g=await geometry(page);
-    assert.ok(Math.abs(g.state.left-g.buttons.at(-1).right-8)<0.1,'last badge and main value need 8px');
-    assert.ok(Math.abs(g.buttons[1].left-g.buttons[0].right-8)<0.1,'native badges need the same gap');
+    assert.ok(Math.abs(g.state.left-g.buttons.at(-1).right-4)<0.1,'last badge and main value need 4px');
+    assert.ok(Math.abs(g.buttons[1].left-g.buttons[0].right-8)<0.1,'native badges keep their 8px gap');
     assert.ok(g.buttons.at(-1).right<=g.width-10 && g.state.right<=g.width-10);
     await page.evaluate(()=>{window.fillContext.card.querySelector('.bubble-sub-button-1').classList.add('hidden');});
     g=await geometry(page);
-    assert.ok(Math.abs(g.state.left-g.buttons.at(-1).right-8)<0.1,'hidden native badges must not alter the gap');
+    assert.ok(Math.abs(g.state.left-g.buttons.at(-1).right-4)<0.1,'hidden native badges must not alter the gap');
   }
 });

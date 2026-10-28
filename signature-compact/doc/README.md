@@ -1,5 +1,27 @@
 # Signature Compact
 
+## 1.6.9 — 28 octobre 2026 — écart fixe avant les commandes
+
+L’écart horizontal entre le contenu et les commandes passe de **8 à 4 px**
+pour toutes les lignes Compact, quelle que soit la largeur de la carte.
+Les libellés gagnent 4 px avant un interrupteur. Aucun seuil de largeur
+ni réglage par carte n’est ajouté. Les marges extérieures et l’écart
+icône/texte restent à **10 px** ; la police et les switches de **52 × 34 px**
+(piste de 48 × 28 px) gardent leurs dimensions.
+
+Les lignes standard, volets, thermostats, commandes numériques et grilles
+de valeur partagent ce nouvel écart. Les lignes à commandes repliées gardent
+8 px verticalement et adoptent 4 px horizontalement. Les groupes natifs de
+sous-boutons gardent 8 px entre commandes ; la petite pastille de valeur
+reste séparée du nom par 8 px. Le lecteur média et les variantes spécialisées
+Hue conservent leur disposition.
+
+Importer **Signature Compact 1.6.9**, puis recharger le frontend.
+Aucune modification ni réimportation de dashboard n’est nécessaire.
+Les contrôles utilisent Chromium et Bubble 3.4.1 réel avec backend HA simulé ;
+les métriques de police peuvent différer de Safari/iOS. Le rendu installé
+sur iPhone reste à confirmer.
+
 ## 1.6.8 — 20 octobre 2026 — sous-boutons sans fond plus serrés
 
 Les sous-boutons sans fond passent de 8 à **4 px de padding horizontal
@@ -115,7 +137,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.5**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.9**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 

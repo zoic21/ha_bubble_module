@@ -3,7 +3,8 @@
     ha-card[data-dp-layout="compact"] { container-type: inline-size; --dp-compact-pill-radius: max(0px, calc(var(--dp-radius, 22px) - 10px)); ${kind === 'cover' ? `--bubble-cover-button-background-color: ${neutralSurface}; --bubble-cover-buttons-border-radius: var(--signature-control-border-radius, 14px);` : ''} ${kind === 'climate' || numberEnabled ? `--bubble-climate-background-color: transparent; --bubble-climate-button-background-color: ${neutralSurface};` : ''} }
     /* Bubble's button-specific token must follow the same Signature card radius. */
     ha-card[data-dp-layout="compact"][data-dp-kind="button"] { --bubble-button-border-radius: var(--dp-radius,22px); }
-    ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 8px; padding: 0 9px; box-sizing: border-box; transition: none !important; }
+    /* One fixed content/action gap at every width; native command groups keep 8px. */
+    ha-card[data-dp-layout="compact"] .bubble-wrapper { display: flex !important; align-items: center !important; gap: 4px; padding: 0 9px; box-sizing: border-box; transition: none !important; }
     ha-card[data-dp-layout="compact"] .bubble-sub-button { --bubble-sub-button-border-radius: var(--dp-compact-pill-radius); }
     ha-card[data-dp-layout="compact"] .bubble-content-container { flex: 1; display: flex !important; align-items: center; min-width: 0; }
     /* Leave 10px before the text, including the space beside a mode badge. */
@@ -117,12 +118,12 @@ opacity: 1;
       display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
       max-height: calc(2 * max(16px,calc(var(--signature-name-font-size,14px) * 1.1)));
     }` : ''}
-    ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep the native state node, formatting and action bindings. */
+    ` : '') + (valueTrailing ? `/* Flatten only layout boxes: keep native state/actions. 42px + 4px leaves 10px after the 36px icon. */
     ha-card[data-dp-value-trailing="yes"] .bubble-wrapper {
 display: grid !important;
-grid-template-columns: 38px minmax(0, 1fr) auto fit-content(60%);
+grid-template-columns: 42px minmax(0, 1fr) auto fit-content(60%);
 grid-template-rows: 1fr 1fr;
-column-gap: 8px;
+column-gap: 4px;
 row-gap: 0;
     }
     ha-card[data-dp-value-trailing="yes"] :is(.bubble-content-container,.bubble-name-container) { display: contents !important; }
@@ -134,7 +135,7 @@ row-gap: 0;
     ha-card[data-dp-value-trailing="yes"][data-dp-secondary="yes"] .bubble-name { grid-area: 1 / 2 / 2 / 3 !important; align-self: end; }` : ''}
     ha-card[data-dp-value-trailing="yes"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) auto fit-content(60%); }
     /* The measurement precedes every native action, including the final switch. */
-    ha-card[data-dp-value-style="button"] .bubble-wrapper { grid-template-columns: 38px minmax(0, 1fr) fit-content(40%) auto; }
+    ha-card[data-dp-value-style="button"] .bubble-wrapper { grid-template-columns: 42px minmax(0, 1fr) fit-content(40%) auto; }
     ha-card[data-dp-value-style="button"][data-dp-icon="no"] .bubble-wrapper { grid-template-columns: 0 minmax(0, 1fr) fit-content(40%) auto; }
     ha-card[data-dp-value-style="button"] .bubble-state { grid-area: 1 / 3 / 3 / 4 !important; }
     ha-card[data-dp-value-style="button"] .bubble-sub-button-container { grid-area: 1 / 4 / 3 / 5; }

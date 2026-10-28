@@ -6,7 +6,7 @@ if (wrapValueControls) {
     ha-card[data-dp-value-controls="wrap"][data-dp-value-style="button"] .bubble-container { height: auto !important; min-height: var(--row-height,56px); }
     ha-card[data-dp-value-controls="wrap"][data-dp-value-style="button"] .bubble-wrapper {
       display: flex !important; flex-wrap: wrap; position: relative !important;
-      height: auto !important; min-height: calc(var(--row-height,56px) - 2px); padding-block: 9px; gap: 8px;
+      height: auto !important; min-height: calc(var(--row-height,56px) - 2px); padding-block: 9px; gap: 8px 4px;
     }
     ha-card[data-dp-value-controls="wrap"][data-dp-value-style="button"] .bubble-content-container {
       display: flex !important; flex: 100000 1 max-content; min-width: 0;
@@ -30,7 +30,7 @@ if (wrapValueControls) {
       ha-card[data-dp-value-controls="wrap"][data-dp-value-style="text"] .bubble-container { height: auto !important; }
       ha-card[data-dp-value-controls="wrap"][data-dp-value-style="text"] .bubble-wrapper {
         position: relative !important; height: auto !important;
-        grid-template-columns: 38px minmax(0, 1fr) fit-content(60%);
+        grid-template-columns: 42px minmax(0, 1fr) fit-content(60%);
         grid-template-rows: minmax(36px, auto) auto;
         padding-block: 9px; row-gap: 8px;
       }
