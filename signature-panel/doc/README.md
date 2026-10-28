@@ -1,5 +1,29 @@
 # Signature Panel
 
+## 1.4.13 — 28 octobre 2026 — mesures regroupées sous le titre
+
+Sur les en-têtes d’au moins **761 px**, les mesures sont regroupées à gauche,
+sous le nom de la pièce, avec leur largeur naturelle. Les valeurs utilisent
+le rôle secondaire augmenté de 3 px (**16 px** par défaut), les unités le rôle
+secondaire (**13 px**) et les icônes **14 px**, sans fond. Le titre conserve sa
+taille ; les chiffres passent au second plan. Les couleurs et seuils propres
+à chaque icône, leurs opacités et leurs actions restent actifs.
+
+La hauteur de base de **100 px**, l’illustration de **80 px**, son cadrage et sa
+position au bord droit sont conservés. L’engrenage et les autres badges de coin
+gardent exactement leurs positions et leurs cibles natives de **44 × 44 px**.
+Les mesures conservent aussi leurs cibles de 44 px ; les commandes éventuelles
+suivent le groupe. Sans mesure, le nom reste centré verticalement.
+
+Les cartes de 760 px ou moins, les panneaux classiques, les lecteurs et les
+bandeaux de traitement gardent leur présentation. Aucun nouvel élément DOM,
+observateur, abonnement, calcul de géométrie ou CSS de dashboard.
+
+Mettre à jour uniquement **Signature Panel 1.4.13**, puis recharger le frontend.
+Aucun dashboard, thème ou atlas à réimporter. Les contrôles Chromium utilisent
+Bubble 3.4.1 avec un contexte HA simulé ; le rendu dans l’installation Home
+Assistant et Safari/iOS reste à confirmer.
+
 ## 1.4.12 — 27 octobre 2026 — pastilles aux coins des en-têtes
 
 Les badges `type: badge` d’un en-tête illustré utilisent le même cercle neutre

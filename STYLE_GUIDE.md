@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.12**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.13**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1215,3 +1215,27 @@ Contrôler les retraits visibles et cibles 44 px, l’absence de chevauchement
 des deux cibles, les actions natives, le masquage, les icônes/couleurs mises
 à jour et la géométrie strictement identique avec/sans badge sur téléphone
 et ordinateur, avec/sans thème et en clair/sombre.
+
+### Panel 1.4.13 — mesures secondaires sous le nom sur ordinateur
+
+À partir de 761 px de largeur de carte, le titre occupe la première rangée et
+les mesures se regroupent dessous, alignées à gauche avec leurs largeurs
+intrinsèques et l’écart existant. Le rôle de valeur devient
+`signature-secondary-font-size + 3 px` (16 px), poids normal, couleur secondaire
+et espacement de lettres nul. Les unités suivent le rôle secondaire (13 px),
+les icônes passent à 14 px et conservent leurs couleurs, seuils et opacités.
+Les cibles natives gardent au moins 44 × 44 px. Les commandes éventuelles
+suivent les mesures sur cette rangée ; leur masquage ne déplace pas le dessin.
+
+Conserver la base de 100 px, le titre de 26 px, le dessin de 80 px au même
+bord droit et centré verticalement, ainsi que les positions, dimensions et
+actions de tous les badges de coin. Les cartes sans mesure restent centrées.
+Les cartes de 760 px ou moins et les autres présentations gardent leurs règles.
+Pas de déplacement de nœud, mesure de texte JavaScript, observateur, abonnement
+ou CSS local. Les tokens restent dans le CSS pour suivre les thèmes en direct.
+
+Vérifier l’alignement sous le titre, les valeurs regroupées, les couleurs de
+seuil indépendantes et les vrais clics sur chaque mesure et l’engrenage.
+Comparer avant/après la hauteur, la géométrie du dessin et les cibles des
+badges ; couvrir les titres longs, les seuils de largeur, les commandes
+masquées et les thèmes. Les fixtures Chromium ne valident pas HA réel/Safari.

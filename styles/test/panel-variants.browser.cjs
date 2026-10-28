@@ -41,7 +41,7 @@ test('illustrated headings and measurement strips fit real Bubble at phone and d
     const title=m.fields.find(f=>f.cls.includes('dp-panel-title'));
     const footer=m.fields.filter(f=>f.cls.includes('bubble-sub-button')&&!f.cls.includes('settings')).some(f=>f.top>=m.fields.find(f=>f.cls.includes('bubble-state')).bottom);
     assert.ok(m.width>760?m.height===100:m.height>=112&&m.height<=118+Math.max(0,title.bottom-title.top-32)+(footer?44:0),'wide headings share the compact height, narrow headings grow only for required content: '+hint);
-    for(const field of m.fields.filter(f=>f.cls.includes('bubble-state')||f.cls.includes('dp-panel-state')))assert.ok(field.fontSize>=30&&field.fontSize<=40,'keep summary values readable without oversized numbers: '+hint);
+    for(const field of m.fields.filter(f=>f.cls.includes('bubble-state')||f.cls.includes('dp-panel-state')))assert.ok(m.width>760?field.fontSize===16:field.fontSize>=30&&field.fontSize<=40,'wide readings use the secondary role; narrow values keep their size: '+hint);
     assert.equal(m.artwork.width,m.width>760?80:96,'illustration uses the compact size: '+hint);
    }
    if(kind==='double'&&width<=760){
@@ -148,7 +148,7 @@ test('headings reuse existing vertical space without increasing height or moving
  }
 });
 
-test('conditional garden controls use centered zones and release their column when hidden',{skip:!nativePath},async t=>{
+test('conditional garden controls keep narrow zones and follow wide grouped readings',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [328,382,600,900,1032])for(const mode of ['light','dark'])for(const mowerHome of [true,false]){
   await draw(page,{width,mode,kind:'mower',mowerHome});
@@ -159,10 +159,9 @@ test('conditional garden controls use centered zones and release their column wh
    return{columns:tracks.length,values,control:center(button),visible:getComputedStyle(button).display!=='none',art:r.width-parseFloat(s.paddingRight)-tracks.at(-1)/2};
   });
   const hint=JSON.stringify({width,mode,mowerHome,m});
-  assert.equal(m.visible,mowerHome,hint);assert.equal(m.columns,width>760?(mowerHome?5:4):3,hint);
+  assert.equal(m.visible,mowerHome,hint);assert.equal(m.columns,width>760?4:3,hint);
   if(mowerHome&&width>760){
-   const centers=[...m.values,m.control],gaps=centers.slice(1).map((c,i)=>c-centers[i]);
-   assert.ok(Math.max(...gaps)-Math.min(...gaps)<2,'center all four garden fields in regular columns: '+hint);
+   assert.ok(m.control>m.values.at(-1)&&m.control<m.art,'keep commands after compact readings and before the fixed artwork: '+hint);
   }else if(width<=760){
    assert.ok(Math.abs((m.values[1]-m.values[0])-(m.art-m.values[1]))<2,'keep readings and artwork balanced when controls wrap or disappear: '+hint);
    if(mowerHome)assert.ok(Math.abs(m.control-(m.values[0]+m.values[1])/2)<2,'center footer commands under the readings: '+hint);
@@ -172,12 +171,12 @@ test('conditional garden controls use centered zones and release their column wh
  await page.evaluate(()=>window.savedMower=card.card.querySelector('.bubble-sub-button-container .bubble-sub-button'));
  for(const state of ['not_home','home']){
   await page.evaluate(state=>{window.hass={...hass,states:{...hass.states,'device_tracker.mower':{...hass.states['device_tracker.mower'],state}}};card.hass=hass;},state);
-  await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,state==='home'?5:4);
+  await page.waitForFunction(visible=>(getComputedStyle(savedMower).display!=='none')===visible,state==='home');
   assert.equal(await page.evaluate(()=>savedMower===card.card.querySelector('.bubble-sub-button-container .bubble-sub-button')),true);
  }
 });
 
-test('hiding a native selector removes its reserved heading column without replacing nodes',{skip:!nativePath},async t=>{
+test('hiding a native selector preserves grouped wide readings and native nodes',{skip:!nativePath},async t=>{
  const page=await setup(t);
  for(const width of [386,1032]){
   await draw(page,{width,mode:'dark',kind:'mode',poolMode:'Hivers'});
@@ -186,81 +185,71 @@ test('hiding a native selector removes its reserved heading column without repla
    await page.evaluate(method=>{if(method==='class')savedMode.classList.add('hidden');else savedMode.hidden=true;},method);
    await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,width>760?3:2);
    await page.evaluate(method=>{if(method==='class')savedMode.classList.remove('hidden');else savedMode.hidden=false;},method);
-   await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,width>760?4:3);
+   await page.waitForFunction(count=>getComputedStyle(card.card.querySelector('.bubble-container')).gridTemplateColumns.split(' ').length===count,3);
    assert.equal(await page.evaluate(()=>savedMode===card.card.querySelector('.is-select')),true);
   }
  }
 });
 
-test('wide room headers center the name, readings and native controls on one compact row with artwork at the right edge',{skip:!nativePath},async t=>{
+test('wide headings group small readings under the title with fixed artwork and corner settings',{skip:!nativePath},async t=>{
  const page=await setup(t);await page.setViewportSize({width:2100,height:1400});
- for(const width of [761,900,1032,1568,2000])for(const mode of ['light','dark'])for(const plain of [false,true])for(const kind of ['none','single','double','mode','mower'])for(const mowerHome of kind==='mower'?[true,false]:[true]){
-  await draw(page,{width,mode,plain,kind,mowerHome});
+ for(const width of [761,900,1032,1568,2000])for(const mode of ['light','dark'])for(const plain of [false,true])for(const kind of ['none','single','double','mode','mower']){
+  await draw(page,{width,mode,plain,kind});
   const m=await page.evaluate(()=>{
-   const root=card.card,host=root.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),art=getComputedStyle(host,'::after'),tracks=s.gridTemplateColumns.split(' ').map(parseFloat),gap=parseFloat(s.columnGap),padding=parseFloat(s.paddingLeft);
-   const box=e=>{const b=e.getBoundingClientRect();return{left:b.left-r.left,right:b.right-r.left,centerY:(b.top+b.bottom)/2-r.top,centerX:(b.left+b.right)/2-r.left,height:b.height}};
-   const fields=[...root.querySelectorAll('.bubble-state,.dp-panel-state,.bubble-sub-button-container')].filter(e=>e.getBoundingClientRect().height>0).map(box);
-   return{height:r.height,title:box(root.querySelector('.dp-panel-title')),fields,tracks,gap,padding,artWidth:parseFloat(art.width),artTrack:tracks.at(-1),rowCount:s.gridTemplateRows.split(' ').length};
+   const root=card.card,host=root.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),art=getComputedStyle(host,'::after');
+   const box=e=>{const b=e.getBoundingClientRect();return{left:b.left-r.left,right:b.right-r.left,top:b.top-r.top,bottom:b.bottom-r.top,width:b.width,height:b.height}};
+   const fields=[...root.querySelectorAll('.bubble-state,.dp-panel-state')].filter(e=>e.getBoundingClientRect().height>0).map(e=>({...box(e),font:getComputedStyle(e).fontSize,unit:getComputedStyle(e.querySelector('.dp-unit')).fontSize,icon:getComputedStyle(e.querySelector('.dp-panel-icon')).width}));
+   return{height:r.height,title:box(root.querySelector('.dp-panel-title')),fields,settings:box(root.querySelector('.settings')),tracks:s.gridTemplateColumns.split(' ').map(parseFloat),gap:parseFloat(s.columnGap),artWidth:parseFloat(art.width),padding:parseFloat(s.paddingRight)};
   });
-  const hint=JSON.stringify({width,mode,plain,kind,mowerHome,m});
-  assert.equal(m.height,100,'all wide room headers match the no-reading header height: '+hint);
-  assert.equal(m.rowCount,2,'one content row and an empty optional detail row: '+hint);
-  assert.equal(m.artWidth,80,hint);assert.equal(m.artTrack,m.artWidth,'the artwork track must stay against the right padding: '+hint);
-  assert.equal(m.title.left,19,'keep the room name at the left padding: '+hint);
-  assert.ok(Math.abs(m.title.centerY-m.height/2)<1,'center the room name vertically: '+hint);
-  m.fields.forEach((f,i)=>{
-   assert.ok(Math.abs(f.centerY-m.height/2)<1,'center every reading and command vertically: '+hint);
-   const expected=1+m.padding+m.tracks.slice(0,i+1).reduce((a,b)=>a+b,0)+(i+1)*m.gap+m.tracks[i+1]/2;
-   assert.ok(Math.abs(f.centerX-expected)<1,'distribute readings and controls across the free middle columns: '+hint);
-   assert.ok(f.left>m.title.right+7,'keep the title clear of all readings and controls: '+hint);
-  });
+  const hint=JSON.stringify({width,mode,plain,kind,m});
+  assert.equal(m.height,100,'retain the existing compact height: '+hint);
+  assert.equal(m.artWidth,80,hint);assert.equal(m.tracks.at(-1),80,'keep the artwork at the right edge: '+hint);
+  assert.equal(m.settings.left,width-45,hint);assert.equal(m.settings.top,1,hint);assert.equal(m.settings.width,44,hint);assert.equal(m.settings.height,44,hint);
+  assert.equal(m.title.left,19,'keep the title left margin: '+hint);
+  if(kind==='none')assert.ok(Math.abs((m.title.top+m.title.bottom)/2-50)<1,'keep empty headings centered: '+hint);
+  else {
+   assert.equal(m.fields[0].left,m.title.left,'align the first reading under the room name: '+hint);
+   m.fields.forEach((f,i)=>{
+    assert.ok(f.top>=m.title.bottom,'keep values below the title: '+hint);
+    assert.equal(f.font,'16px',hint);assert.equal(f.unit,'13px',hint);assert.equal(f.icon,'14px',hint);
+    assert.ok(f.width>=44&&f.height>=44,'preserve native touch targets: '+hint);
+    assert.ok(f.right<=width-m.padding-m.artWidth-1,'keep the illustration clear: '+hint);
+    if(i){assert.ok(Math.abs(f.top-m.fields[0].top)<1,hint);assert.ok(Math.abs(f.left-m.fields[i-1].right-m.gap)<1,'group values at their intrinsic widths: '+hint);}
+   });
+  }
  }
- await draw(page,{width:1032,kind:'double',mode:'light'});
- await page.locator('bubble-card').locator('.settings').click();await page.waitForFunction(()=>calls.length>0);
- assert.equal((await page.evaluate(()=>calls.at(-1))).config.tap_action.navigation_path,'#scenarios');
- await page.evaluate(()=>window.calls=[]);await page.locator('bubble-card').locator('.dp-panel-state').click();await page.waitForFunction(()=>calls.length>0);
- assert.equal((await page.evaluate(()=>calls.at(-1))).config.entity,'sensor.humidity');
- // The very same title, settings, value and selector nodes survive the layout boundary.
  await draw(page,{width:760,kind:'mode',mode:'dark',poolMode:'Hivers'});
- await page.evaluate(()=>window.inlineNodes=[...card.card.querySelectorAll('.dp-panel-title,.bubble-state,.is-select,.settings')]);
+ await page.evaluate(()=>window.groupedNodes=[...card.card.querySelectorAll('.dp-panel-title,.bubble-state,.is-select,.settings')]);
  for(const width of [761,1032,382,760]){
   await page.evaluate(width=>document.querySelector('#cards').style.width=width+'px',width);
   await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
-  assert.equal(await page.evaluate(()=>inlineNodes.every(n=>card.card.contains(n))),true);
+  assert.equal(await page.evaluate(()=>groupedNodes.every(n=>card.card.contains(n))),true);
  }
 });
 
-
-test('wide headings size the title by its text and center readings in the space left before artwork',{skip:!nativePath},async t=>{
- const page=await setup(t);await page.setViewportSize({width:1700,height:900});
- for(const width of [761,1032,1568])for(const mode of ['light','dark'])for(const kind of ['double','mode','mower'])for(const title of ['Centre','Chambre principale','Salle de bain du deuxième étage']){
-  await draw(page,{width,mode,kind,title});
-  const m=await page.evaluate(()=>{
-   const host=card.card.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),tracks=s.gridTemplateColumns.split(' ').map(parseFloat),title=host.querySelector('.dp-panel-title');
-   const range=document.createRange();range.selectNodeContents(title);const text=range.getBoundingClientRect();
-   const fields=[...host.querySelectorAll('.bubble-state,.dp-panel-state,.bubble-sub-button-container')].filter(e=>e.getBoundingClientRect().height>0).map(e=>{const b=e.getBoundingClientRect();return{left:b.left-r.left,right:b.right-r.left,center:(b.left+b.right)/2-r.left}});
-   const titleBox=title.getBoundingClientRect(),left=parseFloat(s.paddingLeft)+parseFloat(s.borderLeftWidth),right=r.width-parseFloat(s.paddingRight)-parseFloat(s.borderRightWidth),gap=parseFloat(s.columnGap);
-   return{width:r.width,height:r.height,tracks,left,right,gap,textWidth:text.width,titleHeight:titleBox.height,titleRight:titleBox.right-r.left,fields};
-  });
-  const hint=JSON.stringify({width,mode,kind,title,m});
-  const content=m.right-m.left,artStart=m.right-m.tracks.at(-1),readingStart=m.left+m.tracks[0]+m.gap;
-  assert.ok(m.tracks[0]<=content*.3+1,'cap a long name so readings keep enough room: '+hint);
-  if(title==='Centre')assert.ok(Math.abs(m.tracks[0]-m.textWidth)<1,'a short name must reserve only its actual text width: '+hint);
-  if(title==='Chambre principale'&&width>=1032)assert.ok(m.titleHeight<33&&Math.abs(m.tracks[0]-m.textWidth)<1,'a fitting full room name stays on one line at its intrinsic width: '+hint);
-  assert.ok(Math.abs((m.fields[0].center+m.fields.at(-1).center)/2-(readingStart+artStart-m.gap)/2)<1,'center the whole reading/control group between the name and artwork: '+hint);
-  assert.ok(m.fields[0].left>=m.titleRight+m.gap-1,'keep values clear of the actual name: '+hint);
-  assert.ok(m.fields.at(-1).right<=artStart-m.gap+1,'keep controls clear of the right artwork: '+hint);
-  const gaps=m.fields.slice(1).map((f,i)=>f.center-m.fields[i].center);
-  assert.ok(Math.max(...gaps)-Math.min(...gaps)<1,'distribute readings and commands regularly in the remaining space: '+hint);
-  assert.ok(Math.abs(m.height-Math.max(100,m.titleHeight+18))<1,'keep the compact height and grow only for text taller than its available row: '+hint);
+test('grouped readings keep live icon thresholds, independent clicks and theme sizing',{skip:!nativePath},async t=>{
+ const page=await setup(t);await draw(page,{width:1032,kind:'double',mode:'light'});
+ await page.evaluate(()=>{
+  const o=card.config.signature_panel;
+  o.color_thresholds={enabled:true,transition:'hard',values:[{value:0,color:'#36993B'},{value:24,color:'#EB403C'}]};
+  o.information[0].color_thresholds={enabled:true,transition:'hard',values:[{value:0,color:'#368ACB'},{value:70,color:'#417DD2'}]};
+  window.metricNodes=[...card.card.querySelectorAll('.bubble-state,.dp-panel-state,.settings')];card.hass={...hass};
+ });
+ const colors=()=>[...card.card.querySelectorAll('.dp-panel-icon')].map(e=>getComputedStyle(e).color);
+ await page.waitForFunction(()=>getComputedStyle(card.card.querySelector('.dp-panel-primary-icon')).color==='rgb(54, 153, 59)');
+ assert.deepEqual(await page.evaluate(colors),['rgb(54, 153, 59)','rgb(54, 138, 203)']);
+ await page.evaluate(()=>{window.hass={...hass,states:{...hass.states,'sensor.temperature':{...hass.states['sensor.temperature'],state:'25'}}};card.hass=hass;});
+ await page.waitForFunction(()=>getComputedStyle(card.card.querySelector('.dp-panel-primary-icon')).color==='rgb(235, 64, 60)');
+ assert.deepEqual(await page.evaluate(colors),['rgb(235, 64, 60)','rgb(54, 138, 203)']);
+ for(const [selector,entity] of [['.bubble-state','sensor.temperature'],['.dp-panel-state','sensor.humidity'],['.settings',null]]){
+  await page.evaluate(()=>window.calls=[]);await page.locator('bubble-card').locator(selector).click();await page.waitForFunction(()=>calls.length>0);
+  const action=(await page.evaluate(()=>calls.at(-1))).config;
+  if(entity)assert.equal(action.entity,entity);else assert.equal(action.tap_action.navigation_path,'#scenarios');
  }
- await draw(page,{width:1032,mode:'dark',kind:'mode',title:'Centre'});
- const measure=()=>{const host=card.card.querySelector('.bubble-container'),r=host.getBoundingClientRect(),s=getComputedStyle(host),tracks=s.gridTemplateColumns.split(' ').map(parseFloat);return{title:tracks[0],value:card.card.querySelector('.bubble-state').getBoundingClientRect().left,artRight:r.right-parseFloat(s.paddingRight)}};
- const short=await page.evaluate(measure);
- await page.evaluate(()=>{window.intrinsicNodes=[...card.card.querySelectorAll('.dp-panel-title,.bubble-state,.is-select,.settings')];card.card.querySelector('.dp-panel-title').textContent='Chambre principale';});
- await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
- const long=await page.evaluate(measure);
- assert.ok(long.title>short.title+100,'a longer live title claims its own width');
- assert.ok(long.value>short.value,'readings move with the text length');assert.equal(long.artRight,short.artRight,'artwork stays at the right edge');
- assert.equal(await page.evaluate(()=>intrinsicNodes.every(n=>card.card.contains(n))),true);
+ const before=await page.evaluate(()=>{const h=card.card.querySelector('.bubble-container'),r=h.getBoundingClientRect();return{height:r.height,settings:card.card.querySelector('.settings').getBoundingClientRect().x,art:getComputedStyle(h,'::after').width}});
+ await page.evaluate(()=>{card.card.querySelector('.dp-panel-title').textContent='Salle de bain du deuxième étage';document.documentElement.style.setProperty('--signature-secondary-font-size','17px');});
+ const after=await page.evaluate(()=>{const h=card.card.querySelector('.bubble-container'),r=h.getBoundingClientRect();return{height:r.height,settings:card.card.querySelector('.settings').getBoundingClientRect().x,art:getComputedStyle(h,'::after').width}});
+ assert.deepEqual(after,before,'the title and theme do not move artwork or settings');
+ assert.equal(await page.evaluate(()=>getComputedStyle(card.card.querySelector('.bubble-state')).fontSize),'20px');
+ assert.equal(await page.evaluate(()=>metricNodes.every(n=>card.card.contains(n))),true);
 });

@@ -17,7 +17,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container {
   position: relative; height: auto !important; min-height: max(112px,calc(var(--dp-panel-artwork-size) + 16px)) !important;
   padding: 8px 18px; column-gap: clamp(8px,1.5cqw,20px); row-gap: 0; align-content: start;
   /* Measurements and artwork occupy equal zones; no empty control track. */
-  grid-template-columns: var(--dp-panel-title-track,) repeat(var(--dp-panel-count),minmax(0,1fr)) var(--dp-panel-artwork-track,minmax(0,1fr));
+  grid-template-columns: repeat(var(--dp-panel-count),minmax(0,1fr)) minmax(0,1fr);
   grid-template-rows: minmax(32px,max-content) minmax(4px,1fr) minmax(44px,max-content) auto auto !important;
   justify-content: normal;
 }
@@ -52,7 +52,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-badges .b
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-badges .bubble-sub-button-icon { --mdc-icon-size: 18px; }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container {
   display: flex; flex-wrap: wrap; gap: 8px; min-height: 0;
-  grid-row: var(--dp-panel-value-row); grid-column: calc(var(--dp-panel-count) + 1 + var(--dp-panel-heading-shift,0)); place-self: center;
+  grid-row: var(--dp-panel-value-row); grid-column: calc(var(--dp-panel-count) + 1); place-self: center;
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container .bubble-sub-button {
   height: 44px; padding-inline: 14px; max-width: 100%;
@@ -61,7 +61,7 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .is-select .bubble-sub-button-icon { color: var(--dp-accent); }
 /* Visible native controls get their own track on wide headings. */
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-container:where(:has(.bubble-sub-button-container .bubble-sub-button:not(.hidden):not([hidden]))) {
-  grid-template-columns: var(--dp-panel-title-track,) repeat(var(--dp-panel-count),minmax(max-content,1fr)) minmax(max-content,1fr) var(--dp-panel-artwork-track,minmax(var(--dp-panel-artwork-width),1fr));
+  grid-template-columns: repeat(var(--dp-panel-count),minmax(max-content,1fr)) minmax(max-content,1fr) minmax(var(--dp-panel-artwork-width),1fr);
 }
 ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="0"] .bubble-container {
   min-height: 112px !important; --dp-panel-artwork-size: 96px;
@@ -131,20 +131,31 @@ ha-card[data-dp-layout=panel][data-dp-panel-variant=strip] :is(.dp-secondary,.dp
   }
 }
 
-/* Wide room headers use a single row; narrow cards retain the phone layout. */
+/* Wide room headers group compact readings under the name. The artwork and
+   corner badges keep their existing geometry; narrow cards retain theirs. */
 @container signature-panel-heading (min-width: 761px) {
   ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count] .bubble-container {
     --dp-panel-artwork-size: var(--signature-panel-heading-illustration-size,80px);
-    --dp-panel-value-row: 1; --dp-panel-detail-row: 2;
+    --dp-panel-value-size: calc(var(--signature-secondary-font-size,13px) + 3px);
+    --dp-panel-unit-size: var(--signature-secondary-font-size,13px);
+    --dp-panel-value-row: 2; --dp-panel-detail-row: 3;
     min-height: max(100px,calc(var(--dp-panel-artwork-size) + 16px)) !important;
-    --dp-panel-title-track: fit-content(30%); --dp-panel-artwork-track: var(--dp-panel-artwork-width);
-    --dp-panel-heading-shift: 1;
-    grid-template-rows: minmax(44px,1fr) auto !important;
+    grid-template-columns: repeat(var(--dp-panel-count),minmax(44px,max-content)) minmax(0,1fr) var(--dp-panel-artwork-width);
+    grid-template-rows: minmax(32px,max-content) minmax(44px,max-content) auto !important;
+    align-content: center;
   }
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count] :is(.dp-panel-title,.dp-panel-heading) {
-    grid-column: 1; grid-row: 1 / -1; align-self: center;
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] :is(.bubble-state,.dp-panel-state) {
+    min-width: 44px; justify-content: flex-start; justify-self: start;
+    color: var(--secondary-text-color); font-weight: var(--signature-font-weight-normal,400); letter-spacing: 0;
   }
-  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] :is(.bubble-state,.dp-panel-state,.dp-secondary,.dp-panel-secondary) {
-    grid-column: calc(var(--dp-panel-column,1) + var(--dp-panel-heading-shift,0));
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .dp-panel-icon {
+    --mdc-icon-size: 14px; flex-basis: 14px; margin-inline-end: 4px;
+  }
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading] .bubble-sub-button-container {
+    grid-row: 2; grid-column: calc(var(--dp-panel-count) + 1); justify-self: start;
+  }
+  ha-card[data-dp-layout=panel][data-dp-panel-variant=heading][data-dp-panel-count="0"] .bubble-container {
+    grid-template-columns: minmax(0,1fr) var(--dp-panel-artwork-width);
+    grid-template-rows: 1fr !important;
   }
 }
