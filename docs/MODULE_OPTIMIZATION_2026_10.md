@@ -98,3 +98,22 @@ un backend HA simulé. Home Assistant réel et Safari/iOS ne sont pas validés.
 Réimporter les distributions concernées : Compact **1.4.7**, Square **2.0.1**,
 Room **1.4.1**, Header **1.1.15**, Panel **1.0.1**, Group **1.1.2**, Weather
 **1.3.5**, Wind Rose **1.5.5**. Aucun dashboard ni thème à modifier.
+
+## Complément du 29 octobre — contrôles de rendu et cache Panel
+
+Flow **3.6.5** et Panel **1.4.17** contrôlent le travail inchangé sur leurs
+propres éléments, après lecture de toutes les valeurs et templates suivis.
+Ils utilisent `hasChanged` avec Bubble 3.4.2 et un repli local avec les versions
+antérieures. Les éléments natifs et les variables de thème restent vivants.
+La géométrie Flow et son ordonnanceur de mesures ne sont pas modifiés.
+
+Panel partage les séries Recorder brutes et les requêtes en cours entre
+informations et cartes, pour un même utilisateur/connexion, jour/fuseau et
+ensemble d'identifiants. Les opérations (somme, pourcentage, facteur) restent
+indépendantes. Le cache est en mémoire, limité à 128 entrées par connexion,
+avec la cadence existante d'une minute et sans minuterie ajoutée.
+
+Les tests couvrent le travail évité, les dépendances et templates, les actions,
+la recréation du runtime, la réouverture avant expiration, les consommateurs
+simultanés, les réponses tardives et l'isolation par connexion/utilisateur/jour.
+Aucun gain en secondes sur l'installation Home Assistant réelle n'est annoncé.

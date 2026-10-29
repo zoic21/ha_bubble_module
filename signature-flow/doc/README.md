@@ -8,7 +8,24 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.4**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.5**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+
+## 3.6.5 — 29 octobre 2026 — travail de rendu inchangé évité
+
+Les valeurs, noms, icônes et templates restent lus à chaque passage pour
+conserver les dépendances Bubble. Une fois ces entrées résolues, un emplacement
+identique ne refait plus ses écritures DOM, ses liaisons d'actions ou la
+réconciliation de ses flèches. Le contrôle utilise `hasChanged` de Bubble 3.4.2
+lorsqu'il est disponible, avec un repli local pour les versions précédentes.
+
+Les changements de configuration, de langue, d'entité, de visibilité et de
+résultat Jinja invalident le contrôle. Un runtime recréé est toujours peint
+une première fois, même si Bubble conserve son ancien contrôle. La géométrie,
+les traits et leurs mesures ne changent pas.
+
+Importer **Signature Flow 3.6.5**, puis recharger le frontend ; aucun dashboard
+à réimporter. Les gains concernent le travail évité, sans durée de chargement
+Home Assistant réelle annoncée.
 
 ## 3.6.4 — 29 octobre 2026 — trait attaché au bloc supérieur
 

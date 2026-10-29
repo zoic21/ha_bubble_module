@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),vm=require('node:vm');
 const {test}=require('node:test');
 const {loadModule}=require('../../shared/test/module.cjs');
 const context=vm.createContext({...require('../../signature-shared/test/dom.cjs'),Intl,setTimeout,clearTimeout});
-const render=vm.runInContext('(function(hass,onTeardown,renderTemplate){return `'+loadModule('signature-panel').code+'`;})',context);
+const render=vm.runInContext('(function(hass,onTeardown,renderTemplate,hasChanged){return `'+loadModule('signature-panel').code+'`;})',context);
 function fixture(){
  const {Element}=context,root=new Element('ha-card'),content=new Element(),names=new Element(),state=new Element();
  content.className='bubble-content-container';names.className='bubble-name-container';state.className='bubble-state';
@@ -11,7 +11,7 @@ function fixture(){
  const ctx={card:root,config:{card_type:'button',button_type:'state',entity:'sensor.power',show_state:true,signature_panel:options},elements:{state,contentContainer:content,nameContainer:names}};
  const hass={locale:{language:'fr',number_format:'space_comma'},states:{'sensor.power':{state:'140',attributes:{unit_of_measurement:'W'}},'sensor.temp':{state:'29',attributes:{unit_of_measurement:'°C'}},'sensor.humidity':{state:'42',attributes:{unit_of_measurement:'%'}}}};
  let icon='mdi:thermometer';
- return {ctx,root,hass,options,run:()=>render.call(ctx,hass,fn=>ctx.teardown=fn,v=>v==='{{ icon }}'?icon:v),setIcon:value=>icon=value};
+ return {ctx,root,hass,options,run:()=>render.call(ctx,hass,fn=>ctx.teardown=fn,v=>v==='{{ icon }}'?icon:v,ctx.nativeGate),setIcon:value=>icon=value};
 }
 test('an optional global heading stays separate from metric names and native actions, and cleans up on removal',()=>{
  const f=fixture(),name=new context.Element();name.className='bubble-name';name.textContent='Puissance';f.ctx.elements.nameContainer.append(name);
@@ -163,4 +163,19 @@ test('heading corner placement follows live badge options and preserves template
  assert.equal(icon.getAttribute('icon'),'mdi:pause-circle-outline');assert.equal(f.root.querySelector('.dp-panel-badges').firstElementChild,badge);assert.equal(f.ctx._signaturePanelRuntime.styleCSS,geometry);
  f.options.sub_button_styles.robot.position='bottom-right';f.options.variant='strip';assert.doesNotMatch(f.run(),/\.robot\{--dp-panel-badge-position:absolute/);
  delete f.options.sub_button_styles;f.run();assert.equal(badge.parentNode,group);assert.equal(icon.getAttribute('icon'),'mdi:robot-mower-outline');
+});
+
+test('native render gates avoid repeated owned styles and actions while live templates stay current',t=>{
+ const f=fixture();t.after(()=>f.ctx.teardown());const gates=new Map();let calls=0;
+ f.ctx.nativeGate=(key,...values)=>{calls++;const next=values.join('\\u0001'),changed=gates.get(key)!==next;gates.set(key,next);return changed;};
+ f.run();const item=f.root.querySelector('.dp-panel-information');let writes=0;
+ const set=item.style.setProperty.bind(item.style);item.style.setProperty=(...args)=>{writes++;return set(...args);};
+ const reads=new Set();f.hass.states=new Proxy(f.hass.states,{get(target,id){reads.add(id);return target[id];}});
+ for(let i=0;i<30;i++)f.run();
+ assert.equal(writes,0);assert.ok(calls>=30);assert.ok(reads.has('sensor.temp'));assert.ok(reads.has('sensor.humidity'));
+ f.setIcon('mdi:fan');f.run();assert.equal(item.querySelector('.dp-panel-icon').getAttribute('icon'),'mdi:fan');
+ f.options.information[0].color='#ff0000';f.options.information[0].name='New name';f.run();
+ assert.equal(item.querySelector('.dp-panel-name').textContent,'New name');assert.ok(writes>0);
+ f.options.information[0].tap_action.navigation_path='#updated';f.run();
+ assert.equal(JSON.parse(f.root.querySelector('.dp-panel-state').dataset.tapAction).navigation_path,'#updated');
 });

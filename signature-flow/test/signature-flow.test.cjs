@@ -6,7 +6,7 @@ const {test} = require('node:test');
 const YAML = require('yaml');
 const base = path.resolve(__dirname, '..');
 const definition = loadModule('signature-flow');
-const render = new Function('hass','onTeardown','renderTemplate','return `'+definition.code+'`;');
+const render = new Function('hass','onTeardown','renderTemplate','hasChanged','return `'+definition.code+'`;');
 
 class Animation {
   constructor(timing) {
@@ -35,7 +35,7 @@ const options={1:{primary:'sensor.solar'},2:{primary:'sensor.grid'},3:{primary:'
   5:{primary:'sensor.home'},6:{primary:'sensor.water',primary_scale:1000,primary_unit:'L/min',primary_precision:1}};
 const states={'sensor.solar':state(1794),'sensor.grid':state(-11),'sensor.home':state(401),
   'sensor.soc':state(14,'%'),'sensor.battery':state(-1381),'sensor.water':state(0,'m³/min')};
-const run=(ctx,hass,template)=>render.call(ctx,hass,fn=>ctx.teardown=fn,template);
+const run=(ctx,hass,template)=>render.call(ctx,hass,fn=>ctx.teardown=fn,template,ctx.nativeGate);
 function fixture(t,extra={},data={}) {
   const root=new Element(),host=new Element();root.append(host);
   const {animation,deadband,name,...slots}=extra;
@@ -44,7 +44,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.4');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.5');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -678,4 +678,31 @@ test('direct measurements share native precision while explicit zero and legacy 
   delete hass.entities['sensor.solar'];run(ctx,hass);assert.equal(r.nodes[1].number.textContent,'22,567');
   delete hass.states['sensor.solar'].attributes.suggested_display_precision;
   hass.states['sensor.solar'].attributes.display_precision=1;run(ctx,hass);assert.equal(r.nodes[1].number.textContent,'22,6');
+});
+
+test('unchanged native gate passes skip Flow reconciliation and still track states and templates',t=>{
+  const {ctx,hass,r}=fixture(t);
+  const gates=new Map();let gateCalls=0,label='Solar',templates=0;
+  ctx.nativeGate=(key,...values)=>{
+    gateCalls++;const next=values.join('\\u0001'),changed=gates.get(key)!==next;gates.set(key,next);return changed;
+  };
+  ctx.config.signature_flow.slots[1]={...ctx.config.signature_flow.slots[1],name:'{{ label }}'};
+  const template=value=>{templates++;return value==='{{ label }}'?label:value;};
+  run(ctx,hass,template);
+  let reconciles=0;const motion=r.updateMotion;
+  r.updateMotion=edge=>{if(edge===r.edges[1])reconciles++;return motion(edge);};
+  const reads=new Set();hass.states=new Proxy(hass.states,{get(target,id){reads.add(id);return target[id];}});
+  const before=templates;
+  for(let i=0;i<30;i++)run(ctx,hass,template);
+  assert.equal(reconciles,0);assert.ok(gateCalls>=30);assert.equal(templates-before,30);
+  assert.ok(reads.has('sensor.solar'));assert.ok(reads.has('sensor.battery'));
+  label='Production';run(ctx,hass,template);assert.equal(r.nodes[1].label.textContent,'Production');assert.ok(reconciles>0);
+  ctx.config.signature_flow.slots[1].tap_action={action:'navigate',navigation_path:'#new'};
+  run(ctx,hass,template);assert.equal(JSON.parse(r.nodes[1].el.dataset.tapAction).navigation_path,'#new');
+  ctx.config.signature_flow.slots[1].enabled=false;run(ctx,hass,template);
+  ctx.config.signature_flow.slots[1].enabled=true;run(ctx,hass,template);
+  assert.equal(r.nodes[1].el.hidden,false);assert.equal(r.edges[1].particles[0].animation.playState,'running');
+  ctx.teardown();run(ctx,hass,template);
+  assert.equal(ctx._signatureFlow.nodes[1].label.textContent,'Production');
+  assert.equal(ctx._signatureFlow.nodes[1].number.textContent,'1\\u202f794');
 });

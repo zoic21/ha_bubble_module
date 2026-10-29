@@ -6,10 +6,10 @@ const definition = loadModule('signature-panel');
 const ids = ['sensor.hc_cost','sensor.hp_cost'];
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
-function fixture(intl = Intl) {
+function fixture(intl = Intl, sharedContext) {
   let stamp = Date.parse('2026-10-16T10:00:00Z');
   class Clock extends Date { static now() { return stamp; } }
-  const context = vm.createContext({...require('../../signature-shared/test/dom.cjs'),Intl:intl,Date:Clock,setTimeout,clearTimeout});
+  const context = sharedContext || vm.createContext({...require('../../signature-shared/test/dom.cjs'),Intl:intl,Date:Clock,setTimeout,clearTimeout});
   const render = vm.runInContext('(function(hass,onTeardown,renderTemplate){return `' + definition.code + '`;})',context);
   const {Element} = context,root = new Element(),content = new Element(),names = new Element(),state = new Element();
   content.className = 'bubble-content-container'; names.className = 'bubble-name-container'; state.className = 'bubble-state';
@@ -24,7 +24,7 @@ function fixture(intl = Intl) {
     'sensor.hc_cost':{state:'900',attributes:{unit_of_measurement:'EUR'}},
     'sensor.hp_cost':{state:'1100',attributes:{unit_of_measurement:'EUR'}}},
     callWS:request => { calls.push(request); return reply(request); }};
-  return {ctx,root,hass,summary,calls,run:()=>render.call(ctx,hass,fn=>ctx.teardown=fn,x=>x),
+  return {context,ctx,root,hass,summary,calls,run:()=>render.call(ctx,hass,fn=>ctx.teardown=fn,x=>x),
     setTime:time=>stamp=typeof time==='number'?time:Date.parse(time),reply:fn=>reply=fn,
     value:()=>root.querySelector('.dp-panel-state')?.textContent};
 }
@@ -149,9 +149,9 @@ test('daily remaining share excludes exports and storage input, without a subtit
   assert.equal(f.root.querySelector('.dp-panel-name').textContent,'Autosuffisance');
   assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'');
   assert.equal(JSON.parse(f.root.querySelector('.dp-panel-state').dataset.tapAction).action,'none');
-  // Changing the numerator invalidates the cached result immediately.
-  f.summary.statistics.part_statistic_ids=inputs.slice(0,1);f.run();assert.equal(f.value(),'—');
-  await flush();assert.equal(f.value(),'90%');assert.equal(f.calls.length,2);
+  // The same raw Recorder series can immediately serve a different operation.
+  f.summary.statistics.part_statistic_ids=inputs.slice(0,1);f.run();assert.equal(f.value(),'90%');
+  await flush();assert.equal(f.calls.length,1);
 });
 
 test('remaining share handles zero consumption, missing sources and grid battery charging',async t=>{
@@ -202,7 +202,7 @@ test('water converts daily cubic metres to litres while cost keeps its own unit'
     'sensor.water_cost':[{start:req.start_time,change:.68}]}));
   f.run();await flush();assert.equal(f.value(),'123L');
   assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'0,68 €');
-  f.summary.statistics.factor=1;f.run();assert.equal(f.value(),'—');await flush();assert.equal(f.value(),'0L');
+  f.summary.statistics.factor=1;f.run();assert.equal(f.value(),'0L');await flush();assert.equal(f.calls.length,1);
 });
 
 test('a missing cost cannot hide consumption and a missing consumption cannot invent a partial total',async t=>{
@@ -244,4 +244,45 @@ test('invalid factors and secondary statistics do not request unbounded or incom
     f.run();await flush();assert.deepEqual(Array.from(f.calls[0].statistic_ids),ids);
     assert.equal(f.value(),'2,00€');assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,'—');
   }
+});
+
+test('same source series share a pending request across cards and different operations',async t=>{
+  const first=fixture(),second=fixture(Intl,first.context),connection={};
+  t.after(()=>first.ctx.teardown());t.after(()=>second.ctx.teardown());
+  first.hass.connection=second.hass.connection=connection;
+  second.summary.statistics={statistic_ids:[...ids].reverse(),part_statistic_ids:[ids[0]],
+    operation:'remaining_percentage',unit:'%',decimals:0};
+  let resolve;first.reply(()=>new Promise(done=>resolve=done));
+  first.run();second.run();await flush();
+  assert.equal(first.calls.length,1);assert.equal(second.calls.length,0);
+  resolve({[ids[0]]:[{start:first.calls[0].start_time,change:2}],
+    [ids[1]]:[{start:first.calls[0].start_time,change:6}]});
+  await flush();assert.equal(first.value(),'8,00€');assert.equal(second.value(),'75%');
+});
+
+test('a recreated card paints fresh cached statistics synchronously without another request',async t=>{
+  const f=fixture();f.hass.connection={};t.after(()=>f.ctx.teardown());
+  f.run();await flush();assert.equal(f.value(),'2,00€');
+  f.ctx.teardown();f.run();
+  assert.equal(f.value(),'2,00€');await flush();assert.equal(f.calls.length,1);
+  f.setTime('2026-10-16T10:01:00Z');f.run();await flush();assert.equal(f.calls.length,2);
+});
+
+test('a pending result survives its original card and serves a newly mounted consumer',async t=>{
+  const first=fixture(),second=fixture(Intl,first.context),connection={};
+  first.hass.connection=second.hass.connection=connection;t.after(()=>second.ctx.teardown());
+  let resolve;first.reply(()=>new Promise(done=>resolve=done));
+  first.run();await flush();first.ctx.teardown();second.run();
+  resolve(Object.fromEntries(ids.map(id=>[id,[{start:first.calls[0].start_time,change:3}]])));
+  await flush();assert.equal(second.value(),'6,00€');assert.equal(second.calls.length,0);
+  assert.equal(first.root.querySelector('.dp-panel-information'),null);
+});
+
+test('cached series remain isolated by user, connection and local day',async t=>{
+  const f=fixture();f.hass.connection={};f.hass.user={id:'first'};t.after(()=>f.ctx.teardown());
+  f.run();await flush();assert.equal(f.calls.length,1);
+  f.hass.user={id:'second'};f.run();assert.equal(f.value(),'—');await flush();assert.equal(f.calls.length,2);
+  f.hass.connection={};f.run();assert.equal(f.value(),'—');await flush();assert.equal(f.calls.length,3);
+  f.setTime('2026-10-16T22:00:01Z');f.run();assert.equal(f.value(),'—');await flush();assert.equal(f.calls.length,4);
+  assert.equal(f.calls.at(-1).start_time,'2026-10-16T22:00:00.000Z');
 });

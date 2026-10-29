@@ -5,6 +5,7 @@ const tileEnabled = root && (kind === 'media-player'
   || kind === 'button' && !['switch','slider'].includes(c.button_type));
 /* @include signature-shared/src/lifecycle.js */
 if (!tileEnabled) return '';
+/* @include shared/src/render-gate.js */
 /* @include shared/src/media-artwork.js */
 const configured = c.signature_panel || {};
 const mediaArtwork = mediaArtworkFor(c, configured.illustration);
