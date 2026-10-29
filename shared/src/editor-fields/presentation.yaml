@@ -101,6 +101,18 @@ icon_opacity:
   group: Apparence avancée
   group_icon: mdi:palette-outline
   description: Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets.
+icon_opacity_unavailable:
+  label: Opacité de l’icône si l’entité est indisponible
+  default: null
+  selector:
+    number:
+      min: 0
+      max: 1
+      step: 0.05
+      mode: box
+  group: Apparence avancée
+  group_icon: mdi:palette-outline
+  description: "Facultatif, sans Jinja. Entité principale absente, unknown ou unavailable : cette opacité ; sinon icon_opacity ou 1. Null conserve le comportement natif. Les états texte et zéro restent disponibles."
 border_color:
   label: Couleur de la bordure de la carte
   default: ""

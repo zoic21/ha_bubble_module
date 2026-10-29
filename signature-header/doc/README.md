@@ -1,5 +1,25 @@
 # Signature Header
 
+## 1.4.1 — 29 octobre 2026 — opacité d’indisponibilité sans template
+
+`icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
+Elle atténue l’icône principale lorsque l’entité principale est absente,
+`unknown` ou `unavailable`. Un état zéro, texte ou vide reste disponible.
+Au retour de l’entité, l’opacité redevient `icon_opacity` si elle est
+définie, sinon **1**. Sans cette option (ou avec `null`), le comportement
+existant est conservé.
+
+```yaml
+signature_header:
+  icon_opacity_unavailable: 0.4
+```
+
+Cette option ne calcule aucun état métier et n’utilise ni Jinja ni nouvel
+abonnement, observateur ou timer. Elle concerne l’icône principale des
+cartes prises en charge, pas les sous-boutons, les lecteurs média ni les
+séparateurs. Les textes, unités, arrondis, seuils et actions restent natifs.
+Importer **Signature Header 1.4.1**, puis recharger le frontend.
+
 ## 1.4.0 — 28 octobre 2026 — présentation limitée à la carte
 
 Header habille uniquement ses titres, en-têtes et sous-boutons. Il n’injecte

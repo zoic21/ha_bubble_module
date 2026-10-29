@@ -1,6 +1,26 @@
 # Signature Room
 
-Version **1.4.3**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+## 1.4.4 — 29 octobre 2026 — opacité d’indisponibilité sans template
+
+`icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
+Elle atténue l’icône principale lorsque l’entité principale est absente,
+`unknown` ou `unavailable`. Un état zéro, texte ou vide reste disponible.
+Au retour de l’entité, l’opacité redevient `icon_opacity` si elle est
+définie, sinon **1**. Sans cette option (ou avec `null`), le comportement
+existant est conservé.
+
+```yaml
+signature_room:
+  icon_opacity_unavailable: 0.4
+```
+
+Cette option ne calcule aucun état métier et n’utilise ni Jinja ni nouvel
+abonnement, observateur ou timer. Elle concerne l’icône principale des
+cartes prises en charge, pas les sous-boutons, les lecteurs média ni les
+séparateurs. Les textes, unités, arrondis, seuils et actions restent natifs.
+Importer **Signature Room 1.4.4**, puis recharger le frontend.
+
+Version **1.4.4**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -219,6 +239,7 @@ Exemple pour la chambre d’Émilie, sur la grille 4 × 5 existante : `offset_x:
 | `color_background` | `false` | false par défaut. Saisir true/false ou un template Jinja entre guillemets. |
 | `icon_color` | Aucun | Couleur personnalisée de l’icône |
 | `icon_opacity` | Comportement natif / aucun | Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets. |
+| `icon_opacity_unavailable` | `null` | Opacité numérique 0–1 si l’entité principale est absente, unknown ou unavailable ; sinon icon_opacity ou 1. Sans Jinja. |
 | `border_color` | Aucun | Couleur de la bordure de la carte |
 | `icon_border_color` | Aucun | Couleur de la bordure du fond de l’icône |
 

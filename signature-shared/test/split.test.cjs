@@ -206,7 +206,7 @@ test('module forms expose only their useful fields and preserve mixed YAML types
       const visible=new Function('item','hass','card','return !!('+field.visible_if+');');
       assert.doesNotThrow(()=>visible({}, {},undefined));
       assert.equal(visible({}, {},{card_type:'pop-up'}),false);
-      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['title','tap_action','secondary_lines','variant','metric_icon','primary_enabled'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
+      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['title','tap_action','secondary_lines','variant','metric_icon','primary_enabled','icon_opacity_unavailable'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
       if(layout==='square')assert.equal(visible({activity:true}, {},{card_type:'media-player'}),false,'retired activity options must not expose unsupported Square media fields');
     }
   }
@@ -252,5 +252,46 @@ test('new guides, YAML examples and local documentation links are complete',()=>
     const blocks=[...doc.matchAll(/```yaml\s*\n([\s\S]*?)```/g)];assert.ok(blocks.length);
     for(const [,example]of blocks)assert.doesNotThrow(()=>YAML.parse(example));
     for(const [,target]of doc.matchAll(/\[[^\]]+\]\(([^)]+)\)/g))if(!/^[a-z]+:|^#/i.test(target))assert.ok(fs.existsSync(path.resolve(path.dirname(file),target.split('#')[0])),target);
+  }
+});
+
+test('availability opacity follows the main entity in every presentation without Jinja or new DOM',t=>{
+  for(const layout of layouts){
+    const f=fixture(layout,{icon_opacity_unavailable:.4});t.after(()=>f.ctx.teardown());
+    const nativeState=f.ctx.elements.state, nativeIcon=f.ctx.elements.iconContainer;
+    const reads=new Set(),original=f.hass.states;
+    f.hass.states=new Proxy(original,{get(target,id){reads.add(id);return target[id];}});
+    const opacity=()=>f.run((value)=>{if(value)throw Error('Unexpected template rendering: '+value);return '';})
+      .match(/ha-card\[data-dp-layout\]\s*\.bubble-main-icon\s*\{\s*opacity:\s*([0-9.]+)/)?.[1];
+    for(const value of ['0','on','off','idle','closed','abc','']){
+      original['sensor.demo']={state:value,attributes:{}};
+      assert.equal(opacity(),'1',layout+' available '+value);
+    }
+    for(const value of ['unknown','unavailable',null]){
+      if(value===null)delete original['sensor.demo'];else original['sensor.demo']={state:value,attributes:{}};
+      assert.equal(opacity(),'0.4',layout+' unavailable '+value);
+    }
+    assert.ok(reads.has('sensor.demo'));
+    assert.equal(f.ctx.elements.state,nativeState);assert.equal(f.ctx.elements.iconContainer,nativeIcon);
+  }
+});
+
+test('availability opacity is opt-in, bounded and restores explicit or native opacity on removal',t=>{
+  for(const layout of layouts){
+    const f=fixture(layout,{icon_opacity:.7});t.after(()=>f.ctx.teardown());
+    const options=f.ctx.config['signature_'+layout];
+    const opacity=()=>f.run().match(/ha-card\[data-dp-layout\]\s*\.bubble-main-icon\s*\{\s*opacity:\s*([0-9.]+)/)?.[1];
+    assert.equal(opacity(),'0.7');
+    options.icon_opacity_unavailable=.4;assert.equal(opacity(),'0.7');
+    f.hass.states['sensor.demo']={state:'unavailable',attributes:{}};assert.equal(opacity(),'0.4');
+    options.icon_opacity_unavailable=0;assert.equal(opacity(),'0');
+    options.icon_opacity_unavailable=2;assert.equal(opacity(),'1');
+    options.icon_opacity_unavailable=-2;assert.equal(opacity(),'0');
+    for(const invalid of [null,undefined,NaN,Infinity,false,'0.4','{{ value }}']){
+      options.icon_opacity_unavailable=invalid;assert.equal(opacity(),'0.7',layout+' invalid override');
+    }
+    delete options.icon_opacity_unavailable;assert.equal(opacity(),'0.7');
+    delete options.icon_opacity;assert.equal(opacity(),undefined);
+    options.icon_opacity_unavailable=.4;delete f.ctx.config.entity;assert.equal(opacity(),undefined);
   }
 });

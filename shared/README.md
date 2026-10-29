@@ -6,7 +6,7 @@ Les quatorze modules du dépôt sont générés à partir de sources. Chaque YAM
 
 | Sources | Rôle |
 |---|---|
-| `shared/src/editor-fields/presentation.yaml` | Douze définitions communes des champs Compact, Square, Room et Header, résolues au build |
+| `shared/src/editor-fields/presentation.yaml` | Définitions communes des champs Compact, Square, Room, Header et Panel, résolues au build |
 | `scripts/module-definition.cjs` | Résolution des références de champs et des propriétés locales, avec conservation des alias YAML |
 | `shared/src/editor-base.js` | Cycle commun des formulaires natifs ; adaptateurs Signature, Flow et modules avec listes/héritage |
 | `shared/src/editor-options.js` | Formulaire natif commun à Weather, Wind Rose et Alert Manager |

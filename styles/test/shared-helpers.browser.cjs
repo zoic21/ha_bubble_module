@@ -4,7 +4,7 @@ const {test}=require('node:test');
 const {fixture: browserFixture}=require('./browser.cjs');
 const {render}=require('./fixtures.cjs');
 const {readSource}=require('../../scripts/source-files.cjs');
-const names=['signature-compact','signature-flow','signature-wind-rose','alert_manager'];
+const names=['signature-square','signature-compact','signature-flow','signature-wind-rose','alert_manager'];
 const codes=Object.fromEntries(names.map(name=>[name,loadModule(name).code]));
 async function fixture(t){
   const page=await browserFixture(t);await render(page,{mode:'dark',plain:true,width:600});
@@ -98,4 +98,32 @@ test('shared fragment defaults and neutral alert badges inherit native surfaces 
     assert.equal(item.color,i?'rgb(21, 21, 21)':'rgb(225, 225, 225)');assert.equal(item.tabs,item.control);assert.notEqual(item.tabs,'rgba(0, 0, 0, 0)');
   }
   assert.deepEqual(result.override,{badge:'rgb(171, 205, 239)',color:'rgb(18, 52, 86)'});
+});
+
+test('availability opacity changes only icon paint and restores on recovery in Compact and Square',async t=>{
+  const page=await fixture(t);
+  const results=await page.evaluate(()=>{
+    return ['compact','square'].map(id=>{
+      const ctx=auditContext(id),name='signature-'+id,options=ctx.config['signature_'+id];
+      const entity=ctx.config.entity,previous=ctx._hass.states[entity];
+      const icon=ctx.card.querySelector('.bubble-main-icon');
+      const geometry=()=>{const r=ctx.card.getBoundingClientRect();return [r.x,r.y,r.width,r.height];};
+      const start=geometry(),before=ctx.card.querySelector('.bubble-state');
+      options.icon_opacity_unavailable=.4;
+      const values=[];
+      for(const state of ['0','unavailable','unknown','on']){
+        ctx._hass.states[entity]={...previous,state};auditRun(ctx,name);
+        values.push(getComputedStyle(icon).opacity);
+      }
+      delete ctx._hass.states[entity];auditRun(ctx,name);values.push(getComputedStyle(icon).opacity);
+      ctx._hass.states[entity]=previous;delete options.icon_opacity_unavailable;auditRun(ctx,name);
+      values.push(getComputedStyle(icon).opacity);
+      return {id,values,start,end:geometry(),sameIcon:icon===ctx.card.querySelector('.bubble-main-icon'),sameState:before===ctx.card.querySelector('.bubble-state')};
+    });
+  });
+  for(const result of results){
+    assert.deepEqual(result.values,['1','0.4','0.4','1','0.4','1'],result.id);
+    assert.deepEqual(result.end,result.start,result.id+' geometry');
+    assert.equal(result.sameIcon,true);assert.equal(result.sameState,true);
+  }
 });

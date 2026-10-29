@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.16**, **Flow 3.6.4**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.10**, **Square 2.0.10**, **Header 1.4.1**, **Room 1.4.4**, **Panel 1.4.18**, **Flow 3.6.4**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -1321,3 +1321,17 @@ mesure, Chambre principale à deux mesures, Jardin avec badge de robot, ainsi
 que les petits écrans et les seuils de retour à la ligne. Comparer avec/sans
 boutons sur les mêmes largeurs, en clair/sombre et avec/sans thème. Les
 fixtures Chromium/Bubble ne valident pas Home Assistant installé ou Safari.
+
+### Opacité facultative de disponibilité — 29 octobre 2026
+
+Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 et Panel 1.4.18
+partagent `icon_opacity_unavailable`. Un nombre fini borné à 0–1 atténue
+uniquement l’icône principale si l’entité principale manque ou vaut
+`unknown`/`unavailable`. Les autres états, dont zéro, texte et chaîne
+vide, rendent l’opacité explicite `icon_opacity` ou 1. L’option absente ou
+null conserve la cascade existante. Aucun changement des textes, unités,
+seuils, surfaces, géométries ou actions ; aucun nouvel abonnement ni nœud DOM.
+Ne pas substituer cette option à une condition numérique ou métier.
+Vérifier récupération/retrait de l’option et identité des nœuds natifs.
+Les fixtures Chromium Compact/Square couvrent la peinture et la stabilité
+géométrique ; elles ne valident pas Home Assistant installé ni Safari/iOS.

@@ -1,5 +1,25 @@
 # Signature Panel
 
+## 1.4.18 — 29 octobre 2026 — opacité d’indisponibilité sans template
+
+`icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
+Elle atténue l’icône principale lorsque l’entité principale est absente,
+`unknown` ou `unavailable`. Un état zéro, texte ou vide reste disponible.
+Au retour de l’entité, l’opacité redevient `icon_opacity` si elle est
+définie, sinon **1**. Sans cette option (ou avec `null`), le comportement
+existant est conservé.
+
+```yaml
+signature_panel:
+  icon_opacity_unavailable: 0.4
+```
+
+Cette option ne calcule aucun état métier et n’utilise ni Jinja ni nouvel
+abonnement, observateur ou timer. Elle concerne l’icône principale des
+cartes prises en charge, pas les sous-boutons, les lecteurs média ni les
+séparateurs. Les textes, unités, arrondis, seuils et actions restent natifs.
+Importer **Signature Panel 1.4.18**, puis recharger le frontend.
+
 ## 1.4.17 — 29 octobre 2026 — rendu et statistiques partagés
 
 Les informations ajoutées par Panel évitent leurs écritures de présentation

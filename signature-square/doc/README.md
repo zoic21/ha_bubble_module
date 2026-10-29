@@ -1,5 +1,25 @@
 # Signature Square
 
+## 2.0.10 — 29 octobre 2026 — opacité d’indisponibilité sans template
+
+`icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
+Elle atténue l’icône principale lorsque l’entité principale est absente,
+`unknown` ou `unavailable`. Un état zéro, texte ou vide reste disponible.
+Au retour de l’entité, l’opacité redevient `icon_opacity` si elle est
+définie, sinon **1**. Sans cette option (ou avec `null`), le comportement
+existant est conservé.
+
+```yaml
+signature_square:
+  icon_opacity_unavailable: 0.4
+```
+
+Cette option ne calcule aucun état métier et n’utilise ni Jinja ni nouvel
+abonnement, observateur ou timer. Elle concerne l’icône principale des
+cartes prises en charge, pas les sous-boutons, les lecteurs média ni les
+séparateurs. Les textes, unités, arrondis, seuils et actions restent natifs.
+Importer **Signature Square 2.0.10**, puis recharger le frontend.
+
 ## 2.0.9 — 21 octobre 2026 — centrage vertical sans sous-texte
 
 Avec `center_value_without_secondary: true`, la valeur et son unité sont
@@ -25,7 +45,7 @@ principale. Sans cette option ou avec `true`, le fond doux à 16 % reste actif.
 Voir le [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **2.0.9**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.10**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -147,6 +167,7 @@ Exemple de déplacement sur une grille 4 × 5 : `offset_x: 7` et `offset_y: 4` d
 | `icon_color` | Aucun | Couleur manuelle de l’icône, remplacée si des seuils sont actifs |
 | `color_thresholds` | Aucun | Objet YAML `enabled`, `transition`, `values` ; facultativement `entity` et `attribute`. Icône et fond doux du carré sur les cartes bouton. |
 | `icon_opacity` | Comportement natif / aucun | Opacité native par défaut. Saisir de 0 à 1, null ou un template Jinja entre guillemets. |
+| `icon_opacity_unavailable` | `null` | Opacité numérique 0–1 si l’entité principale est absente, unknown ou unavailable ; sinon icon_opacity ou 1. Sans Jinja. |
 | `border_color` | Aucun | Couleur de la bordure de la carte |
 | `icon_border_color` | Aucun | Couleur de la bordure du fond de l’icône |
 

@@ -31,3 +31,13 @@ build pour les classes et l'ancrage de chaque grille. Les paramètres par défau
 reproduisent l'export Room existant ; Panel utilise sa première rangée et ne
 réserve aucun pied pour ses badges. Garder le déplacement/restauration des
 nœuds natifs et le suivi CSS de leur visibilité.
+
+## Opacité de l’icône et disponibilité
+
+`icon_opacity_unavailable` est un nombre fini facultatif, borné à 0–1.
+L’apparence partagée lit l’état de l’entité principale déjà suivi par la
+carte : absence, `unknown` ou `unavailable` déclenchent cette opacité.
+Tout autre état, y compris zéro, texte et chaîne vide, conserve
+`icon_opacity` ou 1. Sans entité, valeur numérique ou option, aucun
+comportement supplémentaire. Aucun abonnement Jinja, observateur ou timer.
+Les sous-boutons, séparateurs et médias conservent leur logique existante.
