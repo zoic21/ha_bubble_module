@@ -704,5 +704,5 @@ test('unchanged native gate passes skip Flow reconciliation and still track stat
   assert.equal(r.nodes[1].el.hidden,false);assert.equal(r.edges[1].particles[0].animation.playState,'running');
   ctx.teardown();run(ctx,hass,template);
   assert.equal(ctx._signatureFlow.nodes[1].label.textContent,'Production');
-  assert.equal(ctx._signatureFlow.nodes[1].number.textContent,'1\\u202f794');
+  assert.equal(ctx._signatureFlow.nodes[1].number.textContent,'1 794');
 });

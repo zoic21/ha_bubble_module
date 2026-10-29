@@ -177,5 +177,6 @@ test('native render gates avoid repeated owned styles and actions while live tem
  f.options.information[0].color='#ff0000';f.options.information[0].name='New name';f.run();
  assert.equal(item.querySelector('.dp-panel-name').textContent,'New name');assert.ok(writes>0);
  f.options.information[0].tap_action.navigation_path='#updated';f.run();
- assert.equal(JSON.parse(f.root.querySelector('.dp-panel-state').dataset.tapAction).navigation_path,'#updated');
+ const updated=f.root.querySelectorAll('.dp-panel-state').find(node=>node.dataset.entity==='sensor.temp');
+ assert.equal(JSON.parse(updated.dataset.tapAction).navigation_path,'#updated');
 });
