@@ -44,7 +44,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.3');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.4');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -585,6 +585,28 @@ test('right connections stay symmetric around the canvas midpoint at every card 
     assert.equal(r.edges[6].line.getAttribute('d'),`M${x} ${height-76} L${x} ${mid+38}`);
     assert.equal(r.edges[4].length,r.edges[6].length);
   }
+});
+test('upper right wire follows visible source content and restores its route when a detail appears',t=>{
+  const {ctx,hass,r}=fixture(t,{4:{primary:'sensor.gas'}},{'sensor.gas':state(2,'L/min')});
+  const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
+  r.canvas.getBoundingClientRect=()=>rect(0,0,468,280);
+  const positions={1:rect(0,0,180,76),2:rect(0,102,140,76),3:rect(0,204,180,76),
+    4:rect(328,0,140,76),5:rect(328,102,140,76),6:rect(328,204,140,76)};
+  for(const [id,box] of Object.entries(positions))r.nodes[id].el.getBoundingClientRect=()=>box;
+  const upper=r.nodes[4];
+  upper.label.getBoundingClientRect=()=>rect(374,2.5,94,17);
+  upper.number.getBoundingClientRect=()=>rect(374,24.5,40,28);
+  upper.unit.getBoundingClientRect=()=>rect(416,34.5,50,15);
+  upper.secondary.getBoundingClientRect=()=>rect(374,57.5,94,16);
+  r.draw();
+  const water=r.edges[6].line.getAttribute('d');
+  assert.equal(r.edges[4].line.getAttribute('d'),'M398 55 L398 81');
+  assert.equal(r.edges[4].length,r.edges[6].length);
+  ctx.config.signature_flow.slots[4].secondary='Index';run(ctx,hass);
+  assert.equal(r.edges[4].line.getAttribute('d'),'M398 76 L398 102');
+  ctx.config.signature_flow.slots[4].secondary='';run(ctx,hass);
+  assert.equal(r.edges[4].line.getAttribute('d'),'M398 55 L398 81');
+  assert.equal(r.edges[6].line.getAttribute('d'),water);
 });
 test('mobile left connections start after their displayed unit or number and update only changed sources',t=>{
   const {ctx,hass,r}=fixture(t);

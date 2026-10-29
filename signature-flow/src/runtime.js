@@ -207,7 +207,17 @@
       for (const id of [4,6]) {
         if (current.edges[id].hidden) continue;
         const r = local(id);
-        route(id, id === 4 ? [[r.cx,r.bottom],[r.cx,right.top]] : [[r.cx,r.top],[r.cx,right.bottom]]);
+        if (id === 4) {
+          // Attach the upper wire to visible content, not its empty detail row.
+          // Translate both ends equally so its length and the lower wire stay intact.
+          const node = current.nodes[id];
+          const inset = Math.max(0,node.label.getBoundingClientRect().top-box.top-r.top);
+          const bottom = Math.max(node.number.getBoundingClientRect().bottom,
+            node.unit.textContent.trim() ? node.unit.getBoundingClientRect().bottom : -Infinity,
+            node.secondary.textContent.trim() ? node.secondary.getBoundingClientRect().bottom : -Infinity)-box.top;
+          const shift = Math.max(0,r.bottom-bottom-inset);
+          route(id, [[r.cx,r.bottom-shift],[r.cx,right.top-shift]]);
+        } else route(id, [[r.cx,r.top],[r.cx,right.bottom]]);
       }
       current.fitValues();
       attr(current.junction, 'cx', x); attr(current.junction, 'cy', y);
@@ -350,6 +360,7 @@
     edge.speed = speed;
     runtime.updateMotion(edge);
     const secondary = detail.value+(detail.unit ? ' '+detail.unit : '');
+    if (key === 4 && node.secondary.textContent !== secondary) geometryChanged = true;
     text(node.secondary,secondary); node.secondary.title = secondary;
     attr(node.icon, 'icon', render(cfg.icon ?? primary.state?.attributes?.icon ?? 'mdi:flash',primary.entity));
     attr(node.el, 'aria-label', name+' · '+value+(unit ? ' '+unit : '')+(secondary ? ' · '+secondary : ''));

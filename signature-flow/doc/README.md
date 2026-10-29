@@ -8,7 +8,27 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.3**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.4**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+
+## 3.6.4 — 29 octobre 2026 — trait attaché au bloc supérieur
+
+Le trait de l'emplacement 4 (Gaz dans Aperçu) commence après son contenu
+visible et laisse de l'espace avant le bloc Maison. Sa rangée secondaire
+vide ne repousse plus la ligne vers le nom Maison. Les deux extrémités sont
+translatées ensemble : longueur, épaisseur et animation sont conservées.
+Le fond transparent du bloc laisse apparaître le trait dans cet espace vide.
+
+Les noms, valeurs, icônes, cibles, le centrage de 3.6.3 et le trait Eau restent
+à leurs positions. Un secondaire visible conserve son espace et un changement
+de ce texte recalcule l'attache dans le cycle de géométrie existant.
+Aucune nouvelle option, minuterie, souscription ou observation du DOM.
+
+Importer uniquement **Signature Flow 3.6.4**, puis recharger le frontend.
+Aucun dashboard, fichier ESPHome ou image à réimporter. Les 418 tests
+fonctionnels réussissent ; 16 rendus Chromium vérifient les écarts entre les
+traits et le contenu visible, en plus de leurs longueurs et des épaisseurs.
+Les changements de secondaire sont aussi couverts. Fixtures Chromium
+distinctes d'un essai Home Assistant réel ou Safari/iOS.
 
 ## 3.6.3 — 29 octobre 2026 — liaisons verticales symétriques
 

@@ -156,7 +156,9 @@
   right:0
 }
 .sf-slot-4 {
-  top:0
+  top:0;
+  /* The wire may cross the unused detail row, below all visible content. */
+  background:transparent
 }
 .sf-slot-6 {
   bottom:0
