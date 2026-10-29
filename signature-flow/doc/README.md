@@ -8,7 +8,24 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.2**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.3**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+
+## 3.6.3 — 29 octobre 2026 — liaisons verticales symétriques
+
+La rangée centrale et la jonction se centrent sur le milieu réel du canevas.
+Le décalage précédent de 4 px vers le haut raccourcissait la liaison supérieure
+(Gaz dans Aperçu) de 8 px par rapport à la liaison inférieure (Eau).
+Les deux traits ont désormais la même longueur lorsque les blocs extrêmes
+ont la même hauteur. Le centrage suit aussi la hauteur calculée des blocs.
+Épaisseur de 1,7, opacité de 0,35, valeurs, unités, couleurs, actions et
+animations conservées. Aucun abonnement, observateur ou option ajouté.
+
+Importer uniquement **Signature Flow 3.6.3**, puis recharger le frontend.
+Pas de dashboard ni d'image à réimporter. Les 417 tests fonctionnels réussissent,
+dont une régression aux trois hauteurs et trois largeurs. Le test navigateur
+vérifie les deux longueurs, le centrage des blocs et l'épaisseur conservée sur
+16 rendus (288/328/468/760 px, clair/sombre, avec/sans thème Signature).
+Ces fixtures Chromium sont distinctes d'un essai Home Assistant réel ou Safari/iOS.
 
 Version 3 uses `primary` and `secondary` with the same entity, template and text behavior. It replaces slot-level `entity`, `state` and `secondary_entity`; formatting options become `primary_unit`, `primary_scale` and `primary_precision`, and primary value actions use `primary_*_action`. Replace the card configuration when importing this version. The [home configuration](../examples/home.yaml) preserves the existing sensors, forecast, battery power and percentage, water conversion and five popup hashes. It excludes the car charging card and leaves the section title outside the module. The corresponding popup cards must already exist. The outer Bubble card's `entity` remains unchanged.
 

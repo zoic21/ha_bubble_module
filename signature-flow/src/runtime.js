@@ -175,7 +175,7 @@
           bottom:r.bottom-box.top, cx:(r.left+r.right)/2-box.left, cy:(r.top+r.bottom)/2-box.top};
       };
       const upper = local(1), lower = local(3), right = local(5);
-      const x = box.width/2, y = box.height/2-4;
+      const x = box.width/2, y = box.height/2;
       current.center = {x,y,1:upper.cy,3:lower.cy};
       attr(wires, 'viewBox', '0 0 '+box.width+' '+box.height);
       const route = current.route = (key, points) => {

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.16**, **Flow 3.6.2**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.9**, **Square 2.0.9**, **Header 1.4.0**, **Room 1.4.3**, **Panel 1.4.16**, **Flow 3.6.3**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -308,6 +308,13 @@ Les lignes de prévision Weather sont placées dans des lignes déjà rembourré
 | Soulignement de prévision Weather | 2 px CSS | Sélection locale |
 
 Ne pas donner une longueur fixe commune aux connexions Flow et aux séparateurs : leurs rôles diffèrent. Flow conserve le dégagement de 12 px après les valeurs des sources horizontales et sa géométrie responsive.
+
+Depuis Flow 3.6.3, la rangée centrale (emplacements 2 et 5) et la jonction
+partagent le milieu vertical réel du canevas. Centrer les blocs selon leur
+hauteur calculée ; ne pas réintroduire un décalage fixe de 4 px vers le haut.
+Les liaisons 4 → 5 et 6 → 5 gardent leurs extrémités aux limites des blocs et
+ont la même longueur lorsque les blocs supérieurs et inférieurs ont la même
+hauteur. Leur épaisseur de 1,7 et leur opacité de 0,35 restent inchangées.
 
 Compact 1.4.3 applique un padding horizontal de 9 px dans le wrapper, auquel s’ajoute la bordure de 1 px : le retrait extérieur vaut 10 px des deux côtés, comme autour des pastilles centrées de 36 px. Les pastilles utilisent localement le rayon de carte moins 10 px ; ne pas modifier le token global de contrôle ni les formes propres aux switches, contrôles cover/climate/number ou lecteurs. La grande valeur sans fond n’ajoute pas de padding à droite. Aucun calcul JavaScript ou observateur n’est requis.
 

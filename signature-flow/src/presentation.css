@@ -136,12 +136,14 @@
 .sf-slot-2 {
   background:transparent;
   width:min(170px,calc(50% - 20px));
-  top:calc(50% - 42px);
+  top:50%;
+  transform:translateY(-50%);
   left:0
 }
 .sf-slot-5 {
   width:140px;
-  top:calc(50% - 42px);
+  top:50%;
+  transform:translateY(-50%);
   right:0
 }
 .sf-slot-3 {

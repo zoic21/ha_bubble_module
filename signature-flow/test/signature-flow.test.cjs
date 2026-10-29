@@ -44,7 +44,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.2');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.3');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -556,42 +556,58 @@ test('connections share the center axis on desktop and join aligned mobile colum
   const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
   for(const width of [468,360]) {
     const narrow=width<460,sourceWidth=narrow?170:180;
-    const positions={1:rect(narrow?0:width/2-90,0,sourceWidth,76),2:rect(0,98,128,76),
-      5:rect(width-140,98,140,76),3:rect(narrow?0:width/2-90,204,sourceWidth,76),
+    const positions={1:rect(narrow?0:width/2-90,0,sourceWidth,76),2:rect(0,102,128,76),
+      5:rect(width-140,102,140,76),3:rect(narrow?0:width/2-90,204,sourceWidth,76),
       6:rect(width-140,204,140,76)};
     r.canvas.getBoundingClientRect=()=>rect(0,0,width,280);
     for(const [key,box] of Object.entries(positions)) r.nodes[key].el.getBoundingClientRect=()=>box;
     r.draw();
     const x=width/2;
     assert.equal(r.junction.getAttribute('cx'),String(x));
-    assert.equal(r.edges[1].line.getAttribute('d'),narrow?'M170 38 L180 38 L180 136':'M234 76 L234 136');
-    assert.equal(r.edges[3].line.getAttribute('d'),narrow?'M170 242 L180 242 L180 136':'M234 204 L234 136');
-    assert.equal(r.edges[6].line.getAttribute('d'),'M'+(width-70)+' 204 L'+(width-70)+' 174');
+    assert.equal(r.edges[1].line.getAttribute('d'),narrow?'M170 38 L180 38 L180 140':'M234 76 L234 140');
+    assert.equal(r.edges[3].line.getAttribute('d'),narrow?'M170 242 L180 242 L180 140':'M234 204 L234 140');
+    assert.equal(r.edges[6].line.getAttribute('d'),'M'+(width-70)+' 204 L'+(width-70)+' 178');
     assert.equal(r.edges[1].particles[0].flow.style.getPropertyValue('offset-path'),'path("'+r.edges[1].line.getAttribute('d')+'")');
+  }
+});
+test('right connections stay symmetric around the canvas midpoint at every card size',t=>{
+  const {r}=fixture(t,{4:{primary:'sensor.gas'}},{'sensor.gas':state(2,'L/min')});
+  const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
+  for(const width of [288,468,760]) for(const height of [280,310,600]) {
+    const x=width-70,mid=height/2;
+    const positions={1:rect(0,0,140,76),2:rect(0,mid-38,140,76),3:rect(0,height-76,140,76),
+      4:rect(width-140,0,140,76),5:rect(width-140,mid-38,140,76),6:rect(width-140,height-76,140,76)};
+    r.canvas.getBoundingClientRect=()=>rect(0,0,width,height);
+    for(const [id,box] of Object.entries(positions))r.nodes[id].el.getBoundingClientRect=()=>box;
+    r.draw();
+    assert.equal(r.junction.getAttribute('cy'),String(mid));
+    assert.equal(r.edges[4].line.getAttribute('d'),`M${x} 76 L${x} ${mid-38}`);
+    assert.equal(r.edges[6].line.getAttribute('d'),`M${x} ${height-76} L${x} ${mid+38}`);
+    assert.equal(r.edges[4].length,r.edges[6].length);
   }
 });
 test('mobile left connections start after their displayed unit or number and update only changed sources',t=>{
   const {ctx,hass,r}=fixture(t);
   const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
   r.canvas.getBoundingClientRect=()=>rect(0,0,360,280);
-  const positions={1:rect(0,0,160,76),2:rect(0,98,160,76),3:rect(0,204,160,76),
-    5:rect(220,98,140,76),6:rect(220,204,140,76)};
+  const positions={1:rect(0,0,160,76),2:rect(0,102,160,76),3:rect(0,204,160,76),
+    5:rect(220,102,140,76),6:rect(220,204,140,76)};
   for(const [id,box] of Object.entries(positions)) r.nodes[id].el.getBoundingClientRect=()=>box;
   for(const [id,end] of [[1,102],[2,83],[3,76]]) r.nodes[id].unit.getBoundingClientRect=()=>rect(end-20,0,20,16);
   r.draw();
-  assert.equal(r.edges[1].line.getAttribute('d'),'M114 38 L180 38 L180 136');
-  assert.equal(r.edges[2].line.getAttribute('d'),'M95 136 L180 136');
-  assert.equal(r.edges[3].line.getAttribute('d'),'M88 242 L180 242 L180 136');
+  assert.equal(r.edges[1].line.getAttribute('d'),'M114 38 L180 38 L180 140');
+  assert.equal(r.edges[2].line.getAttribute('d'),'M95 140 L180 140');
+  assert.equal(r.edges[3].line.getAttribute('d'),'M88 242 L180 242 L180 140');
   const paths=[2,3].map(id=>r.edges[id].line.getAttribute('d'));
   r.nodes[1].unit.getBoundingClientRect=()=>rect(55,0,20,16);r.updateLeftConnections([1]);
-  assert.equal(r.edges[1].line.getAttribute('d'),'M87 38 L180 38 L180 136');
+  assert.equal(r.edges[1].line.getAttribute('d'),'M87 38 L180 38 L180 140');
   assert.deepEqual([2,3].map(id=>r.edges[id].line.getAttribute('d')),paths);
   ctx.config.signature_flow.slots[1].primary_unit='';run(ctx,hass);
   r.nodes[1].number.getBoundingClientRect=()=>rect(46,0,40,34);r.updateLeftConnections([1]);
-  assert.equal(r.edges[1].line.getAttribute('d'),'M98 38 L180 38 L180 136');
+  assert.equal(r.edges[1].line.getAttribute('d'),'M98 38 L180 38 L180 140');
   r.canvas.getBoundingClientRect=()=>rect(0,0,468,280);r.draw();
-  assert.equal(r.edges[1].line.getAttribute('d'),'M234 76 L234 136');
-  assert.equal(r.edges[3].line.getAttribute('d'),'M234 204 L234 136');
+  assert.equal(r.edges[1].line.getAttribute('d'),'M234 76 L234 140');
+  assert.equal(r.edges[3].line.getAttribute('d'),'M234 204 L234 140');
 });
 test('teardown disconnects the observer and restores the native card on removal or unsupported type',t=>{
   const {ctx,hass,r}=fixture(t);ctx.config.button_type='slider';run(ctx,hass);
