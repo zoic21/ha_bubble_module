@@ -1,5 +1,31 @@
 # Signature Panel
 
+## 1.4.17 — 29 octobre 2026 — rendu et statistiques partagés
+
+Les informations ajoutées par Panel évitent leurs écritures de présentation
+et leurs liaisons d'actions lorsqu'elles sont identiques. Les entités et
+templates restent lus avant le contrôle ; les éléments natifs Bubble continuent
+à être réconciliés. `hasChanged` est utilisé avec Bubble 3.4.2 ; un contrôle
+local maintient le comportement avec les versions précédentes.
+
+Les séries Recorder d'une même connexion, d'un même utilisateur et d'une
+même journée/fuseau sont maintenant partagées lorsque les identifiants de
+statistiques sont identiques, quel que soit leur ordre. Une consommation,
+un pourcentage d'autonomie ou un facteur différent réutilisent les mêmes
+données brutes. Deux demandes simultanées partagent leur requête en cours.
+
+Le cache en mémoire reste disponible lorsqu'une carte est détruite pendant
+la navigation. Une carte recréée affiche immédiatement un résultat récent.
+La validité reste d'une minute à compter de la demande ; les mises à jour HA
+pilotent le rafraîchissement. Changer de jour, d'utilisateur, de connexion ou
+de sources utilise une entrée distincte. Le cache est limité à 128 entrées
+par connexion, sans stockage persistant ni minuterie supplémentaire. Une réponse
+tardive ne repeint pas une carte supprimée ou reconfigurée.
+
+Importer **Signature Panel 1.4.17**, puis recharger le frontend ; aucun dashboard
+à réimporter. Les contrôles automatisés portent sur les fixtures ; aucune mesure
+de chargement Home Assistant réel ou de Safari/iOS n'est annoncée.
+
 ## 1.4.16 — 28 octobre 2026 — illustration dégagée des boutons de coin
 
 Les en-têtes réservent **40 px supplémentaires à droite**, en permanence.

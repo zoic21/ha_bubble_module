@@ -36,19 +36,19 @@ information.forEach((spec, index) => {
       el.appendChild(node);
     }
     content.appendChild(el);
-    item = items[index] = {el, target};
+    item = items[index] = {el,target,revision:(runtime.informationRevision = (runtime.informationRevision || 0)+1)};
   }
-  item.el.style.setProperty('--dp-panel-column', String(index + (panelPrimaryEnabled ? 2 : 1)));
+  const column = String(index + (panelPrimaryEnabled ? 2 : 1));
   const name = item.el.querySelector('.dp-panel-name');
   const state = item.el.querySelector('.dp-panel-state');
   let detail = item.el.querySelector('.dp-panel-secondary');
   const nameText = render(spec.name ?? '', entity).trim();
-  if (name.textContent !== nameText) name.textContent = nameText;
   const paintState = ({value,unit}) => {
     const key = JSON.stringify([value,unit,spec.icon]);
     // Templates/icons remain live even if the measured value is unchanged.
     const icon = render(spec.icon,entity).trim();
-    if (item.stateKey === key + icon) return;
+    if (!renderChanged('panel-state-'+index,item.revision,key,icon) && item.stateKey === key + icon
+        && state.querySelector('.dp-value')) return;
     const valueEl = document.createElement('span'); valueEl.className = 'dp-value'; valueEl.textContent = value;
     const unitEl = document.createElement('span'); unitEl.className = 'dp-unit'; unitEl.textContent = unit;
     state.replaceChildren(valueEl,unitEl);
@@ -69,17 +69,20 @@ information.forEach((spec, index) => {
   if (item.detailEntity !== detailEntity) {
     const next = document.createElement('div'); next.className = detail.className;
     detail.replaceWith(next); detail = next; item.detailEntity = detailEntity;
+    item.revision = runtime.informationRevision = (runtime.informationRevision || 0)+1;
   }
   if (!(spec.statistics && spec.secondary_statistics)) {
     const display = source.direct ? displayState(hass.states[detailEntity],detailEntity,'panelDetailFormat' + index) : null;
     const detailText = display ? display.value + (display.unit ? ' ' + display.unit : '') : render(spec.secondary,entity).trim();
     if (detail.textContent !== detailText) detail.textContent = detailText;
   }
-  const action = entity ? {...info(entity), ...(spec.tap_action ? {tapAction:JSON.stringify(spec.tap_action)} : {})}
-    : {tapAction:'{"action":"none"}',holdAction:'{"action":"none"}',doubleTapAction:'{"action":"none"}'};
-  bindAction('panelName'+index,name,action,!!entity);
-  bindAction('panelState'+index,state,action,!!entity);
-  bindAction('panelDetail'+index,detail,detailEntity ? info(detailEntity) : action,!!detailEntity);
+  if (renderChanged('panel-actions-'+index,item.revision,target,detailEntity)) {
+    const action = entity ? {...info(entity), ...(spec.tap_action ? {tapAction:JSON.stringify(spec.tap_action)} : {})}
+      : {tapAction:'{"action":"none"}',holdAction:'{"action":"none"}',doubleTapAction:'{"action":"none"}'};
+    bindAction('panelName'+index,name,action,!!entity);
+    bindAction('panelState'+index,state,action,!!entity);
+    bindAction('panelDetail'+index,detail,detailEntity ? info(detailEntity) : action,!!detailEntity);
+  }
   if (spec.statistics) dailyPanelStatistics(spec,item,(value,secondaryValue) => {
     const format = (n,options,slot) => {
       if (n === null) return {value:'—',unit:''};
@@ -100,6 +103,12 @@ information.forEach((spec, index) => {
     item.thresholdOptions = spec.color_thresholds;
     item.thresholdScale = prepareColorThresholds(spec.color_thresholds);
   }
-  item.el.style.setProperty('--dp-panel-information-color',entityThresholdColor(item.thresholdScale,entity) || color(spec.color,accent,entity));
-  item.el.style.setProperty('--dp-panel-information-opacity',String(spec.icon_opacity == null ? 1 : number(render(spec.icon_opacity,entity),1,0,1)));
+  const tint = entityThresholdColor(item.thresholdScale,entity) || color(spec.color,accent,entity);
+  const opacity = String(spec.icon_opacity == null ? 1 : number(render(spec.icon_opacity,entity),1,0,1));
+  if (renderChanged('panel-presentation-'+index,item.revision,column,tint,opacity,nameText)) {
+    item.el.style.setProperty('--dp-panel-column',column);
+    item.el.style.setProperty('--dp-panel-information-color',tint);
+    item.el.style.setProperty('--dp-panel-information-opacity',opacity);
+    if (name.textContent !== nameText) name.textContent = nameText;
+  }
 });

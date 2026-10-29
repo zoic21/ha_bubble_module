@@ -60,37 +60,40 @@ const dailyStatistics = paint => {
   const zone = statisticsZone;
   let window;
   try { window = dailyWindow(Date.now(),zone); } catch { runtime.summaryStatistics = null; paint(null,null); return; }
-  const key = JSON.stringify([primaryStatistics,secondaryStatistics,zone,window.start]);
+  const connection = hass.connection || hass;
+  const user = hass.user?.id || '';
+  const key = JSON.stringify([primaryStatistics,secondaryStatistics,zone,window.start,user]);
   let data = runtime.summaryStatistics;
-  if (!data || data.key !== key) data = runtime.summaryStatistics = {key,value:null,secondaryValue:null,lastAttempt:null,pending:false};
+  if (!data || data.key !== key || data.connection !== connection)
+    data = runtime.summaryStatistics = {key,connection,value:null,secondaryValue:null,awaiting:null};
   data.paint = paint;
-  paint(data.value,data.secondaryValue);
-  // Native hass updates drive refreshes. No timer, listener or observer is
-  // added; a displayed summary makes at most one request per minute.
-  if (data.pending || (data.lastAttempt !== null && window.end-data.lastAttempt < 60000)
-      || typeof hass.callWS !== 'function') return;
-  data.pending = true; data.lastAttempt = window.end;
-  const current = () => this._dpRuntime === panelRuntime && runtime.summaryStatistics === data && panelRuntime.information.includes(runtime);
-  const request = {type:'recorder/statistics_during_period',
-    start_time:new Date(window.start).toISOString(),end_time:new Date(window.end).toISOString(),
-    statistic_ids:statisticIds,period:'5minute',types:['change']};
-  Promise.resolve().then(() => hass.callWS(request)).then(result => {
+  const current = () => this._dpRuntime === panelRuntime && runtime.summaryStatistics === data
+    && panelRuntime.information.includes(runtime) && data.entry === entry;
+  // Keep Recorder results, not card callbacks or operation-specific totals.
+  // The connection/user/day boundary prevents cross-account or stale-day reuse.
+  const symbol = Symbol.for('ha.signature.panel.statistics.v1');
+  const shared = globalThis[symbol] || (globalThis[symbol] = new WeakMap());
+  let cache = shared.get(connection);
+  if (!cache) shared.set(connection,cache = new Map());
+  const queryKey = JSON.stringify([user,zone,window.start,[...statisticIds].sort()]);
+  let entry = cache.get(queryKey);
+  if (!entry) {
+    // Bounded across dashboard navigation; in-flight consumers retain their
+    // own promise if an older entry must be evicted.
+    for (const [id,value] of cache)
+      if (!value.promise && window.end-value.lastAttempt >= 60000) cache.delete(id);
+    while (cache.size >= 128) cache.delete(cache.keys().next().value);
+    entry = {lastAttempt:null,totals:null,promise:null};
+    cache.set(queryKey,entry);
+  }
+  data.entry = entry;
+  const apply = (checkDay = true) => {
     if (!current()) return;
-    const totals = new Map();
-    for (const id of statisticIds) {
-      const rows = Array.isArray(result?.[id]) ? result[id] : [];
-      const values = rows.filter(row => {
-        const time = new Date(row.start).getTime();
-        return time >= window.start && time < window.end
-          && typeof row.change === 'number' && Number.isFinite(row.change);
-      });
-      totals.set(id,values.length ? values.reduce((sum,row) => sum+row.change,0) : NaN);
-    }
-    const sameDay = dailyWindow(Date.now(),zone).start === window.start;
+    let sameDay = !checkDay;
+    if (checkDay) try { sameDay = dailyWindow(Date.now(),zone).start === window.start; } catch {}
     const calculate = config => {
-      if (!config || !sameDay) return null;
-      // Each measurement is complete or unavailable independently of the other.
-      if (config.ids.some(id => !Number.isFinite(totals.get(id)))) return null;
+      const totals = entry.totals;
+      if (!config || !sameDay || !totals || config.ids.some(id => !Number.isFinite(totals.get(id)))) return null;
       const sum = ids => ids.reduce((value,id) => value+totals.get(id),0);
       let total = sum(config.totalIds)-sum(config.subtractIds);
       if (config.operation === 'remaining_percentage') total = total > 0
@@ -100,11 +103,38 @@ const dailyStatistics = paint => {
     };
     data.value = calculate(primaryStatistics);
     data.secondaryValue = calculate(secondaryStatistics);
-  }).catch(() => { if (current()) data.value = data.secondaryValue = null; }).finally(() => {
-    if (!current()) return;
-    data.pending = false;
     data.paint(data.value,data.secondaryValue);
-  });
+  };
+  // Reuse a fresh result synchronously when a card or operation is recreated.
+  // Native hass updates still drive the one-minute refresh; no timer is added.
+  if (!entry.promise && (entry.lastAttempt === null || window.end-entry.lastAttempt >= 60000)
+      && typeof hass.callWS === 'function') {
+    entry.lastAttempt = window.end;
+    const request = {type:'recorder/statistics_during_period',
+      start_time:new Date(window.start).toISOString(),end_time:new Date(window.end).toISOString(),
+      statistic_ids:statisticIds,period:'5minute',types:['change']};
+    entry.promise = Promise.resolve().then(() => hass.callWS(request)).then(result => {
+      const totals = new Map();
+      for (const id of statisticIds) {
+        const rows = Array.isArray(result?.[id]) ? result[id] : [];
+        let total = 0, found = false;
+        for (const row of rows) {
+          const time = new Date(row.start).getTime();
+          if (time >= window.start && time < window.end && typeof row.change === 'number' && Number.isFinite(row.change)) {
+            total += row.change; found = true;
+          }
+        }
+        totals.set(id,found ? total : NaN);
+      }
+      entry.totals = totals;
+    }).catch(() => { entry.totals = null; }).finally(() => { entry.promise = null; });
+  }
+  // Read the day once per style pass; async completion checks it again before paint.
+  apply(false);
+  if (entry.promise && data.awaiting !== entry.promise) {
+    const pending = data.awaiting = entry.promise;
+    pending.then(() => { if (data.awaiting === pending) data.awaiting = null; apply(); });
+  }
 };
 
 if (statisticsEnabled) dailyStatistics(paint);

@@ -242,6 +242,7 @@
       current.observer = new ResizeObserver(current.draw); current.observer.observe(canvas);
     }
   }
+  /* @include shared/src/render-gate.js */
   const language = localeFor(hass);
   const french = language.toLowerCase().startsWith('fr');
   const labels = french ? {slot:'Emplacement',unavailable:'Indisponible',details:'Ouvrir les détails'} :
@@ -327,7 +328,7 @@
     if (edge.hidden !== edgeHidden) geometryChanged = true;
     edge.hidden = edgeHidden;
     attr(edge.group, 'display', edgeHidden ? 'none' : 'inline');
-    if (hidden) {runtime.updateMotion(edge);continue;}
+    if (hidden) {renderChanged('flow-slot-'+key,'hidden');runtime.updateMotion(edge);continue;}
     const primary = measurement(cfg,'primary'), detail = measurement(cfg,'secondary');
     const flow = cfg.flow_entity ? read(cfg.flow_entity) : primary.direct ? primary.state : undefined;
     const rawFlow = numeric(flow?.state);
@@ -335,16 +336,11 @@
     const name = render(cfg.name ?? primary.state?.attributes?.friendly_name ?? labels.slot+' '+key, primary.entity);
     const configuredColor = render(cfg.color ?? 'var(--secondary-text-color, #676767)', primary.entity).trim();
     const color = colorFor(configuredColor,'var(--secondary-text-color, #676767)');
-    if (node.el.style.getPropertyValue('--sf-color') !== color) node.el.style.setProperty('--sf-color',color);
-    if (edge.group.style.getPropertyValue('--sf-color') !== color) edge.group.style.setProperty('--sf-color',color);
-    if (node.number.textContent !== value || node.unit.textContent !== (unit ? ' '+unit : '')) runtime.fitValues(key);
-    text(node.label, name); text(node.number,value); text(node.unit,unit ? ' '+unit : '');
     const flowScale = numeric(cfg.flow_scale) ?? (cfg.flow_entity ? 1 : numeric(cfg.primary_scale) ?? 1);
     const signed = rawFlow === null ? null : numeric(rawFlow * flowScale * (cfg.invert_flow === true ? -1 : 1));
     const threshold = Math.max(0,numeric(cfg.deadband ?? options.deadband) ?? 0);
     const direction = cfg.animate === false || signed === null || Math.abs(signed) <= threshold ? 0 : Math.sign(signed);
     edge.direction = direction;
-    attr(edge.group, 'data-direction', direction);
     const flowUnit = String(cfg.flow_unit ?? (cfg.flow_entity ? flow?.attributes?.unit_of_measurement :
       cfg.primary_unit ?? primary.state?.attributes?.unit_of_measurement) ?? '').trim();
     const slotAnimation = cfg.animation || {};
@@ -358,11 +354,21 @@
     if (edge.demand === undefined || Math.abs(level-edge.demand) > .6) edge.demand = Math.round(level);
     edge.demand = Math.min(maxArrows,Math.max(1,edge.demand));
     edge.speed = speed;
-    runtime.updateMotion(edge);
     const secondary = detail.value+(detail.unit ? ' '+detail.unit : '');
+    const icon = render(cfg.icon ?? primary.state?.attributes?.icon ?? 'mdi:flash',primary.entity);
+    // Resolve every live dependency above the gate. Only our own DOM, action
+    // bindings and animation reconciliation are skipped on an identical pass.
+    if (!renderChanged('flow-slot-'+key,JSON.stringify(cfg),primary.entity,detail.entity,
+        value,unit,name,color,secondary,icon,labels.details,edgeHidden,direction,speed,edge.demand)) continue;
+    if (node.el.style.getPropertyValue('--sf-color') !== color) node.el.style.setProperty('--sf-color',color);
+    if (edge.group.style.getPropertyValue('--sf-color') !== color) edge.group.style.setProperty('--sf-color',color);
+    if (node.number.textContent !== value || node.unit.textContent !== (unit ? ' '+unit : '')) runtime.fitValues(key);
+    text(node.label,name); text(node.number,value); text(node.unit,unit ? ' '+unit : '');
+    attr(edge.group,'data-direction',direction);
+    runtime.updateMotion(edge);
     if (key === 4 && node.secondary.textContent !== secondary) geometryChanged = true;
     text(node.secondary,secondary); node.secondary.title = secondary;
-    attr(node.icon, 'icon', render(cfg.icon ?? primary.state?.attributes?.icon ?? 'mdi:flash',primary.entity));
+    attr(node.icon,'icon',icon);
     attr(node.el, 'aria-label', name+' · '+value+(unit ? ' '+unit : '')+(secondary ? ' · '+secondary : ''));
     node.el = bind(node.el,primary.entity,cfg,primary.entity ? {action:'more-info'} : {action:'none'});
     node.value = bind(node.value,primary.entity,actions(cfg,'primary'),primary.entity ? {action:'more-info'} : {action:'none'});
