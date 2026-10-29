@@ -8,7 +8,20 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.5**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.6**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+
+## 3.6.6 — 29 octobre 2026 — surbrillance des icônes
+
+Chaque icône utilise désormais le `ha-ripple` natif de Home Assistant,
+comme l'icône de Signature Compact. La surbrillance reste dans le fond
+arrondi de l'icône et suit les couleurs et l'opacité du thème natif.
+Les noms et valeurs conservent leur fond habituel et leurs actions distinctes.
+Le composant natif gère le pointeur et le toucher ; aucun gestionnaire,
+observateur ou abonnement supplémentaire n'est ajouté par le module.
+
+Importer **Signature Flow 3.6.6**, puis recharger le frontend ; aucun
+dashboard à réimporter. Contrôles Node et fixtures Chromium, distincts
+d'un essai Home Assistant réel ou Safari/iOS.
 
 ## 3.6.5 — 29 octobre 2026 — travail de rendu inchangé évité
 
@@ -99,7 +112,7 @@ At card widths below 490 px, slots 1, 2 and 3 form an aligned left column. Slots
 
 Secondary text stays left-aligned below its slot's name and primary value at every width, including slot 3 in the small layout. Battery percentages therefore share the same text-column alignment as solar secondary text.
 
-The default height is **310 px** on mobile and desktop. The card fills its parent width; the home example reserves 12 columns and 5 rows in a Sections view. `height` accepts 280–600 px. Keep the dashboard row reservation consistent with a changed height. Hovering a block or value does not change its background.
+The default height is **310 px** on mobile and desktop. The card fills its parent width; the home example reserves 12 columns and 5 rows in a Sections view. `height` accepts 280–600 px. Keep the dashboard row reservation consistent with a changed height. Icons use the same native Home Assistant hover feedback as Signature Compact, clipped to their rounded backgrounds. Hovering a block name or value does not change its background.
 
 ```yaml
 type: custom:bubble-card

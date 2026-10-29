@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.10**, **Square 2.0.10**, **Header 1.4.1**, **Room 1.4.4**, **Panel 1.4.18**, **Flow 3.6.4**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.10**, **Square 2.0.10**, **Header 1.4.1**, **Room 1.4.4**, **Panel 1.4.18**, **Flow 3.6.6**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -285,6 +285,14 @@ Les formes circulaires (`50%`), les boutons de contrôle room, les pistes de 6 p
 La `.bubble-background` des quatre présentations garde ses actions et son `ha-ripple` natifs. Ancrer sa géométrie avec `inset: 0`, `width: auto` et `height: auto` : les coordonnées automatiques décalent la couche dans les wrappers flex rembourrés ou les grilles. Elle doit remplir le bord intérieur de la carte, y compris en hauteur automatique ; ne pas créer un fond supplémentaire au survol.
 
 Les boîtes `.bubble-content-container` restent traversables par le pointeur. L’icône principale et les valeurs/actions explicites réactivent leurs propres cibles ; les sous-boutons conservent leur retour natif indépendant. Le halo des interrupteurs Signature suit leur piste de 48 × 28 px, avec un retrait de 3 px vertical / 2 px horizontal et un rayon de 14 px, sans réduire la cible native de 52 × 34 px. Room conserve son clip circulaire pour les commandes sans texte. Les contrôles cover/climate/media et les pilules Header restent natifs. Navigation garde son survol propre ; Flow, Weather et Wind Rose masquent leur wrapper natif.
+
+Depuis Flow 3.6.6, chaque `.sf-icon` contient son propre `ha-ripple` natif,
+comme l'icône Compact. Son parent positionné et tronqué garde les dimensions
+de 36 px ou 28 px et son rayon hérité ; la couche absolue remplit uniquement
+l'icône, avec `pointer-events: none`. Le composant natif gère le survol,
+le retour tactile et les variables `ha-ripple-*` sans nouveau handler Flow.
+Le nom, la valeur et le secondaire gardent leurs actions indépendantes ;
+le fond du bloc et sa géométrie ne changent pas.
 
 [Les fixtures de survol](styles/test/hover.browser.cjs) vérifient les dimensions de la couche et de son ripple à cinq largeurs, en clair/sombre avec/sans thème, les clics carte/valeur/commande, la sortie du pointeur et le toucher. Elles reproduisent le contrat parent et la surface du ripple ; elles ne chargent pas le composant Home Assistant réel.
 

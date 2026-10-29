@@ -90,6 +90,8 @@
   text-overflow:ellipsis
 }
 .sf-icon {
+  position:relative;
+  overflow:hidden;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -98,6 +100,12 @@
   border-radius:var(--signature-icon-border-radius,12px);
   color:var(--sf-color);
   background:color-mix(in srgb,var(--sf-color) 16%,var(--sf-surface))
+}
+.sf-icon>ha-ripple {
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none
 }
 .sf-icon ha-icon {
   --mdc-icon-size:22px

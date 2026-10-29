@@ -226,6 +226,7 @@
       const el = create('div', 'sf-node sf-slot-'+key);
       const iconBox = create('span', 'sf-icon');
       const icon = create('ha-icon'); icon.setAttribute('aria-hidden', 'true'); iconBox.appendChild(icon);
+      iconBox.appendChild(create('ha-ripple'));
       const content = create('span', 'sf-content');
       const label = create('span', 'sf-label');
       const value = create('span', 'sf-value');

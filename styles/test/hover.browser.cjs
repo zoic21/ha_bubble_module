@@ -27,17 +27,25 @@ async function prepare(page, scenario = {}) {
   await page.evaluate(({nativeCSS,definitions,trailing,switches,measures,headerMeasures,value,humidity}) => {
     if (!customElements.get('ha-ripple')) customElements.define('ha-ripple', class extends HTMLElement {
       connectedCallback() {
-        this.attachShadow({mode:'open'}).innerHTML = `<style>
+        if (!this.shadowRoot) this.attachShadow({mode:'open'}).innerHTML = `<style>
           :host { display:flex; margin:auto; pointer-events:none; }
           :host,.surface { border-radius:inherit; position:absolute; inset:0; overflow:hidden; }
           .hover { position:absolute; inset:0; background:var(--ha-ripple-hover-color,var(--ha-ripple-color,var(--secondary-text-color))); opacity:0; }
           .hovered .hover { opacity:var(--ha-ripple-hover-opacity,.08); }
           :host([disabled]) { display:none; }
         </style><div class="surface"><div class="hover"></div></div>`;
-        this.parentElement.addEventListener('pointerenter', event => {
+        this.enter = event => {
           if (event.pointerType !== 'touch') this.shadowRoot.querySelector('.surface').classList.add('hovered');
-        });
-        this.parentElement.addEventListener('pointerleave', () => this.shadowRoot.querySelector('.surface').classList.remove('hovered'));
+        };
+        this.leave = () => this.shadowRoot.querySelector('.surface').classList.remove('hovered');
+        this.boundParent = this.parentElement;
+        this.boundParent.addEventListener('pointerenter', this.enter);
+        this.boundParent.addEventListener('pointerleave', this.leave);
+      }
+      disconnectedCallback() {
+        this.boundParent.removeEventListener('pointerenter', this.enter);
+        this.boundParent.removeEventListener('pointerleave', this.leave);
+        this.leave();
       }
     });
     window.clicks = [];
@@ -207,6 +215,71 @@ test('pointer hover clears on leave, respects theme changes and stays absent on 
   const tap = await pointAt(card(touch,'compact').locator('.bubble-name'));
   await touch.touchscreen.tap(tap.x,tap.y);
   assert.equal(await hoverOpacity(touch,'compact','.bubble-background'),'0');
+});
+
+test('Flow icons share Compact native hover without moving content or changing action targets', async t => {
+  const page = await fixture(t);
+  for (const width of [288,328,600]) for (const mode of ['light','dark']) for (const plain of [false,true]) {
+    await prepare(page,{width,mode,plain});
+    for (let slot=1;slot<=6;slot++) {
+      const selector='.sf-slot-'+slot+' .sf-icon',icon=card(page,'flow').locator(selector);
+      const read=()=>icon.evaluate(el=>{
+        const ripple=el.querySelector('ha-ripple'),box=node=>{
+          const r=node.getBoundingClientRect(),s=getComputedStyle(node);
+          return {x:r.x,y:r.y,width:r.width,height:r.height,radius:s.borderRadius};
+        };
+        return {icon:box(el),ripple:box(ripple),color:getComputedStyle(el).color,
+          background:getComputedStyle(el).backgroundColor,pointer:getComputedStyle(ripple).pointerEvents};
+      });
+      await page.mouse.move(0,0);
+      const before=await read();
+      fills(before.ripple,before.icon,'Flow icon '+slot);
+      assert.equal(before.ripple.radius,before.icon.radius);
+      assert.equal(before.pointer,'none');
+      await icon.hover();
+      assert.equal(await hoverOpacity(page,'flow',selector),'0.08');
+      assert.deepEqual(await read(),before,'Hover must preserve geometry and configured colors');
+      await icon.click();
+      let click=await page.evaluate(()=>window.clicks.at(-1));
+      assert.match(click.target,new RegExp('sf-slot-'+slot));
+      assert.equal(click.entity,'sensor.demo');
+      assert.equal(JSON.parse(click.action).action,'more-info');
+      await card(page,'flow').locator('.sf-slot-'+slot+' .sf-label').hover();
+      assert.equal(await hoverOpacity(page,'flow',selector),'0');
+      await card(page,'flow').locator('.sf-slot-'+slot+' .sf-value').click();
+      click=await page.evaluate(()=>window.clicks.at(-1));
+      assert.match(click.target,/sf-value/);
+      assert.equal(JSON.parse(click.action).action,'more-info');
+    }
+  }
+});
+
+test('Flow icon feedback inherits live native theme variables and leaves no touch hover',async t=>{
+  const page=await fixture(t);
+  await prepare(page,{width:328});
+  const selector='.sf-slot-1 .sf-icon';
+  await card(page,'flow').locator(selector).hover();
+  const color=()=>card(page,'flow').locator(selector+' > ha-ripple').evaluate(el=>
+    getComputedStyle(el.shadowRoot.querySelector('.hover')).backgroundColor);
+  const before=await color();
+  await page.evaluate(()=>document.body.style.setProperty('--secondary-text-color','#123456'));
+  assert.notEqual(await color(),before);
+  await page.evaluate(()=>{
+    document.body.style.setProperty('--ha-ripple-hover-color','#654321');
+    document.body.style.setProperty('--ha-ripple-hover-opacity','.12');
+  });
+  assert.equal(await color(),'rgb(101, 67, 33)');
+  assert.equal(await hoverOpacity(page,'flow',selector),'0.12');
+  await page.mouse.move(0,0);
+  assert.equal(await hoverOpacity(page,'flow',selector),'0');
+  const touch=await fixture(t,{hasTouch:true});
+  await prepare(touch,{width:328});
+  const point=await pointAt(card(touch,'flow').locator(selector));
+  await touch.touchscreen.tap(point.x,point.y);
+  assert.equal(await hoverOpacity(touch,'flow',selector),'0');
+  const click=await touch.evaluate(()=>window.clicks.at(-1));
+  assert.match(click.target,/sf-slot-1/);
+  assert.equal(JSON.parse(click.action).action,'more-info');
 });
 
 test('room measurements leave Compact-like breathing room without moving their content anchors', async t => {
