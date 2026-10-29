@@ -13,7 +13,17 @@ const iconTint = iconOverride ? color(o.icon_color,accent) : accent;
 if (iconOverride || layout === 'square') css += 'ha-card .bubble-main-icon { color: '+iconTint+' !important; }';
 if (kind === 'button' && (layout === 'compact' || layout === 'square'))
   css += mainThresholdCSS(structure.thresholdScale,c.entity);
-const iconOpacity = o.icon_opacity == null ? null : number(render(o.icon_opacity),null,0,1);
+let iconOpacity = o.icon_opacity == null ? null : number(render(o.icon_opacity),null,0,1);
+// A generic opt-in availability presentation, driven by the already tracked
+// main entity. Available text/zero/empty states remain valid, just as has_value;
+// numerical validity is deliberately left to a card's own template.
+if (kind === 'button' || kind === 'cover' || kind === 'climate') {
+  const unavailableOpacity = o.icon_opacity_unavailable;
+  if (c.entity && typeof unavailableOpacity === 'number' && Number.isFinite(unavailableOpacity)) {
+    const available = entityState && !['unknown','unavailable'].includes(entityState.state);
+    iconOpacity = available ? (iconOpacity ?? 1) : Math.max(0,Math.min(1,unavailableOpacity));
+  }
+}
 if (iconOpacity !== null) css += 'ha-card[data-dp-layout] .bubble-main-icon { opacity: '+iconOpacity+' !important; }';
 if (String(o.border_color ?? '').trim()) css += 'ha-card .bubble-container { box-shadow: inset 0 0 0 2px '+color(o.border_color,'transparent')+' !important; }';
 if (String(o.icon_border_color ?? '').trim()) css += 'ha-card .bubble-icon-container { box-shadow: inset 0 0 0 2px '+color(o.icon_border_color,'transparent')+' !important; }';

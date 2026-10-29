@@ -1,5 +1,5 @@
 name: Signature Header
-version: 1.4.0
+version: 1.4.1
 creator: Loïc
 supported:
   - button
@@ -14,6 +14,9 @@ editor:
     fields:
       color:
         $field: color
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
+      icon_opacity_unavailable:
+        $field: icon_opacity_unavailable
         visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
       sub_button_styles:
         $field: sub_button_styles

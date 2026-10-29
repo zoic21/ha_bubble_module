@@ -33,7 +33,12 @@ test('presentation fields keep media/header exceptions and custom Header help ou
   const compact=fields('signature-compact'),square=fields('signature-square'),room=fields('signature-room'),header=fields('signature-header');
   assert.equal(compact.color.label,square.color.label);assert.deepEqual(compact.color.selector,header.color.selector);
   assert.match(compact.color.visible_if,/media-player/);assert.doesNotMatch(compact.icon_color.visible_if,/media-player/);
-  assert.equal(room.color_thresholds,undefined);assert.deepEqual(Object.keys(header),['color','sub_button_styles']);
+  assert.equal(room.color_thresholds,undefined);assert.deepEqual(Object.keys(header),['color','icon_opacity_unavailable','sub_button_styles']);
+  for(const presentation of [compact,square,room,header,fields('signature-panel')]){
+    assert.equal(presentation.icon_opacity_unavailable.default,null);
+    assert.deepEqual(presentation.icon_opacity_unavailable.selector,compact.icon_opacity_unavailable.selector);
+    assert.doesNotMatch(presentation.icon_opacity_unavailable.visible_if,/media-player/);
+  }
   assert.match(header.sub_button_styles.description,/titres de section/i);
 
 });

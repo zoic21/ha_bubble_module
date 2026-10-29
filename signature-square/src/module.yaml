@@ -1,5 +1,5 @@
 name: Signature Square
-version: 2.0.9
+version: 2.0.10
 creator: Loïc
 supported:
   - button
@@ -90,6 +90,9 @@ editor:
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       icon_opacity:
         $field: icon_opacity
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      icon_opacity_unavailable:
+        $field: icon_opacity_unavailable
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       border_color:
         $field: border_color

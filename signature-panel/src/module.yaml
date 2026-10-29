@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.4.17
+version: 1.4.18
 creator: Loïc
 supported:
   - button
@@ -79,6 +79,9 @@ editor:
             step: 1
             mode: box
         description: "Une ligne par défaut. Deux lignes permettent de lire une prévision ou une durée sur un bouton sans sous-boutons, sans changer la hauteur."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      icon_opacity_unavailable:
+        $field: icon_opacity_unavailable
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       border_color:
         $field: border_color
