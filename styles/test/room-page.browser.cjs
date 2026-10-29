@@ -127,7 +127,7 @@ test('Header confines its styles to its card and ignores retired parent-layout o
    return{before,after,observers,css,version:ctx._signatureHeaderRuntime.version};
   },{code:scripts['signature-header'],kind});
   assert.deepEqual(result.after,result.before);
-  assert.equal(result.observers,0);assert.equal(result.version,'1.4.0');assert.ok(result.css.length>0);
+  assert.equal(result.observers,0);assert.equal(result.version,loadModule('signature-header').version);assert.ok(result.css.length>0);
  }
  assert.doesNotMatch(scripts['signature-header'],/hui-grid-section|hui-sections-view|signature-masonry-rows|signatureSectionMinWidth/);
 });
