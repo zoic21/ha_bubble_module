@@ -28,17 +28,30 @@ test('both theme modes have complete, non-circular CSS variable references', () 
   }
 });
 
-test('the theme preserves the native palette and only maps the HA card border color', () => {
+test('the theme preserves the native palette with border and light pointer-feedback bindings only', () => {
   assert.equal(theme['ha-card-border-color'], 'var(--signature-card-border-color)');
   assert.equal(theme['ha-card-border-width'], '1px');
   for (const variables of [theme, ...Object.values(theme.modes)]) {
     for (const key of Object.keys(variables)) {
       if (key.startsWith('signature-')) continue;
       if (key === 'ha-card-border-color') continue;
+      if (variables === theme.modes.light && key === 'ha-ripple-hover-color') continue;
       assert.doesNotMatch(key, /(?:^|-)(?:color|background)(?:-|$)/, key);
       assert.ok(!['bubble-border', 'bubble-box-shadow'].includes(key), key);
     }
   }
-  for (const mode of Object.values(theme.modes))
-    assert.ok(Object.keys(mode).every(key => key.startsWith('signature-')));
+  for (const [name, mode] of Object.entries(theme.modes))
+    assert.ok(Object.keys(mode).every(key => key.startsWith('signature-') ||
+      (name === 'light' && ['ha-ripple-hover-color','ha-ripple-hover-opacity'].includes(key))));
+});
+
+test('hover gains a light-only token without altering idle, pressed or dark feedback', () => {
+  assert.equal(theme['signature-hover-background'],'var(--signature-control-background)');
+  assert.equal(theme['signature-control-background'],'color-mix(in srgb, var(--primary-text-color) 5%, var(--signature-card-background))');
+  assert.equal(theme.modes.light['signature-hover-background'],'color-mix(in srgb, var(--primary-text-color) 10%, var(--signature-card-background))');
+  assert.equal(theme.modes.light['ha-ripple-hover-color'],'var(--primary-text-color)');
+  assert.equal(theme.modes.light['ha-ripple-hover-opacity'],0.1);
+  assert.ok(!Object.keys(theme.modes.dark).some(key=>key.startsWith('ha-ripple-')));
+  for(const variables of [theme,...Object.values(theme.modes)])
+    assert.ok(!Object.keys(variables).some(key=>key.startsWith('ha-ripple-pressed')));
 });

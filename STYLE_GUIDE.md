@@ -193,6 +193,7 @@ Ne pas modifier une taille sans vérifier la hauteur de ligne, la ligne de grill
 | Séparateur | 8 % du texte primaire dans transparent | Même mélange |
 | Ombre de carte | `0 2px 10px rgba(0,0,0,.035)` | `0 2px 10px rgba(0,0,0,.20)` |
 | Fond de contrôle | 5 % du texte primaire dans la surface de carte | Même mélange |
+| Fond de survol personnalisé | 10 % du texte primaire dans la surface de carte | Fond de contrôle existant |
 | Ombre de contrôle | `0 1px 4px rgba(0,0,0,.06)` | `0 1px 4px rgba(0,0,0,.25)` |
 
 Le thème Signature conserve la palette globale de Home Assistant : garder les fonds de page, surfaces, textes, accents, en-tête et barre latérale natifs. Il ajuste la typographie, les arrondis, la bordure et l'ombre des cartes natives. `ha-card-border-color` reprend `signature-card-border-color` et `ha-card-border-width` vaut 1 px : les cartes compatibles partagent ainsi le contour des modules en clair/sombre, sans remplacer `divider-color`. Statistics Graph Chart Card doit conserver `card_border: true` ; un `false` explicite masque la bordure malgré le thème. Ses variables Bubble globales ajustent seulement les arrondis ; ne pas y ajouter un fond, une bordure ou une ombre qui s'appliquerait aussi aux séparateurs. Hors thème, conserver les replis de la section 1. Le fond des groupes de période utilise `signature-control-background`, puis un mélange de 5 % de texte primaire dans la surface neutre. Leur onglet sélectionné reprend la surface de carte.
@@ -281,6 +282,20 @@ Les mesures Room ont le dégagement horizontal natif de 8 px des sous-boutons Co
 Les formes circulaires (`50%`), les boutons de contrôle room, les pistes de 6 px, les repères SVG et le switch visuel Signature de 48 × 28 px avec poignée de 24 px ont une géométrie propre. Les pilules du header gardent leur rayon de 24 px. Les petits rayons des zones de focus Flow et de ses nœuds sont internes au diagramme. Ces exceptions ne remplacent pas les rayons des cartes et des groupes partagés.
 
 ### Survol et retour natif Bubble
+
+Depuis le 30 octobre 2026, le thème clair définit les variables natives
+`ha-ripple-hover-color: var(--primary-text-color)` et
+`ha-ripple-hover-opacity: 0.1`. Le mode sombre et le retour de pression
+conservent les valeurs natives ; les désactivations et surcharges locales
+restent prioritaires. Ne pas changer les modules pour recalculer ces couleurs.
+
+Les surfaces de survol CSS utilisent `--signature-hover-background`, distinct
+du fond des contrôles au repos : mélange de 10 % de texte primaire dans la
+surface de carte en clair, `--signature-control-background` en sombre.
+Sans ce nouveau token, conserver le repli sur le fond de contrôle existant.
+Le fond de popup, les surfaces de carte et les contrôles au repos ne changent
+pas. Tester le contraste calculé et le changement de mode sur les mêmes nœuds,
+ainsi que l’absence de survol persistant après un toucher.
 
 La `.bubble-background` des quatre présentations garde ses actions et son `ha-ripple` natifs. Ancrer sa géométrie avec `inset: 0`, `width: auto` et `height: auto` : les coordonnées automatiques décalent la couche dans les wrappers flex rembourrés ou les grilles. Elle doit remplir le bord intérieur de la carte, y compris en hauteur automatique ; ne pas créer un fond supplémentaire au survol.
 

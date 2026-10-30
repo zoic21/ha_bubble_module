@@ -34,6 +34,7 @@ Signature:
   signature-card-border-color: "color-mix(in srgb, var(--primary-text-color) 5%, transparent)"
   signature-divider-color: "color-mix(in srgb, var(--primary-text-color) 8%, transparent)"
   signature-control-background: "color-mix(in srgb, var(--primary-text-color) 5%, var(--signature-card-background))"
+  signature-hover-background: "var(--signature-control-background)"
   signature-alert-badge-background: "var(--signature-card-background)"
   signature-alert-badge-neutral-color: "var(--primary-text-color)"
   signature-weather-cool-color: "#8bc3d2"
@@ -67,6 +68,10 @@ Signature:
   # Home Assistant provides each mode’s native palette.
   modes:
     light:
+      # Stronger pointer feedback; idle controls and pressed feedback stay native.
+      signature-hover-background: "color-mix(in srgb, var(--primary-text-color) 10%, var(--signature-card-background))"
+      ha-ripple-hover-color: "var(--primary-text-color)"
+      ha-ripple-hover-opacity: 0.1
       signature-card-box-shadow: "0 2px 10px rgba(0, 0, 0, 0.035)"
       signature-control-box-shadow: "0 1px 4px rgba(0, 0, 0, 0.06)"
     dark:

@@ -93,6 +93,12 @@ Signature Navigation styles a native `sub-buttons` footer with a directional gla
 
 ## Signature theme
 
+The 30 October theme update strengthens light-mode hover for native controls
+and provides a separate `signature-hover-background` for custom hover surfaces.
+Idle controls and dark mode keep their existing appearance. Reload the
+[theme](themes/README.md#30-october-2026--clearer-hover-in-light-mode); no module
+distribution update is required.
+
 The optional [Signature theme](themes/README.md) provides light and dark modes for Home Assistant and shared CSS variables for the Signature modules and Alert Manager. Compatible native cards share the same 1 px border, radius and shadow; Statistics Graph Chart Card must keep `card_border: true` to show that border. Download [signature.yaml](themes/signature.yaml) and follow the installation guide. No card-mod or additional JavaScript is required.
 
 ## Technical style rules

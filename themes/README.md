@@ -1,5 +1,18 @@
 # Signature theme
 
+## 30 October 2026 — clearer hover in light mode
+
+Light mode uses primary text at 10% for native `ha-ripple` hover feedback.
+Custom hover surfaces use the separate `signature-hover-background` token,
+also 10% primary text mixed into the card surface. Idle control backgrounds
+keep their 5% mix; dark mode, pressed feedback and per-card hover overrides
+retain their existing behavior. No module distribution changes are needed.
+
+Replace the theme file and run `frontend.reload_themes`. Custom cards must
+consume `signature-hover-background` for the matching hover surface; reimport
+the updated dashboards when adopting that token. The theme does not inject
+styles into popups or override backgrounds, actions, corners or card geometry.
+
 The global dashboard pass uses the existing secondary token for Header page
 buttons (13 px), caption tokens for optional section metrics, and live name
 line heights for two-line Compact labels. Compact 1.5.0 and Header 1.2.0 add
@@ -92,6 +105,8 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-tooltip-border-radius` | Wind Rose tooltip corners | Shared icon radius |
 | `signature-tooltip-box-shadow` | Wind Rose tooltip shadow | Shared control shadow |
 | `signature-control-background` | Weather and Wind Rose period-control tracks | 5% primary text in the native card surface |
+| `signature-hover-background` | Custom hover surfaces, separate from idle controls | 10% primary text in the card surface in light mode; control background in dark mode |
+| `ha-ripple-hover-color` / `ha-ripple-hover-opacity` | Native Home Assistant and Bubble pointer feedback | Primary text / `0.1` in light mode; native defaults in dark mode |
 | `signature-control-box-shadow` | Weather and Wind Rose selected-tab shadow | Mode-specific |
 | `signature-alert-badge-background` | Alert Manager badge fill | Card surface |
 | `signature-alert-badge-neutral-color` | Alert badge when `color_badge: false` | Primary text color |
@@ -165,7 +180,7 @@ Toutes les distributions Bubble sont désormais générées depuis leurs sources
 
 Compact 1.2.6, Square 1.1.6 and Header 1.1.6 support opt-in numeric [color thresholds](../signature-shared/doc/COLOR_THRESHOLDS.md). Icon squares and badges mix 16% of the numeric color into the live card surface, matching ordinary Signature icon styling and becoming dark with the theme. Icons carry the exact graph RGB accent; badge labels retain primary theme text. Contrast adaptation has been removed. Main values, card surfaces and alerts remain unchanged. Active thresholds override manual indicator colors, including `icon_color`. The same sRGB surface mix used by ordinary Square icons follows light/dark themes without style reads, observers or a special night-mode branch. No theme YAML update or dashboard migration is required.
 
-Compact 1.2.6, Square/Header 1.1.6 et Room 1.0.8 ancrent le survol natif sur les bords de la carte ; les interrupteurs Compact/Square gardent leur halo dans la piste visible. Les couleurs de survol continuent à hériter du thème Home Assistant, sans changement des variables YAML. Voir le [contrat de survol](../STYLE_GUIDE.md#survol-et-retour-natif-bubble).
+Compact 1.2.6, Square/Header 1.1.6 et Room 1.0.8 ancrent le survol natif sur les bords de la carte ; les interrupteurs Compact/Square gardent leur halo dans la piste visible. Les couleurs de survol héritent du thème : Signature renforce uniquement le mode clair avec les variables natives `ha-ripple-hover-*`. Voir le [contrat de survol](../STYLE_GUIDE.md#survol-et-retour-natif-bubble).
 
 ## Named colors
 

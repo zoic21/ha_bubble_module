@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const {test} = require('node:test');
 const {loadModule} = require('../../shared/test/module.cjs');
 const {fixture} = require('./browser.cjs');
-const {render} = require('./fixtures.cjs');
+const {render, theme, nativeModes} = require('./fixtures.cjs');
 
 const definitions = Object.fromEntries(['compact','square','room','header'].map(layout =>
   [layout,loadModule('signature-'+layout).code]));
@@ -125,6 +125,47 @@ async function hoverOpacity(page,id,selector) {
   return card(page,id).locator(selector+' > ha-ripple').evaluate(el => getComputedStyle(el.shadowRoot.querySelector('.hover')).opacity);
 }
 
+test('light-theme hover separates feedback from idle controls and preserves native dark and unthemed feedback', async t => {
+  const page = await fixture(t);
+  for (const width of [288,328,358,382,600]) for (const mode of ['light','dark']) for (const plain of [false,true]) {
+    await prepare(page,{width,mode,plain,trailing:true});
+    const selector = '.bubble-background';
+    const point=await pointAt(card(page,'compact-standard').locator('.bubble-name'));
+    await page.mouse.move(point.x,point.y);
+    const result = await card(page,'compact-standard').locator(selector+' > ha-ripple').evaluate(el => {
+      const hover=getComputedStyle(el.shadowRoot.querySelector('.hover'));
+      const probe=document.createElement('div');
+      probe.style.background='var(--signature-hover-background, var(--signature-control-background, transparent))';
+      el.parentElement.append(probe);
+      const hoverBackground=getComputedStyle(probe).backgroundColor;
+      probe.style.background='var(--signature-control-background, transparent)';
+      const idleBackground=getComputedStyle(probe).backgroundColor;
+      const expected=getComputedStyle(el).getPropertyValue(hover.opacity==='0.1'?'--primary-text-color':'--secondary-text-color').trim();
+      probe.style.background=expected;
+      const expectedColor=getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return {opacity:hover.opacity,color:hover.backgroundColor,expectedColor,hoverBackground,idleBackground};
+    });
+    assert.equal(result.opacity,mode==='light'&&!plain?'0.1':'0.08');
+    assert.equal(result.color,result.expectedColor);
+    if(mode==='light'&&!plain) assert.notEqual(result.hoverBackground,result.idleBackground);
+    else assert.equal(result.hoverBackground,result.idleBackground);
+  }
+  await prepare(page,{mode:'light'});
+  const point=await pointAt(card(page,'compact-standard').locator('.bubble-name'));
+  await page.mouse.move(point.x,point.y);
+  const ripple=card(page,'compact-standard').locator('.bubble-background > ha-ripple');
+  const initial=await ripple.elementHandle();
+  await page.evaluate(({theme,nativeModes}) => {
+    for(const [key,value] of Object.entries(nativeModes.dark)) document.body.style.setProperty('--'+key,value);
+    document.body.style.setProperty('--signature-hover-background',theme['signature-hover-background']);
+    document.body.style.removeProperty('--ha-ripple-hover-color');
+    document.body.style.removeProperty('--ha-ripple-hover-opacity');
+  },{theme,nativeModes});
+  assert.equal(await hoverOpacity(page,'compact-standard','.bubble-background'),'0.08');
+  assert.equal(await ripple.evaluate((el,original)=>el===original,initial),true);
+});
+
 test('main hover feedback fills each native tile, including flex padding and trailing grid controls', async t => {
   const page = await fixture(t);
   for (const width of [288,328,358,382,600]) for (const mode of ['light','dark']) for (const plain of [false,true]) {
@@ -146,7 +187,7 @@ test('compact names pass hover and navigation through while values and controls 
     const name = card(page,id).locator('.bubble-name');
     const point = await pointAt(name);
     await page.mouse.move(point.x,point.y);
-    assert.equal(await hoverOpacity(page,id,'.bubble-background'),'0.08',id+' name blocks the native background');
+    assert.equal(await hoverOpacity(page,id,'.bubble-background'),'0.1',id+' name blocks the native background');
     await page.mouse.click(point.x,point.y);
     const click = await page.evaluate(() => window.clicks.at(-1));
     assert.equal(click.id,id);assert.match(click.target,/bubble-background/);
@@ -160,7 +201,7 @@ test('compact names pass hover and navigation through while values and controls 
   assert.match(click.target,/bubble-main-icon-container/);assert.equal(JSON.parse(click.action).action,'more-info');
   await card(page,'compact').locator('.test-control').hover();
   assert.equal(await hoverOpacity(page,'compact','.bubble-background'),'0');
-  assert.equal(await hoverOpacity(page,'compact','.test-control'),'0.08');
+  assert.equal(await hoverOpacity(page,'compact','.test-control'),'0.1');
   await card(page,'compact').locator('.test-control').click();
   click = await page.evaluate(() => window.clicks.at(-1));assert.match(click.target,/test-control/);
 });
@@ -203,10 +244,10 @@ test('pointer hover clears on leave, respects theme changes and stays absent on 
   await prepare(page,{});
   const point = await pointAt(card(page,'compact').locator('.bubble-name'));
   await page.mouse.move(point.x,point.y);
-  assert.equal(await hoverOpacity(page,'compact','.bubble-background'),'0.08');
+  assert.equal(await hoverOpacity(page,'compact','.bubble-background'),'0.1');
   const color = () => card(page,'compact').locator('.bubble-background > ha-ripple').evaluate(el => getComputedStyle(el.shadowRoot.querySelector('.hover')).backgroundColor);
   const light = await color();
-  await page.evaluate(() => document.body.style.setProperty('--secondary-text-color','#9b9b9b'));
+  await page.evaluate(() => document.body.style.setProperty('--primary-text-color','#414141'));
   assert.notEqual(await color(),light);
   await page.mouse.move(0,0);
   assert.equal(await hoverOpacity(page,'compact','.bubble-background'),'0');
@@ -237,7 +278,7 @@ test('Flow icons share Compact native hover without moving content or changing a
       assert.equal(before.ripple.radius,before.icon.radius);
       assert.equal(before.pointer,'none');
       await icon.hover();
-      assert.equal(await hoverOpacity(page,'flow',selector),'0.08');
+      assert.equal(await hoverOpacity(page,'flow',selector),mode==='light'&&!plain?'0.1':'0.08');
       assert.deepEqual(await read(),before,'Hover must preserve geometry and configured colors');
       await icon.click();
       let click=await page.evaluate(()=>window.clicks.at(-1));
@@ -262,7 +303,7 @@ test('Flow icon feedback inherits live native theme variables and leaves no touc
   const color=()=>card(page,'flow').locator(selector+' > ha-ripple').evaluate(el=>
     getComputedStyle(el.shadowRoot.querySelector('.hover')).backgroundColor);
   const before=await color();
-  await page.evaluate(()=>document.body.style.setProperty('--secondary-text-color','#123456'));
+  await page.evaluate(()=>document.body.style.setProperty('--primary-text-color','#123456'));
   assert.notEqual(await color(),before);
   await page.evaluate(()=>{
     document.body.style.setProperty('--ha-ripple-hover-color','#654321');
@@ -389,7 +430,7 @@ test('room hover can be disabled per card while measurements and navigation keep
     assert.equal(await hoverOpacity(page,'room-no-controls',selector),'0');
   }
   await card(page,'room').locator('.room-control-light').hover();
-  assert.equal(await hoverOpacity(page,'room','.room-control-light'),'0.08');
+  assert.equal(await hoverOpacity(page,'room','.room-control-light'),'0.1');
   for(const [selector,entity,action] of [['.bubble-background',undefined,'navigate'],['.bubble-state','sensor.demo','more-info'],['.room-control-1','sensor.demo','more-info'],['.room-control-2','sensor.humidity','more-info']]){
     await card(page,'room-no-controls').locator(selector).click({position:{x:selector==='.bubble-background'?30:5,y:5}});
     const click=await page.evaluate(()=>window.clicks.at(-1));
@@ -398,5 +439,5 @@ test('room hover can be disabled per card while measurements and navigation keep
   }
   await page.evaluate(()=>{delete hoverRoom.config.signature_room.room_hover;updateRoom()});
   await card(page,'room-no-controls').locator('.room-control-1').hover();
-  assert.equal(await hoverOpacity(page,'room-no-controls','.room-control-1'),'0.08');
+  assert.equal(await hoverOpacity(page,'room-no-controls','.room-control-1'),'0.1');
 });
