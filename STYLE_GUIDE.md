@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.10**, **Square 2.0.10**, **Header 1.4.1**, **Room 1.4.4**, **Panel 1.4.18**, **Flow 3.6.6**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.19**, **Flow 3.6.6**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -282,6 +282,22 @@ Les mesures Room ont le dégagement horizontal natif de 8 px des sous-boutons Co
 Les formes circulaires (`50%`), les boutons de contrôle room, les pistes de 6 px, les repères SVG et le switch visuel Signature de 48 × 28 px avec poignée de 24 px ont une géométrie propre. Les pilules du header gardent leur rayon de 24 px. Les petits rayons des zones de focus Flow et de ses nœuds sont internes au diagramme. Ces exceptions ne remplacent pas les rayons des cartes et des groupes partagés.
 
 ### Survol et retour natif Bubble
+
+Le retour utilisateur après la première correction distingue deux rôles :
+**carte entière 3 %**, **petites commandes 10 %**, en thème clair.
+`--signature-card-hover-opacity` s’applique seulement à `.bubble-background`.
+Les cartes restent proches de leur surface au repos et ne prennent plus la
+teinte grise des commandes ; icônes, sous-boutons et graphes gardent leur
+retour plus marqué. Les couleurs de carte explicites restent prioritaires.
+
+Le fragment `card-hover.css` capture l’opacité native sur le `ha-card`, puis
+l’utilise comme repli sur le fond : éviter une référence circulaire au même
+token dans sa propre déclaration. Sans le token Signature, conserver
+l’intensité héritée, y compris personnalisée. Les désactivations portées par
+un ripple enfant restent prioritaires. Vérifier Square sur un fond de page
+clair, le survol séparé des commandes, le mode sombre, les thèmes externes
+et le changement de thème sans nouvelle donnée. Aucun handler, polling,
+nœud ni observateur n’est ajouté.
 
 Depuis le 30 octobre 2026, le thème clair définit les variables natives
 `ha-ripple-hover-color: var(--primary-text-color)` et

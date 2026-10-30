@@ -2,11 +2,15 @@
 
 ## 30 October 2026 — clearer hover in light mode
 
-Light mode uses primary text at 10% for native `ha-ripple` hover feedback.
+Light mode uses primary text at 10% for native control `ha-ripple` feedback.
+Full-card feedback uses the separate `signature-card-hover-opacity` token
+at 3%, so a hovered Square or other large card stays close to its resting
+surface instead of blending into the dashboard's gray background.
 Custom hover surfaces use the separate `signature-hover-background` token,
 also 10% primary text mixed into the card surface. Idle control backgrounds
 keep their 5% mix; dark mode, pressed feedback and per-card hover overrides
-retain their existing behavior. No module distribution changes are needed.
+retain their existing behavior. Import Compact 1.6.11, Square 2.0.11,
+Room 1.4.5, Header 1.4.2 and Panel 1.4.19 to separate full-card feedback.
 
 Replace the theme file and run `frontend.reload_themes`. Custom cards must
 consume `signature-hover-background` for the matching hover surface; reimport
@@ -106,6 +110,7 @@ The browser resolves the variables directly. Changing the theme or its mode does
 | `signature-tooltip-box-shadow` | Wind Rose tooltip shadow | Shared control shadow |
 | `signature-control-background` | Weather and Wind Rose period-control tracks | 5% primary text in the native card surface |
 | `signature-hover-background` | Custom hover surfaces, separate from idle controls | 10% primary text in the card surface in light mode; control background in dark mode |
+| `signature-card-hover-opacity` | Native feedback over a whole card, without affecting its controls | `0.03` in light mode; native inherited opacity when omitted |
 | `ha-ripple-hover-color` / `ha-ripple-hover-opacity` | Native Home Assistant and Bubble pointer feedback | Primary text / `0.1` in light mode; native defaults in dark mode |
 | `signature-control-box-shadow` | Weather and Wind Rose selected-tab shadow | Mode-specific |
 | `signature-alert-badge-background` | Alert Manager badge fill | Card surface |

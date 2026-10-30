@@ -5,6 +5,7 @@ Les modules Signature consomment les fragments utiles à leurs rôles visuels. L
 | Fragment | Rôle et consommateurs |
 |---|---|
 | `card-surface.css`, `card-frame.css`, `card-radius.css` | Surfaces et valeurs de secours communes ; propriétés natives Bubble pour Square, Compact, Room et Header, propriétés du conteneur pour Flow/Weather/Wind Rose, surface et rayon pour Navigation |
+| `card-hover.css` | Intensité du survol de la carte entière pour Square, Compact, Room, Header et Panel ; les commandes gardent leur retour natif indépendant |
 | `font-family.css` | Police commune aux huit modules, y compris titres Header et lecteur Compact |
 | `name.css`, `secondary.css`, `value.css`, `unit.css` | Rôles typographiques des présentations, Flow, Weather, Wind Rose et compagnons ; les tailles particulières restent explicites |
 | `secondary-line.css` | Secondaire avec interligne adaptatif des présentations, de Panel, Group et Hue ; `secondary.css` seul garde l'interligne local, notamment dans les lecteurs et diagrammes |
@@ -16,7 +17,7 @@ Les modules Signature consomment les fragments utiles à leurs rôles visuels. L
 
 Les défauts des fragments de contrôle et d’onglets comprennent la cascade complète des surfaces natives ; une inclusion sans paramètre reste utilisable sans thème Signature.
 
-Les sélecteurs restent dans les modules. Header conserve sa transparence ; Navigation conserve son verre et son ombre flottante. Les grilles, hauteurs, seuils responsive, accents, états natifs et actions restent locaux. Alert Manager hérite du style de la carte et conserve son badge et ses couleurs d'alerte ; il n'impose pas de surface Signature.
+Les sélecteurs restent normalement dans les modules ; `card-hover.css` reçoit son sélecteur racine via `ROOT` pour partager aussi sa cascade. Header conserve sa transparence ; Navigation conserve son verre et son ombre flottante. Les grilles, hauteurs, seuils responsive, accents, états natifs et actions restent locaux. Alert Manager hérite du style de la carte et conserve son badge et ses couleurs d'alerte ; il n'impose pas de surface Signature.
 
 ## Utilisation au build
 

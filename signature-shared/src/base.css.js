@@ -1,4 +1,6 @@
-`/* Shared design tokens for the standalone Signature presentations. */
+`
+    /* @include shared/src/styles/card-hover.css */
+    /* Shared design tokens for the standalone Signature presentations. */
     ha-card[data-dp-layout] {
 /* @include shared/src/styles/card-frame.css {"RADIUS_PROPERTY":"--dp-radius","BORDER_PROPERTY":"--bubble-border","SHADOW_PROPERTY":"--bubble-box-shadow"} */
 /* @include shared/src/styles/divider-color.css {"PROPERTY":"--dp-divider-color"} */

@@ -1,5 +1,18 @@
 # Signature Room
 
+## 1.4.5 — 30 octobre 2026 — survol léger sur la carte entière
+
+Le fond d’une carte entière utilise le token de thème facultatif
+`signature-card-hover-opacity` : **0.03** en thème Signature clair.
+Les icônes et commandes gardent leur survol natif plus marqué ; les surfaces
+de survol des graphiques restent distinctes. Le mode sombre et les thèmes
+sans ce token conservent l’intensité native héritée.
+
+Importer cette distribution et mettre à jour le thème, puis appeler
+`frontend.reload_themes` et recharger le frontend. Aucun JSON de dashboard
+à modifier. Les actions, rayons et dimensions restent natifs ; les options
+locales désactivant le survol gardent la priorité. Aucun observateur ajouté.
+
 ## 1.4.4 — 29 octobre 2026 — opacité d’indisponibilité sans template
 
 `icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
@@ -20,7 +33,7 @@ cartes prises en charge, pas les sous-boutons, les lecteurs média ni les
 séparateurs. Les textes, unités, arrondis, seuils et actions restent natifs.
 Importer **Signature Room 1.4.4**, puis recharger le frontend.
 
-Version **1.4.4**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.4.5**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 

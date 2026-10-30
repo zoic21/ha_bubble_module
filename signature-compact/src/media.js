@@ -2,6 +2,7 @@
 // Return before the tile DOM transformations and compact sizing rules.
 if (kind === 'media-player') {
   return `
+    /* @include shared/src/styles/card-hover.css {"ROOT":"ha-card"} */
     ha-card {
       --dp-accent: ${accent};
       --bubble-media-player-main-background-color: ${surface};

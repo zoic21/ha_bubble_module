@@ -1,5 +1,18 @@
 # Signature Header
 
+## 1.4.2 — 30 octobre 2026 — survol léger sur la carte entière
+
+Le fond d’une carte entière utilise le token de thème facultatif
+`signature-card-hover-opacity` : **0.03** en thème Signature clair.
+Les icônes et commandes gardent leur survol natif plus marqué ; les surfaces
+de survol des graphiques restent distinctes. Le mode sombre et les thèmes
+sans ce token conservent l’intensité native héritée.
+
+Importer cette distribution et mettre à jour le thème, puis appeler
+`frontend.reload_themes` et recharger le frontend. Aucun JSON de dashboard
+à modifier. Les actions, rayons et dimensions restent natifs ; les options
+locales désactivant le survol gardent la priorité. Aucun observateur ajouté.
+
 ## 1.4.1 — 29 octobre 2026 — opacité d’indisponibilité sans template
 
 `icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
@@ -60,7 +73,7 @@ pour les petites mesures des séparateurs. Les règles de retour à la ligne,
 couleurs, conditions et actions restent natives. Les mesures SolarFlow
 peuvent retirer leur CSS local. Tests de thème et de disposition inclus.
 
-Version **1.2.2**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.4.2**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 

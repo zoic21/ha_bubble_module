@@ -1,5 +1,18 @@
 # Signature Panel
 
+## 1.4.19 — 30 octobre 2026 — survol léger sur la carte entière
+
+Le fond d’une carte entière utilise le token de thème facultatif
+`signature-card-hover-opacity` : **0.03** en thème Signature clair.
+Les icônes et commandes gardent leur survol natif plus marqué ; les surfaces
+de survol des graphiques restent distinctes. Le mode sombre et les thèmes
+sans ce token conservent l’intensité native héritée.
+
+Importer cette distribution et mettre à jour le thème, puis appeler
+`frontend.reload_themes` et recharger le frontend. Aucun JSON de dashboard
+à modifier. Les actions, rayons et dimensions restent natifs ; les options
+locales désactivant le survol gardent la priorité. Aucun observateur ajouté.
+
 ## 1.4.18 — 29 octobre 2026 — opacité d’indisponibilité sans template
 
 `icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
@@ -437,7 +450,7 @@ icône. Le défaut reste le fond doux à 16 %. Voir le
 [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **1.4.4**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.4.19**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 

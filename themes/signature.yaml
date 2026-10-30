@@ -72,6 +72,7 @@ Signature:
       signature-hover-background: "color-mix(in srgb, var(--primary-text-color) 10%, var(--signature-card-background))"
       ha-ripple-hover-color: "var(--primary-text-color)"
       ha-ripple-hover-opacity: 0.1
+      signature-card-hover-opacity: 0.03
       signature-card-box-shadow: "0 2px 10px rgba(0, 0, 0, 0.035)"
       signature-control-box-shadow: "0 1px 4px rgba(0, 0, 0, 0.06)"
     dark:

@@ -51,6 +51,7 @@ test('hover gains a light-only token without altering idle, pressed or dark feed
   assert.equal(theme.modes.light['signature-hover-background'],'color-mix(in srgb, var(--primary-text-color) 10%, var(--signature-card-background))');
   assert.equal(theme.modes.light['ha-ripple-hover-color'],'var(--primary-text-color)');
   assert.equal(theme.modes.light['ha-ripple-hover-opacity'],0.1);
+  assert.equal(theme.modes.light['signature-card-hover-opacity'],0.03);
   assert.ok(!Object.keys(theme.modes.dark).some(key=>key.startsWith('ha-ripple-')));
   for(const variables of [theme,...Object.values(theme.modes)])
     assert.ok(!Object.keys(variables).some(key=>key.startsWith('ha-ripple-pressed')));

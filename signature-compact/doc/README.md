@@ -1,5 +1,18 @@
 # Signature Compact
 
+## 1.6.11 — 30 octobre 2026 — survol léger sur la carte entière
+
+Le fond d’une carte entière utilise le token de thème facultatif
+`signature-card-hover-opacity` : **0.03** en thème Signature clair.
+Les icônes et commandes gardent leur survol natif plus marqué ; les surfaces
+de survol des graphiques restent distinctes. Le mode sombre et les thèmes
+sans ce token conservent l’intensité native héritée.
+
+Importer cette distribution et mettre à jour le thème, puis appeler
+`frontend.reload_themes` et recharger le frontend. Aucun JSON de dashboard
+à modifier. Les actions, rayons et dimensions restent natifs ; les options
+locales désactivant le survol gardent la priorité. Aucun observateur ajouté.
+
 ## 1.6.10 — 29 octobre 2026 — opacité d’indisponibilité sans template
 
 `icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
@@ -157,7 +170,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.10**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.6.11**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 

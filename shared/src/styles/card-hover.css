@@ -1,0 +1,8 @@
+/* @defaults {"ROOT":"ha-card[data-dp-layout]"} */
+/* Resolve the native value on the card, before shadowing it on its background.
+   This avoids a self-reference and preserves native/per-card defaults without
+   the opt-in theme token. Controls remain siblings and keep their own feedback. */
+@@ROOT@@ { --dp-native-hover-opacity: var(--ha-ripple-hover-opacity, 0.08); }
+@@ROOT@@ .bubble-background {
+  --ha-ripple-hover-opacity: var(--signature-card-hover-opacity, var(--dp-native-hover-opacity));
+}

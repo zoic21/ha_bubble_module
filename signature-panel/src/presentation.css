@@ -1,3 +1,4 @@
+/* @include shared/src/styles/card-hover.css {"ROOT":"ha-card[data-dp-layout=\"panel\"]"} */
 ha-card[data-dp-layout="panel"] {
   /* @include shared/src/styles/font-family.css */
   font-weight: var(--signature-font-weight-normal,400);

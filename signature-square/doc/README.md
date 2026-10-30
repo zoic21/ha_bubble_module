@@ -1,5 +1,18 @@
 # Signature Square
 
+## 2.0.11 — 30 octobre 2026 — survol léger sur la carte entière
+
+Le fond d’une carte entière utilise le token de thème facultatif
+`signature-card-hover-opacity` : **0.03** en thème Signature clair.
+Les icônes et commandes gardent leur survol natif plus marqué ; les surfaces
+de survol des graphiques restent distinctes. Le mode sombre et les thèmes
+sans ce token conservent l’intensité native héritée.
+
+Importer cette distribution et mettre à jour le thème, puis appeler
+`frontend.reload_themes` et recharger le frontend. Aucun JSON de dashboard
+à modifier. Les actions, rayons et dimensions restent natifs ; les options
+locales désactivant le survol gardent la priorité. Aucun observateur ajouté.
+
 ## 2.0.10 — 29 octobre 2026 — opacité d’indisponibilité sans template
 
 `icon_opacity_unavailable` est une option numérique facultative de 0 à 1.
@@ -45,7 +58,7 @@ principale. Sans cette option ou avec `true`, le fond doux à 16 % reste actif.
 Voir le [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **2.0.10**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.0.11**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
