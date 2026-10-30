@@ -199,8 +199,7 @@
         current.updateMotion(edge);
       };
       const narrow = canvas.classList.contains('sf-narrow');
-      if (!current.edges[1].hidden && !narrow) route(1, canvas.classList.contains('sf-has-4') ?
-        [[upper.right,upper.cy],[x,upper.cy],[x,y]] : [[x,upper.bottom],[x,y]]);
+      if (!current.edges[1].hidden && !narrow) route(1, [[x,upper.bottom],[x,y]]);
       current.updateLeftConnections();
       if (!current.edges[5].hidden) route(5, [[x,y],[right.left,y]]);
       if (!current.edges[3].hidden && !narrow) route(3, [[x,lower.top],[x,y]]);
@@ -381,8 +380,6 @@
     node.secondary.classList.toggle('sf-detail',secondaryInteractive);
     attr(node.secondary, 'tabindex', secondaryInteractive && node.secondary.getAttribute('aria-disabled') !== 'true' ? 0 : -1);
   }
-  const hasUpperRight = shown(4);
-  if (runtime.canvas.classList.contains('sf-has-4') !== hasUpperRight) {runtime.canvas.classList.toggle('sf-has-4',hasUpperRight);geometryChanged = true;}
   attr(runtime.junction,'display',[1,2,3,5].some(shown) ? 'inline' : 'none');
   if (!runtime.drawn || geometryChanged) {runtime.draw(); runtime.drawn = true;}
   const height = Math.max(280,Math.min(600,numeric(options.height) ?? 310));

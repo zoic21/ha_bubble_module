@@ -44,7 +44,7 @@ function fixture(t,extra={},data={}) {
   const css=run(ctx,hass);t.after(()=>ctx.teardown());return {ctx,hass,css,r:ctx._signatureFlow};
 }
 test('distribution metadata and the home example agree on the module ID',()=>{
-  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.6');assert.deepEqual(definition.supported,['button']);
+  assert.equal(definition.name,'Signature Flow');assert.equal(definition.version,'3.6.7');assert.deepEqual(definition.supported,['button']);
   const home=YAML.parse(fs.readFileSync(path.join(base,'examples/home.yaml'),'utf8'));
   assert.deepEqual(home.modules,['signature_flow']);assert.equal(home.signature_flow.slots[6].primary_scale,1000);
   assert.equal(home.grid_options.rows,5);assert.equal(home.signature_flow.height,310);
@@ -547,7 +547,7 @@ test('each evaluation reads every configured state through the tracked object',t
 test('optional sources can be enabled, disabled and retargeted without rebuilding',t=>{
   const {ctx,hass,r}=fixture(t);assert.ok(r.nodes[4].el.hidden);
   ctx.config.signature_flow.slots[4]={primary:'sensor.solar',name:'Other'};run(ctx,hass);
-  assert.equal(r.nodes[4].el.hidden,false);assert.ok(r.canvas.classList.contains('sf-has-4'));
+  assert.equal(r.nodes[4].el.hidden,false);
   ctx.config.signature_flow.slots[4].enabled=false;ctx.config.signature_flow.slots[6].primary='sensor.home';run(ctx,hass);
   assert.equal(r.nodes[4].el.hidden,true);assert.equal(r.nodes[6].value.dataset.entity,'sensor.home');
 });

@@ -8,7 +8,21 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.6**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.7**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+
+## 3.6.7 — 30 octobre 2026 — alignement des blocs centraux
+
+Sur les grandes cartes, les emplacements 1 et 3 (Solaire et Batterie dans
+Aperçu) restent centrés sur le même axe vertical, même lorsque l'emplacement
+4 (Gaz) est affiché. La liaison supérieure reste verticale au lieu de
+former un coude depuis la gauche. Les cartes de moins de 490 px conservent
+leurs deux colonnes et leurs liaisons adaptées aux valeurs affichées.
+
+Importer **Signature Flow 3.6.7**, puis recharger le frontend ; aucun
+dashboard à réimporter. Aucun observateur, abonnement ou timer ajouté.
+Les contrôles Chromium couvrent les thèmes clair/sombre, avec/sans thème,
+les seuils de largeur et l'affichage/masquage du bloc 4 sur les mêmes nœuds.
+Ils ne constituent pas un essai dans Home Assistant réel ou Safari/iOS.
 
 ## 3.6.6 — 29 octobre 2026 — surbrillance des icônes
 
@@ -99,7 +113,7 @@ Section corners follow the native Home Assistant panel radius (`ha-card-border-r
 
 | Slot | Desktop position | Mobile position | Positive flow direction |
 |---|---|---|---|
-| `1` | Upper center; moves left when slot 4 is shown | Upper left | Slot 1 → junction |
+| `1` | Upper center, including when slot 4 is shown | Upper left | Slot 1 → junction |
 | `2` | Middle left | Middle left | Slot 2 → junction |
 | `3` | Lower center | Lower left | Slot 3 → junction |
 | `4` | Upper right | Upper right | Slot 4 → slot 5 |

@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.19**, **Flow 3.6.6**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.19**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -347,6 +347,13 @@ Les lignes de prévision Weather sont placées dans des lignes déjà rembourré
 | Soulignement de prévision Weather | 2 px CSS | Sélection locale |
 
 Ne pas donner une longueur fixe commune aux connexions Flow et aux séparateurs : leurs rôles diffèrent. Flow conserve le dégagement de 12 px après les valeurs des sources horizontales et sa géométrie responsive.
+
+Depuis Flow 3.6.7, les emplacements 1 et 3 restent centrés sur le même axe
+vertical sur les grandes cartes, avec deux liaisons verticales à la jonction.
+Afficher l'emplacement 4 ne doit pas décaler le bloc 1 à gauche. Sous 490 px,
+conserver les deux colonnes et les origines horizontales suivant les valeurs
+mesurées. Vérifier les seuils et l'affichage/masquage de 4 pendant le
+redimensionnement, sans recréer les nœuds ni ajouter d'observateur.
 
 Depuis Flow 3.6.3, la rangée centrale (emplacements 2 et 5) et la jonction
 partagent le milieu vertical réel du canevas. Centrer les blocs selon leur

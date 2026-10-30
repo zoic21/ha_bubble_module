@@ -19,7 +19,7 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 | Signature Panel — illustrated full-width panels | 1.4.19 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.5 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.4.2 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
-| Signature Flow — six configurable flow slots | 3.6.6 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Flow — six configurable flow slots | 3.6.7 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
 | Signature Energy Balance — daily net supply bar | 1.0.0 | [signature-energy-balance.yaml](signature-energy-balance/dist/signature-energy-balance.yaml) | [Guide](signature-energy-balance/doc/README.md) |
 | Signature Weather — forecasts and optional local measurements | 1.3.6 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.5.5 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |

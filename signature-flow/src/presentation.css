@@ -182,9 +182,6 @@
   left:0;
   width:min(170px,calc(50% - 20px))
 }
-.sf-has-4 .sf-slot-1 {
-  left:0
-}
 .sf-small .sf-node {
   grid-template-columns:28px minmax(0,1fr);
   gap:8px
