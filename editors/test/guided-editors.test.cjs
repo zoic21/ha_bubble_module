@@ -81,6 +81,9 @@ test('source objects keep shorthand, explicit empty units and arbitrary properti
 test('Compact single choice writes only legacy value keys and retains hidden background settings',()=>{
   const env=environment(),definition=loadModule('signature-compact'),schema=definition.editor.find(x=>x.fields);
   const form=env.mount(schema,{color:'teal',future:false,value_background:false});
+  const guided=form._form.schema.filter(field=>field.type==='signature_guided_v1');
+  assert.ok(guided.length>0);
+  assert.ok(guided.every(field=>!Object.hasOwn(field,'selector')),'HA must render the guided component rather than its old YAML selector');
   assert.equal(form._form.data.value_presentation,'standard');
   assert.deepEqual(env.change(form,{value_presentation:'pill'}),{color:'teal',future:false,compact_mode:'value',value_style:'button',value_background:true});env.accept(form);
   assert.deepEqual(env.change(form,{value_presentation:'standard'}),{color:'teal',future:false,compact_mode:'default',value_style:'button',value_background:true});

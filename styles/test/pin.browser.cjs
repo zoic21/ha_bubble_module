@@ -409,6 +409,8 @@ test('all guided editors register together with native Bubble, open without writ
       Object.assign(form,{hass,schema:module.schema,data:original});
       const changes=[];form.addEventListener('value-changed',event=>{changes.push(event.detail.value);form.data=event.detail.value;});
       shadow.append(form);await Promise.resolve();
+      const leaves=entries=>entries.flatMap(field=>field.schema?leaves(field.schema):[field]);
+      if(leaves(form._form.schema).some(field=>field.type==='signature_guided_v1'&&Object.hasOwn(field,'selector')))throw Error('Guided fields must not retain the old HA selector');
       values[module.folder]={writes:changes.length,original:JSON.stringify(form.data)===JSON.stringify(original)};
       if(module.folder==='signature-compact'){
         form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,value_presentation:'pill'}}}));await Promise.resolve();

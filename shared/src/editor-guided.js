@@ -238,7 +238,12 @@ if (typeof customElements !== 'undefined' && !customElements.get('ha-form-signat
   const expand = (form,entries,fields) => entries.map(field=>{
     if(field.schema)return {...field,type:field.type==='bc_group'&&customElements.get('ha-form-signature_group')?'signature_group':field.type,schema:expand(form,field.schema,fields)};
     const spec=fields?.[field.name];
-    if(spec?.ui_kind){const {selector,...rest}=field;return {...rest,...spec,ui_default:spec.default,...(spec.selector?.select?{ui_selector:spec.selector}:{}),...(spec.ui_fields?{}:spec.fields?{ui_fields:spec.fields}:{}),type:'signature_guided_v1',fields:{},show_label:true};}
+    if(spec?.ui_kind){
+      const {selector,...rest}=field,{selector:input,...meta}=spec;
+      // HA chooses its selector renderer when selector is present, even if a
+      // custom type exists. Only the guided component may own this field.
+      return {...rest,...meta,ui_default:spec.default,...(input?.select?{ui_selector:input}:{}),...(spec.ui_fields?{}:spec.fields?{ui_fields:spec.fields}:{}),type:'signature_guided_v1',fields:{},show_label:true};
+    }
     if(spec?.ui_unit_from&&field.selector?.number){const unit=form.hass?.states?.[form.data?.[spec.ui_unit_from]]?.attributes?.unit_of_measurement;return {...field,selector:{number:{...field.selector.number,...(unit?{unit_of_measurement:unit}:{})}}};}
     return field;
   });
