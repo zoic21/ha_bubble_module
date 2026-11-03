@@ -5,10 +5,10 @@ const {loadModule} = require('../../shared/test/module.cjs');
 const {editorEnvironment} = require('../../shared/test/editor-environment.cjs');
 const {editorBootstrap} = require('../../shared/test/editor-bootstrap.cjs');
 const definition = loadModule('signature-pin');
-const schema = definition.editor.find(field => field.type === 'signature_pin_hash_options');
+const schema = definition.editor.find(field => field.type === 'signature_pin_scope_options');
 const digest = pin => createHash('sha256').update(pin).digest('hex');
 const plain = value => JSON.parse(JSON.stringify(value));
-function setup(hass, data = {}) {
+function setup(hass, data = {}, card) {
   const env = editorEnvironment();
   class Engine extends env.Element {
     _itemFormData(value) { return value; }
@@ -20,10 +20,11 @@ function setup(hass, data = {}) {
   env.customElements.define('ha-selector-bc_object', Engine);
   const OldEditor = class extends env.Element {};
   env.customElements.define('ha-form-signature_pin_options', OldEditor);
+  env.customElements.define('ha-form-signature_pin_hash_options', class extends env.Element {});
   env.evaluate(editorBootstrap(definition));
   assert.equal(env.customElements.get('ha-form-signature_pin_options'),OldEditor);
-  const form = env.document.createElement('ha-form-signature_pin_hash_options');
-  Object.assign(form, {hass, data, schema}); form.isConnected = true; form.connectedCallback(); env.flush();
+  const form = env.document.createElement('ha-form-signature_pin_scope_options');
+  Object.assign(form, {hass, data, schema, card}); form.isConnected = true; form.connectedCallback(); env.flush();
   const changes=[]; form.addEventListener('value-changed',event=>changes.push(plain(event.detail.value)));
   const change = values => { form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,...values}}}));env.flush(); };
   const save = () => { form._saveCode.dispatchEvent(new Event('click'));env.flush();return changes.at(-1); };
@@ -100,4 +101,36 @@ test('limited editor never enumerates accounts and retains manually saved IDs', 
   const options=env.form._form.schema.find(field=>field.name==='users').selector.select.options;
   assert.deepEqual(plain(options),[{value:'tablet',label:'Tablette'},{value:'other',label:'other'}]);
   assert.equal(env.form._form.data.new_code,'');
+});
+test('scope defaults to the whole card and keeps hidden sub-button targets while editing and replacing a PIN', () => {
+  const env=setup({user:{id:'tablet'},connection:{}},{code_hash:digest('0073'),sub_buttons:['2']});
+  assert.equal(env.form._form.data.scope,'card');
+  assert.equal(env.form._form.schema.some(field=>field.name==='sub_buttons'),false);
+  assert.deepEqual(env.changes,[]);
+  env.change({scope:'sub_buttons'});env.accept();
+  assert.equal(env.form._form.schema.some(field=>field.name==='sub_buttons'),true);
+  assert.deepEqual(env.changes.at(-1),{code_hash:digest('0073'),scope:'sub_buttons',sub_buttons:['2']});
+  env.change({scope:'card'});env.accept();
+  assert.deepEqual(env.form.data.sub_buttons,['2']);
+  env.change({new_code:'1234'});env.save();
+  assert.deepEqual(env.changes.at(-1),{code_hash:digest('1234'),scope:'card',sub_buttons:['2']});
+});
+test('target selector follows native grouped indices, retains invisible/missing targets and labels accounts separately', () => {
+  const card={card_type:'button',entity:'input_select.mode',sub_button:{main:[
+    {name:'Lumières',entity:'light.test'},
+    {group:[{name:'Mode maison',visibility:[{condition:'state',entity:'light.test',state:'off'}]},{entity:'sensor.test'}]}
+  ],bottom:[{name:'Jardin'},{group:[{name:'Alarme'}]}]}};
+  const env=setup({user:{id:'tablet'},connection:{},states:{'sensor.test':{attributes:{friendly_name:'Température'}}}},
+    {scope:'sub_buttons',sub_buttons:['1','9'],code_hash:digest('0073')},card);
+  const select=env.form._form.schema.find(field=>field.name==='sub_buttons').selector.select;
+  assert.equal(select.multiple,true);
+  assert.deepEqual(plain(select.options),[
+    {value:'1',label:'1 — Mode maison'},{value:'2',label:'2 — Température'},{value:'3',label:'3 — Lumières'},
+    {value:'4',label:'4 — Alarme'},{value:'5',label:'5 — Jardin'},{value:'9',label:'9 — Sous-bouton indisponible'}]);
+  assert.deepEqual(env.changes,[]);
+  env.change({sub_buttons:['1','4']});
+  assert.deepEqual(env.changes.at(-1),{scope:'sub_buttons',sub_buttons:['1','4'],code_hash:digest('0073')});
+  const footer=setup({user:{id:'tablet'},connection:{}},{scope:'sub_buttons'}, {...card,card_type:'sub-buttons'});
+  assert.deepEqual(plain(footer.form._form.schema.find(field=>field.name==='sub_buttons').selector.select.options),[
+    {value:'1',label:'1 — Alarme'},{value:'2',label:'2 — Jardin'}]);
 });

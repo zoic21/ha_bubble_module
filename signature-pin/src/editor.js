@@ -1,6 +1,6 @@
 /* @include shared/src/editor-base.js */
-// A new tag avoids reusing the old plaintext editor after a live module update.
-registerOptionsForm('ha-form-signature_pin_hash_options', {
+// A new tag avoids reusing an earlier editor after a live module update.
+registerOptionsForm('ha-form-signature_pin_scope_options', {
   _setup() {
     this._status = document.createElement('div');
     this._status.setAttribute('style', 'color:var(--secondary-text-color);font-size:13px;margin-top:8px');
@@ -21,7 +21,7 @@ registerOptionsForm('ha-form-signature_pin_hash_options', {
   },
   _display() {
     const {code, code_hash, new_code, ...settings} = this.data || {};
-    return {...settings, enabled: settings.enabled ?? true, new_code: this._pinDraft || ''};
+    return {...settings, enabled: settings.enabled ?? true, scope: settings.scope ?? 'card', new_code: this._pinDraft || ''};
   },
   _valueChanged(event) {
     event.stopPropagation();
@@ -30,6 +30,7 @@ registerOptionsForm('ha-form-signature_pin_hash_options', {
     delete settings.new_code; delete settings.code; delete settings.code_hash;
     const value = {...this.data,...settings};
     if (this.data?.enabled === undefined && value.enabled === true) delete value.enabled;
+    if (this.data?.scope === undefined && value.scope === 'card') delete value.scope;
     delete value.new_code;
     // Typing a draft never saves a PIN (or a hash of each partial prefix).
     if (JSON.stringify(value) !== JSON.stringify(this.data || {})) {
@@ -80,8 +81,23 @@ registerOptionsForm('ha-form-signature_pin_hash_options', {
     const current = this.hass?.user;
     if (current?.id && !options.has(current.id)) options.set(current.id, {value: current.id, label: current.name || current.id});
     for (const id of this.data?.users || []) if (!options.has(id)) options.set(id, {value: id, label: id});
-    return entries.map(field => field.name === 'users'
-      ? {...field, selector: {select: {multiple: true, custom_value: true, options: [...options.values()]}}}
-      : field);
+    let card = this._engine?._cardConfig;
+    for (let node = this, depth = 0; !card && node && depth < 20; depth++) {
+      node = node.getRootNode?.()?.host;
+      card = node?._config;
+    }
+    const buttons = new Map(pinSubButtons(card).map((button,index) => {
+      const entity = button.entity || card?.entity;
+      const name = button.name || this.hass?.states?.[entity]?.attributes?.friendly_name || entity || 'Sous-bouton';
+      return [String(index+1), {value: String(index+1), label: `${index+1} — ${name}`}];
+    }));
+    for (const index of this.data?.sub_buttons || []) if (!buttons.has(String(index)))
+      buttons.set(String(index), {value: String(index), label: `${index} — Sous-bouton indisponible`});
+    return entries.filter(field => field.name !== 'sub_buttons' || this._display().scope === 'sub_buttons')
+      .map(field => field.name === 'users'
+        ? {...field, selector: {select: {multiple: true, custom_value: true, options: [...options.values()]}}}
+        : field.name === 'sub_buttons'
+          ? {...field, selector: {select: {multiple: true, custom_value: true, options: [...buttons.values()]}}}
+          : field);
   }
 });

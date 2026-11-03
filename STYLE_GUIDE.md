@@ -22,12 +22,13 @@ Le cycle des formulaires natifs est assemblé depuis `shared/src/editor-base.js`
 
 Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `signature_module_options`, livré dans chaque distribution pour fonctionner seul. Les sous-formulaires restent dans leur portée YAML existante. Conserver les sources météo chaîne/objet, les listes de mesures explicitement vides, les périodes numériques et les valeurs nulles de retour à l’héritage. Les listes natives de packs/entités ne sont qu’une représentation : les valeurs enregistrées restent des objets indexés par ID, avec validation des doublons et conservation des options supplémentaires. Les cases à défaut actif et les sélecteurs d’héritage ne doivent pas être persistés en ouvrant le formulaire ni écraser une politique héritée. Aucun observateur ou abonnement de rendu supplémentaire ne doit être ajouté pour l’éditeur.
 
-## Signature PIN 1.0.2 — protection et clavier autonomes
+## Signature PIN 1.1.0 — protection et clavier autonomes
 
 Le module additionnel `signature_pin` protège toutes les actions de la carte
-pour les utilisateurs sélectionnés. Son formulaire natif présente activation,
-nouveau PIN masqué et sélection multiple des comptes par leur nom ; aucun filtre
-d’action ni délai de déverrouillage. La liste des comptes est chargée uniquement
+par défaut, ou seulement les sous-boutons choisis, pour les utilisateurs sélectionnés.
+Son formulaire natif présente activation, portée, nouveau PIN masqué et
+sélections multiples des comptes et sous-boutons par leur nom ; aucun filtre
+par type d’action ni délai de déverrouillage. La liste des comptes est chargée uniquement
 dans cet éditeur, avec un administrateur, jamais dans le runtime de la tablette.
 Le clavier et sa validation appartiennent exclusivement à `signature-pin/src/keypad`.
 Conserver ses trois colonnes, ses cibles tactiles, son champ masqué, son œil,
@@ -36,12 +37,22 @@ aucun nouveau fond ou badge permanent sur la carte. Panel 1.4.23 ne contient
 plus de demande de code ni d’option de protection ; les autres modules de
 présentation restent également sans gestion du PIN.
 
-L’éditeur `signature_pin_hash_options` laisse le champ de remplacement vide.
+L’éditeur `signature_pin_scope_options` laisse le champ de remplacement vide.
 Le bouton natif `ha-button` Enregistrer/Remplacer valide la saisie et ne persiste
 que `code_hash` (SHA-256) ; aucun préfixe saisi ni code en clair n’est émis.
 Le statut indique si un code existe, sans afficher son empreinte. Les anciens
 codes sont migrés à la prochaine modification enregistrée, sans bouton dédié
 et sans mutation à l’ouverture. Le hachage reste autonome et utilisable en HTTP.
+
+Le choix natif Toute la carte reste affiché quand `scope` est absent, sans écrire
+de valeur à l’ouverture. Sous-boutons uniquement révèle la liste des numéros et
+noms ; une sélection vide protège tous les sous-boutons. Conserver les cibles
+masquées lors d’un retour à Toute la carte. La numérotation suit Bubble 3.4
+(groupes explicites puis boutons individuels par section), sans décaler les
+boutons cachés. Identifier l’origine DOM et le contexte propre des curseurs ;
+ne pas déduire la portée d’après l’entité, qui peut être partagée par deux boutons.
+Les listes natives, gestes et Plus d’infos respectent la même portée. Aucune
+nouvelle marque ou surface permanente n’est ajoutée à la carte.
 
 ## Modules de présentation autonomes
 

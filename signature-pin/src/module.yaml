@@ -1,5 +1,5 @@
 name: Signature PIN
-version: 1.0.2
+version: 1.1.0
 creator: Loïc
 supported:
   - button
@@ -9,19 +9,38 @@ supported:
   - media-player
   - separator
   - sub-buttons
-description: Clavier PIN commun à toutes les actions de la carte, avec sélection des utilisateurs concernés. Vérification locale dans le navigateur. Bubble Card 3.4.3 ou plus récent.
+description: Clavier PIN pour toute la carte par défaut, ou seulement certains sous-boutons, avec sélection des utilisateurs concernés. Vérification locale dans le navigateur. Bubble Card 3.4.3 ou plus récent.
 editor:
   - type: constant
-    label: Le code protège toutes les actions de cette carte. Laisser la liste des utilisateurs vide pour demander le code à tout le monde, ou sélectionner uniquement le compte de la tablette.
+    label: Le code protège toute la carte par défaut. Vous pouvez limiter la protection à certains sous-boutons et à certains utilisateurs, par exemple le mode de la maison sur la tablette.
   - name: ""
     label: Protection de la carte
-    type: signature_pin_hash_options
+    type: signature_pin_scope_options
     fields:
       enabled:
         label: Activer la demande de code
         default: true
         selector:
           boolean: {}
+      scope:
+        label: Actions à protéger
+        default: card
+        selector:
+          select:
+            options:
+              - value: card
+                label: Toute la carte
+              - value: sub_buttons
+                label: Sous-boutons uniquement
+      sub_buttons:
+        label: Sous-boutons à protéger
+        description: Liste vide = tous les sous-boutons. La sélection suit les numéros Bubble ; vérifiez-la si vous réorganisez les boutons. Les actions du fond et de l’icône principale restent directes dans ce mode.
+        visible_if: item.scope === 'sub_buttons'
+        selector:
+          select:
+            multiple: true
+            custom_value: true
+            options: []
       new_code:
         label: Nouveau code PIN
         description: Chiffres uniquement, puis cliquer sur Enregistrer ou Remplacer le code. Laisser vide conserve le code actuel. Seule son empreinte SHA-256 sera enregistrée ; le code ne pourra plus être affiché.

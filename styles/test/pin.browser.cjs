@@ -9,7 +9,7 @@ const pin = loadModule('signature-pin'), panel = loadModule('signature-panel');
 const nativePath = process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
 const native = {skip: !nativePath};
 const digest = code => crypto.createHash('sha256').update(code).digest('hex');
-async function setup(t, {user='tablet', options={}, config={}, width=382, mode='light', plain=false, touch=false}={}) {
+async function setup(t, {user='tablet', options={}, config={}, width=382, mode='light', plain=false, touch=false,haVersion='2026.10.4'}={}) {
   const bytes=fs.readFileSync(nativePath);
   assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
   const page=await fixture(t,{prepare:null, viewport:{width:Math.max(400,width+32),height:900},hasTouch:touch,isMobile:touch});
@@ -29,7 +29,7 @@ async function setup(t, {user='tablet', options={}, config={}, width=382, mode='
     document.querySelector('home-assistant').attachShadow({mode:'open'});
   });
   await page.addScriptTag({path:nativePath});
-  await page.evaluate(({user,options,config,theme,nativeModes,mode,plain,codeHash})=>{
+  await page.evaluate(({user,options,config,theme,nativeModes,mode,plain,codeHash,haVersion})=>{
     document.documentElement.style.cssText=Object.entries({...nativeModes[mode],...(plain?{}:{...theme,...theme.modes[mode]})})
       .filter(([key])=>key!=='modes').map(([key,value])=>'--'+key+':'+value).join(';');
     window.calls=[];window.actions=[];window.details=[];
@@ -43,9 +43,9 @@ async function setup(t, {user='tablet', options={}, config={}, width=382, mode='
         'media_player.test':state('media_player.test','playing',{supported_features:65535,volume_level:0.5}),
         'light.test':state('light.test','on',{brightness:128,supported_color_modes:['brightness']})},
       locale:{language:'fr',number_format:'language'},language:'fr',themes:{darkMode:mode==='dark'},
-      config:{unit_system:{temperature:'°C'},time_zone:'Europe/Paris',version:'2026.10.4'},localize:()=>undefined,
+      config:{unit_system:{temperature:'°C'},time_zone:'Europe/Paris',version:haVersion},localize:()=>undefined,
       formatEntityState:s=>s.state,formatEntityAttributeValue:(s,key,value)=>value,hassUrl:p=>new URL(p,'https://ha.example.test').href,
-      connection:{haVersion:'2026.10.4',subscribeMessage:async()=>()=>{},subscribeEvents:async()=>()=>{}},
+      connection:{haVersion,subscribeMessage:async()=>()=>{},subscribeEvents:async()=>()=>{}},
       callWS:async message=>message.type==='frontend/get_icons'?{resources:{input_select:{},alarm_control_panel:{},cover:{},light:{},media_player:{},input_number:{},climate:{}}}:{},
       callService:async(...args)=>{calls.push(args);if(window.rejectCommand)throw Error('private backend response');}};
     document.querySelector('home-assistant').hass=hass;
@@ -65,7 +65,7 @@ async function setup(t, {user='tablet', options={}, config={}, width=382, mode='
         hold_action:{action:'more-info'},double_tap_action:{action:'navigate',navigation_path:'#test'}}]},...config});
     document.querySelector('#cards').append(card);card.hass=hass;
     window.contexts=[{teardown:()=>card.remove()}];
-  },{user,options,config,theme,nativeModes,mode,plain,codeHash:digest('0073')});
+  },{user,options,config,theme,nativeModes,mode,plain,codeHash:digest('0073'),haVersion});
   await page.waitForFunction(()=>card && !card.initialLoad && (!card.config.modules.includes('signature_pin') || card.config.signature_pin?.enabled===false || card._signaturePinRuntime));
   return page;
 }
@@ -119,7 +119,7 @@ test('PIN editor uses Bubble native object events without persisting drafts or e
   const page=await setup(t);
   const result=await page.evaluate(async ({schema,storedHash})=>{
     if(!customElements.get('ha-selector-bc_object'))throw Error('Native Bubble object selector missing');
-    const form=document.createElement('ha-form-signature_pin_hash_options');
+    const form=document.createElement('ha-form-signature_pin_scope_options');
     Object.assign(form,{hass,data:{code_hash:storedHash,users:['tablet'],future:false},schema});
     const values=[];
     form.addEventListener('value-changed',event=>{values.push(event.detail.value);form.data=event.detail.value;});
@@ -138,7 +138,7 @@ test('PIN editor uses Bubble native object events without persisting drafts or e
     await Promise.resolve();
     const migrated={...form.data};form.remove();
     return {before,draftChanges,saved,cleared,legacyButton,migrated};
-  },{schema:pin.editor.find(field=>field.type==='signature_pin_hash_options'),storedHash:digest('0073')});
+  },{schema:pin.editor.find(field=>field.type==='signature_pin_scope_options'),storedHash:digest('0073')});
   assert.deepEqual(result.before,{field:'',hasCode:false,hasHash:false});
   assert.equal(result.draftChanges,0);
   assert.deepEqual(result.saved,{code_hash:digest('1234'),users:['tablet'],future:false});
@@ -186,6 +186,91 @@ test('More info stays direct for an exempt account and for a card with PIN disab
     assert.equal((await page.evaluate(()=>actions))[0].config.tap_action.action,'more-info');
     assert.equal(await dialog(page).count(),0);
   }
+});
+test('selected sub-buttons protect every gesture and More info while the main card and identical unselected actions stay direct',native,async t=>{
+  const button=name=>({name,entity:'input_select.mode',show_name:true,sub_button_type:'default',
+    tap_action:{action:'perform-action',perform_action:'input_select.select_option',data:{option:'Absent'},target:{entity_id:'input_select.mode'}},
+    hold_action:{action:'more-info'},double_tap_action:{action:'navigate',navigation_path:'#modes'}});
+  const page=await setup(t,{options:{scope:'sub_buttons',sub_buttons:['2']},config:{sub_button:{main:[button('Libre'),button('Mode maison')]}}});
+  await page.locator('bubble-card').locator('.bubble-main-icon-container').click();
+  await page.locator('bubble-card').locator('.bubble-sub-button-1').click();
+  assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),1);
+  for(const action of ['tap','hold','double_tap']){
+    const before=await page.evaluate(()=>actions.length);
+    await page.evaluate(action=>card.card.querySelector('.bubble-sub-button-2').dispatchEvent(new CustomEvent('hass-action',{
+      detail:{action,config:card.config.sub_button.main[1]},bubbles:true,composed:true,cancelable:true})),action);
+    await dialog(page).waitFor({state:'visible'});assert.equal(await page.evaluate(()=>actions.length),before);
+    await send(page,'9999');assert.equal(await page.evaluate(()=>actions.length),before);
+    await send(page);await dialog(page).waitFor({state:'detached'});assert.equal(await page.evaluate(()=>actions.length),before+1);
+  }
+  const moreInfo=number=>page.evaluate(number=>card.card.querySelector('.bubble-sub-button-'+number+' .bubble-sub-button-name-container')
+    .dispatchEvent(new CustomEvent('hass-more-info',{detail:{entityId:'input_select.mode'},bubbles:true,composed:true})),number);
+  await moreInfo(1);assert.equal(await page.evaluate(()=>details.length),1);assert.equal(await dialog(page).count(),0);
+  await moreInfo(2);await dialog(page).waitFor({state:'visible'});
+  await dialog(page).locator('[data-close]').click();await dialog(page).waitFor({state:'detached'});
+  assert.equal(await page.evaluate(()=>details.length),1);
+  await moreInfo(2);await send(page);await dialog(page).waitFor({state:'detached'});
+  assert.equal(await page.evaluate(()=>details.length),2);
+  await page.evaluate(()=>{card.hass=window.hass={...hass,user:{id:'admin'}};});
+  await page.locator('bubble-card').locator('.bubble-sub-button-2').click();
+  assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),3);
+});
+test('native dropdown choices are scoped by sub-button, even with the same entity and legacy HA menus',native,async t=>{
+  for(const haVersion of ['2026.10.4','2025.12.0']){
+    const page=await setup(t,{haVersion,options:{scope:'sub_buttons',sub_buttons:['2']},config:{card_type:'select',sub_button:{main:[
+      {entity:'input_select.mode',name:'Libre',sub_button_type:'select'},
+      {entity:'input_select.mode',name:'Mode maison',sub_button_type:'select'}]}}});
+    const select=(index,value)=>page.evaluate(({index,value,legacy})=>{
+      const select=index ? card.card.querySelector('.bubble-sub-button-'+index).dropdownSelect : card.elements.dropdownSelect;
+      if(legacy){const item=document.createElement('mwc-list-item');item.value=value;select.append(item);item.click();}
+      else select.dispatchEvent(new CustomEvent('selected',{detail:{value}}));
+    },{index,value,legacy:haVersion==='2025.12.0'});
+    await select(0,'Présent');await select(1,'Nuit');
+    assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),2);
+    await select(2,'Absent');await dialog(page).waitFor({state:'visible'});
+    assert.equal(await page.evaluate(()=>calls.length),2);
+    await send(page);await dialog(page).waitFor({state:'detached'});
+    assert.deepEqual((await page.evaluate(()=>calls)).at(-1),['input_select','select_option',{entity_id:'input_select.mode',option:'Absent'}]);
+    assert.equal(await page.evaluate(()=>calls.length),3);
+  }
+});
+test('sub-slider services keep their own scope, original values and clean handles through native renders and teardown',native,async t=>{
+  const page=await setup(t,{width:600,options:{scope:'sub_buttons',sub_buttons:['2']},config:{button_type:'slider',entity:'input_number.test',sub_button:{main:[
+    {entity:'input_number.test',name:'Libre',sub_button_type:'slider',always_visible:true},
+    {entity:'input_number.test',name:'Protégé',sub_button_type:'slider',always_visible:true}]}}});
+  const drag=async selector=>{
+    const box=await page.locator('bubble-card').locator(selector).boundingBox();assert.ok(box?.width>0);
+    await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await page.mouse.down();
+    await page.mouse.move(box.x+box.width*.75,box.y+box.height/2,{steps:4});await page.mouse.up();
+  };
+  await drag('.bubble-sub-button-slider-1 .bubble-range-slider');
+  assert.equal(await dialog(page).count(),0);await page.waitForFunction(()=>calls.length===1);
+  await page.evaluate(()=>card._hass.callService('input_number','set_value',{entity_id:'input_number.test',value:10}));
+  assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),2);
+  await page.evaluate(()=>{for(let i=0;i<3;i++)card.updateBubbleCard();});
+  await drag('.bubble-sub-button-slider-2 .bubble-range-slider');
+  await dialog(page).waitFor({state:'visible'});assert.equal(await page.evaluate(()=>calls.length),2);
+  await send(page);await dialog(page).waitFor({state:'detached'});assert.equal(await page.evaluate(()=>calls.length),3);
+  const last=(await page.evaluate(()=>calls)).at(-1);
+  assert.equal(last[0],'input_number');assert.equal(last[1],'set_value');assert.equal(last[2].entity_id,'input_number.test');assert.equal(typeof last[2].value,'number');
+  await page.evaluate(()=>{window.subHosts=Object.values(card.elements).filter(node=>node?.sliderContext);card.config.signature_pin.enabled=false;card.updateBubbleCard();});
+  assert.equal(await page.evaluate(()=>subHosts.length===2&&subHosts.every(node=>node.sliderContext._hass===hass)),true);
+});
+test('an empty sub-button selection protects all sub-buttons, preserves grouped indices and leaves the main card direct',native,async t=>{
+  const button=name=>({name,entity:'input_select.mode',sub_button_type:'default',show_name:true,tap_action:{action:'more-info'}});
+  const page=await setup(t,{options:{scope:'sub_buttons',sub_buttons:[]},config:{rows:2,sub_button:{main:[button('Libre'),{group:[button('Mode maison')]}],bottom:[button('Jardin')]}}});
+  assert.deepEqual(await page.evaluate(()=>[1,2,3].map(index=>card.card.querySelector('.bubble-sub-button-'+index).nameContainer.textContent.trim())),['Mode maison','Libre','Jardin']);
+  await page.locator('bubble-card').locator('.bubble-main-icon-container').click();assert.equal(await dialog(page).count(),0);
+  for(const index of [1,2,3]){
+    await page.locator('bubble-card').locator('.bubble-sub-button-'+index).click();await dialog(page).waitFor({state:'visible'});
+    await dialog(page).locator('[data-close]').click();await dialog(page).waitFor({state:'detached'});
+  }
+  await page.evaluate(()=>{card.config.signature_pin.sub_buttons=['1'];card.updateBubbleCard();});
+  await page.locator('bubble-card').locator('.bubble-sub-button-3').click();assert.equal(await dialog(page).count(),0);
+  await page.locator('bubble-card').locator('.bubble-sub-button-1').click();await dialog(page).waitFor({state:'visible'});
+  await page.evaluate(()=>{card.config.signature_pin.scope='card';card.updateBubbleCard();});
+  await dialog(page).waitFor({state:'detached'});
+  await page.locator('bubble-card').locator('.bubble-main-icon-container').click();await dialog(page).waitFor({state:'visible'});
 });
 test('tablet selection, all-user mode, fresh identities and cancellation are scoped to the card',native,async t=>{
   const page=await setup(t,{user:'admin'});
