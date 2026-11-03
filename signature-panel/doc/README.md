@@ -1,5 +1,47 @@
 # Signature Panel
 
+## 1.4.20 — 3 novembre 2026 — code direct sur les commandes d’alarme
+
+Avec `signature_panel.alarm_code: true`, une commande nommée `type: command`
+sur une carte bouton d’entité `alarm_control_panel` ouvre directement un
+champ de code masqué pour **l’action déjà choisie**. Désarmer, Armer et Nuit
+gardent leurs actions `perform-action` ou `call-service` ; aucun panneau
+de choix d’action intermédiaire. Le code conserve ses zéros initiaux et
+le clavier demandé est numérique, sauf avec `code_format: text`.
+
+```yaml
+signature_panel:
+  alarm_code: true
+```
+
+L’option est désactivée par défaut. Elle protège les commandes de désarmement
+et d’armement absence, nuit, maison, vacances et personnalisé, ciblant
+uniquement l’entité principale de la carte. Les cibles multiples, zones,
+appareils ou autres alarmes sont bloquées. Les appuis longs `more-info`
+et les autres actions conservent leur comportement natif. L’option ne
+change pas les modes maison ni les automatisations ou boutons physiques.
+
+Annuler ou Échap avant validation efface la saisie sans envoyer de commande.
+Valider transmet le code au service HA choisi, une seule fois pendant la
+requête. Une commande devenue indisponible, désactivée, retirée ou modifiée
+pendant la saisie ne part pas. Retirer l’option ou détruire le runtime ferme
+et vide la fenêtre. Si le backend renvoie une erreur, la saisie est effacée
+et une nouvelle tentative est proposée, sans afficher le contenu de l’erreur.
+Une requête déjà transmise ne peut pas être annulée.
+
+**La vérification du code doit être configurée côté Home Assistant.**
+Le format `number` affiche un clavier ; il ne définit aucun code valide.
+Le module ne stocke et ne compare aucun PIN de référence. Un helper Template
+doit vérifier la variable `code` avant son action Ajax. Une simple condition
+fausse peut arrêter le script sans renvoyer d’erreur au frontend : la fenêtre
+se ferme alors, même si l’état de l’alarme ne change pas. Les autres chemins
+de commande restent à traiter séparément côté serveur.
+
+Importer **Signature Panel 1.4.20**, activer l’option sur les cartes voulues,
+puis recharger le frontend. Les tests du formulaire utilisent le vrai Bubble
+3.4.3 et un backend simulé dans Chromium ; ils ne déclenchent aucune alarme
+réelle et ne constituent pas une validation Home Assistant ou Safari/iPadOS.
+
 ## 1.4.19 — 30 octobre 2026 — survol léger sur la carte entière
 
 Le fond d’une carte entière utilise le token de thème facultatif
@@ -901,3 +943,4 @@ en deuxième ligne avec leur typographie (14 px, poids normal). Il accepte
 Jinja, par exemple `state: "{{ state_attr('media_player.ampli', 'source') or '' }}"`.
 `secondary` reste en troisième ligne pour le volume. Retirer `state` restaure
 les métadonnées Bubble ; les commandes et leur visibilité restent natives.
+

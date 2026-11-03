@@ -1,0 +1,67 @@
+ha-card .dp-alarm-code-dialog {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(360px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 24px;
+  color: var(--primary-text-color, #212121);
+  background: var(--signature-card-background, var(--ha-card-background, var(--card-background-color, #fff)));
+  border: 1px solid var(--signature-card-border-color, var(--divider-color, #ddd));
+  border-radius: var(--signature-card-border-radius, 22px);
+  box-shadow: var(--signature-card-box-shadow, var(--ha-card-box-shadow, 0 8px 32px rgb(0 0 0 / .2)));
+  font-family: var(--signature-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+ha-card .dp-alarm-code-dialog::backdrop { background: rgb(0 0 0 / .45); }
+ha-card .dp-alarm-code-dialog form { display: grid; gap: 20px; margin: 0; }
+ha-card .dp-alarm-code-dialog h2 {
+  margin: 0;
+  font-size: var(--signature-title-font-size, 18px);
+  font-weight: var(--signature-font-weight-semibold, 600);
+  line-height: 1.3;
+}
+ha-card .dp-alarm-code-dialog label {
+  display: grid;
+  gap: 8px;
+  font-size: var(--signature-name-font-size, 14px);
+}
+ha-card .dp-alarm-code-dialog input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 20px;
+  color: var(--primary-text-color, #212121);
+  background: var(--signature-control-background, var(--secondary-background-color, #eee));
+  border: 1px solid var(--divider-color, #ddd);
+  border-radius: var(--signature-control-border-radius, 14px);
+  outline-color: var(--primary-color, #03a9f4);
+}
+ha-card .dp-alarm-code-buttons { display: flex; justify-content: flex-end; gap: 8px; }
+ha-card .dp-alarm-code-buttons button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--signature-control-border-radius, 14px);
+  background: var(--signature-control-background, var(--secondary-background-color, #eee));
+  color: var(--primary-text-color, #212121);
+  font: inherit;
+  font-size: var(--signature-name-font-size, 14px);
+  cursor: pointer;
+}
+ha-card .dp-alarm-code-buttons button[type="submit"] {
+  background: var(--primary-color, #03a9f4);
+  color: var(--text-primary-color, #fff);
+}
+ha-card .dp-alarm-code-buttons button:disabled { opacity: .45; cursor: default; }
+ha-card .dp-alarm-code-error {
+  margin: 0;
+  color: var(--error-color, #db4437);
+  font-size: var(--signature-secondary-font-size, 13px);
+  line-height: 1.3;
+}
+ha-card .dp-alarm-code-error[hidden] { display: none; }

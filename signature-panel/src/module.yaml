@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.4.19
+version: 1.4.20
 creator: Loïc
 supported:
   - button
@@ -96,6 +96,12 @@ editor:
         selector:
           boolean: {}
         visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+      alarm_code:
+        label: Demander le code avant les commandes d’alarme
+        selector:
+          boolean: {}
+        description: "Facultatif. Sur un panneau alarm_control_panel avec des sous-boutons de type command, ouvre directement une saisie masquée avant la commande choisie. Le serveur vérifie le PIN ; aucun code attendu n’est enregistré dans la carte. Annuler n’envoie rien."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && String(card.entity || '').startsWith('alarm_control_panel.')))
       tap_action:
         label: Action sur la valeur principale
         selector:

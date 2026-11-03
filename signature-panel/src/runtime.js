@@ -35,6 +35,7 @@ const roles = [], roomColumns = 3;
 /* @include signature-panel/src/information.js */
 /* @include signature-shared/src/title-badges.js {"LAYOUT":"panel","ENABLED":"kind === 'button'","SCOPE_SUFFIX":"","NAME_NODE":"panelTitle || root.querySelector('.bubble-name')","NAME_SELECTOR":":is(.bubble-name,.dp-panel-title)","HEADING_GRID":"grid-row: var(--dp-panel-heading-row,var(--dp-panel-name-row,1)); grid-column: 1 / -2; align-self: center;","HEADING_WIDTH":"max-width: 100%;"} */
 /* @include signature-panel/src/commands.js */
+/* @include signature-panel/src/alarm-code.js */
 /* @include signature-panel/src/variants.js */
 /* @include signature-panel/src/progress.js */
 // The native no-background choice also wins over numeric/command accents.
@@ -44,11 +45,13 @@ if (transparentButtons.length) css += 'ha-card[data-dp-layout="panel"] .bubble-s
   +transparentButtons.join(',')+') { background: transparent !important; }';
 if (o.hover === false) css += 'ha-card[data-dp-layout="panel"] ha-ripple { --ha-ripple-hover-opacity: 0; }';
 const twoLineDetails = kind === 'button' && flat.length === 0 && o.secondary_lines === 2;
-const styleKey = [kind, surface, !!secondary, information.length, flat.length, commandStyles.length > 0, twoLineDetails, !!panelTitle, panelVariant].join('\u0001');
+const styleKey = [kind, surface, !!secondary, information.length, flat.length, commandStyles.length > 0, twoLineDetails, !!panelTitle, panelVariant, alarmCodeEnabled].join('\u0001');
 if (runtime.styleKey !== styleKey) {
   runtime.styleCSS = `
     /* @include signature-panel/src/presentation.css */
-  `;
+  ` + (alarmCodeEnabled ? `
+    /* @include signature-panel/src/alarm-code.css */
+  ` : '');
   runtime.styleKey = styleKey;
 }
 return runtime.styleCSS + css + (panelVariant ? variantCSS : '');

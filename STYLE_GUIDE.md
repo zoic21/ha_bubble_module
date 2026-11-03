@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.19**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.20**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -711,6 +711,26 @@ Les URL, index et cadrages sont fournis par la configuration Jinja. Le lecteur d
 Tester 288/328/358/382/600 px, clair/sombre, avec/sans thème, une/deux/trois informations, détails et 0–3 commandes, mises à jour natives et thème seul, clics/désactivation/teardown et média. `styles/test/panel-native.browser.cjs` utilise le vrai Bubble 3.4.1 avec `BUBBLE_NATIVE_SCRIPT_PATH` ; il vérifie le SHA de la source. Le backend HA est simulé ; ne pas déduire une validation HA réelle ou Safari/iOS.
 
 
+### Panel 1.4.20 — saisie directe du code d’alarme
+
+`alarm_code: true` ajoute un dialogue modal uniquement aux commandes nommées
+d’alarme de la carte. Garder les boutons et la géométrie existants : le clic
+ouvre la saisie pour l’action choisie, sans panneau de sélection supplémentaire.
+Surface, texte, bordure, rayon et contrôles suivent les variables du thème,
+avec replis sans Signature. Largeur maximale 360 px, marges de 16 px à l’écran,
+défilement vertical si nécessaire, champ masqué de 48 px et police de 20 px
+pour éviter le zoom iOS, boutons d’au moins 44 px. Le focus entre dans le champ ;
+Annuler et Échap ferment la fenêtre et vident le code avant tout envoi.
+
+La saisie reste éphémère ; aucun PIN valide dans la configuration de carte.
+La vérification appartient au backend. Les gardes de commandes désactivées,
+les actions natives hors alarme, les détails sur appui long et le comportement
+sans l’option restent conservés. Tester les trois commandes, annulation,
+zéros initiaux, texte, erreurs, doubles soumissions, invalidation pendant
+la saisie et nettoyage, ainsi que 320/820 px, clair/sombre et avec/sans thème.
+La fixture `panel-alarm-code.browser.cjs` charge Bubble 3.4.3 épinglé avec
+`BUBBLE_ALARM_NATIVE_SCRIPT_PATH`. Backend simulé, aucune validation iPadOS.
+
 ### Panel 1.1.1 — badges et actions indépendantes
 
 Panel et Room assemblent le même mécanisme de badges natifs depuis
@@ -1381,3 +1401,4 @@ Ne pas substituer cette option à une condition numérique ou métier.
 Vérifier récupération/retrait de l’option et identité des nœuds natifs.
 Les fixtures Chromium Compact/Square couvrent la peinture et la stabilité
 géométrique ; elles ne valident pas Home Assistant installé ni Safari/iOS.
+
