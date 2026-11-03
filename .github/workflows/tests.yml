@@ -61,12 +61,12 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Fetch pinned Bubble source for native Panel fixtures
         run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/bubble-native.js" https://raw.githubusercontent.com/Clooos/Bubble-Card/061ed8376134307ba1086446869d0ab736265fcf/dist/bubble-card.js
-      - name: Fetch pinned Bubble 3.4.3 for alarm PIN fixtures
-        run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/bubble-alarm-native.js" https://raw.githubusercontent.com/Clooos/Bubble-Card/2c3b43d1168ca05701be15fd96e416609601ecfa/dist/bubble-card.js
+      - name: Fetch pinned Bubble 3.4.3 for Signature PIN fixtures
+        run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/bubble-pin-native.js" https://raw.githubusercontent.com/Clooos/Bubble-Card/2c3b43d1168ca05701be15fd96e416609601ecfa/dist/bubble-card.js
       - name: Check computed styles
         env:
           BUBBLE_VARIANTS_NATIVE_SCRIPT_PATH: ${{ runner.temp }}/bubble-native.js
-          BUBBLE_ALARM_NATIVE_SCRIPT_PATH: ${{ runner.temp }}/bubble-alarm-native.js
+          BUBBLE_PIN_NATIVE_SCRIPT_PATH: ${{ runner.temp }}/bubble-pin-native.js
           PANEL_CAPTURE_DIR: ${{ runner.temp }}/panel-captures
         run: npm run test:styles
       - name: Upload Panel layout captures

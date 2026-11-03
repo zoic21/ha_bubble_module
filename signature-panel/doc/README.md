@@ -1,82 +1,16 @@
 # Signature Panel
 
-## 1.4.22 — 3 novembre 2026 — clavier partagé et module PIN générique
+## 1.4.23 — 3 novembre 2026 — protection exclusivement dans Signature PIN
 
-Le pavé numérique est désormais partagé avec [Signature PIN](../../signature-pin/doc/README.md).
-Une carte qui ajoute `signature_pin` confie sa protection à ce nouveau module :
-l’ancien `alarm_code` ne déclenche plus une seconde demande. Signature PIN
-permet de vérifier un code local pour toutes les actions, uniquement pour les
-utilisateurs choisis. Sans ce module, `alarm_code: true` conserve sa saisie et
-sa vérification côté HA. Les deux distributions restent autonomes.
+Panel ne contient plus de demande de code, de clavier, de validation ni
+l’ancienne option de formulaire `alarm_code`. Il conserve uniquement la
+présentation, les états, les cibles et les actions natives.
 
-## 1.4.21 — 3 novembre 2026 — pavé numérique intégré pour l’alarme
-
-La saisie directe de `alarm_code: true` reprend un pavé à trois colonnes :
-touches rondes **1–9**, puis **effacer, 0, ✓**. Le champ Code est masqué,
-avec un œil pour afficher/masquer temporairement sa valeur. La croix en
-haut ferme la fenêtre et efface la saisie sans envoyer de commande.
-L’effacement en bas vide tout le code ; ✓ valide seulement un code non vide.
-Le titre conserve l’action choisie, sans écran de sélection supplémentaire.
-
-Pour les codes numériques, le champ en lecture seule et `inputmode: none`
-laissent la saisie au pavé intégré. Les zéros initiaux sont conservés.
-Un clavier physique reste utilisable : chiffres, Retour arrière, Suppr
-pour vider et Entrée pour valider. Les autres caractères sont ignorés.
-Le format `text` garde un champ éditable et une validation ✓, sans pavé.
-
-Les contrôles sont désactivés pendant l’envoi ; une erreur renvoyée par HA
-vide et masque le champ avant la nouvelle tentative. Les gardes de commande,
-le nettoyage et la vérification du code côté serveur restent ceux de 1.4.20.
-Aucun PIN de référence, temporisateur ou dépendance ajouté.
-
-Importer **Signature Panel 1.4.21**, puis recharger le frontend. Les cartes
-qui ont déjà `alarm_code: true` ne demandent aucune modification du dashboard.
-Touches tactiles, œil, effacement, clavier physique, erreurs, annulation et
-dimensions sont vérifiés avec Bubble 3.4.3 dans Chromium et un backend simulé.
-Les thèmes clair/sombre et les petits écrans sont couverts ; le clavier et
-le rendu de Home Assistant installé sur iPadOS restent à confirmer.
-
-## 1.4.20 — 3 novembre 2026 — code direct sur les commandes d’alarme
-
-Avec `signature_panel.alarm_code: true`, une commande nommée `type: command`
-sur une carte bouton d’entité `alarm_control_panel` ouvre directement un
-champ de code masqué pour **l’action déjà choisie**. Désarmer, Armer et Nuit
-gardent leurs actions `perform-action` ou `call-service` ; aucun panneau
-de choix d’action intermédiaire. Le code conserve ses zéros initiaux et
-le clavier demandé est numérique, sauf avec `code_format: text`.
-
-```yaml
-signature_panel:
-  alarm_code: true
-```
-
-L’option est désactivée par défaut. Elle protège les commandes de désarmement
-et d’armement absence, nuit, maison, vacances et personnalisé, ciblant
-uniquement l’entité principale de la carte. Les cibles multiples, zones,
-appareils ou autres alarmes sont bloquées. Les appuis longs `more-info`
-et les autres actions conservent leur comportement natif. L’option ne
-change pas les modes maison ni les automatisations ou boutons physiques.
-
-Annuler ou Échap avant validation efface la saisie sans envoyer de commande.
-Valider transmet le code au service HA choisi, une seule fois pendant la
-requête. Une commande devenue indisponible, désactivée, retirée ou modifiée
-pendant la saisie ne part pas. Retirer l’option ou détruire le runtime ferme
-et vide la fenêtre. Si le backend renvoie une erreur, la saisie est effacée
-et une nouvelle tentative est proposée, sans afficher le contenu de l’erreur.
-Une requête déjà transmise ne peut pas être annulée.
-
-**La vérification du code doit être configurée côté Home Assistant.**
-Le format `number` affiche un clavier ; il ne définit aucun code valide.
-Le module ne stocke et ne compare aucun PIN de référence. Un helper Template
-doit vérifier la variable `code` avant son action Ajax. Une simple condition
-fausse peut arrêter le script sans renvoyer d’erreur au frontend : la fenêtre
-se ferme alors, même si l’état de l’alarme ne change pas. Les autres chemins
-de commande restent à traiter séparément côté serveur.
-
-Importer **Signature Panel 1.4.20**, activer l’option sur les cartes voulues,
-puis recharger le frontend. Les tests du formulaire utilisent le vrai Bubble
-3.4.3 et un backend simulé dans Chromium ; ils ne déclenchent aucune alarme
-réelle et ne constituent pas une validation Home Assistant ou Safari/iPadOS.
+Pour protéger les actions, importer [Signature PIN 1.0.1](../../signature-pin/doc/README.md),
+l’ajouter à la carte et choisir le PIN ainsi que les utilisateurs concernés.
+Les anciens réglages `signature_panel.alarm_code` peuvent être retirés du YAML ;
+ils n’ont plus d’effet. Aucune migration automatique vers un PIN n’est inventée.
+Sans Signature PIN, les commandes de la carte suivent leur fonctionnement natif.
 
 ## 1.4.19 — 30 octobre 2026 — survol léger sur la carte entière
 

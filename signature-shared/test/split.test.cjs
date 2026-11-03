@@ -125,7 +125,6 @@ test('generated modules are current, autonomous and limited to their own present
     assert.match(definitions[layout].version,/^\d+\.\d+\.\d+$/);
     assert.ok(definitions[layout].editor[1].fields);
     assert.ok(!Object.hasOwn(definitions[layout].editor[1].fields,'layout'));
-    // Panel also carries the opt-in alarm PIN keypad, its cleanup and themed CSS.
     assert.ok(Buffer.byteLength(output.content)<(layout==='panel'?85000:70000));
     for(const other of layouts.filter(name=>name!==layout))assert.ok(!definitions[layout].code.includes('ha-card[data-dp-layout="'+other+'"]'),layout+' contains '+other+' CSS');
   }
@@ -205,17 +204,14 @@ test('module forms expose only their useful fields and preserve mixed YAML types
       const visible=new Function('item','hass','card','return !!('+field.visible_if+');');
       assert.doesNotThrow(()=>visible({}, {},undefined));
       assert.equal(visible({}, {},{card_type:'pop-up'}),false);
-      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['title','tap_action','secondary_lines','variant','metric_icon','primary_enabled','icon_opacity_unavailable','alarm_code'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
+      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['title','tap_action','secondary_lines','variant','metric_icon','primary_enabled','icon_opacity_unavailable'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
       if(layout==='square')assert.equal(visible({activity:true}, {},{card_type:'media-player'}),false,'retired activity options must not expose unsupported Square media fields');
     }
   }
   assert.deepEqual(definitions.compact.editor[1].fields.controls.selector.select.options.map(o=>o.value),['native','number']);
   assert.deepEqual(definitions.square.editor[1].fields.controls.selector.select.options.map(o=>o.value),['native','measure']);
-  const alarm=definitions.panel.editor[1].fields.alarm_code;
-  const visible=new Function('card','return !!('+alarm.visible_if+');');
-  assert.equal(visible({card_type:'button',entity:'alarm_control_panel.alarme'}),true);
-  assert.equal(visible({card_type:'button',entity:'sensor.demo'}),false);
-  assert.deepEqual(alarm.selector,{boolean:{}});
+  assert.equal(Object.hasOwn(definitions.panel.editor[1].fields,'alarm_code'),false);
+  assert.doesNotMatch(definitions.panel.code,/alarmCode|alarm_code|createPinKeypad|signature-pin-dialog/);
 });
 
 test('each standalone distribution registers a working flat editor on its own',()=>{

@@ -1,6 +1,6 @@
 # Signature PIN
 
-Version **1.0.0** — Bubble Card **3.4.3 ou plus récent**.
+Version **1.0.1** — Bubble Card **3.4.3 ou plus récent**.
 
 Ajoute le clavier numérique de Signature à **toutes les actions d’une carte**,
 avec une sélection facultative des utilisateurs concernés. Peut être combiné
@@ -63,10 +63,10 @@ pilotés par le thème en CSS.
 
 ## Alarme et migration depuis Panel
 
-Sur une carte listant `signature_pin`, **Panel 1.4.22** laisse la protection au
-nouveau module, même si l’ancien `signature_panel.alarm_code: true` est encore
-présent. Cela évite deux claviers et permet aux utilisateurs exemptés de garder
-leurs commandes directes. Il est conseillé de retirer cette ancienne option.
+À partir de **Panel 1.4.23**, le module de présentation ne gère plus de code.
+Retirer `signature_panel.alarm_code` des anciennes cartes, ajouter `signature_pin`
+et configurer le PIN et les comptes dans son formulaire. Le clavier et sa
+vérification appartiennent exclusivement à Signature PIN, qui reste autonome.
 
 Le nouveau PIN est vérifié **dans le navigateur**. Pour une alarme dont le
 template HA exige encore un code, retirer séparément cette exigence après

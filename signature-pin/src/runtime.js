@@ -10,7 +10,7 @@ if (runtime && (runtime.root !== root || runtime.version !== version || !enabled
 }
 if (!enabled()) return '';
 if (!runtime) {
-  /* @include shared/src/code-keypad.js */
+  /* @include signature-pin/src/keypad.js */
   let rawHass = host._hass || hass, proxy, rawProxySource;
   const descriptor = Object.getOwnPropertyDescriptor(host, '_hass');
   const userId = () => rawHass?.user?.id;
@@ -31,7 +31,7 @@ if (!runtime) {
     const original = signature();
     return new Promise(resolve => {
       pendingResolve = resolve;
-      keypad = createCodeKeypad({root, title: 'Code requis', label: 'Code PIN',
+      keypad = createPinKeypad({root, title: 'Code requis', label: 'Code PIN',
         available: () => alive() && required() && signature() === original && available(),
         onSubmit: async code => {
           const expected = String(options().code ?? '');
@@ -108,5 +108,5 @@ const controls = [...Object.values(host.elements || {}),
 controls.forEach(node => { if (node?.sliderContext) node.sliderContext._hass = host._hass; });
 if (typeof onTeardown === 'function') onTeardown(() => runtime.dispose());
 return `
-  /* @include shared/src/code-keypad.css */
+  /* @include signature-pin/src/keypad.css */
 `;

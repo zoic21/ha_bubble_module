@@ -18,7 +18,6 @@ Les quinze modules du dépôt sont générés à partir de sources. Chaque YAML 
 | `shared/src/color.js` | Palette du thème et validation CSS pour Signature, Flow, Wind Rose et Alert Manager |
 | `shared/src/render-gate.js` | Contrôle du travail DOM inchangé de Flow/Panel après lecture des dépendances ; API native Bubble 3.4.2 et repli local |
 | `shared/src/dom.js` | Création HTML/SVG et écritures conditionnelles de texte/attributs pour Flow, Weather et Wind Rose |
-| `shared/src/code-keypad.js` et `.css` | Clavier partagé entre l’alarme Panel et Signature PIN ; chaque distribution reste autonome |
 | `shared/src/color-thresholds.js` | Échelles numériques et interpolation RGB communes à Compact, Square et Header |
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
 | [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des modules Signature |

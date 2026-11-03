@@ -6,7 +6,7 @@ const {fixture} = require('./browser.cjs');
 const {loadModule} = require('../../shared/test/module.cjs');
 const {theme,nativeModes} = require('./fixtures.cjs');
 const pin = loadModule('signature-pin'), panel = loadModule('signature-panel');
-const nativePath = process.env.BUBBLE_ALARM_NATIVE_SCRIPT_PATH;
+const nativePath = process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
 const native = {skip: !nativePath};
 async function setup(t, {user='tablet', options={}, config={}, width=382, mode='light', plain=false, touch=false}={}) {
   const bytes=fs.readFileSync(nativePath);
@@ -65,7 +65,7 @@ async function setup(t, {user='tablet', options={}, config={}, width=382, mode='
     document.querySelector('#cards').append(card);card.hass=hass;
     window.contexts=[{teardown:()=>card.remove()}];
   },{user,options,config,theme,nativeModes,mode,plain});
-  await page.waitForFunction(()=>card?._signaturePinRuntime&&!card.initialLoad);
+  await page.waitForFunction(()=>card && !card.initialLoad && (!card.config.modules.includes('signature_pin') || card._signaturePinRuntime));
   return page;
 }
 const dialog=page=>page.locator('bubble-card').locator('dialog');
@@ -159,12 +159,22 @@ test('configuration changes, teardown and unrelated cards never authorize stale 
   await page.evaluate(()=>hass.callService('light','turn_on',{entity_id:'light.test'}));
   assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),1);
 });
-test('local alarm PIN supersedes the legacy backend prompt and original alarm targets stay intact',native,async t=>{
+test('alarm commands use only the standalone PIN and original targets stay intact',native,async t=>{
   const page=await setup(t,{config:{entity:'alarm_control_panel.alarme',rows:2,modules:['signature_panel','signature_pin'],
-    signature_panel:{alarm_code:true,sub_button_styles:{'1':{type:'command',active:false,disabled:false}}},
+    signature_panel:{sub_button_styles:{'1':{type:'command',active:false,disabled:false}}},
     sub_button:{main:[{name:'Désarmer',entity:'alarm_control_panel.alarme',show_name:true,
       tap_action:{action:'perform-action',perform_action:'alarm_control_panel.alarm_disarm',target:{entity_id:'alarm_control_panel.alarme'}}}]}}});
   await command(page).click();await send(page);await dialog(page).waitFor({state:'detached'});
+  assert.deepEqual(await page.evaluate(()=>calls),[['alarm_control_panel','alarm_disarm',{}, {entity_id:'alarm_control_panel.alarme'}]]);
+});
+test('Panel alone has no PIN behavior, including cards with an obsolete alarm_code setting',native,async t=>{
+  const page=await setup(t,{config:{entity:'alarm_control_panel.alarme',rows:2,modules:['signature_panel'],
+    signature_panel:{alarm_code:true,sub_button_styles:{'1':{type:'command',active:false,disabled:false}}},
+    sub_button:{main:[{name:'Désarmer',entity:'alarm_control_panel.alarme',show_name:true,
+      tap_action:{action:'perform-action',perform_action:'alarm_control_panel.alarm_disarm',target:{entity_id:'alarm_control_panel.alarme'}}}]}}});
+  await command(page).click();await page.waitForFunction(()=>calls.length===1);
+  assert.equal(await dialog(page).count(),0);
+  assert.equal(await page.evaluate(()=>!!card._signaturePinRuntime),false);
   assert.deepEqual(await page.evaluate(()=>calls),[['alarm_control_panel','alarm_disarm',{}, {entity_id:'alarm_control_panel.alarme'}]]);
 });
 test('disabling and re-enabling restores the native hass handle and never stacks prompts',native,async t=>{
@@ -193,7 +203,7 @@ test('a persistent native sub-slider created before the module also uses the car
   await send(page);await dialog(page).waitFor({state:'detached'});
   assert.deepEqual(await page.evaluate(()=>calls),[['input_number','set_value',{entity_id:'input_number.test',value:75}]]);
 });
-test('shared keypad is usable on touch in both themes at phone and tablet widths',native,async t=>{
+test('PIN keypad is usable on touch in both themes at phone and tablet widths',native,async t=>{
   for(const mode of ['light','dark'])for(const plain of [false,true])for(const width of [328,800]){
     const page=await setup(t,{mode,plain,width,touch:true});await command(page).tap();
     await dialog(page).waitFor({state:'visible'});

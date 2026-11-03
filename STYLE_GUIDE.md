@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.22**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.23**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -22,18 +22,19 @@ Le cycle des formulaires natifs est assemblé depuis `shared/src/editor-base.js`
 
 Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `signature_module_options`, livré dans chaque distribution pour fonctionner seul. Les sous-formulaires restent dans leur portée YAML existante. Conserver les sources météo chaîne/objet, les listes de mesures explicitement vides, les périodes numériques et les valeurs nulles de retour à l’héritage. Les listes natives de packs/entités ne sont qu’une représentation : les valeurs enregistrées restent des objets indexés par ID, avec validation des doublons et conservation des options supplémentaires. Les cases à défaut actif et les sélecteurs d’héritage ne doivent pas être persistés en ouvrant le formulaire ni écraser une politique héritée. Aucun observateur ou abonnement de rendu supplémentaire ne doit être ajouté pour l’éditeur.
 
-## Signature PIN 1.0.0 — clavier commun
+## Signature PIN 1.0.1 — protection et clavier autonomes
 
 Le module additionnel `signature_pin` protège toutes les actions de la carte
 pour les utilisateurs sélectionnés. Son formulaire natif présente activation,
 PIN masqué et sélection multiple des comptes par leur nom ; aucun filtre
 d’action ni délai de déverrouillage. La liste des comptes est chargée uniquement
 dans cet éditeur, avec un administrateur, jamais dans le runtime de la tablette.
-Le clavier JS/CSS de l’alarme Panel est assemblé depuis `shared/src/code-keypad`.
+Le clavier et sa validation appartiennent exclusivement à `signature-pin/src/keypad`.
 Conserver ses trois colonnes, ses cibles tactiles, son champ masqué, son œil,
 son effacement et les rôles du thème. Les styles restent limités au dialogue ;
-aucun nouveau fond ou badge permanent sur la carte. Panel 1.4.22 évite son
-ancien prompt quand `signature_pin` figure dans la liste des modules.
+aucun nouveau fond ou badge permanent sur la carte. Panel 1.4.23 ne contient
+plus de demande de code ni d’option de protection ; les autres modules de
+présentation restent également sans gestion du PIN.
 
 ## Modules de présentation autonomes
 
@@ -724,44 +725,18 @@ Les URL, index et cadrages sont fournis par la configuration Jinja. Le lecteur d
 Tester 288/328/358/382/600 px, clair/sombre, avec/sans thème, une/deux/trois informations, détails et 0–3 commandes, mises à jour natives et thème seul, clics/désactivation/teardown et média. `styles/test/panel-native.browser.cjs` utilise le vrai Bubble 3.4.1 avec `BUBBLE_NATIVE_SCRIPT_PATH` ; il vérifie le SHA de la source. Le backend HA est simulé ; ne pas déduire une validation HA réelle ou Safari/iOS.
 
 
-### Panel 1.4.21 — pavé numérique intégré de l’alarme
+### Clavier Signature PIN
 
-La fenêtre numérique conserve la commande choisie et reprend un pavé 3 × 4 :
-1–9 puis effacement complet, 0 et validation ✓. Touches rondes de 52–72 px,
-surface neutre du thème, confirmation verte issue de `success-color` ; croix
-d’annulation en haut avec cible de 44 px. Le champ Code gris souligné garde
-une police de 20 px, le masquage initial et un œil avec état accessible.
-Largeur maximale 420 px, marges d’écran de 12 px, rayon carte augmenté de
-10 px et défilement vertical sur faible hauteur ; aucun débordement horizontal.
-
-En numérique, le champ readonly/inputmode none utilise le pavé intégré.
-Conserver les chiffres du clavier physique, Retour arrière, Suppr et Entrée,
-les zéros initiaux, l’annulation/Échap et les gardes de 1.4.20. Aucun envoi
-avant validation. Bloquer la validation vide et les contrôles pendant la
-requête. Une erreur vide et masque la saisie. Le format text reste éditable,
-avec l’œil et ✓, sans chiffres affichés. Tester les clics et vrais événements
-tactiles, 320/820 px, faible hauteur, thèmes clair/sombre et replis sans thème.
-La fixture Chromium ne constitue pas une validation Home Assistant/iPadOS.
-
-### Panel 1.4.20 — saisie directe du code d’alarme
-
-`alarm_code: true` ajoute un dialogue modal uniquement aux commandes nommées
-d’alarme de la carte. Garder les boutons et la géométrie existants : le clic
-ouvre la saisie pour l’action choisie, sans panneau de sélection supplémentaire.
-Surface, texte, bordure, rayon et contrôles suivent les variables du thème,
-avec replis sans Signature. Largeur maximale 360 px, marges de 16 px à l’écran,
-défilement vertical si nécessaire, champ masqué de 48 px et police de 20 px
-pour éviter le zoom iOS, boutons d’au moins 44 px. Le focus entre dans le champ ;
-Annuler et Échap ferment la fenêtre et vident le code avant tout envoi.
-
-La saisie reste éphémère ; aucun PIN valide dans la configuration de carte.
-La vérification appartient au backend. Les gardes de commandes désactivées,
-les actions natives hors alarme, les détails sur appui long et le comportement
-sans l’option restent conservés. Tester les trois commandes, annulation,
-zéros initiaux, texte, erreurs, doubles soumissions, invalidation pendant
-la saisie et nettoyage, ainsi que 320/820 px, clair/sombre et avec/sans thème.
-La fixture `panel-alarm-code.browser.cjs` charge Bubble 3.4.3 épinglé avec
-`BUBBLE_ALARM_NATIVE_SCRIPT_PATH`. Backend simulé, aucune validation iPadOS.
+Pavé de trois colonnes, 1–9 puis effacement, 0 et validation ✓. Les touches
+rondes conservent 52–72 px, la surface neutre et la confirmation verte issue
+de `success-color`. Le champ masqué, son œil et la fermeture en haut restent
+identiques. Largeur maximale 420 px, marges de 12 px et défilement vertical
+sur faible hauteur ; aucun débordement horizontal. Le champ readonly avec
+`inputmode: none` évite le clavier système. Conserver chiffres physiques,
+Retour arrière, Suppr, Entrée, zéros initiaux, Annuler et Échap. Le clavier
+reste propre au module PIN ; aucun code ou formulaire correspondant dans Panel.
+Les fixtures Chromium utilisent Bubble 3.4.3 épinglé et un backend simulé ;
+aucune validation Home Assistant/iPadOS.
 
 ### Panel 1.1.1 — badges et actions indépendantes
 
