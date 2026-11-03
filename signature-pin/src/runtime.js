@@ -83,7 +83,12 @@ if (!runtime) {
   };
   const setHass = value => {
     const previous = userId(); rawHass = value;
-    if (previous !== userId()) dismiss();
+    if (previous !== userId()) {
+      dismiss();
+      // Bubble may defer its next render. Do not let that render dismiss a
+      // fresh request already opened under the new identity in the meantime.
+      runtime.configSignature = runtime.signature();
+    }
   };
   runtime = host._signaturePinRuntime = {root, version, required, signature, dismiss,
     get dialog() { return keypad?.dialog; }, disposed: false,

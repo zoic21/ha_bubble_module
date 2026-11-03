@@ -190,8 +190,11 @@ test('More info stays direct for an exempt account and for a card with PIN disab
 test('tablet selection, all-user mode, fresh identities and cancellation are scoped to the card',native,async t=>{
   const page=await setup(t,{user:'admin'});
   await gesture(page);assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),1);
-  await page.evaluate(()=>{card.hass=window.hass={...hass,user:{id:'tablet'}};});
-  await gesture(page);await dialog(page).waitFor({state:'visible'});
+  // HA's setter writes _hass before Bubble's coalesced render. Explicitly
+  // flush that render after the first action to make the ordering deterministic.
+  await page.evaluate(()=>{card._hass=window.hass={...hass,user:{id:'tablet'}};});
+  await gesture(page);await page.evaluate(()=>card.updateBubbleCard());
+  await dialog(page).waitFor({state:'visible'});
   await dialog(page).locator('[data-digit="0"]').click();
   await page.keyboard.press('Escape');await dialog(page).waitFor({state:'detached'});
   assert.equal(await page.evaluate(()=>calls.length),1);
