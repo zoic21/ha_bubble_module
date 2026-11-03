@@ -55,30 +55,70 @@ if (alarmCodeEnabled && !alarmCode) {
     const dialog = document.createElement('dialog');
     dialog.className = 'dp-alarm-code-dialog';
     dialog.setAttribute('aria-label', labels[request.method][0]);
-    dialog.innerHTML = '<form><h2></h2><label>Code de l’alarme<input type="password" autocomplete="off" required></label><p class="dp-alarm-code-error" role="alert" hidden></p><div class="dp-alarm-code-buttons"><button type="button">Annuler</button><button type="submit"></button></div></form>';
+    dialog.innerHTML = '<form><div class="dp-alarm-code-header"><button type="button" data-close aria-label="Annuler">×</button><h2></h2></div><div class="dp-alarm-code-field"><input type="password" placeholder="Code" aria-label="Code de l’alarme" autocomplete="off" required><button type="button" data-reveal aria-label="Afficher le code" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="dp-alarm-code-slash" d="m3 3 18 18"/></svg></button></div><p class="dp-alarm-code-error" role="alert" hidden></p><div class="dp-alarm-code-keypad">'
+      + [1,2,3,4,5,6,7,8,9].map(digit => '<button type="button" data-digit="'+digit+'">'+digit+'</button>').join('')
+      + '<button type="button" data-clear aria-label="Effacer le code">×</button><button type="button" data-digit="0">0</button><button type="submit" aria-label="Valider">✓</button></div></form>';
     const form = dialog.querySelector('form'), input = dialog.querySelector('input');
     const error = dialog.querySelector('.dp-alarm-code-error');
-    const cancel = dialog.querySelector('button[type="button"]');
+    const cancel = dialog.querySelector('[data-close]');
+    const reveal = dialog.querySelector('[data-reveal]');
+    const clear = dialog.querySelector('[data-clear]');
+    const digits = [...dialog.querySelectorAll('[data-digit]')];
     const submit = dialog.querySelector('button[type="submit"]');
     dialog.querySelector('h2').textContent = labels[request.method][0];
-    submit.textContent = labels[request.method][1];
+    submit.setAttribute('aria-label', labels[request.method][1]);
     const numeric = alarmCode.hass.states[request.entity].attributes.code_format !== 'text';
-    input.inputMode = numeric ? 'numeric' : 'text';
-    if (numeric) input.pattern = '[0-9]+';
-    let pending = false;
+    input.inputMode = numeric ? 'none' : 'text';
+    input.readOnly = numeric;
+    digits.forEach(button => { button.hidden = !numeric; });
+    clear.hidden = !numeric;
+    dialog.querySelector('.dp-alarm-code-keypad').classList.toggle('dp-alarm-code-text', !numeric);
+    let pending = false, locked = false;
+    const valid = () => numeric ? /^[0-9]+$/.test(input.value) : input.value.length > 0;
+    const sync = () => {
+      input.disabled = reveal.disabled = pending || locked;
+      digits.forEach(button => { button.disabled = pending || locked; });
+      clear.disabled = pending || locked || !input.value;
+      submit.disabled = pending || locked || !valid();
+    };
+    const mask = () => {
+      input.type = 'password'; reveal.setAttribute('aria-pressed', 'false');
+      reveal.setAttribute('aria-label', 'Afficher le code');
+    };
+    const enter = digit => { if (!pending && !locked) { input.value += digit; sync(); input.focus(); } };
+    digits.forEach(button => button.addEventListener('click', () => enter(button.dataset.digit)));
+    clear.addEventListener('click', () => { input.value = ''; sync(); input.focus(); });
+    input.addEventListener('input', sync);
+    reveal.addEventListener('click', () => {
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      reveal.setAttribute('aria-pressed', String(visible));
+      reveal.setAttribute('aria-label', visible ? 'Masquer le code' : 'Afficher le code');
+      input.focus();
+    });
+    dialog.addEventListener('keydown', event => {
+      if (!numeric || pending || locked || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (/^[0-9]$/.test(event.key)) { event.preventDefault(); enter(event.key); }
+      else if (['Backspace','Delete'].includes(event.key)) {
+        event.preventDefault(); input.value = event.key === 'Delete' ? '' : input.value.slice(0,-1); sync();
+      } else if (event.key === 'Enter') {
+        event.preventDefault(); if (!submit.disabled) form.requestSubmit();
+      }
+    });
+    sync();
     cancel.addEventListener('click', dismiss);
     dialog.addEventListener('cancel', event => { event.preventDefault(); dismiss(); });
     dialog.addEventListener('close', () => { if (alarmCode.dialog === dialog) dismiss(); });
     form.addEventListener('submit', async event => {
       event.preventDefault();
-      if (pending || alarmCode.dialog !== dialog || !form.reportValidity()) return;
+      if (pending || locked || alarmCode.dialog !== dialog || !valid() || !form.reportValidity()) return;
       if (!available(node, gesture, request)) {
         input.value = ''; error.textContent = 'Cette commande n’est plus disponible.';
-        error.hidden = false; submit.disabled = true; return;
+        error.hidden = false; locked = true; sync(); return;
       }
-      pending = true; submit.disabled = true; input.disabled = true; error.hidden = true;
+      pending = true; error.hidden = true;
       const code = input.value;
-      input.value = '';
+      input.value = ''; mask(); sync();
       try {
         await alarmCode.hass.callService('alarm_control_panel', request.method,
           {...request.data, code}, {entity_id: request.entity});
@@ -87,12 +127,14 @@ if (alarmCodeEnabled && !alarmCode) {
         if (alarmCode.dialog !== dialog) return;
         // Do not expose backend data that could contain the supplied code.
         error.textContent = 'La commande a échoué. Vérifiez le code et réessayez.';
-        error.hidden = false; submit.disabled = false; input.disabled = false;
-        input.focus();
-      } finally { pending = false; }
+        error.hidden = false;
+      } finally {
+        pending = false;
+        if (alarmCode.dialog === dialog) { sync(); input.focus(); }
+      }
     });
     root.append(dialog); alarmCode.dialog = dialog;
-    // Synchronous with the gesture so iPadOS can open its numeric keyboard.
+    // Numeric input is readonly: the on-screen keypad avoids the OS keyboard.
     try { dialog.showModal(); input.focus(); }
     catch (_) { dismiss(); }
   };

@@ -1,5 +1,32 @@
 # Signature Panel
 
+## 1.4.21 — 3 novembre 2026 — pavé numérique intégré pour l’alarme
+
+La saisie directe de `alarm_code: true` reprend un pavé à trois colonnes :
+touches rondes **1–9**, puis **effacer, 0, ✓**. Le champ Code est masqué,
+avec un œil pour afficher/masquer temporairement sa valeur. La croix en
+haut ferme la fenêtre et efface la saisie sans envoyer de commande.
+L’effacement en bas vide tout le code ; ✓ valide seulement un code non vide.
+Le titre conserve l’action choisie, sans écran de sélection supplémentaire.
+
+Pour les codes numériques, le champ en lecture seule et `inputmode: none`
+laissent la saisie au pavé intégré. Les zéros initiaux sont conservés.
+Un clavier physique reste utilisable : chiffres, Retour arrière, Suppr
+pour vider et Entrée pour valider. Les autres caractères sont ignorés.
+Le format `text` garde un champ éditable et une validation ✓, sans pavé.
+
+Les contrôles sont désactivés pendant l’envoi ; une erreur renvoyée par HA
+vide et masque le champ avant la nouvelle tentative. Les gardes de commande,
+le nettoyage et la vérification du code côté serveur restent ceux de 1.4.20.
+Aucun PIN de référence, temporisateur ou dépendance ajouté.
+
+Importer **Signature Panel 1.4.21**, puis recharger le frontend. Les cartes
+qui ont déjà `alarm_code: true` ne demandent aucune modification du dashboard.
+Touches tactiles, œil, effacement, clavier physique, erreurs, annulation et
+dimensions sont vérifiés avec Bubble 3.4.3 dans Chromium et un backend simulé.
+Les thèmes clair/sombre et les petits écrans sont couverts ; le clavier et
+le rendu de Home Assistant installé sur iPadOS restent à confirmer.
+
 ## 1.4.20 — 3 novembre 2026 — code direct sur les commandes d’alarme
 
 Avec `signature_panel.alarm_code: true`, une commande nommée `type: command`

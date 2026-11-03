@@ -125,8 +125,8 @@ test('generated modules are current, autonomous and limited to their own present
     assert.match(definitions[layout].version,/^\d+\.\d+\.\d+$/);
     assert.ok(definitions[layout].editor[1].fields);
     assert.ok(!Object.hasOwn(definitions[layout].editor[1].fields,'layout'));
-    // Panel also carries the opt-in alarm PIN form, its cleanup and themed CSS.
-    assert.ok(Buffer.byteLength(output.content)<(layout==='panel'?82000:70000));
+    // Panel also carries the opt-in alarm PIN keypad, its cleanup and themed CSS.
+    assert.ok(Buffer.byteLength(output.content)<(layout==='panel'?85000:70000));
     for(const other of layouts.filter(name=>name!==layout))assert.ok(!definitions[layout].code.includes('ha-card[data-dp-layout="'+other+'"]'),layout+' contains '+other+' CSS');
   }
 });

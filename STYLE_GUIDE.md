@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.20**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.21**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -710,6 +710,25 @@ Les URL, index et cadrages sont fournis par la configuration Jinja. Le lecteur d
 
 Tester 288/328/358/382/600 px, clair/sombre, avec/sans thème, une/deux/trois informations, détails et 0–3 commandes, mises à jour natives et thème seul, clics/désactivation/teardown et média. `styles/test/panel-native.browser.cjs` utilise le vrai Bubble 3.4.1 avec `BUBBLE_NATIVE_SCRIPT_PATH` ; il vérifie le SHA de la source. Le backend HA est simulé ; ne pas déduire une validation HA réelle ou Safari/iOS.
 
+
+### Panel 1.4.21 — pavé numérique intégré de l’alarme
+
+La fenêtre numérique conserve la commande choisie et reprend un pavé 3 × 4 :
+1–9 puis effacement complet, 0 et validation ✓. Touches rondes de 52–72 px,
+surface neutre du thème, confirmation verte issue de `success-color` ; croix
+d’annulation en haut avec cible de 44 px. Le champ Code gris souligné garde
+une police de 20 px, le masquage initial et un œil avec état accessible.
+Largeur maximale 420 px, marges d’écran de 12 px, rayon carte augmenté de
+10 px et défilement vertical sur faible hauteur ; aucun débordement horizontal.
+
+En numérique, le champ readonly/inputmode none utilise le pavé intégré.
+Conserver les chiffres du clavier physique, Retour arrière, Suppr et Entrée,
+les zéros initiaux, l’annulation/Échap et les gardes de 1.4.20. Aucun envoi
+avant validation. Bloquer la validation vide et les contrôles pendant la
+requête. Une erreur vide et masque la saisie. Le format text reste éditable,
+avec l’œil et ✓, sans chiffres affichés. Tester les clics et vrais événements
+tactiles, 320/820 px, faible hauteur, thèmes clair/sombre et replis sans thème.
+La fixture Chromium ne constitue pas une validation Home Assistant/iPadOS.
 
 ### Panel 1.4.20 — saisie directe du code d’alarme
 

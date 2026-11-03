@@ -9,11 +9,11 @@ const code = loadModule('signature-panel').code;
 const nativePath = process.env.BUBBLE_ALARM_NATIVE_SCRIPT_PATH;
 const entity = 'alarm_control_panel.alarme';
 
-async function setup(t) {
+async function setup(t,options={}) {
   const bytes = fs.readFileSync(nativePath);
   // Bubble 3.4.3, commit 2c3b43d1168ca05701be15fd96e416609601ecfa.
   assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'), '26f2c84116f20fa21f4cf3812a18f7aa1498246c');
-  const page = await fixture(t,{prepare:null});
+  const page = await fixture(t,{prepare:null,...options});
   await page.route('**/*',r=>r.fulfill({contentType:'application/json',body:'{}'}));
   await page.setContent('<style>body{margin:16px}#cards{width:500px}</style><home-assistant></home-assistant><div id="cards"></div>');
   await page.evaluate(()=>{
@@ -61,8 +61,13 @@ async function draw(page,{enabled=true,mode='light',plain=false,width=382,format
 const command = (page,i=0)=>page.locator('bubble-card').locator('.alarm-command-'+i);
 const dialog = page=>page.locator('bubble-card').locator('dialog');
 const input = page=>dialog(page).locator('input');
+async function typeCode(page,pin='0073') {
+  if(await input(page).evaluate(e=>e.readOnly)) {
+    for(const digit of pin)await dialog(page).locator('[data-digit="'+digit+'"]').click();
+  } else await input(page).fill(pin);
+}
 async function send(page,pin='0073') {
-  await input(page).fill(pin);
+  await typeCode(page,pin);
   await dialog(page).locator('button[type="submit"]').click();
 }
 async function gesture(page,i,action='tap') {
@@ -80,15 +85,17 @@ test('Ajax commands open the chosen PIN form directly and send only that command
     await command(page,i).click();
     await dialog(page).waitFor({state:'visible'});
     assert.equal(await input(page).getAttribute('type'),'password');
-    assert.equal(await input(page).getAttribute('inputmode'),'numeric');
+    assert.equal(await input(page).getAttribute('inputmode'),'none');
     assert.equal(await input(page).evaluate(e=>e===e.getRootNode().activeElement),true);
-    assert.equal(await dialog(page).locator('button').count(),2);
+    assert.equal(await dialog(page).locator('[data-digit]').count(),10);
+    assert.equal(await input(page).evaluate(e=>e.readOnly),true);
     assert.deepEqual(await page.evaluate(()=>({calls:serviceCalls,actions:nativeActions})),{calls:[],actions:[]});
-    await dialog(page).locator('button[type="submit"]').click();
+    assert.equal(await dialog(page).locator('button[type="submit"]').isDisabled(),true);
+    await dialog(page).locator('form').evaluate(e=>e.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
     assert.deepEqual(await page.evaluate(()=>serviceCalls),[]);
-    await input(page).fill('abc');await dialog(page).locator('button[type="submit"]').click();
+    await page.keyboard.type('abc');
     assert.deepEqual(await page.evaluate(()=>serviceCalls),[]);
-    if(i===2){await input(page).fill('0073');await page.keyboard.press('Enter');}else await send(page);
+    if(i===2){await page.keyboard.type('0073');await page.keyboard.press('Enter');}else await send(page);
     await dialog(page).waitFor({state:'detached'});
     assert.deepEqual(await page.evaluate(()=>serviceCalls),[['alarm_control_panel',method,{code:'0073'},{entity_id:entity}]]);
     assert.equal(await page.evaluate(()=>JSON.stringify(card.config)),original);
@@ -98,9 +105,9 @@ test('Ajax commands open the chosen PIN form directly and send only that command
 test('Cancel and Escape clear the code without sending; details and opt-out stay native',{skip:!nativePath},async t=>{
   const page=await setup(t);await draw(page);
   for(const escape of [false,true]) {
-    await command(page).click();await input(page).fill('0073');
+    await command(page).click();await typeCode(page,'0073');
     await input(page).evaluate(e=>window.oldInput=e);
-    if(escape)await page.keyboard.press('Escape');else await dialog(page).getByText('Annuler',{exact:true}).click();
+    if(escape)await page.keyboard.press('Escape');else await dialog(page).getByRole('button',{name:'Annuler',exact:true}).click();
     await dialog(page).waitFor({state:'detached'});
     assert.deepEqual(await page.evaluate(()=>({calls:serviceCalls,value:oldInput.value})),{calls:[],value:''});
   }
@@ -130,10 +137,30 @@ test('In-flight submission cannot be duplicated and backend errors allow a fresh
   assert.equal((await page.evaluate(()=>serviceCalls)).length,3);
 });
 
+test('Touch keypad keeps zeros, reveals on request, clears and accepts physical editing',{skip:!nativePath},async t=>{
+  const page=await setup(t,{viewport:{width:820,height:700},hasTouch:true,isMobile:true});
+  await draw(page);await command(page).tap();
+  for(const digit of '0073')await dialog(page).locator('[data-digit="'+digit+'"]').tap();
+  assert.equal(await input(page).inputValue(),'0073');
+  assert.deepEqual(await page.evaluate(()=>serviceCalls),[]);
+  await dialog(page).getByRole('button',{name:'Afficher le code',exact:true}).tap();
+  assert.equal(await input(page).getAttribute('type'),'text');
+  await dialog(page).getByRole('button',{name:'Masquer le code',exact:true}).tap();
+  assert.equal(await input(page).getAttribute('type'),'password');
+  await dialog(page).getByRole('button',{name:'Effacer le code',exact:true}).tap();
+  assert.equal(await input(page).inputValue(),'');
+  assert.equal(await dialog(page).locator('button[type="submit"]').isDisabled(),true);
+  await page.keyboard.type('0074');await page.keyboard.press('Backspace');await page.keyboard.type('3');
+  assert.equal(await input(page).inputValue(),'0073');
+  await page.keyboard.press('Delete');assert.equal(await input(page).inputValue(),'');
+  await page.keyboard.type('0073');await page.keyboard.press('Enter');await dialog(page).waitFor({state:'detached'});
+  assert.deepEqual(await page.evaluate(()=>serviceCalls),[['alarm_control_panel','alarm_disarm',{code:'0073'},{entity_id:entity}]]);
+});
+
 test('Disabled, unavailable, removed and changed commands cannot submit a stale PIN',{skip:!nativePath},async t=>{
   const page=await setup(t);
   for(const change of ['disabled','unavailable','action','removed','option','teardown','disconnect']) {
-    await draw(page);await command(page).click();await input(page).fill('0073');
+    await draw(page);await command(page).click();await typeCode(page,'0073');
     await page.evaluate(change=>{
       window.staleForm=card.card.querySelector('dialog form');window.staleInput=staleForm.querySelector('input');
       if(change==='disabled')card.config.signature_panel.sub_button_styles['alarm-command-0'].disabled=true;
@@ -176,14 +203,24 @@ test('PIN form fits narrow screens, follows live themes and keeps touch targets'
       return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,overflow:e.scrollWidth-e.clientWidth,background:s.backgroundColor,
         inputSize:parseFloat(getComputedStyle(i).fontSize),buttons:[...e.querySelectorAll('button')].map(b=>b.getBoundingClientRect().height)};
     });
-    assert.ok(m.left>=15&&m.right<=width-15&&m.top>=15&&m.bottom<=585,JSON.stringify(m));
+    assert.ok(m.left>=11&&m.right<=width-11&&m.top>=11&&m.bottom<=589,JSON.stringify(m));
     assert.ok(m.overflow<=1);assert.ok(m.inputSize>=16);assert.ok(m.buttons.every(h=>h>=44));
+    const keys=await dialog(page).locator('.dp-alarm-code-keypad button').evaluateAll(nodes=>nodes.map(e=>{
+      const r=e.getBoundingClientRect();return{width:r.width,height:r.height,radius:getComputedStyle(e).borderRadius};
+    }));
+    assert.equal(keys.length,12);
+    for(const key of keys){assert.equal(key.width,key.height);assert.equal(key.radius,'50%');}
     if(process.env.PANEL_ALARM_CAPTURE_DIR&&!plain) {
       fs.mkdirSync(process.env.PANEL_ALARM_CAPTURE_DIR,{recursive:true});
       await page.screenshot({path:process.env.PANEL_ALARM_CAPTURE_DIR+'/alarm-pin-'+width+'-'+mode+'.png'});
     }
     await page.evaluate(()=>document.documentElement.style.setProperty('--signature-card-background','#123456'));
     assert.equal(await dialog(page).evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(18, 52, 86)');
-    await dialog(page).getByText('Annuler',{exact:true}).click();
+    await dialog(page).getByRole('button',{name:'Annuler',exact:true}).click();
   }
+  await page.setViewportSize({width:820,height:360});await draw(page,{width:788});await command(page).click();
+  const low=await dialog(page).evaluate(e=>({height:e.getBoundingClientRect().height,overflow:e.scrollHeight>e.clientHeight}));
+  assert.ok(low.height<=336);assert.equal(low.overflow,true);
+  await dialog(page).locator('button[type="submit"]').scrollIntoViewIfNeeded();
+  await dialog(page).getByRole('button',{name:'Annuler',exact:true}).click();
 });
