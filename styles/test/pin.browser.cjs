@@ -194,6 +194,7 @@ test('selected sub-buttons protect every gesture and More info while the main ca
   const page=await setup(t,{options:{scope:'sub_buttons',sub_buttons:['2']},config:{sub_button:{main:[button('Libre'),button('Mode maison')]}}});
   await page.locator('bubble-card').locator('.bubble-main-icon-container').click();
   await page.locator('bubble-card').locator('.bubble-sub-button-1').click();
+  await page.waitForFunction(()=>calls.length===1);
   assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),1);
   for(const action of ['tap','hold','double_tap']){
     const before=await page.evaluate(()=>actions.length);
@@ -213,6 +214,7 @@ test('selected sub-buttons protect every gesture and More info while the main ca
   assert.equal(await page.evaluate(()=>details.length),2);
   await page.evaluate(()=>{card.hass=window.hass={...hass,user:{id:'admin'}};});
   await page.locator('bubble-card').locator('.bubble-sub-button-2').click();
+  await page.waitForFunction(()=>calls.length===3);
   assert.equal(await dialog(page).count(),0);assert.equal(await page.evaluate(()=>calls.length),3);
 });
 test('native dropdown choices are scoped by sub-button, even with the same entity and legacy HA menus',native,async t=>{
