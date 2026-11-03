@@ -65,7 +65,7 @@ async function setup(t, {user='tablet', options={}, config={}, width=382, mode='
     document.querySelector('#cards').append(card);card.hass=hass;
     window.contexts=[{teardown:()=>card.remove()}];
   },{user,options,config,theme,nativeModes,mode,plain});
-  await page.waitForFunction(()=>card && !card.initialLoad && (!card.config.modules.includes('signature_pin') || card._signaturePinRuntime));
+  await page.waitForFunction(()=>card && !card.initialLoad && (!card.config.modules.includes('signature_pin') || card.config.signature_pin?.enabled===false || card._signaturePinRuntime));
   return page;
 }
 const dialog=page=>page.locator('bubble-card').locator('dialog');
@@ -98,6 +98,47 @@ test('PIN protects every gesture and action, preserves data and never forwards t
   await dialog(page).waitFor({state:'visible'});assert.deepEqual(await page.evaluate(()=>details),[]);
   await send(page);await dialog(page).waitFor({state:'detached'});
   assert.deepEqual(await page.evaluate(()=>details),[{entityId:'input_select.mode'}]);
+});
+test('real More info clicks on the icon, card, value and sub-button require PIN before HA opens details',native,async t=>{
+  const actionConfig={button_action:{tap_action:{action:'more-info'}},
+    sub_button:{main:[{entity:'input_select.mode',name:'Détails',sub_button_type:'default',show_name:true,
+      tap_action:{action:'more-info'},hold_action:{action:'more-info'},double_tap_action:{action:'more-info'}}]}};
+  for(const scenario of [
+    {config:actionConfig,selectors:['.bubble-main-icon-container','.bubble-background','.bubble-sub-button-1']},
+    {config:{...actionConfig,rows:2,modules:['signature_panel','signature_pin'],signature_panel:{}},selectors:['.bubble-state']}
+  ]){
+    const page=await setup(t,{config:scenario.config});
+    await page.evaluate(()=>{
+      // HA handles hass-action outside the card and opens its own More info dialog.
+      document.addEventListener('hass-action',event=>{
+        const action=event.detail.config[event.detail.action+'_action'];
+        if(action?.action==='more-info')document.querySelector('home-assistant').dispatchEvent(new CustomEvent('hass-more-info',{
+          detail:{entityId:action.entity||event.detail.config.entity},bubbles:true,composed:true}));
+      });
+    });
+    for(const selector of scenario.selectors){
+      const control=page.locator('bubble-card').locator(selector).first();
+      const before=await page.evaluate(()=>details.length);
+      await control.click();await dialog(page).waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>details.length),before);
+      await send(page,'0000');assert.equal(await page.evaluate(()=>details.length),before);
+      await dialog(page).locator('[data-close]').click();await dialog(page).waitFor({state:'detached'});
+      assert.equal(await page.evaluate(()=>details.length),before);
+      await control.click();await send(page);await dialog(page).waitFor({state:'detached'});
+      assert.equal(await page.evaluate(()=>details.length),before+1);
+      assert.deepEqual(await page.evaluate(()=>details.at(-1)),{entityId:'input_select.mode'});
+    }
+    assert.deepEqual(await page.evaluate(()=>calls),[]);
+  }
+});
+test('More info stays direct for an exempt account and for a card with PIN disabled',native,async t=>{
+  for(const setting of [{user:'admin'},{options:{enabled:false}}]){
+    const page=await setup(t,{...setting,config:{button_action:{tap_action:{action:'more-info'}}}});
+    await page.locator('bubble-card').locator('.bubble-main-icon-container').click();
+    await page.waitForFunction(()=>actions.length===1);
+    assert.equal((await page.evaluate(()=>actions))[0].config.tap_action.action,'more-info');
+    assert.equal(await dialog(page).count(),0);
+  }
 });
 test('tablet selection, all-user mode, fresh identities and cancellation are scoped to the card',native,async t=>{
   const page=await setup(t,{user:'admin'});

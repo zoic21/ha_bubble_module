@@ -55,6 +55,16 @@ appareil demandera aussi le code. Les autres comptes gardent l’accès direct.
 - Une commande en attente n’autorise pas d’autres commandes. Une modification de configuration, d’identité ou une destruction de carte invalide la demande.
 - Les automatismes HA, la géolocalisation, les boutons physiques et les autres cartes ne sont pas modifiés.
 
+### Ouverture de « Plus d’infos »
+
+La protection comprend aussi l’action `more-info` et l’événement natif
+`hass-more-info`. Pour un utilisateur concerné, le PIN doit être validé avant
+l’ouverture de la fenêtre de détails, depuis l’icône, le fond, une valeur ou
+un sous-bouton de la carte. Un code incorrect ou une annulation laisse cette
+fenêtre fermée. Les utilisateurs exemptés et les cartes dont la protection est
+désactivée gardent leur accès direct. Ce comportement est déjà inclus dans
+Signature PIN 1.0.1 ; ces précisions ne demandent pas de nouvelle importation.
+
 Le clavier reprend les touches rondes 1–9, puis effacer, 0 et ✓, le champ
 masqué, l’œil et la fermeture en haut. Le champ numérique en lecture seule
 évite le clavier système de la tablette. Le clavier physique conserve chiffres,
