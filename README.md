@@ -14,21 +14,21 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 
 | Module | Version | Distribution | Documentation |
 |---|---|---|---|
-| Signature Square — square tiles | 2.0.11 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
-| Signature Compact — information, control rows and media players | 1.6.11 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.4.23 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
-| Signature PIN — card-wide keypad with per-user selection | 1.1.0 | [signature-pin.yaml](signature-pin/dist/signature-pin.yaml) | [Guide](signature-pin/doc/README.md) |
-| Signature Room — room summaries and controls | 1.4.5 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
-| Signature Header — page headers and section titles | 1.4.2 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
-| Signature Flow — six configurable flow slots | 3.6.7 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
-| Signature Energy Balance — daily net supply bar | 1.0.0 | [signature-energy-balance.yaml](signature-energy-balance/dist/signature-energy-balance.yaml) | [Guide](signature-energy-balance/doc/README.md) |
-| Signature Weather — forecasts and optional local measurements | 1.3.6 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
-| Signature Wind Rose — wind direction frequencies | 1.5.5 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
-| Signature Group — popup activity summaries | 1.1.5 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
+| Signature Square — square tiles | 2.1.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
+| Signature Compact — information, control rows and media players | 1.7.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.5.0 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature PIN — card-wide keypad with per-user selection | 1.2.0 | [signature-pin.yaml](signature-pin/dist/signature-pin.yaml) | [Guide](signature-pin/doc/README.md) |
+| Signature Room — room summaries and controls | 1.5.0 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
+| Signature Header — page headers and section titles | 1.5.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
+| Signature Flow — six configurable flow slots | 3.7.0 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
+| Signature Energy Balance — daily net supply bar | 1.1.0 | [signature-energy-balance.yaml](signature-energy-balance/dist/signature-energy-balance.yaml) | [Guide](signature-energy-balance/doc/README.md) |
+| Signature Weather — forecasts and optional local measurements | 1.4.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
+| Signature Wind Rose — wind direction frequencies | 1.6.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
+| Signature Group — popup activity summaries | 1.2.0 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
-| Signature Hue — native Hue presentation companion | 1.1.2 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
-| Signature Irrigation — calendar reader and weekday controls | 1.0.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
-| Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
+| Signature Hue — native Hue presentation companion | 1.2.0 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
+| Signature Irrigation — calendar reader and weekday controls | 1.1.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
+| Alert Manager — alert badges and optional card tint | 3.8.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 The main Signature presentations share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions. Hue and Irrigation are optional companions: keep Compact for the native card frame and add the companion afterwards, only where needed. The [17 October style audit](docs/STYLE_AUDIT_2026_10.md) fixes the remaining Panel, Room-unit and Hue-label inconsistencies and documents the shared rules and preserved insets.
 
@@ -82,7 +82,7 @@ All fifteen module YAML distributions are generated and minified: local JavaScri
 
 ## Configuration
 
-Each Signature presentation declares an `editor` schema: open its module in the card editor to configure its options with French labels and collapsible sections. Square, Room and Header expose only their own settings; Compact supports button, cover, climate and media-player cards. Media players expose only their two color options. An inline editor bridge reuses Bubble Card's object-field logic and `visible_if` support without its redundant item header or delete button; it is validated against 3.4.1. Existing YAML configurations remain valid and hidden values are retained. Sub-button style objects, background/opacity scalars and the default-on room color setting use small YAML fields inside the form to preserve their types. Standard controls, entities, and actions remain those provided by Bubble Card.
+Each Signature presentation declares an `editor` schema: open its module in the card editor to configure its options with French labels and collapsible sections. Square, Room and Header expose only their own settings; Compact supports button, cover, climate and media-player cards. Media players expose only their two color options. An inline editor bridge reuses Bubble Card's object-field logic and `visible_if` support without its redundant item header or delete button; it is validated against 3.4.1. Existing YAML configurations remain valid and hidden values are retained. Guided controls edit sub-button styles, images, thresholds and mixed scalar/template values while preserving their existing YAML types; an advanced YAML mode remains available. Standard controls, entities, and actions remain those provided by Bubble Card.
 
 Signature Flow uses the same inline form under **Modules → Signature Flow**, with common settings and six collapsible slot sections. Values, appearance, formatting, flow entities, global/per-slot animation and native actions are configurable there. Disabled slots, empty secondary text and template values hide irrelevant settings; existing YAML keys and animation inheritance are preserved. It replaces the native button content with a configurable flow diagram; see its [home example](signature-flow/examples/home.yaml). Signature Weather replaces the button content with a forecast ribbon, temperature ranges, or a current-weather summary; see its [local station example](signature-weather/examples/summary-local.yaml).
 
@@ -152,3 +152,5 @@ phones, shifted left even without buttons. Corner controls and icon colors stay
 unchanged; long mobile titles wrap as needed. Update only Panel; existing
 dashboard configurations remain compatible.
 
+
+Les formulaires guidés proposent des contrôles natifs pour les objets complexes, avec un accès YAML avancé. Les clés enregistrées, les templates et le rendu des configurations existantes restent compatibles ; aucune migration du dashboard n’est nécessaire.

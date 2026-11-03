@@ -1,6 +1,6 @@
 # Signature Group
 
-Version **1.1.3**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
+Version **1.2.0**. Module autonome pour Bubble Card **3.4.1 ou ultérieur**, à ajouter à une popup et à son bouton de synthèse. Les cartes et leurs conditions restent définies une seule fois dans la popup. Les actions natives sont conservées ; `signature_compact` fournit la surface et la hauteur des exemples.
 
 Importer [signature-group.yaml](../dist/signature-group.yaml) dans l’éditeur des modules Bubble. Voir l’[exemple complet](../examples/activities.yaml), contenant les deux cartes séparées par `---`.
 
@@ -154,3 +154,9 @@ par défaut, lié au rayon de carte. Elle conserve un emplacement total de
 Le fond neutre apparaît autour de l'image et la silhouette arrondie de la
 pilule reste lisible. Les illustrations normales restent à 32 px, sans
 marge ni arrondi ajoutés. Aucun nouveau nœud, abonnement ou observateur.
+
+## Formulaire guidé — 1.2.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Le nombre de noms est masqué avec les pastilles. Le formulaire indique le hash de popup explicite ou déduit de l’action native.

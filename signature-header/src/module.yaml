@@ -1,16 +1,18 @@
 name: Signature Header
-version: 1.4.2
+version: 1.5.0
 creator: Loïc
 supported:
   - button
   - separator
-description: Module autonome header ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte.
+description: Module autonome header ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul
+  module de présentation par carte.
 editor:
   - type: constant
-    label: "Le type natif de carte choisit la présentation : bouton Nom pour l’en-tête, séparateur pour le titre de section. Actions et sous-boutons restent natifs."
+    label: "Le type natif de carte choisit la présentation : bouton Nom pour l’en-tête, séparateur pour le titre de section. Actions et
+      sous-boutons restent natifs."
   - name: ""
     label: Réglages header
-    type: signature_options
+    type: signature_options_v2
     fields:
       color:
         $field: color
@@ -21,4 +23,5 @@ editor:
       sub_button_styles:
         $field: sub_button_styles
         visible_if: (!card || card.card_type === 'separator' || ((card.card_type || 'button') === 'button' && card.button_type === 'name'))
-        description: Objet YAML indexé par css_class ou numéro ; color_thresholds colore le fond du badge et protège le contraste de l’icône. Disponible aussi dans les titres de section.
+        description: Objet YAML indexé par css_class ou numéro ; color_thresholds colore le fond du badge et protège le contraste de l’icône.
+          Disponible aussi dans les titres de section.

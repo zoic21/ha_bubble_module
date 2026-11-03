@@ -108,3 +108,5 @@ Mesure du 5 octobre 2026 sur les neuf distributions, comparées au commit `1e041
 ## Contrats des helpers
 
 Les couleurs nommées de la palette suivent les variables natives du thème ; les valeurs CSS explicites restent littérales. Les sources Jinja partagent une heuristique de cible, pas un parseur complet. La précision du registre des entités précède les suggestions puis les anciens attributs, sans uniformiser les bornes métier. Les adaptateurs d’éditeur conservent leurs scopes et conversions YAML. Voir [STYLE_GUIDE.md](../STYLE_GUIDE.md) pour les priorités et la migration des noms de couleur.
+
+Les adaptateurs de `src/editor-guided.js` présentent les objets YAML avec des contrôles HA, en conservant les clés et types existants. Leurs états transitoires ne sont pas enregistrés. Les tests de `editors/test/guided-editors.test.cjs` couvrent les modifications ciblées et les données anciennes.

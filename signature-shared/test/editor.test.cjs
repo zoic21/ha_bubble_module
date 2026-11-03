@@ -6,7 +6,7 @@ const {editorBootstrap} = require('../../shared/test/editor-bootstrap.cjs');
 
 const definition = loadModule('signature-compact');
 const source = editorBootstrap(definition);
-const schema = definition.editor.find(field=>field.type === 'signature_options');
+const schema = definition.editor.find(field=>field.type === 'signature_options_v2');
 
 // Exercise the native-form bridge; Bubble's field rules are covered separately.
 function environment({delayed=false}={}) {
@@ -29,7 +29,7 @@ function environment({delayed=false}={}) {
   const register=()=>evaluate(source);
   register();
   const create=(data,card) => {
-    const form=document.createElement('ha-form-signature_options');
+    const form=document.createElement('ha-form-signature_options_v2');
     form.card=card;
     Object.assign(form,{data,schema,hass:{states:{}},label:schema.label,disabled:false});
     form.isConnected=true;form.connectedCallback();flush();return form;
@@ -48,8 +48,8 @@ test('inline editor has one native form without an object header or delete contr
   assert.equal(form._form.warning.color,'warning');
   assert.equal(form._form.computeWarning('warning'),'warning');
   assert.equal(form._engine.isConnected,false,'The object selector UI must never mount');
-  const Class=env.registry.get('ha-form-signature_options');
-  env.register();assert.equal(env.registry.get('ha-form-signature_options'),Class);
+  const Class=env.registry.get('ha-form-signature_options_v2');
+  env.register();assert.equal(env.registry.get('ha-form-signature_options_v2'),Class);
 });
 
 test('inline editor forwards flat values once and refreshes native card context',() => {
@@ -62,7 +62,7 @@ test('inline editor forwards flat values once and refreshes native card context'
   assert.equal(changes.length,1);
   assert.equal(changes[0].target,form);
   assert.equal(changes[0].bubbles,true);assert.equal(changes[0].composed,true);
-  assert.deepEqual(changes[0].detail.value,{...original,color:'teal'});
+  assert.deepEqual(JSON.parse(JSON.stringify(changes[0].detail.value)),{...original,color:'teal'});
   const engine=form._engine,native=form._form;
   form.data={...original,color:'orange'};
   form.card={card_type:'media-player',entity:'sensor.humidity'};

@@ -11,7 +11,7 @@ test('all five Hue presentations are scoped and do not install handlers or read 
     assert.ok(render.call(ctx).length > 100);
     assert.equal(ctx._signatureHue.version, definition.version);
   }
-  assert.doesNotMatch(definition.code, /MutationObserver|ResizeObserver|addEventListener|setInterval|setTimeout|callService/);
+  assert.doesNotMatch(require('../../scripts/source-files.cjs').readSource('signature-hue/src/runtime.js'), /MutationObserver|ResizeObserver|addEventListener|setInterval|setTimeout|callService/); // Form listeners belong to the editor only.
   for (const mode of ['unknown',undefined]) assert.equal(render.call(make({mode})), '');
   const unsupported=make({mode:'light'});unsupported.config.card_type='cover';assert.equal(render.call(unsupported),'');
 });

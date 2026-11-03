@@ -1,5 +1,5 @@
-/* @include shared/src/editor-base.js */
-registerOptionsForm('ha-form-signature_module_options',{
+/* @include shared/src/editor-guided.js */
+registerOptionsForm('ha-form-signature_module_options_v2',{
   _setup() {
     this._errorEl = document.createElement('ha-alert');
     this._errorEl.setAttribute('alert-type','error');
@@ -55,13 +55,13 @@ registerOptionsForm('ha-form-signature_module_options',{
   },
   _expand(entries,fields) {
     const groupType = customElements.get('ha-form-signature_group') ? 'signature_group' : 'bc_group';
-    return entries.map(field => {
+    return guidedEditor.expand(this,entries.map(field => {
       if (field.schema) return {...field,type:field.type === 'bc_group' ? groupType : field.type,schema:this._expand(field.schema,fields)};
       const spec = fields[field.name];
       if (!spec?.fields) return field;
       const {selector,...native} = field;
-      return {...native,type:'signature_module_options',...spec,show_label:false};
-    });
+      return {...native,type:'signature_module_options_v2',...spec,show_label:false};
+    }),fields);
   },
   _updateMapping() {
     if (!this._list) {

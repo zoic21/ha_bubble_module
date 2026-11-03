@@ -1,3 +1,4 @@
 ${(() => {
+/* @include shared/src/editor-guided.js */
 /* @include signature-hue/src/runtime.js */
 })()}

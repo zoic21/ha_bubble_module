@@ -1,6 +1,6 @@
 # Signature Panel
 
-## 1.4.23 — 3 novembre 2026 — protection exclusivement dans Signature PIN
+## 1.5.0 — 3 novembre 2026 — protection exclusivement dans Signature PIN
 
 Panel ne contient plus de demande de code, de clavier, de validation ni
 l’ancienne option de formulaire `alarm_code`. Il conserve uniquement la
@@ -462,7 +462,7 @@ icône. Le défaut reste le fond doux à 16 %. Voir le
 [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **1.4.19**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.5.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 
@@ -914,3 +914,9 @@ Jinja, par exemple `state: "{{ state_attr('media_player.ampli', 'source') or '' 
 `secondary` reste en troisième ligne pour le volume. Retirer `state` restaure
 les métadonnées Bubble ; les commandes et leur visibilité restent natives.
 
+
+## Formulaire guidé — 1.5.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Les illustrations, informations supplémentaires (deux maximum), statistiques et progression ont des champs guidés. Les réglages réservés aux variantes En-tête et Bandeau sont masqués dans le panneau classique.

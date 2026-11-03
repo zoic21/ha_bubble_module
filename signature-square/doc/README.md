@@ -1,6 +1,6 @@
 # Signature Square
 
-## 2.0.11 — 30 octobre 2026 — survol léger sur la carte entière
+## 2.1.0 — 30 octobre 2026 — survol léger sur la carte entière
 
 Le fond d’une carte entière utilise le token de thème facultatif
 `signature-card-hover-opacity` : **0.03** en thème Signature clair.
@@ -58,7 +58,7 @@ principale. Sans cette option ou avec `true`, le fond doux à 16 % reste actif.
 Voir le [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **2.0.11**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
+Version **2.1.0**. ID YAML : **`signature_square`**. [Distribution complète à importer](../dist/signature-square.yaml).
 
 Tuiles carrées avec valeur principale, unité et texte secondaire.
 
@@ -424,3 +424,9 @@ Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. 
 Unités assemblées depuis leur rôle commun, avec leur couleur secondaire et leur espacement nul. Géométrie des interrupteurs partagée avec Hue. Grille, rayons, illustrations et actions conservés.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## Formulaire guidé — 2.1.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Les illustrations et seuils de couleur sont guidés. Le centrage est proposé uniquement sans secondaire, illustration, hauteur automatique ni commandes de mesure.

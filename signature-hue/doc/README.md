@@ -1,11 +1,11 @@
-# Signature Hue 1.1.2
+# Signature Hue 1.2.0
 
 Compagnon de présentation des commandes Hue natives, sans logique de contrôle.
 Importer `signature-hue/dist/signature-hue.yaml`, puis placer `signature_hue`
 **après** `signature_compact` dans `modules`. Sur une popup, utiliser seulement
 `signature_hue` en complément des éventuels modules de popup déjà présents.
-Aucune dépendance frontend supplémentaire ; aucun listener, observateur,
-abonnement ou polling.
+Aucune dépendance frontend supplémentaire ; aucun observateur, abonnement ou
+polling. Les écouteurs du formulaire restent limités à l’éditeur.
 
 ```yaml
 modules: [signature_compact, signature_hue]
@@ -105,3 +105,9 @@ réel et Safari/iOS restent à vérifier après importation.
 Noms de scène reliés à `signature-secondary-font-size` (13 px par défaut) ; leur bandeau réserve au moins deux interlignes dans les 112 px existants. État des lampes et géométrie des interrupteurs utilisent les fragments partagés. Palettes, couleurs actives, actions et conditions conservées.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## Formulaire guidé — 1.2.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Les options suivent la présentation choisie. Les scènes disposent de trois sélecteurs de couleur, toujours enregistrés dans la chaîne palette. Les conditions partagées JSON/Jinja restent prioritaires et accessibles en avancé.

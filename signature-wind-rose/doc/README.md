@@ -1,6 +1,6 @@
 # Signature Wind Rose
 
-**Version: 1.5.5** · Module ID: `signature_wind_rose`
+**Version: 1.6.0** · Module ID: `signature_wind_rose`
 
 A minimal wind rose for Bubble Card: 16 directions with four speed shades, unlabelled guide rings, a compact speed legend, a 1 hour / 1 day / 1 week selector, and a footer showing the dominant direction, its frequency and recorded calm duration when a speed source is configured. Hover a sector to see its percentage, recorded duration, time-weighted mean and maximum recorded speed. Moving away dismisses the preview or restores the clicked selection. Touch pointers keep tap-only interaction. Tap a sector to pin its detail; tap it again or the chart background to dismiss. Enter/Space select a focused sector and Escape dismisses the detail.
 
@@ -223,3 +223,9 @@ Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécut
 Hover and selection reuse sector paths and descriptions. History, locale, units and band-mode changes rebuild the derived view; requests, actions and visible data stay unchanged.
 
 Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
+
+## Formulaire guidé — 1.6.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Le seuil de calme indique l’unité du capteur de vitesse. Correction de direction et rafraîchissement sont dans les réglages avancés ; la couleur dispose du sélecteur commun.

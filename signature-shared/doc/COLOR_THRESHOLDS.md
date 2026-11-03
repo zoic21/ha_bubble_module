@@ -4,7 +4,7 @@ Disponible dans **Signature Compact 1.2.5**, **Square 1.1.5** et les sous-bouton
 
 ## Icône principale Compact ou Square
 
-Ajouter `color_thresholds` sous les options du module. Le formulaire expose un champ objet YAML « Seuils de couleur de l’icône ». Il utilise l’état numérique brut de l’entité de la carte, avant son arrondi et son formatage ; il ne lit pas le texte affiché.
+Ajouter `color_thresholds` sous les options du module. Le formulaire expose une liste guidée de valeurs et couleurs sous « Seuils de couleur de l’icône », avec un accès YAML avancé. Il utilise l’état numérique brut de l’entité de la carte, avant son arrondi et son formatage ; il ne lit pas le texte affiché.
 
 ```yaml
 type: custom:bubble-card
@@ -65,7 +65,7 @@ signature_header:
           - {value: 80, color: "#2196f3"}
 ```
 
-Le même `sub_button_styles` fonctionne avec `card_type: separator` et `signature_header`. Les conditions de visibilité, l’ordre natif des groupes et les actions Bubble sont conservés. Le champ YAML existant des sous-boutons est disponible dans le formulaire du séparateur.
+Le même `sub_button_styles` fonctionne avec `card_type: separator` et `signature_header`. Les conditions de visibilité, l’ordre natif des groupes et les actions Bubble sont conservés. Le formulaire guidé des sous-boutons est également disponible sur un séparateur ; les clés YAML restent identiques.
 
 ## Icône colorée sans fond
 

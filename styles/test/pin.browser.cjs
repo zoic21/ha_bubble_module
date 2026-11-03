@@ -4,11 +4,13 @@ const crypto = require('node:crypto');
 const {test} = require('node:test');
 const {fixture} = require('./browser.cjs');
 const {loadModule} = require('../../shared/test/module.cjs');
+const {editorBootstrap} = require('../../shared/test/editor-bootstrap.cjs');
 const {theme,nativeModes} = require('./fixtures.cjs');
 const pin = loadModule('signature-pin'), panel = loadModule('signature-panel');
 const nativePath = process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
 const native = {skip: !nativePath};
 const digest = code => crypto.createHash('sha256').update(code).digest('hex');
+const guidedModules=['signature-compact','signature-square','signature-room','signature-panel','signature-header','signature-flow','signature-weather','signature-wind-rose','signature-hue','signature-irrigation','signature-energy-balance','signature-group'];
 async function setup(t, {user='tablet', options={}, config={}, width=382, mode='light', plain=false, touch=false,haVersion='2026.10.4'}={}) {
   const bytes=fs.readFileSync(nativePath);
   assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
@@ -119,7 +121,7 @@ test('PIN editor uses Bubble native object events without persisting drafts or e
   const page=await setup(t);
   const result=await page.evaluate(async ({schema,storedHash})=>{
     if(!customElements.get('ha-selector-bc_object'))throw Error('Native Bubble object selector missing');
-    const form=document.createElement('ha-form-signature_pin_scope_options');
+    const form=document.createElement('ha-form-signature_pin_scope_options_v2');
     Object.assign(form,{hass,data:{code_hash:storedHash,users:['tablet'],future:false},schema});
     const values=[];
     form.addEventListener('value-changed',event=>{values.push(event.detail.value);form.data=event.detail.value;});
@@ -138,7 +140,7 @@ test('PIN editor uses Bubble native object events without persisting drafts or e
     await Promise.resolve();
     const migrated={...form.data};form.remove();
     return {before,draftChanges,saved,cleared,legacyButton,migrated};
-  },{schema:pin.editor.find(field=>field.type==='signature_pin_scope_options'),storedHash:digest('0073')});
+  },{schema:pin.editor.find(field=>field.type==='signature_pin_scope_options_v2'),storedHash:digest('0073')});
   assert.deepEqual(result.before,{field:'',hasCode:false,hasHash:false});
   assert.equal(result.draftChanges,0);
   assert.deepEqual(result.saved,{code_hash:digest('1234'),users:['tablet'],future:false});
@@ -391,4 +393,42 @@ test('PIN keypad is usable on touch in both themes at phone and tablet widths',n
     const box=await dialog(page).boundingBox();assert.ok(box.x>=0&&box.x+box.width<=page.viewportSize().width);
     await send(page);await dialog(page).waitFor({state:'detached'});
   }
+});
+
+test('all guided editors register together with native Bubble, open without writes and preserve legacy YAML on targeted edits',native,async t=>{
+  const page=await setup(t);
+  const modules=guidedModules.map(folder=>{const d=loadModule(folder);return {folder,bootstrap:editorBootstrap(d),schema:d.editor.find(x=>x.fields)};});
+  const result=await page.evaluate(async modules=>{
+    const root=document.createElement('div');root._config={card_type:'button',button_type:'state',entity:'input_select.mode',modules:['signature_compact','signature_panel']};
+    document.body.append(root);const shadow=root.attachShadow({mode:'open'});
+    const values={};
+    for(const module of modules){
+      new Function(module.bootstrap)();
+      const form=document.createElement('ha-form-'+module.schema.type);
+      const original={future:{enabled:false,value:0},color_background:false,sub_button_styles:{'1':{type:'badge',opacity:0}}};
+      Object.assign(form,{hass,schema:module.schema,data:original});
+      const changes=[];form.addEventListener('value-changed',event=>{changes.push(event.detail.value);form.data=event.detail.value;});
+      shadow.append(form);await Promise.resolve();
+      values[module.folder]={writes:changes.length,original:JSON.stringify(form.data)===JSON.stringify(original)};
+      if(module.folder==='signature-compact'){
+        form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,value_presentation:'pill'}}}));await Promise.resolve();
+        values.compactSaved=JSON.parse(JSON.stringify(changes.at(-1)));
+      }
+      form.remove();
+    }
+    const image=document.createElement('ha-form-signature_guided_v1');
+    Object.assign(image,{hass,schema:{fields:{},ui_kind:'illustration'},data:{image:'/local/day.png',index:0,image_dark:'/local/night.png',future:false}});
+    const edits=[];image.addEventListener('value-changed',event=>{edits.push(event.detail.value);image.data=event.detail.value;});
+    shadow.append(image);await Promise.resolve();
+    image._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...image._form.data,edit_mode:'yaml'}}}));await Promise.resolve();
+    image._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...image._form.data,edit_mode:'form'}}}));await Promise.resolve();
+    values.imageModeWrites=edits.length;
+    image._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...image._form.data,image:'/local/new.png'}}}));await Promise.resolve();
+    values.imageSaved=JSON.parse(JSON.stringify(edits.at(-1)));image.remove();root.remove();
+    return values;
+  },modules);
+  for(const folder of guidedModules)assert.deepEqual(result[folder],{writes:0,original:true},folder);
+  assert.deepEqual(result.compactSaved,{future:{enabled:false,value:0},color_background:false,sub_button_styles:{'1':{type:'badge',opacity:0}},compact_mode:'value',value_style:'button',value_background:true});
+  assert.equal(result.imageModeWrites,0);
+  assert.deepEqual(result.imageSaved,{image:'/local/new.png',index:0,image_dark:'/local/night.png',future:false});
 });

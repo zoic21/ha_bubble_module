@@ -101,15 +101,15 @@ test('small value style is reversible, respects native visibility and restores d
   assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),'text');assert.ok(state.classList.contains('hidden'));
   f.ctx.config.show_state=true;state.classList.remove('hidden');f.run();assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),'button');
   f.ctx.teardown();assert.equal(f.ctx.card.getAttribute('data-dp-value-style'),null);assert.equal(f.ctx.card.getAttribute('data-dp-value-background'),null);assert.equal(state.dataset.tapAction,undefined);
-  const field=definition.editor[1].fields.value_style;
+  const field=definition.editor[1].fields.value_presentation;
   const visible=new Function('item','card','return !!('+field.visible_if+');');
   assert.ok(visible({compact_mode:'value'},{button_type:'state'}));
-  assert.equal(visible({compact_mode:'default'},{button_type:'state'}),false);
+  assert.equal(visible({compact_mode:'default'},{button_type:'state'}),true);
   assert.equal(visible({compact_mode:'value',controls:'number'},{button_type:'state'}),false);
   assert.equal(visible({compact_mode:'value'},{card_type:'media-player'}),false);
   const background=definition.editor[1].fields.value_background;
   assert.equal(background.default,true);assert.deepEqual(background.selector,{boolean:{}});
   const backgroundVisible=new Function('item','card','return !!('+background.visible_if+');');
-  assert.ok(backgroundVisible({compact_mode:'value',value_style:'button'},{button_type:'state'}));
+  assert.equal(backgroundVisible({compact_mode:'value',value_style:'button'},{button_type:'state'}),false);
   assert.equal(backgroundVisible({compact_mode:'value',value_style:'text'},{button_type:'state'}),false);
 });

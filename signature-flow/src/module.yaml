@@ -1,15 +1,16 @@
 name: Signature Flow
-version: 3.6.7
+version: 3.7.0
 creator: Loïc
 supported:
   - button
-description: Six emplacements de flux configurables dans l’éditeur Bubble en français ou en YAML, avec valeurs, entités du flux, animations et actions indépendantes.
+description: Six emplacements de flux configurables dans l’éditeur Bubble en français ou en YAML, avec valeurs, entités du flux, animations
+  et actions indépendantes.
 editor:
   - type: constant
     label: Flow remplace le contenu d’un bouton Bubble. Les entités, templates et actions se règlent par emplacement ci-dessous.
   - name: ""
     label: Réglages du diagramme
-    type: signature_flow_options
+    type: signature_flow_options_v2
     fields:
       height:
         label: Hauteur de la carte (px)
@@ -92,11 +93,13 @@ editor:
                     multiline: true
                 description: ID d’entité, template Jinja ou texte fixe.
                 visible_if: item.enabled !== false
+                ui_kind: source
               secondary:
                 label: Texte secondaire
                 selector: *a1
                 description: ID d’entité, template Jinja ou texte fixe ; vide pour le masquer.
                 visible_if: item.enabled !== false
+                ui_kind: source
               name:
                 label: Nom
                 selector: *a1
@@ -110,6 +113,7 @@ editor:
                 description: "Icône mdi:… ou template Jinja. Vide : icône de l’entité, puis mdi:flash."
                 group: Apparence
                 visible_if: item.enabled !== false
+                ui_kind: icon
               color:
                 label: Couleur de l’icône et du flux
                 selector:
@@ -145,6 +149,7 @@ editor:
                 description: Couleur CSS ou template Jinja. Le choix neutre suit le thème.
                 group: Apparence
                 visible_if: item.enabled !== false
+                ui_kind: color
               primary_unit:
                 label: Unité principale
                 selector:
@@ -189,7 +194,8 @@ editor:
                 default: 1
                 description: "Défaut : 1. Appliqué uniquement aux valeurs numériques d’une entité directe."
                 group: Format du secondaire
-                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== '' && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.secondary || '').trim())
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== '' &&
+                  /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.secondary || '').trim())
               secondary_precision:
                 label: Décimales secondaires
                 selector:
@@ -200,7 +206,8 @@ editor:
                     step: 1
                 description: "Vide : précision de l’entité, puis 0. Les templates gèrent leur propre format."
                 group: Format du secondaire
-                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== '' && /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.secondary || '').trim())
+                visible_if: item.enabled !== false && String(item.secondary || '').trim() !== '' &&
+                  /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(String(item.secondary || '').trim())
               animate:
                 label: Animer la connexion
                 selector:
@@ -282,107 +289,114 @@ editor:
                         min: 1
                         step: 1
                     description: "Vide : référence commune, puis 10 000. Toujours en W pour W/kW/MW ; sinon dans l’unité du flux après multiplication."
+                ui_kind: animation
               tap_action:
-                label: Appui
+                label: Bloc — Appui
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions du bloc
+                group: Actions avancées
                 visible_if: item.enabled !== false
                 action_source: primary
               hold_action:
-                label: Appui long
+                label: Bloc — Appui long
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions du bloc
+                group: Actions avancées
                 visible_if: item.enabled !== false
                 action_source: primary
               double_tap_action:
-                label: Double appui
+                label: Bloc — Double appui
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions du bloc
+                group: Actions avancées
                 visible_if: item.enabled !== false
               primary_tap_action:
-                label: Appui
+                label: Valeur principale — Appui
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions de la valeur principale
+                group: Actions avancées
                 visible_if: item.enabled !== false
                 action_source: primary
               primary_hold_action:
-                label: Appui long
+                label: Valeur principale — Appui long
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions de la valeur principale
+                group: Actions avancées
                 visible_if: item.enabled !== false
                 action_source: primary
               primary_double_tap_action:
-                label: Double appui
+                label: Valeur principale — Double appui
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions de la valeur principale
+                group: Actions avancées
                 visible_if: item.enabled !== false
               secondary_tap_action:
-                label: Appui
+                label: Secondaire — Appui
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions du secondaire
+                group: Actions avancées
                 visible_if: item.enabled !== false && String(item.secondary || '').trim() !== ''
                 action_source: secondary
               secondary_hold_action:
-                label: Appui long
+                label: Secondaire — Appui long
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions du secondaire
+                group: Actions avancées
                 visible_if: item.enabled !== false && String(item.secondary || '').trim() !== ''
                 action_source: secondary
               secondary_double_tap_action:
-                label: Double appui
+                label: Secondaire — Double appui
                 selector:
                   ui_action:
                     default_action: none
                 description: "Par défaut : détails de l’entité détectée pour l’appui/appui long ; aucune action pour le double appui."
-                group: Actions du secondaire
+                group: Actions avancées
                 visible_if: item.enabled !== false && String(item.secondary || '').trim() !== ''
             slot: true
+            ui_profile: flow_slot
           "2":
             label: Réglages de l’emplacement 2
             group: Emplacement 2 · milieu, gauche
             fields: *a2
             slot: true
+            ui_profile: flow_slot
           "3":
             label: Réglages de l’emplacement 3
             group: Emplacement 3 · bas, centre / gauche
             fields: *a2
             slot: true
+            ui_profile: flow_slot
           "4":
             label: Réglages de l’emplacement 4
             group: Emplacement 4 · haut, droite
             fields: *a2
             slot: true
+            ui_profile: flow_slot
           "5":
             label: Réglages de l’emplacement 5
             group: Emplacement 5 · milieu, droite
             fields: *a2
             slot: true
+            ui_profile: flow_slot
           "6":
             label: Réglages de l’emplacement 6
             group: Emplacement 6 · bas, droite
             fields: *a2
             slot: true
+            ui_profile: flow_slot

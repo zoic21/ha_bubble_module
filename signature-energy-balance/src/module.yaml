@@ -1,9 +1,76 @@
 name: Signature Energy Balance
-version: 1.0.0
+version: 1.1.0
 creator: Loïc
 supported:
   - button
-description: Barre journalière réseau, solaire et batterie, calculée sur le bilan net Recorder. Infobulles au survol, au toucher et au clavier, sans ouverture More info.
+description: Barre journalière réseau, solaire et batterie, calculée sur le bilan net Recorder. Infobulles au survol, au toucher et au
+  clavier, sans ouverture More info.
 editor:
   - type: constant
-    label: Configurer les listes de compteurs kWh dans signature_energy_balance. Ce module remplace le contenu du bouton par une barre de bilan net.
+    label: Choisir des compteurs d’énergie dans la même unité, pas des puissances. Une source par groupe, 16 sources distinctes au maximum.
+  - name: ""
+    label: Bilan énergétique journalier
+    type: signature_guided_v1
+    ui_profile: energy
+    fields:
+      imports:
+        label: Réseau — import
+        selector:
+          entity:
+            multiple: true
+            filter:
+              domain: sensor
+        group: Compteurs d’énergie
+      exports:
+        label: Réseau — export
+        selector:
+          entity:
+            multiple: true
+            filter:
+              domain: sensor
+        group: Compteurs d’énergie
+      solar:
+        label: Production solaire
+        selector:
+          entity:
+            multiple: true
+            filter:
+              domain: sensor
+        group: Compteurs d’énergie
+      charges:
+        label: Batterie — charge
+        selector:
+          entity:
+            multiple: true
+            filter:
+              domain: sensor
+        group: Compteurs d’énergie
+      discharges:
+        label: Batterie — décharge
+        selector:
+          entity:
+            multiple: true
+            filter:
+              domain: sensor
+        group: Compteurs d’énergie
+      segments:
+        label: Noms et couleurs des segments
+        ui_kind: segments
+        selector:
+          object: {}
+      time_zone:
+        label: "Fuseau horaire (vide : Home Assistant)"
+        selector:
+          text: {}
+        group: Réglages avancés
+      unit:
+        label: Unité commune des compteurs
+        default: kWh
+        selector:
+          text: {}
+        group: Réglages avancés
+      name:
+        label: Libellé accessible
+        selector:
+          text: {}
+        group: Réglages avancés

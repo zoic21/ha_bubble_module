@@ -5,7 +5,7 @@ const {test}=require('node:test');
 const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
 const {readSource}=require('../../scripts/source-files.cjs');
 const definition=loadModule('signature-flow');
-const schema=definition.editor.find(field=>field.type==='signature_flow_options');
+const schema=definition.editor.find(field=>field.type==='signature_flow_options_v2');
 const slots=schema.fields.slots.fields;
 const fields=slots[1].fields;
 const bootstrap=editorBootstrap(definition);
@@ -40,7 +40,7 @@ function environment() {
   customElements.define('ha-form-bc_group',class extends Element {});
   evaluate(bootstrap);
   const create=(schema,data,card={card_type:'button',button_type:'state',entity:'sensor.home'})=>{
-    const element=document.createElement('ha-form-signature_flow_options');
+    const element=document.createElement('ha-form-signature_flow_options_v2');
     Object.assign(element,{schema,data,card,hass:{states:{}},label:schema.label});element.isConnected=true;element.connectedCallback();flush();return element;
   };
   return {create,flush};
@@ -68,12 +68,12 @@ test('Flow editor opens directly and converts nested scopes inside their existin
   assert.deepEqual(form.shadowRoot.children.map(child=>child.tag),['style','label','ha-form']);
   const nested=flatten(form._form.schema).filter(field=>field.fields);
   assert.deepEqual(nested.map(field=>field.name),['animation','slots']);
-  for(const field of nested){assert.equal(field.type,'signature_flow_options');assert.equal(Object.hasOwn(field,'selector'),false);assert.equal(field.show_label,false);}
+  for(const field of nested){assert.equal(field.type,'signature_flow_options_v2');assert.equal(Object.hasOwn(field,'selector'),false);assert.equal(field.show_label,false);}
   const slotForm=env.create(nested.find(field=>field.name==='slots'),{});
   assert.equal(slotForm._form.schema.length,6);
   assert.ok(slotForm._form.schema.every(group=>group.type==='signature_group'&&group.schema.length===1));
   assert.ok(slotForm._form.schema.every(group=>group.flatten&&group.name.startsWith('bc_group_')),'Grouping must preserve the native flat data path');
-  for(const field of flatten(slotForm._form.schema)){assert.equal(field.type,'signature_flow_options');assert.equal(field.slot,true);}
+  for(const field of flatten(slotForm._form.schema)){assert.equal(field.type,'signature_flow_options_v2');assert.equal(field.slot,true);}
   assert.deepEqual(env.create(schema,{}, {card_type:'cover'})._form.schema,[]);
   assert.deepEqual(env.create(schema,{}, {card_type:'button',button_type:'slider'})._form.schema,[]);
 });
@@ -119,7 +119,7 @@ test('editing a slot retains hidden settings, numeric zeros, Jinja and action ob
   form.addEventListener('value-changed',event=>changes.push(event.detail.value));
   form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,color:'#009688'}}}));
   assert.equal(changes.length,1);
-  assert.deepEqual(changes[0],{...original,color:'#009688',enabled:true,invert_flow:false});
+  assert.deepEqual(JSON.parse(JSON.stringify(changes[0])),{...original,color:'#009688'});
   form.data={...original,enabled:false};env.flush();
   assert.deepEqual(flatten(form._form.schema).map(field=>field.name),['enabled']);
   const animation=env.create({...fields.animation,name:'animation'},original.animation);

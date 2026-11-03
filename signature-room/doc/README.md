@@ -1,6 +1,6 @@
 # Signature Room
 
-## 1.4.5 — 30 octobre 2026 — survol léger sur la carte entière
+## 1.5.0 — 30 octobre 2026 — survol léger sur la carte entière
 
 Le fond d’une carte entière utilise le token de thème facultatif
 `signature-card-hover-opacity` : **0.03** en thème Signature clair.
@@ -33,7 +33,7 @@ cartes prises en charge, pas les sous-boutons, les lecteurs média ni les
 séparateurs. Les textes, unités, arrondis, seuils et actions restent natifs.
 Importer **Signature Room 1.4.4**, puis recharger le frontend.
 
-Version **1.4.5**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
+Version **1.5.0**. ID YAML : **`signature_room`**. [Distribution complète à importer](../dist/signature-room.yaml).
 
 Résumés des pièces : température, humidité, badge et commandes réparties en colonnes.
 
@@ -446,3 +446,9 @@ Réimporter uniquement Room. Contrôles Chromium : zéro à trois badges, largeu
 142–600 px, thèmes clair/sombre avec ou sans Signature, visibilité native,
 clics, retrait et nettoyage. Ces fixtures ne valident pas Home Assistant réel
 ni Safari/iOS.
+
+## Formulaire guidé — 1.5.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+La coloration automatique des commandes dispose d’un contrôle booléen. Les illustrations et styles des sous-boutons sont guidés.

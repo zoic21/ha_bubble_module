@@ -1,6 +1,6 @@
 # Signature Weather
 
-**Version: 1.3.6** · Module ID: `signature_weather`
+**Version: 1.4.0** · Module ID: `signature_weather`
 
 A weather card in the Signature style: a neutral surface, 22 px corners, colored weather icons, and neutral temperature values. It runs independently of the `signature` module.
 
@@ -264,3 +264,9 @@ Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. 
 Couleur et espacement de l'unité de température fournis par le fragment commun `unit.css`, sans répétition locale. Tailles responsive, retraits et contrôles conservés.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## Formulaire guidé — 1.4.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Choisir les mesures locales à configurer pour afficher uniquement leurs sources. Les sources chaîne/objet, listes explicitement vides, unités vides, zéros et précisions existantes sont conservés.

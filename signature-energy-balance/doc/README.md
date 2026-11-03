@@ -1,6 +1,6 @@
 # Signature Energy Balance
 
-Version **1.0.0**. ID : `signature_energy_balance`.
+Version **1.1.0**. ID : `signature_energy_balance`.
 [Distribution à importer](../dist/signature-energy-balance.yaml).
 
 Remplace le contenu d’un bouton Bubble par une barre journalière de 28 px,
@@ -86,3 +86,9 @@ Tests : bilans simulés comparés au calcul réel de Panel, cas charge réseau,
 injection, décharge stockée avant minuit, zéro et données manquantes ; rendu
 Bubble 3.4.1 en Chromium, tailles mobile/desktop, modes clair/sombre et actions.
 Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS.
+
+## Formulaire guidé — 1.1.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Les cinq listes de compteurs disposent de sélecteurs : import, export, solaire, charge et décharge. Les trois segments gardent leur ordre Réseau, Solaire, Batterie ; noms et couleurs sont personnalisables. Le fuseau utilise Home Assistant lorsqu’il est absent.

@@ -1,6 +1,6 @@
 # Signature Header
 
-## 1.4.2 — 30 octobre 2026 — survol léger sur la carte entière
+## 1.5.0 — 30 octobre 2026 — survol léger sur la carte entière
 
 Le fond d’une carte entière utilise le token de thème facultatif
 `signature-card-hover-opacity` : **0.03** en thème Signature clair.
@@ -73,7 +73,7 @@ pour les petites mesures des séparateurs. Les règles de retour à la ligne,
 couleurs, conditions et actions restent natives. Les mesures SolarFlow
 peuvent retirer leur CSS local. Tests de thème et de disposition inclus.
 
-Version **1.4.2**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
+Version **1.5.0**. ID YAML : **`signature_header`**. [Distribution complète à importer](../dist/signature-header.yaml).
 
 En-têtes de pages et titres de sections. Le type natif de carte choisit la présentation.
 
@@ -262,3 +262,9 @@ Le formulaire réutilise le pont de Signature et les helpers d’objet Bubble ; 
 Retrait des styles d’unités et d’actions de valeur jamais créées par Header. Titres, pastilles et actions natives inchangés.
 
 Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. Ces fixtures ne valident pas Home Assistant réel ni Safari/iOS. Voir le [bilan de la passe](../../docs/MODULE_OPTIMIZATION_2026_10.md).
+
+## Formulaire guidé — 1.5.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Les styles des sous-boutons se choisissent par nom ou classe CSS stable. Les autres réglages restent limités à ceux utiles au type natif de carte.

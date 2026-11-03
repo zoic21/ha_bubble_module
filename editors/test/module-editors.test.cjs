@@ -45,7 +45,7 @@ function environment({delayed=false,module}={}) {
   const register=evaluate;
   for(const item of module?[module]:modules)register(item.bootstrap);
   const create=(schema,data,card={card_type:'button',button_type:'state',entity:'weather.home'})=>{
-    const form=document.createElement('ha-form-signature_module_options');
+    const form=document.createElement('ha-form-signature_module_options_v2');
     Object.assign(form,{schema,data,card,hass:{states:{}},label:schema.label});form.isConnected=true;form.connectedCallback();flush();
     form.changes=[];form.addEventListener('value-changed',event=>form.changes.push(event.detail.value));return form;
   };
@@ -59,9 +59,9 @@ test('remaining schemas cover all documented keys using one standalone inline br
   assert.deepEqual(Object.keys(alerts.schema.fields).sort(),['sensors','packs','ignore_pending','show_badge','color_card','color_badge','icons','colors','entities'].sort());
   assert.deepEqual(Object.keys(weather.schema.fields.local.fields).sort(),['temperature','condition','apparent_temperature','humidity','pressure','wind_speed','wind_gust_speed','wind_bearing','precipitation','uv_index'].sort());
   assert.equal(alerts.schema.fields.packs.mapping,'packs');assert.equal(alerts.schema.fields.entities.mapping,'entities');
-  assert.ok(modules.every(module=>module.schema.name===''&&module.schema.type==='signature_module_options'));
-  const env=environment(),Class=env.registry.get('ha-form-signature_module_options');
-  env.register(weather.bootstrap);assert.equal(env.registry.get('ha-form-signature_module_options'),Class);
+  assert.ok(modules.every(module=>module.schema.name===''&&module.schema.type==='signature_module_options_v2'));
+  const env=environment(),Class=env.registry.get('ha-form-signature_module_options_v2');
+  env.register(weather.bootstrap);assert.equal(env.registry.get('ha-form-signature_module_options_v2'),Class);
   for(const module of modules){const standalone=environment({module}),form=standalone.create(module.schema,{});assert.equal(form._engine.isConnected,false);assert.equal(form.changes.length,0);assert.ok(form._form.schema.every(group=>group.type!=='bc_group'));}
 });
 test('Weather conditions follow layouts, explicit overrides and local sources without deleting hidden settings',()=>{
@@ -147,7 +147,7 @@ test('Alert indexed lists support drafts, additions, renames and removal while r
   assert.deepEqual(plain(env.listChange(form,rows)),{renamed:{ignore_pending:false,future:0,id:'preserved'}});
   assert.deepEqual(plain(env.listChange(form,[])),{});
   const generated=form._list._generateSchema(form._list.selector.bc_object.fields,{id:'x'},0);
-  assert.equal(flat(generated).find(field=>field.name==='value').type,'signature_module_options');
+  assert.equal(flat(generated).find(field=>field.name==='value').type,'signature_module_options_v2');
 });
 test('Alert dictionaries reject duplicate/invalid entity IDs and accept corrected rows',()=>{
   const env=environment(),form=env.create(alerts.schema.fields.entities,{'sensor.room':{exclude:['rule_1'],future:0}});

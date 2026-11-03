@@ -1,16 +1,17 @@
 name: Signature Panel
-version: 1.4.23
+version: 1.5.0
 creator: Loïc
 supported:
   - button
   - media-player
-description: Carte illustrée pleine largeur, deux pas de hauteur, une à trois informations et commandes Bubble natives. Un seul module de présentation par carte.
+description: Carte illustrée pleine largeur, deux pas de hauteur, une à trois informations et commandes Bubble natives. Un seul module de
+  présentation par carte.
 editor:
   - type: constant
     label: Utiliser rows 2 et grid_options columns full / rows 2. Nom, entité, actions et sous-boutons restent dans les réglages Bubble natifs.
   - name: ""
     label: Réglages du panneau
-    type: signature_options
+    type: signature_options_v2
     fields:
       variant:
         label: Présentation du panneau
@@ -27,49 +28,64 @@ editor:
         description: Facultatif. Les présentations heading et strip ont une hauteur automatique et restent sans effet sur les lecteurs.
       metric_icon:
         label: Icône de la mesure principale
-        visible_if: (!card || (card.card_type || 'button') === 'button')
+        visible_if: (!card || (card.card_type || 'button') === 'button') && ["heading","strip"].includes(item.variant)
         selector:
           icon: {}
         description: Icône sans fond devant la valeur, pour heading et strip.
       primary_enabled:
         label: Visibilité de la mesure principale (booléen ou Jinja)
-        visible_if: (!card || (card.card_type || 'button') === 'button')
+        visible_if: (!card || (card.card_type || 'button') === 'button') && ["heading","strip"].includes(item.variant)
         selector:
           template: {}
         description: Facultatif, active par défaut. Retire uniquement la première mesure sans inventer de capteur.
+        ui_kind: bool
       title:
         label: Titre global du panneau
         selector:
           text: {}
-        description: "Facultatif, texte ou Jinja. Affiché en haut, séparément des noms de mesure. Le nom Bubble reste le libellé de la première mesure. Hauteur de 118 px conservée ; préférer un panneau de mesures et limiter les détails si des commandes occupent le pied."
+        description: Facultatif, texte ou Jinja. Affiché en haut, séparément des noms de mesure. Le nom Bubble reste le libellé de la première
+          mesure. Hauteur de 118 px conservée ; préférer un panneau de mesures et limiter les détails si des commandes occupent le pied.
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       illustration:
-        label: Illustration (objet YAML)
+        label: Illustration
         selector:
           object: {}
-        description: "image, image_light/image_dark, columns/rows, index/index_dark, offset_x/offset_y/offset_y_dark. width_ratio (0 exclu à 1, défaut 1) réduit la largeur réservée sans réduire le dessin ; conserver ses ombres dans la colonne. Valeurs numériques et Jinja acceptés. media_artwork true donne priorité à entity_picture sur un lecteur, avec repli sur le dessin ; une pochette réelle conserve une largeur complète."
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: Images par défaut, claire et sombre. Planche de sprites et cadrage disponibles dans les réglages avancés.
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
+        ui_kind: illustration
       information:
-        label: Informations supplémentaires (liste YAML, deux au maximum)
+        label: Informations supplémentaires
         selector:
           object: {}
-        description: La première information utilise le nom/état natif et secondary. Chaque entrée ajoute entity, name, state, secondary, icon, color, tap_action et/ou statistics, secondary_statistics. Les valeurs et libellés acceptent Jinja.
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: La première information utilise le nom/état natif et secondary. Chaque entrée ajoute entity, name, state, secondary, icon,
+          color, tap_action et/ou statistics, secondary_statistics. Les valeurs et libellés acceptent Jinja.
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
+        ui_kind: list
+        ui_max: 2
+        ui_label_field: name
+        ui_item_kind: information
       color:
         $field: color
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
       state:
         $field: state
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
       secondary:
         $field: secondary
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
       secondary_bold:
         $field: secondary_bold
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type))) && String(item.secondary || "").trim() !== ""
       color_background:
         $field: color_background
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
       secondary_lines:
         label: Nombre de lignes réservées aux détails
         selector:
@@ -78,33 +94,42 @@ editor:
             max: 2
             step: 1
             mode: box
-        description: "Une ligne par défaut. Deux lignes permettent de lire une prévision ou une durée sur un bouton sans sous-boutons, sans changer la hauteur."
+        description: Une ligne par défaut. Deux lignes permettent de lire une prévision ou une durée sur un bouton sans sous-boutons, sans changer
+          la hauteur.
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       icon_opacity_unavailable:
         $field: icon_opacity_unavailable
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       border_color:
         $field: border_color
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
       sub_button_styles:
         $field: sub_button_styles
-        description: "Styles des sous-boutons natifs, par classe ou numéro. type badge : pilule neutre au coin supérieur droit de l’illustration, ou à côté du titre sans image. Avec variant heading, position bottom-right place un badge au coin inférieur droit. type command : icône/libellé, cible 44 px, active/disabled en booléen ou Jinja. Trois commandes visibles au maximum."
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: "Styles des sous-boutons natifs, par classe ou numéro. type badge : pilule neutre au coin supérieur droit de l’illustration, ou
+          à côté du titre sans image. Avec variant heading, position bottom-right place un badge au coin inférieur droit. type command :
+          icône/libellé, cible 44 px, active/disabled en booléen ou Jinja. Trois commandes visibles au maximum."
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
       hover:
         label: Surbrillance au survol
         default: true
         selector:
           boolean: {}
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
       tap_action:
         label: Action sur la valeur principale
         selector:
           ui_action: {}
-        description: "Remplace le clic more-info sur la valeur principale. L'action de la carte et les actions des informations supplémentaires restent indépendantes."
+        description: Remplace le clic more-info sur la valeur principale. L'action de la carte et les actions des informations supplémentaires
+          restent indépendantes.
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       progress:
-        label: Progression (objet YAML)
+        label: Progression
         selector:
           object: {}
         description: "value : 0 à 100 ou Jinja ; color : accent facultatif. Sans valeur numérique, piste masquée."
-        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        visible_if: (!card || card.card_type === 'media-player' || ((card.card_type || 'button') === 'button' &&
+          !['switch','slider'].includes(card.button_type)))
+        ui_kind: progress

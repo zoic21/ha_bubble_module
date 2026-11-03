@@ -8,7 +8,7 @@ Signature Flow displays up to six configurable blocks and their connections, wit
 2. Add `signature_flow` to a Bubble `button` card with `button_type: state`.
 3. Open **Modules → Signature Flow** and configure the numbered blocks in the visual form, or edit `signature_flow.slots` in YAML.
 
-The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.6.7**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
+The folder and distribution are named `signature-flow`; the module ID and options key are `signature_flow`. Version: **3.7.0**. The module is self-contained; use it without the `signature` design module on the same card. Options are configured in the French visual form or in YAML. Sliders and other card types are outside its scope.
 
 ## 3.6.7 — 30 octobre 2026 — alignement des blocs centraux
 
@@ -97,7 +97,7 @@ Version 3 uses `primary` and `secondary` with the same entity, template and text
 
 The form appears directly under **Modules → Signature Flow**, using the same inline approach as Signature, without an outer object-item panel or delete button. Height, accessible label and the common deadband appear first. The common animation settings and the six numbered slots have collapsible sections. Each slot shows its position and an **Afficher cet emplacement** switch. An absent slot remains absent when the form is opened; enabling it creates that slot. Disabling an existing slot retains its values for later use.
 
-Within an enabled slot, the form exposes primary/secondary values, appearance, formatting, flow settings, per-slot animation and the nine native Lovelace actions. Primary/secondary/name/icon fields accept text and Jinja; enter a direct entity ID as text for a measurement, and use the entity picker for the explicit flow entity. Colors accept the suggested palette, arbitrary CSS colors and Jinja. All existing keys and the mapping with slot keys `1`–`6` remain unchanged; existing configurations require no migration.
+Within an enabled slot, the form exposes primary/secondary values, appearance, formatting, flow settings, per-slot animation and the nine native Lovelace actions. Primary/secondary/name/icon fields accept text and Jinja; choose Entity, Fixed text or Jinja template for each value, and use the entity picker for the explicit flow entity. Colors accept the suggested palette, arbitrary CSS colors and Jinja. All existing keys and the mapping with slot keys `1`–`6` remain unchanged; existing configurations require no migration.
 
 Conditional groups follow the actual renderer. Disabled slots show only their enable switch. Scaling and decimal controls appear only for direct entity values, since templates supply their own calculation/formatting. Secondary formatting/actions disappear when secondary text is empty. Turning animation off hides its flow/animation settings while preserving them. The whole form hides its fields on unsupported card types and sliders. An explicit-flow warning explains why a template or fixed-text primary value cannot animate by itself.
 
@@ -386,3 +386,9 @@ Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécut
 Couleur et espacement des unités fournis par le fragment commun `unit.css`, sans répétition locale. Styles calculés, géométrie et actions conservés.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## Formulaire guidé — 3.7.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Chaque valeur propose Entité, Texte fixe ou Template Jinja. Les neuf actions restent dans leurs clés existantes, regroupées sous Actions avancées. L’animation locale distingue héritage et personnalisation.

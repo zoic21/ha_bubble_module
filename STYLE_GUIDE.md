@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.23**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.7.0**, **Square 2.1.0**, **Header 1.5.0**, **Room 1.5.0**, **Panel 1.5.0**, **Flow 3.7.0**, **Weather 1.4.0**, **Wind Rose 1.6.0**, **Navigation 1.0.8**, **Group 1.2.0**, **Hue 1.2.0** et **Irrigation 1.1.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -12,7 +12,7 @@ leur texte ; leur infobulle reste accessible à la souris, au toucher et au
 clavier. La surface, la bordure et la police utilisent les fragments communs.
 Le module ne modifie pas les styles des autres graphiques ou présentations.
 
-Les éditeurs des présentations Signature utilisent un formulaire anonyme (`name: ''`, `type: signature_options`) pour conserver les clés directement sous `signature_square`, `signature_compact`, `signature_room` ou `signature_header`. Le pont enregistre une fois son composant, puis utilise les champs d’objet Bubble et le regroupement `group` dans un `ha-form` natif. Le sélecteur d’objet reste détaché : aucun panneau d’élément ou bouton de suppression de l’objet racine. Les conditions `visible_if` suivent le type natif de carte et masquent les groupes sans champ utile sans supprimer les valeurs précédentes. Conserver les types mixtes compatibles Jinja, les booléens et la structure indexée de `sub_button_styles` ; les guides des présentations précisent les champs YAML intégrés au formulaire. Aucun observateur, abonnement ou polling ne doit être ajouté aux cartes pour gérer l’éditeur.
+Les éditeurs des présentations Signature utilisent un formulaire anonyme (`name: ''`, `type: signature_options_v2`) pour conserver les clés directement sous `signature_square`, `signature_compact`, `signature_room` ou `signature_header`. Le pont enregistre une fois son composant, puis utilise les champs d’objet Bubble et le regroupement `group` dans un `ha-form` natif. Le sélecteur d’objet reste détaché : aucun panneau d’élément ou bouton de suppression de l’objet racine. Les conditions `visible_if` suivent le type natif de carte et masquent les groupes sans champ utile sans supprimer les valeurs précédentes. Conserver les types mixtes compatibles Jinja, les booléens et la structure indexée de `sub_button_styles` ; les guides des présentations précisent les champs YAML intégrés au formulaire. Aucun observateur, abonnement ou polling ne doit être ajouté aux cartes pour gérer l’éditeur.
 
 Flow 3.5.0 applique ce formulaire direct à `signature_flow`, avec des formulaires imbriqués dans les portées existantes `slots`, `slots.1` à `slots.6` et `animation`. Les six sections repliables gardent leurs noms et positions ; aucun emplacement absent ne doit être créé en ouvrant l’éditeur. La case d’activation doit refléter l’absence d’un emplacement et le défaut actif d’un objet déjà configuré. Préserver les valeurs masquées lorsque le bloc, le secondaire ou l’animation est désactivé. Les templates assurent leur propre calcul et formatage : ne présenter multiplicateur/précision que pour les entités directes. Un réglage d’animation vide par emplacement doit hériter du réglage global correspondant, sans injecter un défaut qui l’écrase. Utiliser le sélecteur Lovelace `ui_action` pour conserver les objets d’actions. Les conditions et les groupes ne doivent pas ajouter de calcul ou d’observateur aux cartes ; leurs règles de rendu restent identiques.
 
@@ -22,7 +22,7 @@ Le cycle des formulaires natifs est assemblé depuis `shared/src/editor-base.js`
 
 Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `signature_module_options`, livré dans chaque distribution pour fonctionner seul. Les sous-formulaires restent dans leur portée YAML existante. Conserver les sources météo chaîne/objet, les listes de mesures explicitement vides, les périodes numériques et les valeurs nulles de retour à l’héritage. Les listes natives de packs/entités ne sont qu’une représentation : les valeurs enregistrées restent des objets indexés par ID, avec validation des doublons et conservation des options supplémentaires. Les cases à défaut actif et les sélecteurs d’héritage ne doivent pas être persistés en ouvrant le formulaire ni écraser une politique héritée. Aucun observateur ou abonnement de rendu supplémentaire ne doit être ajouté pour l’éditeur.
 
-## Signature PIN 1.1.0 — protection et clavier autonomes
+## Signature PIN 1.2.0 — protection et clavier autonomes
 
 Le module additionnel `signature_pin` protège toutes les actions de la carte
 par défaut, ou seulement les sous-boutons choisis, pour les utilisateurs sélectionnés.
@@ -37,7 +37,7 @@ aucun nouveau fond ou badge permanent sur la carte. Panel 1.4.23 ne contient
 plus de demande de code ni d’option de protection ; les autres modules de
 présentation restent également sans gestion du PIN.
 
-L’éditeur `signature_pin_scope_options` laisse le champ de remplacement vide.
+L’éditeur `signature_pin_scope_options_v2` laisse le champ de remplacement vide.
 Le bouton natif `ha-button` Enregistrer/Remplacer valide la saisie et ne persiste
 que `code_hash` (SHA-256) ; aucun préfixe saisi ni code en clair n’est émis.
 Le statut indique si un code existe, sans afficher son empreinte. Les anciens
@@ -1427,3 +1427,30 @@ Vérifier récupération/retrait de l’option et identité des nœuds natifs.
 Les fixtures Chromium Compact/Square couvrent la peinture et la stabilité
 géométrique ; elles ne valident pas Home Assistant installé ni Safari/iOS.
 
+
+
+## Formulaires guidés — novembre 2026
+
+Compact 1.7.0, Square 2.1.0, Room/Header/Panel 1.5.0, Flow 3.7.0,
+Weather 1.4.0, Wind Rose 1.6.0, Group/Hue/PIN 1.2.0 et Irrigation/Energy
+Balance 1.1.0 conservent les clés YAML et les rendus des cartes. Navigation
+reste en 1.0.8. Les contrôles partagés sont livrés dans
+`shared/src/editor-guided.js` et s’enregistrent une fois par page.
+
+Le sélecteur de valeur Compact synthétise les anciennes trois clés, sans
+persister de clé de présentation supplémentaire. Les champs complexes
+(images, seuils, listes, statistiques, remplissage, progression, styles)
+utilisent des sélecteurs HA ; les paramètres supplémentaires restent conservés.
+Les noms de sous-boutons préfèrent les classes CSS stables déjà présentes ;
+les numéros existants ne sont jamais migrés en ouvrant l’éditeur.
+
+Garder les données d’édition transitoires hors du YAML. Ouvrir/reconnecter,
+changer de mode Formulaire/YAML et choisir des réglages encore vides ne doivent
+pas injecter de valeur par défaut. Les modifications ciblées conservent zéros,
+false, null, listes vides et propriétés inconnues. Les templates gardent leur
+texte et l’animation par emplacement garde l’héritage des valeurs absentes.
+Les noms de composants versionnés évitent de réutiliser une ancienne classe
+après réimportation en direct. Aucun nouvel écouteur, observateur ou polling
+n’est installé sur les cartes pour ces formulaires ; les événements d’édition
+restent dans les formulaires. Les versions comportent leur code d’éditeur
+autonome, ce qui augmente la taille des distributions sans changer les styles.

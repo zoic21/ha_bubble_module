@@ -1,4 +1,5 @@
 ${(() => {
+/* @include shared/src/editor-guided.js */
 const config = this.config.signature_irrigation;
 if (this.config.card_type === 'button' && config?.role === 'weekdays') {
 this._signatureIrrigation?.cleanup();

@@ -1,15 +1,16 @@
 name: Signature Square
-version: 2.0.11
+version: 2.1.0
 creator: Loïc
 supported:
   - button
-description: Module autonome square ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte.
+description: Module autonome square ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul
+  module de présentation par carte.
 editor:
   - type: constant
     label: Utiliser au moins rows 2 pour une Square fixe. Entité, hauteur, actions et sous-boutons restent dans les réglages Bubble natifs.
   - name: ""
     label: Réglages square
-    type: signature_options
+    type: signature_options_v2
     fields:
       color:
         $field: color
@@ -22,7 +23,8 @@ editor:
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       secondary_bold:
         $field: secondary_bold
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() !== '')
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) &&
+          (String(item.secondary || '').trim() !== '')
       multiline:
         $field: multiline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
@@ -51,8 +53,11 @@ editor:
           boolean: {}
         group: Tuile carrée
         group_icon: mdi:card-outline
-        description: "Tuile classique de hauteur fixe : centre verticalement la valeur et son unité sous le titre si le secondaire est vide, en conservant leur position horizontale. Sans effet avec une illustration ou des commandes de mesure."
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        description: "Tuile classique de hauteur fixe : centre verticalement la valeur et son unité sous le titre si le secondaire est vide, en
+          conservant leur position horizontale. Sans effet avec une illustration ou des commandes de mesure."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && !item.auto_height
+          && item.controls !== "measure" && !item.illustration?.image && !item.illustration?.image_light && !item.illustration?.image_dark
+          && !String(item.secondary || "").trim()
       auto_height:
         label: Adapter la hauteur au contenu
         default: false
@@ -68,16 +73,18 @@ editor:
           boolean: {}
         group: Tuile carrée
         group_icon: mdi:card-outline
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.controls === 'measure')
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.controls ===
+          'measure')
       illustration:
-        label: Illustration décorative (objet YAML)
+        label: Illustration
         default: {}
         selector:
           object: {}
         group: Tuile carrée
         group_icon: mdi:card-outline
-        description: "image : URL de repli ; image_light/image_dark : variantes facultatives selon le thème HA ; columns/rows : grille de sprites ; index/index_dark : cases jour/nuit Square ; offset_y_dark : cadrage sombre facultatif ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : nombre ou Jinja, cadrage en % de case de −50 à 50. URLs locales/HTTPS ou Jinja. Images à installer séparément. Masquer l’icône dans Bubble pour éviter le doublon."
+        description: Images par défaut, claire et sombre. Planche de sprites et cadrage disponibles dans les réglages avancés.
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
+        ui_kind: illustration
       color_background:
         $field: color_background
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
@@ -86,7 +93,8 @@ editor:
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       color_thresholds:
         $field: color_thresholds
-        description: "values : liste value/color. background: false garde la couleur de l’icône sans fond ; true ou absent conserve le fond doux à 16 %."
+        description: "values : liste value/color. background: false garde la couleur de l’icône sans fond ; true ou absent conserve le fond doux à
+          16 %."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       icon_opacity:
         $field: icon_opacity

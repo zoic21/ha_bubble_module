@@ -5,7 +5,7 @@ const {loadModule} = require('../../shared/test/module.cjs');
 const {editorEnvironment} = require('../../shared/test/editor-environment.cjs');
 const {editorBootstrap} = require('../../shared/test/editor-bootstrap.cjs');
 const definition = loadModule('signature-pin');
-const schema = definition.editor.find(field => field.type === 'signature_pin_scope_options');
+const schema = definition.editor.find(field => field.type === 'signature_pin_scope_options_v2');
 const digest = pin => createHash('sha256').update(pin).digest('hex');
 const plain = value => JSON.parse(JSON.stringify(value));
 function setup(hass, data = {}, card) {
@@ -23,7 +23,7 @@ function setup(hass, data = {}, card) {
   env.customElements.define('ha-form-signature_pin_hash_options', class extends env.Element {});
   env.evaluate(editorBootstrap(definition));
   assert.equal(env.customElements.get('ha-form-signature_pin_options'),OldEditor);
-  const form = env.document.createElement('ha-form-signature_pin_scope_options');
+  const form = env.document.createElement('ha-form-signature_pin_scope_options_v2');
   Object.assign(form, {hass, data, schema, card}); form.isConnected = true; form.connectedCallback(); env.flush();
   const changes=[]; form.addEventListener('value-changed',event=>changes.push(plain(event.detail.value)));
   const change = values => { form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,...values}}}));env.flush(); };

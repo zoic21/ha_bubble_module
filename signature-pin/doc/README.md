@@ -1,6 +1,6 @@
 # Signature PIN
 
-Version **1.1.0** — Bubble Card **3.4.3 ou plus récent**.
+Version **1.2.0** — Bubble Card **3.4.3 ou plus récent**.
 
 Ajoute le clavier numérique de Signature à **toutes les actions d’une carte par défaut**,
 ou uniquement aux sous-boutons choisis, avec une sélection facultative des utilisateurs concernés. Peut être combiné
@@ -144,3 +144,9 @@ Les contrôles du dépôt exécutent le module livré avec Bubble Card 3.4.3 dan
 Chromium, des composants HA simulés et un backend simulé. Ils ne prouvent pas
 un essai sur Home Assistant réel ou Safari/iPadOS. Vérifier sur la tablette
 après importation du module et sélection de son compte.
+
+## Formulaire guidé — 1.2.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Un résumé indique la portée et les utilisateurs concernés. Le code_hash, le clavier et les règles de protection sont conservés.

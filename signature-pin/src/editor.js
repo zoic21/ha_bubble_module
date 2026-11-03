@@ -1,12 +1,14 @@
 /* @include shared/src/editor-base.js */
 // A new tag avoids reusing an earlier editor after a live module update.
-registerOptionsForm('ha-form-signature_pin_scope_options', {
+registerOptionsForm('ha-form-signature_pin_scope_options_v2', {
   _setup() {
     this._status = document.createElement('div');
     this._status.setAttribute('style', 'color:var(--secondary-text-color);font-size:13px;margin-top:8px');
     this._pinStatus = document.createElement('div');
     this._pinStatus.setAttribute('style', 'color:var(--secondary-text-color);font-size:13px;margin:8px 0');
     this._saveCode = document.createElement('ha-button');
+    this._summary = document.createElement('div');
+    this._summary.setAttribute('style', 'color:var(--secondary-text-color);font-size:13px;margin:8px 0');
     this._saveCode.setAttribute('appearance', 'filled');
     this._saveCode.addEventListener('click', () => {
       if (this.disabled || this._saveCode.disabled) return;
@@ -17,7 +19,7 @@ registerOptionsForm('ha-form-signature_pin_scope_options', {
       this._pinDraft = '';
       this._emit(value); this._scheduleUpdate();
     });
-    this.shadowRoot.append(this._pinStatus,this._saveCode,this._status);
+    this.shadowRoot.append(this._summary,this._pinStatus,this._saveCode,this._status);
   },
   _display() {
     const {code, code_hash, new_code, ...settings} = this.data || {};
@@ -54,6 +56,13 @@ registerOptionsForm('ha-form-signature_pin_scope_options', {
   },
   _formData(data) {
     this._updatePinStatus();
+    let card=this._engine?._cardConfig;
+    for(let node=this,depth=0;!card&&node&&depth<20;depth++){node=node.getRootNode?.()?.host;card=node?._config;}
+    const buttons=pinSubButtons(card);
+    const names=(this.data?.sub_buttons||[]).map(index=>buttons[Number(index)-1]?.name||'Sous-bouton '+index);
+    const users=(this.data?.users||[]).map(id=>this._users?.find(user=>user.value===id)?.label||this.hass?.user?.id===id&&this.hass.user.name||id);
+    this._summary.textContent=this.data?.enabled===false?'Protection désactivée':
+      'Protection : '+(this.data?.scope==='sub_buttons'?(names.length?names.join(', '):'Tous les sous-boutons'):'Toute la carte')+' · '+(users.length?users.join(', '):'Tous les utilisateurs');
     const key = this.hass?.connection;
     if (key && this._usersConnection !== key) {
       this._usersConnection = key;

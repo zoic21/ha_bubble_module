@@ -1,6 +1,6 @@
 # Signature Compact
 
-## 1.6.11 — 30 octobre 2026 — survol léger sur la carte entière
+## 1.7.0 — 30 octobre 2026 — survol léger sur la carte entière
 
 Le fond d’une carte entière utilise le token de thème facultatif
 `signature-card-hover-opacity` : **0.03** en thème Signature clair.
@@ -170,7 +170,7 @@ et `h:mm:ss` au rôle numérique. Les ventilateurs Bambu et la durée du robot
 piscine n'ont plus besoin de CSS local pour ces rôles. La géométrie et les
 actions natives sont conservées ; tests de mise à jour DOM et de thème inclus.
 
-Version **1.6.11**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
+Version **1.7.0**. ID YAML : **`signature_compact`**. [Distribution complète à importer](../dist/signature-compact.yaml).
 
 Lignes compactes de 56 px : informations, switches, volets, thermostats et commandes numériques. Les lecteurs multimédias reçoivent le même habillage de thème en conservant leurs dimensions natives.
 
@@ -489,3 +489,9 @@ Contrôles : tests Node, styles calculés Chromium et comparaison avant/après. 
 Unités et lignes secondaires assemblées depuis les fragments communs ; géométrie des interrupteurs partagée avec Hue. Rendu, retraits, tailles et actions conservés.
 
 Contrôles : tests Node et Chromium, dont les styles calculés et les changements de thème sans nouveau rendu. Voir le [bilan de cohérence](../../docs/STYLE_AUDIT_2026_10.md). Essais Home Assistant réel et Safari/iOS à effectuer après importation.
+
+## Formulaire guidé — 1.7.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Le choix Présentation de la valeur regroupe Standard, Grande valeur, Petite pastille et Petit texte cliquable. Il écrit toujours compact_mode, value_style et value_background. Le remplissage et les styles de sous-boutons ont leur propre formulaire.

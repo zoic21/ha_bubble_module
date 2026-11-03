@@ -120,7 +120,7 @@ test('Flow inline editor keeps one root label and hides nested labels in the bro
   const definition=loadModule('signature-flow');
   const {editorBootstrap}=require('../../shared/test/editor-bootstrap.cjs');
   const bootstrap=editorBootstrap(definition);
-  const schema=definition.editor.find(field=>field.type==='signature_flow_options');
+  const schema=definition.editor.find(field=>field.type==='signature_flow_options_v2');
   const page=await fixture(t);
   const result=await page.evaluate(async ({bootstrap,schema})=>{
     // Browser DOM fixture for the bridge; not a Home Assistant form runtime.
@@ -132,9 +132,9 @@ test('Flow inline editor keeps one root label and hides nested labels in the bro
       _itemChanged(event){event.stopPropagation();this.dispatchEvent(new CustomEvent('value-changed',{detail:event.detail}));}
     });
     new Function(bootstrap)();
-    const root=document.createElement('ha-form-signature_flow_options');
+    const root=document.createElement('ha-form-signature_flow_options_v2');
     Object.assign(root,{schema,data:{},hass:{states:{}},label:schema.label});document.body.append(root);
-    const nested=document.createElement('ha-form-signature_flow_options');
+    const nested=document.createElement('ha-form-signature_flow_options_v2');
     Object.assign(nested,{schema:{...schema.fields.slots.fields[1],slot:true,show_label:false},data:{primary:'sensor.power'},hass:{states:{}},label:'Réglages de l’emplacement 1'});document.body.append(nested);
     await Promise.resolve();
     const events=[];root.addEventListener('value-changed',event=>events.push({value:event.detail.value,target:event.target===root}));

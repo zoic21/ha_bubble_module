@@ -1,4 +1,4 @@
-# Bubble Alert Manager module 3.7.0
+# Bubble Alert Manager module 3.8.0
 
 [Module to import](../dist/alert_manager.yaml), independent of the Signature presentation modules. It adds a small alert badge at the main icon's upper-right corner, red for active alerts and orange for pending alerts by default. Custom alert colors take precedence. The card retains its own colors unless card tint is enabled; the main device icon and its background are never recolored by this module. Thresholds and delays are not duplicated in cards.
 
@@ -387,3 +387,9 @@ This module supports the optional [Signature light/dark theme](../../themes/READ
 ## Maintenance des sources
 
 Modifier `src` et les [fonctions communes](../../shared/README.md), puis exécuter `npm run build:modules` et `npm run check:modules`. Ne pas modifier directement la distribution dans `dist`. Les chemins d’import, les clés YAML et les actions natives sont conservés.
+
+## Formulaire guidé — 3.8.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Les règles, exclusions et héritages sont conservés ; le formulaire partagé reste compatible avec les paramètres existants.

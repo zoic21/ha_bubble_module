@@ -1,4 +1,4 @@
-# Signature Irrigation 1.0.0
+# Signature Irrigation 1.1.0
 
 Lecteur du calendrier OpenSprinkler et présentation des jours d’arrosage.
 Importer `signature-irrigation/dist/signature-irrigation.yaml` et ajouter
@@ -60,3 +60,9 @@ Extraction du lecteur précédemment copié dans douze cartes et du gabarit des
 jours. Tests Node : requête partagée, données manquantes, cache, zéro durée,
 historique, fuseaux/DST, démontage et réponses tardives. Les fixtures Chromium
 ne remplacent pas une validation dans Home Assistant réel ou Safari/iOS.
+
+## Formulaire guidé — 1.1.0
+
+Les réglages visuels utilisent les champs natifs Home Assistant. Les objets complexes gardent un mode **YAML avancé** ; les templates restent disponibles. Les clés YAML et le comportement de la carte sont conservés : ouvrir un formulaire ne modifie rien et une modification ciblée conserve les autres paramètres, y compris les options avancées inconnues du formulaire.
+
+Choisir le rôle en premier ; Commandes des jours masque les sources calendrier inutiles. Les stations sont une liste éditable de noms exacts, enregistrée dans stations comme auparavant.

@@ -1,25 +1,46 @@
 name: Signature Compact
-version: 1.6.11
+version: 1.7.0
 creator: Loïc
 supported:
   - button
   - cover
   - climate
   - media-player
-description: Module autonome compact ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte.
+description: Module autonome compact ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul
+  module de présentation par carte.
 editor:
   - type: constant
     label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.
   - name: ""
     label: Réglages compact
-    type: signature_options
+    type: signature_options_v2
     fields:
       color:
         $field: color
-        visible_if: (!card || card.card_type === 'media-player' || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        visible_if: (!card || card.card_type === 'media-player' || (['button','cover','climate'].includes(card.card_type || 'button') &&
+          card.button_type !== 'slider'))
       secondary:
         $field: secondary
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+      value_presentation:
+        label: Présentation de la valeur
+        ui_only: true
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (!card ||
+          ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state
+          || '').trim() !== '')))) && item.controls !== "number"
+        group: Valeurs et textes
+        group_icon: mdi:format-text
+        selector:
+          select:
+            options:
+              - value: standard
+                label: Affichage standard
+              - value: large
+                label: Grande valeur à droite
+              - value: pill
+                label: Petite pastille cliquable
+              - value: plain
+                label: Petit texte cliquable
       compact_mode:
         label: Valeur compacte
         default: default
@@ -33,7 +54,7 @@ editor:
                 value: value
         group: Valeurs et textes
         group_icon: mdi:format-text
-        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
+        visible_if: "false"
       value_style:
         label: Présentation de la valeur
         default: text
@@ -47,8 +68,8 @@ editor:
                 value: button
         group: Valeurs et textes
         group_icon: mdi:format-text
-        description: "Bouton de 36 px, valeur de 14 px et unité de 12 px. Les interrupteurs visuels restent en dernier dans leur groupe natif."
-        visible_if: item.compact_mode === 'value' && item.controls !== 'number' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
+        description: Bouton de 36 px, valeur de 14 px et unité de 12 px. Les interrupteurs visuels restent en dernier dans leur groupe natif.
+        visible_if: "false"
       value_background:
         label: Fond du petit bouton de valeur
         default: true
@@ -56,8 +77,8 @@ editor:
           boolean: {}
         group: Valeurs et textes
         group_icon: mdi:format-text
-        description: "Désactiver pour afficher la petite valeur sans pastille, toujours cliquable avant les commandes."
-        visible_if: item.compact_mode === 'value' && item.value_style === 'button' && item.controls !== 'number' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
+        description: Désactiver pour afficher la petite valeur sans pastille, toujours cliquable avant les commandes.
+        visible_if: "false"
       state:
         $field: state
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
@@ -73,19 +94,23 @@ editor:
         group: Valeurs et textes
         group_icon: mdi:format-text
         description: Deux lignes au maximum, avec une hauteur qui suit la taille de police du thème.
-        visible_if: item.compact_mode === 'value' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' || (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
+        visible_if: item.compact_mode === 'value' && (!card || ((card.card_type || 'button') === 'button' && (card.button_type === 'state' ||
+          (card.button_type === 'name' && String(item.state || '').trim() !== ''))))
       fill:
-        label: Remplissage proportionnel (objet YAML)
+        label: Remplissage proportionnel
         default: {}
         selector:
           object: {}
         group: Remplissage proportionnel
         group_icon: mdi:chart-bar
-        description: "reference_entity : entité du total, ou max : limite fixe dans l’unité principale. Fond doux à 16 %, enabled: false désactive. Une donnée invalide masque la jauge."
+        description: "reference_entity : entité du total, ou max : limite fixe dans l’unité principale. Fond doux à 16 %, enabled: false désactive.
+          Une donnée invalide masque la jauge."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'state' && item.controls !== 'number'))
+        ui_kind: fill
       secondary_bold:
         $field: secondary_bold
-        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (String(item.secondary || '').trim() !== '')
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) &&
+          (String(item.secondary || '').trim() !== '')
       multiline:
         $field: multiline
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
@@ -102,9 +127,12 @@ editor:
                 value: number
         group: Commandes et sous-boutons
         group_icon: mdi:gesture-tap-button
-        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (!card || ((card.card_type || 'button') === 'button' && card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0])))
+        visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider')) && (!card ||
+          ((card.card_type || 'button') === 'button' && card.button_type === 'state' && ['number','input_number'].includes((card.entity ||
+          '').split('.')[0])))
         warn_text: "Numériques : bouton number/input_number en compacte. Mesure : tuile carrée avec les sous-boutons natifs."
-        warn_if: item.controls === 'number' && !(!card || ((card.card_type || 'button') === 'button' && card.button_type === 'state' && ['number','input_number'].includes((card.entity || '').split('.')[0])))
+        warn_if: item.controls === 'number' && !(!card || ((card.card_type || 'button') === 'button' && card.button_type === 'state' &&
+          ['number','input_number'].includes((card.entity || '').split('.')[0])))
         warn_message: Les commandes numériques nécessitent un bouton État lié à number ou input_number.
       sub_buttons_position:
         label: Position des sous-boutons en compacte
@@ -132,21 +160,25 @@ editor:
             unit_of_measurement: px
         group: Commandes et sous-boutons
         group_icon: mdi:gesture-tap-button
-        description: "Padding horizontal uniquement : 4 px par défaut, 8 px pour retrouver le retrait Bubble. Hauteur, largeur minimale, switches et badges Auto/Manuel conservés."
+        description: "Padding horizontal uniquement : 4 px par défaut, 8 px pour retrouver le retrait Bubble. Hauteur, largeur minimale, switches et
+          badges Auto/Manuel conservés."
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
       sub_button_styles:
         $field: sub_button_styles
-        description: "Styles par classe ou numéro natif. type: mode_badge superpose une unique commande Auto/Manuel nommée à l’icône d’une carte cover/climate : badge de 14 px et cible native de 44 px ; color/background restent configurables."
+        description: "Styles par classe ou numéro natif. type: mode_badge superpose une unique commande Auto/Manuel nommée à l’icône d’une carte
+          cover/climate : badge de 14 px et cible native de 44 px ; color/background restent configurables."
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
       color_background:
         $field: color_background
-        visible_if: (!card || card.card_type === 'media-player' || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
+        visible_if: (!card || card.card_type === 'media-player' || (['button','cover','climate'].includes(card.card_type || 'button') &&
+          card.button_type !== 'slider'))
       icon_color:
         $field: icon_color
         visible_if: (!card || (['button','cover','climate'].includes(card.card_type || 'button') && card.button_type !== 'slider'))
       color_thresholds:
         $field: color_thresholds
-        description: "values : liste value/color. background: false garde la couleur de l’icône sans fond ; true ou absent conserve le fond doux à 16 %."
+        description: "values : liste value/color. background: false garde la couleur de l’icône sans fond ; true ou absent conserve le fond doux à
+          16 %."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider'))
       icon_opacity:
         $field: icon_opacity

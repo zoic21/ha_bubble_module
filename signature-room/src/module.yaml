@@ -1,15 +1,16 @@
 name: Signature Room
-version: 1.4.5
+version: 1.5.0
 creator: Loïc
 supported:
   - button
-description: Module autonome room ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul module de présentation par carte.
+description: Module autonome room ; réglages en français, variables CSS du thème Signature et actions Bubble natives. Utiliser un seul
+  module de présentation par carte.
 editor:
   - type: constant
     label: L’entité principale, les actions et les sous-boutons se configurent dans les réglages natifs de Bubble.
   - name: ""
     label: Réglages room
-    type: signature_options
+    type: signature_options_v2
     fields:
       room_mode:
         label: Présentation de la pièce
@@ -25,16 +26,19 @@ editor:
         group: Pièce
         group_icon: mdi:sofa-outline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
-        description: "Illustrée : 148 px, nom et température, dessin à droite centré au-dessus des commandes ; humidité et icône principale masquées. Commandes et badges natifs conservés."
+        description: "Illustrée : 148 px, nom et température, dessin à droite centré au-dessus des commandes ; humidité et icône principale
+          masquées. Commandes et badges natifs conservés."
       illustration:
-        label: Illustration de la pièce (objet YAML)
+        label: Illustration
         default: {}
         selector:
           object: {}
         group: Pièce
         group_icon: mdi:sofa-outline
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode === 'illustrated')
-        description: "image : URL locale/HTTPS ; image_light/image_dark : variantes facultatives HA ; columns/rows : grille de sprites ; index : case à partir de 0, nombre ou Jinja ; offset_x/offset_y : nombre ou Jinja, cadrage en % de case de −50 à 50. Images à installer séparément."
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode ===
+          'illustrated')
+        description: Images par défaut, claire et sombre. Planche de sprites et cadrage disponibles dans les réglages avancés.
+        ui_kind: illustration
       color:
         $field: color
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
@@ -72,16 +76,19 @@ editor:
         description: false masque la surbrillance du pointeur sur cette carte et ses sous-boutons. Les actions et le retour d’appui restent actifs.
       secondary_bold:
         $field: secondary_bold
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (String(item.secondary || '').trim() !== '')
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) &&
+          (String(item.secondary || '').trim() !== '')
       multiline:
         $field: multiline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       sub_button_styles:
         $field: sub_button_styles
-        description: "Objet indexé par classe CSS ou numéro natif. type: badge place un sous-bouton iconique après le nom. type: command empile icône et libellé d’une commande room-control-N illustrée ; active et disabled acceptent un booléen ou Jinja. Les commandes désactivées restent visibles et ne transmettent aucune action. color/background conservent leurs overrides."
+        description: "Objet indexé par classe CSS ou numéro natif. type: badge place un sous-bouton iconique après le nom. type: command empile
+          icône et libellé d’une commande room-control-N illustrée ; active et disabled acceptent un booléen ou Jinja. Les commandes
+          désactivées restent visibles et ne transmettent aucune action. color/background conservent leurs overrides."
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
       room_auto_colors:
-        label: Coloration automatique des commandes (booléen YAML)
+        label: Coloration automatique des commandes
         default: true
         selector:
           object: {}
@@ -89,6 +96,8 @@ editor:
         group_icon: mdi:sofa-outline
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))
         description: true par défaut ; false désactive les couleurs automatiques.
+        ui_kind: bool
+        ui_template: false
       room_control_columns:
         label: Colonnes de commandes
         default: 4
@@ -115,7 +124,9 @@ editor:
                 value: header
         group: Pièce
         group_icon: mdi:sofa-outline
-        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode !== 'illustrated') && (String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true && card.button_type === 'name' && String(item.state || '').trim() === '')))
+        visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type))) && (item.room_mode !==
+          'illustrated') && (String(item.secondary || '').trim() === '' && (!card || card.show_state === false || (card.show_state !== true
+          && card.button_type === 'name' && String(item.state || '').trim() === '')))
       color_background:
         $field: color_background
         visible_if: (!card || ((card.card_type || 'button') === 'button' && !['switch','slider'].includes(card.button_type)))

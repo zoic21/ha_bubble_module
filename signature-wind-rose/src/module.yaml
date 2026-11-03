@@ -1,14 +1,15 @@
 name: Signature Wind Rose
-version: 1.5.5
+version: 1.6.0
 creator: Loïc
 supported:
   - button
-description: A time-weighted wind rose with speed bands, historical sector details and 1 hour, 1 day and 1 week periods. Requires Bubble Card 3.3 or later and recorded wind direction states.
+description: A time-weighted wind rose with speed bands, historical sector details and 1 hour, 1 day and 1 week periods. Requires Bubble
+  Card 3.3 or later and recorded wind direction states.
 editor:
   - type: constant
     label: Réglages pour une carte Bubble de type bouton. Les entités et options masquées restent conservées.
   - name: ""
-    type: signature_module_options
+    type: signature_module_options_v2
     label: Réglages du module
     fields:
       direction_entity:
@@ -38,6 +39,7 @@ editor:
         visible_if: (!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')) && (!!item.speed_entity)
         group: Sources du vent
         group_icon: mdi:weather-windy
+        ui_unit_from: speed_entity
       direction_offset:
         label: Correction de direction
         description: "Par défaut : 0°. Correction dans le sens horaire."
@@ -45,12 +47,12 @@ editor:
           number:
             step: any
             mode: box
-        group: Sources du vent
+        group: Réglages avancés
         group_icon: mdi:weather-windy
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
       hours:
         label: Période initiale
-        description: "Période utilisée lorsque les boutons de période sont masqués."
+        description: Période sélectionnée au démarrage ; période fixe si les boutons sont masqués.
         default: "24"
         selector:
           select:
@@ -83,14 +85,17 @@ editor:
             min: 60
             step: 1
             mode: box
-        group: Historique
+            unit_of_measurement: s
+        group: Réglages avancés
         group_icon: mdi:history
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
       color:
         label: Couleur des secteurs
-        description: "Couleur de base des secteurs et des quatre nuances de vitesse. Vide : couleur du thème. Accepte la palette du thème (blue, teal…), une couleur CSS (#4db6ac, var(--teal-color)) ou un template Jinja. Une couleur invalide reprend le défaut du vent."
+        description: "Couleur de base des secteurs et des quatre nuances de vitesse. Vide : couleur du thème. Accepte la palette du thème (blue,
+          teal…), une couleur CSS (#4db6ac, var(--teal-color)) ou un template Jinja. Une couleur invalide reprend le défaut du vent."
         selector:
           text: {}
         group: Apparence
         group_icon: mdi:palette-outline
         visible_if: "!card || ((card.card_type || 'button') === 'button' && card.button_type !== 'slider')"
+        ui_kind: color

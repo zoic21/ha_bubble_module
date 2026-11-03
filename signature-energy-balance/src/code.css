@@ -1,4 +1,5 @@
 ${(() => {
+/* @include shared/src/editor-guided.js */
   /* @include signature-energy-balance/src/runtime.js */
 })()}
 /* @include signature-energy-balance/src/presentation.css */
