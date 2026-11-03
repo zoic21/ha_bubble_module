@@ -1,5 +1,14 @@
 # Signature Panel
 
+## 1.4.22 — 3 novembre 2026 — clavier partagé et module PIN générique
+
+Le pavé numérique est désormais partagé avec [Signature PIN](../../signature-pin/doc/README.md).
+Une carte qui ajoute `signature_pin` confie sa protection à ce nouveau module :
+l’ancien `alarm_code` ne déclenche plus une seconde demande. Signature PIN
+permet de vérifier un code local pour toutes les actions, uniquement pour les
+utilisateurs choisis. Sans ce module, `alarm_code: true` conserve sa saisie et
+sa vérification côté HA. Les deux distributions restent autonomes.
+
 ## 1.4.21 — 3 novembre 2026 — pavé numérique intégré pour l’alarme
 
 La saisie directe de `alarm_code: true` reprend un pavé à trois colonnes :

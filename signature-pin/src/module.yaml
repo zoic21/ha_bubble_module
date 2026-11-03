@@ -1,0 +1,38 @@
+name: Signature PIN
+version: 1.0.0
+creator: Loïc
+supported:
+  - button
+  - select
+  - cover
+  - climate
+  - media-player
+  - separator
+  - sub-buttons
+description: Clavier PIN commun à toutes les actions de la carte, avec sélection des utilisateurs concernés. Vérification locale dans le navigateur. Bubble Card 3.4.3 ou plus récent.
+editor:
+  - type: constant
+    label: Le code protège toutes les actions de cette carte. Laisser la liste des utilisateurs vide pour demander le code à tout le monde, ou sélectionner uniquement le compte de la tablette.
+  - name: ""
+    label: Protection de la carte
+    type: signature_pin_options
+    fields:
+      enabled:
+        label: Activer la demande de code
+        default: true
+        selector:
+          boolean: {}
+      code:
+        label: Code PIN
+        description: Chiffres uniquement. Le code reste enregistré dans la carte, y compris les zéros au début.
+        selector:
+          text:
+            type: password
+      users:
+        label: Demander le code à ces utilisateurs
+        description: Liste vide = tous les utilisateurs. Les comptes non sélectionnés gardent leurs actions directes. La liste utilise les identifiants HA, pas les personnes ou leurs présences.
+        selector:
+          select:
+            multiple: true
+            custom_value: true
+            options: []

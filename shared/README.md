@@ -1,6 +1,6 @@
 # Sources communes et build de tous les modules Bubble
 
-Les quatorze modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
+Les quinze modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
 
 ## Organisation
 
@@ -18,6 +18,7 @@ Les quatorze modules du dépôt sont générés à partir de sources. Chaque YAM
 | `shared/src/color.js` | Palette du thème et validation CSS pour Signature, Flow, Wind Rose et Alert Manager |
 | `shared/src/render-gate.js` | Contrôle du travail DOM inchangé de Flow/Panel après lecture des dépendances ; API native Bubble 3.4.2 et repli local |
 | `shared/src/dom.js` | Création HTML/SVG et écritures conditionnelles de texte/attributs pour Flow, Weather et Wind Rose |
+| `shared/src/code-keypad.js` et `.css` | Clavier partagé entre l’alarme Panel et Signature PIN ; chaque distribution reste autonome |
 | `shared/src/color-thresholds.js` | Échelles numériques et interpolation RGB communes à Compact, Square et Header |
 | `shared/src/numeric-value.js` | Lecture numérique commune à Flow et Weather |
 | [shared/src/styles](src/styles/README.md) | Fragments CSS par rôle : surfaces, typographie, séparateurs, onglets et focus des modules Signature |
@@ -55,7 +56,7 @@ Les suites fonctionnelles partagent également leurs [helpers de test](test/READ
 
 Le workflow [Build module distributions](../.github/workflows/build.yml) démarre après un push qui modifie un fichier `**/src/**`, un script de build, `package.json`, `package-lock.json` ou le workflow lui-même. Il fonctionne sur les branches du dépôt, y compris `main`, et peut aussi être lancé manuellement depuis l'onglet Actions.
 
-Il installe les dépendances, reconstruit les quatorze modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
+Il installe les dépendances, reconstruit les quinze modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
 
 Les builds d'une même branche sont sérialisés. Si un autre commit arrive pendant le build, le script reprend la dernière révision et reconstruit avant de retenter le push, au maximum trois fois, sans push forcé. La publication utilise le `GITHUB_TOKEN` du job avec `contents: write` ; les branches protégées conservent leurs règles. Aucun secret supplémentaire n'est requis. Les commits du bot limités à `dist` ne correspondent pas au filtre des sources ; GitHub ne déclenche pas non plus de nouveau workflow `push` pour un commit publié avec ce token ([documentation GitHub](https://docs.github.com/en/actions/concepts/security/github_token)).
 
@@ -95,7 +96,7 @@ Une modification du catalogue doit actualiser tous ses consommateurs affectés e
 
 ## Distributions minifiées
 
-Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux quatorze distributions, y compris dans le workflow automatique GitHub :
+Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux quinze distributions, y compris dans le workflow automatique GitHub :
 
 - Terser raccourcit les identifiants locaux, simplifie les expressions et retire les commentaires JavaScript. Les noms des propriétés, options, composants et espaces d'état restent inchangés. Les transformations `unsafe` et les hypothèses de getters purs sont désactivées pour préserver les lectures suivies par Home Assistant.
 - clean-css réduit les espaces et commentaires des feuilles CSS embarquées complètes. Les expressions JavaScript sont remplacées temporairement par des marqueurs de syntaxe valide puis rétablies dans leur ordre initial, sans être exécutées. Les fragments incomplets et les templates taggés ne sont pas transformés. L'ordre des règles, leurs valeurs, leurs unités et les variables CSS restent conservés.

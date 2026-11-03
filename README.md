@@ -16,7 +16,8 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 |---|---|---|---|
 | Signature Square — square tiles | 2.0.11 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.6.11 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.4.21 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.4.22 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature PIN — card-wide keypad with per-user selection | 1.0.0 | [signature-pin.yaml](signature-pin/dist/signature-pin.yaml) | [Guide](signature-pin/doc/README.md) |
 | Signature Room — room summaries and controls | 1.4.5 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.4.2 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
 | Signature Flow — six configurable flow slots | 3.6.7 | [signature-flow.yaml](signature-flow/dist/signature-flow.yaml) | [Guide](signature-flow/doc/README.md) |
@@ -30,6 +31,8 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 | Alert Manager — alert badges and optional card tint | 3.7.0 | [alert_manager.yaml](alert_manager/dist/alert_manager.yaml) | [Guide](alert_manager/doc/README.md) |
 
 The main Signature presentations share [CSS source fragments by visual role](shared/src/styles/README.md), assembled during the build into autonomous distributions. Hue and Irrigation are optional companions: keep Compact for the native card frame and add the companion afterwards, only where needed. The [17 October style audit](docs/STYLE_AUDIT_2026_10.md) fixes the remaining Panel, Room-unit and Hue-label inconsistencies and documents the shared rules and preserved insets.
+
+**[Signature PIN](signature-pin/doc/README.md)** is an optional companion for all actions of a Bubble card, with a local numeric keypad and per-user selection in its French editor. Add it only to the cards that need it. It does not change automations or server-side alarm requirements.
 
 Each module has its own folder: `src` contains its editable sources, `dist` contains the generated complete YAML file to import and `doc` contains its documentation. Existing modules keep their own `test` folders; the five standalone presentation modules share behavior and build tests in `signature-shared/test`.
 
@@ -47,7 +50,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_panel`, `signature_header`, `signature_flow`, `signature_energy_balance`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group`, `signature_hue`, `signature_irrigation` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
+The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_panel`, `signature_header`, `signature_flow`, `signature_energy_balance`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group`, `signature_hue`, `signature_irrigation`, `signature_pin` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
 
 ## Updates and Module Store
 
@@ -75,7 +78,7 @@ Compact and Square support numeric `color_thresholds.values` on their main icons
 
 ## Source maintenance
 
-All fourteen module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
+All fifteen module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
 
 ## Configuration
 

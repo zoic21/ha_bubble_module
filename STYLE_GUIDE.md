@@ -1,6 +1,6 @@
 # Signature — règles techniques de style
 
-Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.21**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
+Référence commune de **Signature Compact 1.6.11**, **Square 2.0.11**, **Header 1.4.2**, **Room 1.4.5**, **Panel 1.4.22**, **Flow 3.6.7**, **Weather 1.3.6**, **Wind Rose 1.5.5**, **Navigation 1.0.8**, **Group 1.1.5**, **Hue 1.1.2** et **Irrigation 1.0.0**. Toute modification visuelle de ces modules doit respecter ce contrat et mettre à jour les contrôles concernés. Les distributions `*/dist/*.yaml` constituent le code livré ; [le thème](themes/signature.yaml) définit les valeurs communes en modes clair et sombre.
 
 L'identité visuelle repose sur des surfaces neutres, des arrondis de 22 px, une typographie système, des noms sobres et des valeurs de graisse moyenne. Harmoniser les éléments de même rôle ; conserver les différences de densité et de représentation utiles à chaque module. Les accents explicites de la carte et les couleurs d'état restent prioritaires. Ne pas ajouter une dominante violette par défaut.
 
@@ -21,6 +21,19 @@ Les définitions communes des champs des quatre présentations sont dans `shared
 Le cycle des formulaires natifs est assemblé depuis `shared/src/editor-base.js` ; les adaptateurs conservent leurs conversions YAML, scopes, listes, booléens et valeurs d’héritage. Les sections des éditeurs Signature, Flow, Weather, Wind Rose et Alert Manager utilisent `ha-form-signature_group`, dérivé du groupe natif Bubble. Conserver son rendu, les avertissements et `flatten` ; adapter seulement son CSS local. Le panneau doit hériter de `--ha-card-border-radius`, avec le repli natif `--ha-border-radius-lg`, au lieu du rayon de 6 px imposé par `bc_group`. Vérifier les panneaux ouverts/fermés et les changements de thème sans JavaScript. Ne pas modifier le composant Bubble d’origine ni les styles des autres formulaires. Ces rayons suivent l’éditeur Home Assistant ; ils ne remplacent pas les variables de style des cartes Signature.
 
 Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `signature_module_options`, livré dans chaque distribution pour fonctionner seul. Les sous-formulaires restent dans leur portée YAML existante. Conserver les sources météo chaîne/objet, les listes de mesures explicitement vides, les périodes numériques et les valeurs nulles de retour à l’héritage. Les listes natives de packs/entités ne sont qu’une représentation : les valeurs enregistrées restent des objets indexés par ID, avec validation des doublons et conservation des options supplémentaires. Les cases à défaut actif et les sélecteurs d’héritage ne doivent pas être persistés en ouvrant le formulaire ni écraser une politique héritée. Aucun observateur ou abonnement de rendu supplémentaire ne doit être ajouté pour l’éditeur.
+
+## Signature PIN 1.0.0 — clavier commun
+
+Le module additionnel `signature_pin` protège toutes les actions de la carte
+pour les utilisateurs sélectionnés. Son formulaire natif présente activation,
+PIN masqué et sélection multiple des comptes par leur nom ; aucun filtre
+d’action ni délai de déverrouillage. La liste des comptes est chargée uniquement
+dans cet éditeur, avec un administrateur, jamais dans le runtime de la tablette.
+Le clavier JS/CSS de l’alarme Panel est assemblé depuis `shared/src/code-keypad`.
+Conserver ses trois colonnes, ses cibles tactiles, son champ masqué, son œil,
+son effacement et les rôles du thème. Les styles restent limités au dialogue ;
+aucun nouveau fond ou badge permanent sur la carte. Panel 1.4.22 évite son
+ancien prompt quand `signature_pin` figure dans la liste des modules.
 
 ## Modules de présentation autonomes
 
