@@ -8,6 +8,7 @@ const {theme,nativeModes} = require('./fixtures.cjs');
 const pin = loadModule('signature-pin'), panel = loadModule('signature-panel');
 const nativePath = process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
 const native = {skip: !nativePath};
+const digest = code => crypto.createHash('sha256').update(code).digest('hex');
 async function setup(t, {user='tablet', options={}, config={}, width=382, mode='light', plain=false, touch=false}={}) {
   const bytes=fs.readFileSync(nativePath);
   assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
@@ -28,7 +29,7 @@ async function setup(t, {user='tablet', options={}, config={}, width=382, mode='
     document.querySelector('home-assistant').attachShadow({mode:'open'});
   });
   await page.addScriptTag({path:nativePath});
-  await page.evaluate(({user,options,config,theme,nativeModes,mode,plain})=>{
+  await page.evaluate(({user,options,config,theme,nativeModes,mode,plain,codeHash})=>{
     document.documentElement.style.cssText=Object.entries({...nativeModes[mode],...(plain?{}:{...theme,...theme.modes[mode]})})
       .filter(([key])=>key!=='modes').map(([key,value])=>'--'+key+':'+value).join(';');
     window.calls=[];window.actions=[];window.details=[];
@@ -57,14 +58,14 @@ async function setup(t, {user='tablet', options={}, config={}, width=382, mode='
     });
     window.card=document.createElement('bubble-card');
     card.setConfig({type:'custom:bubble-card',card_type:'button',button_type:'state',entity:'input_select.mode',name:'Mode maison',show_state:true,
-      modules:['signature_pin'],signature_pin:{code:'0073',users:['tablet'],...options},
+      modules:['signature_pin'],signature_pin:{code_hash:codeHash,users:['tablet'],...options},
       button_action:{tap_action:{action:'more-info'},hold_action:{action:'navigate',navigation_path:'#modes'}},
       sub_button:{main:[{entity:'input_select.mode',name:'Absent',show_name:true,sub_button_type:'default',
         tap_action:{action:'perform-action',perform_action:'input_select.select_option',target:{entity_id:'input_select.mode'},data:{option:'Absent'}},
         hold_action:{action:'more-info'},double_tap_action:{action:'navigate',navigation_path:'#test'}}]},...config});
     document.querySelector('#cards').append(card);card.hass=hass;
     window.contexts=[{teardown:()=>card.remove()}];
-  },{user,options,config,theme,nativeModes,mode,plain});
+  },{user,options,config,theme,nativeModes,mode,plain,codeHash:digest('0073')});
   await page.waitForFunction(()=>card && !card.initialLoad && (!card.config.modules.includes('signature_pin') || card.config.signature_pin?.enabled===false || card._signaturePinRuntime));
   return page;
 }
@@ -98,6 +99,52 @@ test('PIN protects every gesture and action, preserves data and never forwards t
   await dialog(page).waitFor({state:'visible'});assert.deepEqual(await page.evaluate(()=>details),[]);
   await send(page);await dialog(page).waitFor({state:'detached'});
   assert.deepEqual(await page.evaluate(()=>details),[{entityId:'input_select.mode'}]);
+});
+test('hashed PINs accept uppercase hex and legacy PINs remain usable, while invalid hashes fail closed',native,async t=>{
+  for(const options of [{code_hash:digest('0073').toUpperCase()},{code_hash:undefined,code:'0073'}]){
+    const page=await setup(t,{options});
+    await gesture(page);await send(page,'73');
+    assert.deepEqual(await page.evaluate(()=>calls),[]);
+    await send(page);await dialog(page).waitFor({state:'detached'});
+    assert.equal(await page.evaluate(()=>calls.length),1);
+  }
+  for(const code_hash of ['', 'invalid', 1234]){
+    const page=await setup(t,{options:{code_hash,code:'0073'}});
+    await gesture(page);await send(page);
+    assert.deepEqual(await page.evaluate(()=>calls),[]);
+    assert.match(await dialog(page).locator('[role="alert"]').innerText(),/Configurez/);
+  }
+});
+test('PIN editor uses Bubble native object events without persisting drafts or exposing the stored code',native,async t=>{
+  const page=await setup(t);
+  const result=await page.evaluate(async ({schema,storedHash})=>{
+    if(!customElements.get('ha-selector-bc_object'))throw Error('Native Bubble object selector missing');
+    const form=document.createElement('ha-form-signature_pin_hash_options');
+    Object.assign(form,{hass,data:{code_hash:storedHash,users:['tablet'],future:false},schema});
+    const values=[];
+    form.addEventListener('value-changed',event=>{values.push(event.detail.value);form.data=event.detail.value;});
+    document.body.append(form);await Promise.resolve();
+    const before={field:form._form.data.new_code,hasCode:Object.hasOwn(form._form.data,'code'),hasHash:Object.hasOwn(form._form.data,'code_hash')};
+    for(const new_code of ['1','12','123','1234']){
+      form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,new_code}}}));
+      await Promise.resolve();
+    }
+    const draftChanges=values.length;
+    form._saveCode.click();await Promise.resolve();
+    const saved={...form.data};const cleared=form._form.data.new_code;
+    form.data={code:'0073',users:['tablet']};await Promise.resolve();
+    const legacyButton={text:form._saveCode.textContent,disabled:form._saveCode.disabled};
+    form._form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...form._form.data,users:[]}}}));
+    await Promise.resolve();
+    const migrated={...form.data};form.remove();
+    return {before,draftChanges,saved,cleared,legacyButton,migrated};
+  },{schema:pin.editor.find(field=>field.type==='signature_pin_hash_options'),storedHash:digest('0073')});
+  assert.deepEqual(result.before,{field:'',hasCode:false,hasHash:false});
+  assert.equal(result.draftChanges,0);
+  assert.deepEqual(result.saved,{code_hash:digest('1234'),users:['tablet'],future:false});
+  assert.equal(result.cleared,'');
+  assert.deepEqual(result.legacyButton,{text:'Remplacer le code',disabled:true});
+  assert.deepEqual(result.migrated,{code_hash:digest('0073'),users:[]});
 });
 test('real More info clicks on the icon, card, value and sub-button require PIN before HA opens details',native,async t=>{
   const actionConfig={button_action:{tap_action:{action:'more-info'}},
@@ -184,17 +231,17 @@ test('configuration changes, teardown and unrelated cards never authorize stale 
   const page=await setup(t);
   for(const change of ['config','user','disconnect']){
     await gesture(page);await dialog(page).waitFor({state:'visible'});
-    await page.evaluate(change=>{
+    await page.evaluate(({change,changedHash})=>{
       window.oldInput=card.card.querySelector('dialog input');oldInput.value='0073';
       window.oldForm=card.card.querySelector('dialog form');
-      if(change==='config'){card.config.signature_pin.code='1234';card.updateBubbleCard();}
+      if(change==='config'){card.config.signature_pin.code_hash=changedHash;card.updateBubbleCard();}
       if(change==='user')card.hass=window.hass={...hass,user:{id:'admin'}};
       if(change==='disconnect')card.remove();
       oldForm.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
-    },change);
+    },{change,changedHash:digest('1234')});
     assert.deepEqual(await page.evaluate(()=>calls),[]);
     assert.equal(await page.evaluate(()=>oldInput.value),'');
-    await page.evaluate(()=>{document.querySelector('#cards').append(card);card.config.signature_pin.code='0073';card.hass=window.hass={...hass,user:{id:'tablet'}};card.updateBubbleCard();});
+    await page.evaluate(codeHash=>{document.querySelector('#cards').append(card);card.config.signature_pin.code_hash=codeHash;card.hass=window.hass={...hass,user:{id:'tablet'}};card.updateBubbleCard();},digest('0073'));
     await page.waitForFunction(()=>!!card._signaturePinRuntime);
   }
   await page.evaluate(()=>hass.callService('light','turn_on',{entity_id:'light.test'}));

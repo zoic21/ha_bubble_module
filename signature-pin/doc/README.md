@@ -1,6 +1,6 @@
 # Signature PIN
 
-Version **1.0.1** — Bubble Card **3.4.3 ou plus récent**.
+Version **1.0.2** — Bubble Card **3.4.3 ou plus récent**.
 
 Ajoute le clavier numérique de Signature à **toutes les actions d’une carte**,
 avec une sélection facultative des utilisateurs concernés. Peut être combiné
@@ -14,7 +14,8 @@ puis ajouter **Signature PIN** aux modules de la carte. Son formulaire propose :
 | Réglage | Fonction |
 |---|---|
 | Activer la demande de code | Actif par défaut ; désactiver conserve les autres réglages |
-| Code PIN | Champ masqué, chiffres uniquement ; les zéros initiaux sont conservés |
+| Nouveau code PIN | Champ masqué, chiffres uniquement ; les zéros initiaux sont conservés |
+| Enregistrer / Remplacer le code | Valide la saisie et enregistre uniquement son empreinte SHA-256 |
 | Demander le code à ces utilisateurs | Sélection multiple des comptes Home Assistant par leur nom ; liste vide = tout le monde |
 
 La liste des comptes est chargée uniquement dans l’éditeur, avec un compte
@@ -23,6 +24,16 @@ Sur la tablette, le module utilise seulement l’identité de la session courant
 aucun droit d’administration ni accès à la liste des comptes n’est nécessaire.
 Les identifiants peuvent aussi être saisis manuellement si la liste est indisponible.
 L’ouverture du formulaire ne modifie pas la configuration.
+
+Saisir le PIN, puis cliquer sur **Enregistrer le code** ou **Remplacer le code**.
+La saisie en cours n’est pas enregistrée dans le YAML. Après validation, le champ
+redevient vide : le PIN enregistré ne peut plus être affiché, seulement remplacé.
+Un champ vide conserve le code actuel. Le hachage fonctionne aussi avec un accès
+local en HTTP, sans service externe. Réimporter le module pour passer à 1.0.2.
+
+Les anciens réglages `code` restent utilisables. À la prochaine modification
+enregistrée dans le formulaire, ils sont automatiquement remplacés par `code_hash`.
+Il n’y a pas de bouton de conversion ; une simple ouverture ne réécrit pas le YAML.
 
 ## Exemple : uniquement la tablette
 
@@ -35,7 +46,8 @@ modules:
   - signature_compact
   - signature_pin
 signature_pin:
-  code: "0073"  # Exemple : choisir votre propre code dans le formulaire.
+  # Exemple SHA-256 de "0073" : définir votre propre code dans le formulaire.
+  code_hash: "48447a7c808cfe4565663c30d03ed17dd376b809e65a54de7eb95a6853fe23bb"
   users:
     - ID_UTILISATEUR_TABLETTE
 ```
@@ -62,8 +74,8 @@ La protection comprend aussi l’action `more-info` et l’événement natif
 l’ouverture de la fenêtre de détails, depuis l’icône, le fond, une valeur ou
 un sous-bouton de la carte. Un code incorrect ou une annulation laisse cette
 fenêtre fermée. Les utilisateurs exemptés et les cartes dont la protection est
-désactivée gardent leur accès direct. Ce comportement est déjà inclus dans
-Signature PIN 1.0.1 ; ces précisions ne demandent pas de nouvelle importation.
+désactivée gardent leur accès direct. Cette protection reste active avec les
+codes enregistrés sous forme d’empreinte SHA-256.
 
 Le clavier reprend les touches rondes 1–9, puis effacer, 0 et ✓, le champ
 masqué, l’œil et la fermeture en haut. Le champ numérique en lecture seule
@@ -86,8 +98,10 @@ pas et ne lui transmet pas automatiquement le PIN local.
 
 ## Portée et contrôles
 
-Le code reste dans la configuration de la carte et peut être retrouvé en
-inspectant le navigateur. Ce module est un verrou d’usage du dashboard, pas
+Seule l’empreinte SHA-256 est enregistrée dans la configuration après validation
+dans le formulaire. Le code saisi sur le clavier est haché pour la comparaison.
+SHA-256 n’est pas réversible, mais un PIN court peut être retrouvé en essayant
+toutes les combinaisons contre son empreinte. Ce module est un verrou d’usage du dashboard, pas
 un contrôle d’accès serveur. Il ne protège pas les commandes d’une autre carte,
 le panneau de détails une fois ouvert, ni du JavaScript personnalisé qui utilise
 directement un autre objet HA. Un lecteur média ou curseur produisant plusieurs

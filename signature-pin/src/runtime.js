@@ -1,3 +1,4 @@
+/* @include signature-pin/src/hash.js */
 /* @include signature-pin/src/editor.js */
 const host = this, root = this.card, version = '@@MODULE_VERSION@@';
 if (!root) return '';
@@ -34,9 +35,13 @@ if (!runtime) {
       keypad = createPinKeypad({root, title: 'Code requis', label: 'Code PIN',
         available: () => alive() && required() && signature() === original && available(),
         onSubmit: async code => {
-          const expected = String(options().code ?? '');
-          if (!/^[0-9]+$/.test(expected)) return 'Configurez un code PIN numérique dans les réglages du module.';
-          if (code !== expected) return 'Code incorrect. Réessayez.';
+          const configured = options();
+          // Existing plaintext YAML stays usable until explicitly edited/migrated.
+          const expected = configured.code_hash ?? (/^[0-9]+$/.test(String(configured.code ?? ''))
+            ? hashPin(String(configured.code)) : '');
+          if (typeof expected !== 'string' || !/^[a-f0-9]{64}$/i.test(expected))
+            return 'Configurez un code PIN dans les réglages du module.';
+          if (hashPin(code) !== expected.toLowerCase()) return 'Code incorrect. Réessayez.';
           // Only the selected action is authorized, never the card/session.
           bypass++;
           try { resolve(await execute()); }

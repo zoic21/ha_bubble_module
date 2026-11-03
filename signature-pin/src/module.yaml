@@ -1,5 +1,5 @@
 name: Signature PIN
-version: 1.0.1
+version: 1.0.2
 creator: Loïc
 supported:
   - button
@@ -15,16 +15,16 @@ editor:
     label: Le code protège toutes les actions de cette carte. Laisser la liste des utilisateurs vide pour demander le code à tout le monde, ou sélectionner uniquement le compte de la tablette.
   - name: ""
     label: Protection de la carte
-    type: signature_pin_options
+    type: signature_pin_hash_options
     fields:
       enabled:
         label: Activer la demande de code
         default: true
         selector:
           boolean: {}
-      code:
-        label: Code PIN
-        description: Chiffres uniquement. Le code reste enregistré dans la carte, y compris les zéros au début.
+      new_code:
+        label: Nouveau code PIN
+        description: Chiffres uniquement, puis cliquer sur Enregistrer ou Remplacer le code. Laisser vide conserve le code actuel. Seule son empreinte SHA-256 sera enregistrée ; le code ne pourra plus être affiché.
         selector:
           text:
             type: password
