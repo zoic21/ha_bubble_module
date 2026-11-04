@@ -56,6 +56,22 @@ const createPinKeypad = ({root, title, label = 'Code', submitLabel = 'Valider',
     }
   });
   dialog.querySelector('[data-close]').addEventListener('click', dismiss);
+  // Backdrop events target the dialog too; its padding must stay interactive.
+  const onBackdrop = event => {
+    const {left, right, top, bottom} = dialog.getBoundingClientRect();
+    return event.target === dialog && (event.clientX < left || event.clientX > right ||
+      event.clientY < top || event.clientY > bottom);
+  };
+  let backdropPress = false;
+  dialog.addEventListener('pointerdown', event => { backdropPress = onBackdrop(event); });
+  dialog.addEventListener('pointercancel', () => { backdropPress = false; });
+  dialog.addEventListener('click', event => {
+    const dismissBackdrop = backdropPress && onBackdrop(event);
+    backdropPress = false;
+    // A gesture starting inside the keypad and ending outside is not a dismissal.
+    if (!dismissBackdrop) return;
+    event.preventDefault(); event.stopPropagation(); dismiss();
+  });
   dialog.addEventListener('cancel', event => { event.preventDefault(); dismiss(); });
   dialog.addEventListener('close', dismiss);
   form.addEventListener('submit', async event => {

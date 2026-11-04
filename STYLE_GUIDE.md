@@ -22,7 +22,7 @@ Le cycle des formulaires natifs est assemblé depuis `shared/src/editor-base.js`
 
 Weather 1.3.4, Wind Rose 1.5.4 et Alert Manager 3.7.0 partagent le formulaire `signature_module_options`, livré dans chaque distribution pour fonctionner seul. Les sous-formulaires restent dans leur portée YAML existante. Conserver les sources météo chaîne/objet, les listes de mesures explicitement vides, les périodes numériques et les valeurs nulles de retour à l’héritage. Les listes natives de packs/entités ne sont qu’une représentation : les valeurs enregistrées restent des objets indexés par ID, avec validation des doublons et conservation des options supplémentaires. Les cases à défaut actif et les sélecteurs d’héritage ne doivent pas être persistés en ouvrant le formulaire ni écraser une politique héritée. Aucun observateur ou abonnement de rendu supplémentaire ne doit être ajouté pour l’éditeur.
 
-## Signature PIN 1.2.0 — protection et clavier autonomes
+## Signature PIN 1.2.1 — protection et clavier autonomes
 
 Le module additionnel `signature_pin` protège toutes les actions de la carte
 par défaut, ou seulement les sous-boutons choisis, pour les utilisateurs sélectionnés.
@@ -753,6 +753,10 @@ sur faible hauteur ; aucun débordement horizontal. Le champ readonly avec
 `inputmode: none` évite le clavier système. Conserver chiffres physiques,
 Retour arrière, Suppr, Entrée, zéros initiaux, Annuler et Échap. Le clavier
 reste propre au module PIN ; aucun code ou formulaire correspondant dans Panel.
+Un clic ou appui sur le fond autour du dialogue annule aussi la demande et
+efface le code sans exécuter la commande. Les clics dans le dialogue, y compris
+ses marges internes, et les gestes commencés dans le clavier restent sans effet
+sur cette fermeture.
 Les fixtures Chromium utilisent Bubble 3.4.3 épinglé et un backend simulé ;
 aucune validation Home Assistant/iPadOS.
 

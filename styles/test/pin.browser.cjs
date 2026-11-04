@@ -102,6 +102,37 @@ test('PIN protects every gesture and action, preserves data and never forwards t
   await send(page);await dialog(page).waitFor({state:'detached'});
   assert.deepEqual(await page.evaluate(()=>details),[{entityId:'input_select.mode'}]);
 });
+test('backdrop clicks and taps cancel without running the action, while keypad clicks and crossing drags keep it open',native,async t=>{
+  for(const touch of [false,true]){
+    const page=await setup(t,{width:touch?328:800,touch});
+    const click=async point=>touch?page.touchscreen.tap(point.x,point.y):page.mouse.click(point.x,point.y);
+    await command(page).click();await dialog(page).waitFor({state:'visible'});
+    await dialog(page).locator('[data-digit="0"]').click();
+    await dialog(page).locator('[data-reveal]').click();
+    await page.evaluate(()=>{window.dismissedInput=card.card.querySelector('dialog input');});
+    const box=await dialog(page).boundingBox();
+    await click({x:box.x+8,y:box.y+box.height/2});
+    assert.equal(await dialog(page).isVisible(),true,'Internal padding is part of the keypad');
+    const inside={x:box.x+box.width/2,y:box.y+80},outside={x:2,y:2};
+    for(const [start,end]of [[inside,outside],[outside,inside]]){
+      await page.mouse.move(start.x,start.y);await page.mouse.down();
+      await page.mouse.move(end.x,end.y,{steps:4});await page.mouse.up();
+      assert.equal(await dialog(page).isVisible(),true,'Crossing the dialog boundary must not dismiss');
+    }
+    await click(outside);await dialog(page).waitFor({state:'detached'});
+    assert.deepEqual(await page.evaluate(()=>({value:dismissedInput.value,type:dismissedInput.type,calls,actions,details})),
+      {value:'',type:'password',calls:[],actions:[],details:[]});
+    // Direct native services also settle on cancellation instead of being queued.
+    await page.evaluate(()=>{window.pendingService=card._hass.callService('light','turn_on',{entity_id:'light.test'});});
+    await dialog(page).waitFor({state:'visible'});await click(outside);
+    await dialog(page).waitFor({state:'detached'});await page.evaluate(()=>pendingService);
+    assert.deepEqual(await page.evaluate(()=>calls),[]);
+    await command(page).click();await dialog(page).waitFor({state:'visible'});
+    assert.equal(await dialog(page).locator('input').inputValue(),'');
+    await send(page);await dialog(page).waitFor({state:'detached'});
+    assert.equal(await page.evaluate(()=>calls.length),1,'A fresh request still executes once after validation');
+  }
+});
 test('hashed PINs accept uppercase hex and legacy PINs remain usable, while invalid hashes fail closed',native,async t=>{
   for(const options of [{code_hash:digest('0073').toUpperCase()},{code_hash:undefined,code:'0073'}]){
     const page=await setup(t,{options});

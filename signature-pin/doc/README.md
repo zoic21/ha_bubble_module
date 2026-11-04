@@ -1,6 +1,6 @@
 # Signature PIN
 
-Version **1.2.0** — Bubble Card **3.4.3 ou plus récent**.
+Version **1.2.1** — Bubble Card **3.4.3 ou plus récent**.
 
 Ajoute le clavier numérique de Signature à **toutes les actions d’une carte par défaut**,
 ou uniquement aux sous-boutons choisis, avec une sélection facultative des utilisateurs concernés. Peut être combiné
@@ -94,7 +94,7 @@ les numéros suivants. Vérifier la sélection après une telle modification.
 - En mode sous-boutons, toutes les actions des seuls sous-boutons sélectionnés sont protégées, y compris leurs listes de choix, curseurs et détails. Deux boutons visant la même entité gardent leurs protections distinctes.
 - Sur toute la carte, les commandes natives qui appellent directement HA sont également protégées : boutons de volets et média, listes de choix, thermostat et curseurs.
 - Une validation correcte reprend uniquement la commande demandée, avec ses paramètres et sa cible d’origine. Le PIN local n’est pas ajouté aux données du service.
-- Un code incorrect conserve la fenêtre ouverte et efface la saisie. Annuler ou Échap avant validation n’exécute rien.
+- Un code incorrect conserve la fenêtre ouverte et efface la saisie. La croix, Échap ou un clic/appui sur le fond autour du clavier ferment la demande et effacent la saisie sans exécuter la commande. Un geste commencé dans le clavier puis relâché sur le fond ne ferme pas la demande.
 - Une commande en attente n’autorise pas d’autres commandes. Une modification de configuration, d’identité ou une destruction de carte invalide la demande.
 - Les automatismes HA, la géolocalisation, les boutons physiques et les autres cartes ne sont pas modifiés.
 
