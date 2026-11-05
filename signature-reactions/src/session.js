@@ -1,5 +1,6 @@
 const createReactionsSession = (connection,user,rules,signature,onDispose) => {
-  const owners = new Set(), entries = [], subscriptions = new Map(), renders = new Set();
+  /* @include shared/src/template-source.js */
+  const owners = new Set(), entries = [], idleEntries = [], subscriptions = new Map(), renders = new Set();
   const seconds = value => { const n=Number(value);return Number.isFinite(n) && n>0 ? Math.min(n,86400)*1000 : 0; };
   const path = () => window.location.pathname + window.location.search + window.location.hash;
   const truth = value => value === true || value === 1 || ['true','on','yes','1'].includes(String(value).trim().toLowerCase());
@@ -7,17 +8,26 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     value && typeof value === 'object' && !Array.isArray(value) ? match(actual?.[key],value)
       : JSON.stringify(actual?.[key]) === JSON.stringify(value));
   const eventOptions = {capture:true,passive:true};
-  let disposed=false, cleanup, lastActivity=Date.now(), suspension=false, epoch=0, activeReturn;
-  const live = () => [...owners].find(owner => owner.host.isConnected && owner.root.isConnected
+  let disposed=false, cleanup, lastActivity=Date.now(), suspension=false, activeReturn, activeOwner, idleNeedsRearm=false;
+  const isLive = owner => owner.host.isConnected && owner.root.isConnected
     && !owner.host.editor && !owner.host.preview && !owner.host.inEditorPreview
     && owner.host._hass?.user?.id === user && owner.host.config?.signature_reactions?.enabled !== false
     && !!owner.host._hass?.user?.is_admin === owner.admin
     && owner.host.config?.signature_reactions === owner.options
-    && allowed(owner.host.config?.signature_reactions?.users,user));
+    && allowed(owner.host.config?.signature_reactions?.users,user);
+  const live = () => {
+    if (activeOwner && isLive(activeOwner)) return activeOwner;
+    activeOwner=undefined;
+    for (const owner of owners) if (isLive(owner)) {activeOwner=owner;break;}
+    return activeOwner;
+  };
   const ready = () => !disposed && !suspension && connection.connected !== false && !!live();
   const warn = (entry,message) => {
     if (entry.warning === message) return;
     entry.warning=message;console.warn('Signature Reactions [règle '+entry.number+']: '+message);
+  };
+  const stopSubscription = unsubscribe => {
+    if (unsubscribe) {try {Promise.resolve(unsubscribe()).catch(()=>{});} catch {}}
   };
   const cancel = entry => {
     clearTimeout(entry.delayTimer);entry.delayTimer=undefined;entry.generation++;
@@ -31,16 +41,16 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
         if (sub.active && !disposed) for (const fn of sub.callbacks) fn(value);
       },message)).then(unsubscribe => {
         if (sub.active) sub.unsubscribe=unsubscribe;
-        else Promise.resolve(unsubscribe()).catch(()=>{});
+        else stopSubscription(unsubscribe);
       }).catch(() => {
         if (!sub.active || disposed) return;
-        for (const entry of entries.values()) if (entry.subscription===key)
+        for (const entry of entries) if (entry.subscription===key)
           warn(entry,'abonnement refusé ou indisponible ; vérifier la configuration et les droits.');
       });
     }
     sub.callbacks.add(callback);
   };
-  const dispatch = (entry,action) => {
+  const dispatch = action => {
     const owner=live();
     if (!ready() || !owner || !action || typeof action !== 'object' || !action.action || action.action==='none') return false;
     // Delegate to HA's native action handler, exactly as Bubble's callAction.
@@ -48,7 +58,10 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     return owner.root.dispatchEvent(new CustomEvent('hass-action',{bubbles:true,composed:true,cancelable:true,
       detail:{action:'tap',config:{entity:owner.host.config.entity,tap_action:action}}}));
   };
-  const resolveAction = async (entry,config,generation) => {
+  const hasTemplate = value => typeof value === 'string' ? isTemplate(value)
+    : value && typeof value === 'object' && Object.values(value).some(hasTemplate);
+  const resolveAction = async (entry,config,generation,templated) => {
+    if (!templated) return config;
     // Plain native action objects pay no template subscription cost. Templates
     // in action parameters are one-shot, only after this targeted rule fires.
     let failed=false;
@@ -57,13 +70,13 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
       if (Array.isArray(value)) return Promise.all(value.map(visit));
       if (value && typeof value==='object') return Object.fromEntries(await Promise.all(
         Object.entries(value).map(async ([key,item])=>[key,await visit(item)])));
-      if (typeof value!=='string' || !/\{[\{%#]/.test(value)) return value;
+      if (typeof value!=='string' || !isTemplate(value)) return value;
       return new Promise(resolve => {
         const render={active:true,entry};renders.add(render);
         const finish=result => {
           if (!render.active) return;
           render.active=false;clearTimeout(render.timer);renders.delete(render);
-          if (render.unsubscribe) Promise.resolve(render.unsubscribe()).catch(()=>{});
+          stopSubscription(render.unsubscribe);
           resolve(result);
         };
         render.cancel=()=>{failed=true;finish(undefined);};
@@ -72,7 +85,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
           if (message?.error || !ready() || generation!==entry.generation) render.cancel();
           else finish(message?.result);
         },{type:'render_template',template:value,variables:{event:{data},user_id:user},report_errors:true}))
-          .then(unsubscribe=>{if (render.active) render.unsubscribe=unsubscribe;else Promise.resolve(unsubscribe()).catch(()=>{});})
+          .then(unsubscribe=>{if (render.active) render.unsubscribe=unsubscribe;else stopSubscription(unsubscribe);})
           .catch(render.cancel);
       });
     };
@@ -85,20 +98,20 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     clearTimeout(activeReturn.timer);activeReturn=null;
   };
   const scheduleIdle = () => {
-    for (const entry of entries.values()) if (entry.rule.trigger==='idle') {
+    for (const entry of idleEntries) {
       if (activeReturn) {clearTimeout(entry.idleTimer);entry.idleTimer=undefined;}
       if (!entry.idleTimer && !entry.idleFired && !activeReturn && !disposed) entry.idleTimer=setTimeout(() => {
         entry.idleTimer=undefined;
-        if (Date.now()<lastActivity+seconds(entry.rule.seconds)) {scheduleIdle();return;}
-        if (ready()) {entry.idleFired=true;fire(entry,{});}
-      },Math.max(0,lastActivity+seconds(entry.rule.seconds)-Date.now()));
+        if (Date.now()<lastActivity+entry.idleAfter) {scheduleIdle();return;}
+        if (ready()) {entry.idleFired=true;idleNeedsRearm=true;fire(entry,{});}
+      },Math.max(0,lastActivity+entry.idleAfter-Date.now()));
     }
   };
   const returnNow = () => {
     const saved=activeReturn;
     if (!saved || !ready()) return;
     stopReturn();
-    if ((!saved.expected || path()===saved.expected) && saved.epoch===epoch) dispatch(saved.entry,saved.action);
+    if (!saved.expected || path()===saved.expected) dispatch(saved.action);
     lastActivity=Date.now();scheduleIdle();
   };
   const navigatePath = value => {
@@ -110,24 +123,24 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     if (!ready()) return;
     const {rule}=entry;
     const generation=entry.generation;
-    const action=await resolveAction(entry,rule.action,generation);
-    const customReturn=rule.return_mode==='action' || !!rule.return_action;
-    const explicitReturn=customReturn ? await resolveAction(entry,rule.return_action,generation) : null;
+    const action=await resolveAction(entry,rule.action,generation,entry.actionTemplate);
+    const returning=entry.returnAfter || rule.return_on_false;
+    const customReturn=returning && (rule.return_mode==='action' || !!rule.return_action);
+    const explicitReturn=customReturn ? await resolveAction(entry,rule.return_action,generation,entry.returnTemplate) : null;
     if (!ready() || generation!==entry.generation || !action || (customReturn && !explicitReturn)) return;
     const target=action.action==='navigate' ? navigatePath(action.navigation_path) : null;
     if (action.action==='navigate' && !target) { warn(entry,'destination interne invalide.');return; }
-    const origin=activeReturn?.entry===entry ? activeReturn.origin : path();
-    const duration=seconds(rule.return_after);
-    const returnAction=customReturn ? explicitReturn
-      : {action:'navigate',navigation_path:origin,navigation_replace:true};
-    if (!dispatch(entry,action)) return;
+    const origin=returning ? activeReturn?.entry===entry ? activeReturn.origin : path() : undefined;
+    const duration=entry.returnAfter;
+    if (!dispatch(action)) return;
     // A more-info action has no URL we can reliably restore. Its explicit
     // return_action is supported; previous-page return belongs to navigation.
-    if (duration || rule.return_on_false) {
+    if (returning) {
       if (!target && !customReturn) { warn(entry,'le retour précédent nécessite une action de navigation.');return; }
+      const returnAction=customReturn ? explicitReturn
+        : {action:'navigate',navigation_path:origin,navigation_replace:true};
       stopReturn();
-      activeReturn={entry,origin,expected:target,action:returnAction,epoch,
-        deadline:duration ? Date.now()+duration : 0,landed:!target || path()===target};
+      activeReturn={entry,origin,expected:target,action:returnAction,deadline:duration ? Date.now()+duration : 0};
       if (duration) activeReturn.timer=setTimeout(returnNow,duration);
     }
     lastActivity=Date.now();scheduleIdle();
@@ -136,7 +149,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     if (!ready()) return;
     cancel(entry);entry.data=data;
     const generation=entry.generation;
-    const delay=seconds(entry.rule.delay);
+    const delay=entry.delay;
     if (delay) entry.delayTimer=setTimeout(() => {
       if (entry.generation===generation) run(entry);
     },delay);
@@ -162,40 +175,45 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     if (activeReturn?.expected && path()!==activeReturn.expected) {
       stopReturn(); // Leaving manually must never pull the user back later.
       lastActivity=Date.now();scheduleIdle();
-    } else if (activeReturn) activeReturn.landed=true;
+    }
   };
   const activity = event => {
     // Synthetic rendering and navigation are not human activity.
     if (event.isTrusted===false || !ready()) return;
     lastActivity=Date.now();
-    for (const entry of entries.values()) entry.idleFired=false;
     // Input updates only a timestamp. A running timeout rechecks its deadline;
     // pointermove/scroll never create one new timer for every animation frame.
-    scheduleIdle();
+    if (idleNeedsRearm) {
+      idleNeedsRearm=false;
+      for (const entry of idleEntries) entry.idleFired=false;
+      scheduleIdle();
+    }
   };
   const onDisconnect = () => {
     suspension=true;
-    for (const entry of entries.values()) {entry.seeded=false;cancel(entry);}
+    for (const entry of entries) {entry.seeded=false;cancel(entry);}
   };
   const onReady = () => {
     suspension=false;
-    for (const entry of entries.values()) entry.seeded=false;
+    for (const entry of entries) entry.seeded=false;
     if (activeReturn?.deadline) {
       clearTimeout(activeReturn.timer);
       activeReturn.timer=setTimeout(returnNow,Math.max(0,activeReturn.deadline-Date.now()));
     }
     lastActivity=Date.now();scheduleIdle();
   };
-  const hasIdle=rules.some(rule=>rule.trigger==='idle');
   const inputs=['pointerdown','pointermove','keydown','touchstart','touchmove','wheel','scroll'];
   const session={owners,signature,
     add(owner) {
       clearTimeout(cleanup);owners.add(owner);
-      if (activeReturn?.deadline && activeReturn.deadline<=Date.now()) activeReturn.timer=setTimeout(returnNow,0);
+      if (activeReturn?.deadline && activeReturn.deadline<=Date.now()) {
+        clearTimeout(activeReturn.timer);activeReturn.timer=setTimeout(returnNow,0);
+      }
       if (!activeReturn) scheduleIdle();
     },
     remove(owner,immediate) {
       owners.delete(owner);
+      if (activeOwner===owner) activeOwner=undefined;
       if (!owners.size) {
         clearTimeout(cleanup);
         if (immediate) session.dispose();
@@ -203,27 +221,35 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
       }
     },
     dispose() {
-      if (disposed) return;disposed=true;epoch++;
+      if (disposed) return;disposed=true;
       clearTimeout(cleanup);stopReturn();
-      for (const entry of entries.values()) {cancel(entry);clearTimeout(entry.idleTimer);}
+      for (const entry of entries) {cancel(entry);clearTimeout(entry.idleTimer);}
       for (const sub of subscriptions.values()) {
-        sub.active=false;if (sub.unsubscribe) Promise.resolve(sub.unsubscribe()).catch(()=>{});
+        sub.active=false;stopSubscription(sub.unsubscribe);
       }
       for (const render of [...renders]) render.cancel();
-      if (hasIdle) for (const name of inputs) window.removeEventListener(name,activity,eventOptions);
-      window.removeEventListener('location-changed',handleRoute);window.removeEventListener('popstate',handleRoute);
-      window.removeEventListener('hashchange',handleRoute);
+      if (idleEntries.length) for (const name of inputs) window.removeEventListener(name,activity,eventOptions);
+      if (watchRoute) {
+        window.removeEventListener('location-changed',handleRoute);window.removeEventListener('popstate',handleRoute);
+        window.removeEventListener('hashchange',handleRoute);
+      }
       connection.removeEventListener?.('disconnected',onDisconnect);connection.removeEventListener?.('ready',onReady);
-      owners.clear();onDispose();
+      owners.clear();activeOwner=undefined;onDispose();
     }
   };
   for (const rule of rules) {
     if (!rule.action?.action || !['template','event','idle'].includes(rule.trigger)) continue;
-    if (rule.trigger==='idle' && !seconds(rule.seconds)) continue;
-    const entry={rule,number:entries.length+1,generation:0,seeded:false};entries.push(entry);
+    const idleAfter=rule.trigger==='idle' ? seconds(rule.seconds) : 0;
+    if (rule.trigger==='idle' && !idleAfter) continue;
+    const entry={rule,number:entries.length+1,generation:0,seeded:false,
+      delay:seconds(rule.delay),returnAfter:seconds(rule.return_after),idleAfter,
+      actionTemplate:hasTemplate(rule.action),returnTemplate:hasTemplate(rule.return_action)};
+    entries.push(entry);
+    if (rule.trigger==='idle') idleEntries.push(entry);
   }
+  const watchRoute=entries.some(entry=>entry.returnAfter || entry.rule.return_on_false);
   let started=false;
-  session.update=owner => {
+  session.start=owner => {
     if (disposed || started) return;
     if (owner.hass.user?.id!==user) {session.dispose();return;}
     started=true;
@@ -244,9 +270,11 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
       });
     }
   };
-  if (hasIdle) for (const name of inputs) window.addEventListener(name,activity,eventOptions);
-  window.addEventListener('location-changed',handleRoute);window.addEventListener('popstate',handleRoute);
-  window.addEventListener('hashchange',handleRoute);
+  if (idleEntries.length) for (const name of inputs) window.addEventListener(name,activity,eventOptions);
+  if (watchRoute) {
+    window.addEventListener('location-changed',handleRoute);window.addEventListener('popstate',handleRoute);
+    window.addEventListener('hashchange',handleRoute);
+  }
   connection.addEventListener?.('disconnected',onDisconnect);connection.addEventListener?.('ready',onReady);
   scheduleIdle();
   return session;

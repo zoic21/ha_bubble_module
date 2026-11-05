@@ -14,7 +14,7 @@ Les seize modules du dépôt sont générés à partir de sources. Chaque YAML d
 | `shared/src/number-locales.js` | Correspondance des préférences numériques Home Assistant |
 | `shared/src/number-format.js` | Locale et formatage localisé des présentations Signature, Flow, Weather et Wind Rose |
 | `shared/src/number-precision.js` | Précision native commune à Signature et Flow ; limites et défauts propres au rôle |
-| `shared/src/template-source.js` | Rendu Jinja et identification des sources/entités pour Signature, Flow et couleurs Wind Rose |
+| `shared/src/template-source.js` | Rendu Jinja et identification des sources/entités pour Signature, Flow et couleurs Wind Rose ; détection Jinja des actions Reactions |
 | `shared/src/color.js` | Palette du thème et validation CSS pour Signature, Flow, Wind Rose et Alert Manager |
 | `shared/src/render-gate.js` | Contrôle du travail DOM inchangé de Flow/Panel après lecture des dépendances ; API native Bubble 3.4.2 et repli local |
 | `shared/src/dom.js` | Création HTML/SVG et écritures conditionnelles de texte/attributs pour Flow, Weather et Wind Rose |
@@ -120,3 +120,8 @@ par connexion/utilisateur/contenu des règles ne crée rien pour les comptes exc
 Les identifiants et groupes de règles sont calculés, sans clé YAML à renseigner. Les
 transitions et retours appartiennent à ce module ; aucun module de présentation
 ni mécanisme de navigation existant n’est modifié.
+
+Reactions réutilise également la détection de `template-source.js`. Son rendu
+ponctuel des paramètres d’action conserve les données d’événement et son propre
+cycle d’annulation. Les gestes ne parcourent pas les règles ordinaires ; les
+durées et les besoins de rendu sont préparés à la création de session.

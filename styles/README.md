@@ -56,3 +56,7 @@ réservés aux administrateurs, les templates non administrateurs et les retours
 entre vues. Le formulaire ne propose aucune source d’entité ni de relais, et
 son choix de retour n’ajoute pas de clé YAML. La source native est la même
 que celle de PIN (`BUBBLE_PIN_NATIVE_SCRIPT_PATH`).
+
+Les tests fonctionnels Reactions complètent cette suite pour les chemins
+fréquents d’actualisation HA, le réarmement d’inactivité et le nettoyage des
+abonnements, y compris les annulations asynchrones et les erreurs de fermeture.

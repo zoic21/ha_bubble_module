@@ -1,5 +1,5 @@
 name: Signature Reactions
-version: 2.0.0
+version: 2.0.1
 creator: Loïc
 supported: [button, select, cover, climate, media-player, separator, sub-buttons]
 description: Réactions de l’interface aux templates Jinja, événements du bus HA pour les administrateurs et périodes d’inactivité. Actions natives HA, ciblage utilisateur, délais et retours. Aucun élément visuel. Bubble Card 3.4.3 ou plus récent.

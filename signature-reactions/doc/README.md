@@ -1,6 +1,6 @@
 # Signature Reactions
 
-Version **2.0.0**, Bubble Card **3.4.3 ou plus récent**.
+Version **2.0.1**, Bubble Card **3.4.3 ou plus récent**.
 
 Module facultatif sans élément visuel : exécuter des actions Home Assistant
 dans l’interface lorsqu’un template Jinja devient vrai, qu’un événement arrive
@@ -42,7 +42,9 @@ créent aucun abonnement Jinja/événement, écouteur d’interaction ou timer.
 Une sélection `users` par règle peut restreindre celle du module ; elle est
 filtrée avant les abonnements. Les règles `event` sont écartées pour les non
 administrateurs avant de lire leur nom d’événement ou leurs actions. Un compte
-qui n’a aucune règle autorisée ne crée aucun runtime ni écouteur.
+qui n’a aucune règle autorisée ne crée aucun runtime ni écouteur. Ce résultat
+est mémorisé tant que la configuration, la connexion et le rôle restent les
+mêmes : une mise à jour HA ne reparcourt pas ces règles inactives.
 L’énumération des comptes est réservée au formulaire avec un administrateur,
 jamais au runtime.
 
@@ -59,8 +61,11 @@ Les templates suivent les dépendances côté serveur via `render_template`.
 Le module ne suit plus d’entité et ne lit pas leurs états dans le navigateur.
 Aucun abonnement global `state_changed` n’est créé implicitement, ni aucun
 polling. Les interactions ne modifient qu’un horodatage : un déplacement
-de pointeur ne reconstruit pas
-les timers. Les délais ne sont pas réinitialisés par les mises à jour HA.
+de pointeur ne reconstruit pas les timers. Les durées sont calculées une seule fois à la création des règles.
+Les gestes ordinaires ne parcourent pas la liste des règles ; un réarmement
+après inactivité ne concerne que les règles d’inactivité. Les délais ne sont
+pas réinitialisés par les mises à jour HA. Les écouteurs de navigation sont
+installés seulement lorsqu’un retour est configuré.
 
 ## Configuration
 
@@ -159,7 +164,11 @@ action:
   navigation_path: "{{ event.data.path }}"
 ```
 
-Une action sans Jinja ne crée aucun abonnement supplémentaire. Les abonnements
+La détection Jinja réutilise le helper commun du dépôt et est préparée une
+fois pour chaque action. Une action sans Jinja est transmise directement au
+gestionnaire natif HA, sans reconstruire ses paramètres à chaque déclenchement.
+Le template d’une action de retour n’est rendu que si ce retour est activé.
+Les abonnements
 ponctuels sont fermés dès leur résultat, annulation ou expiration de 10 s.
 Un événement reçu pendant une déconnexion n’est pas rejoué au retour. Les
 destinations de navigation restent internes à HA.
@@ -224,15 +233,29 @@ npm run test:signature-reactions
 Les tests exécutent la distribution minifiée avec horloge contrôlée et
 connexion HA simulée : ciblage sans aucun travail, abonnement partagé,
 déclenchements, délai, retour, inactivité, données d’événement, révocation,
-reconnexion et nettoyage des abonnements asynchrones. Les formulaires utilisent
+reconnexion et nettoyage des abonnements asynchrones. Ils vérifient aussi
+1 000 mises à jour HA sans relire une configuration inactive, le changement de
+carte porteuse, l’annulation d’un ancien rendu Jinja et la poursuite du nettoyage
+même lorsqu’une fonction de désabonnement échoue. Les formulaires utilisent
 les helpers de test communs. Ces contrôles ne constituent pas un essai dans
 Home Assistant réel ou Safari/iPadOS.
 
 La fixture `styles/test/reactions.browser.cjs` charge aussi Bubble Card 3.4.3
 réel avec un backend simulé : compte exclu sans abonnement, partage entre
 cartes, actions natives, retours entre vues et absence d’abonnement au bus
-pour les non-administrateurs. Elle
-est exécutée par la CI avec le script Bubble épinglé déjà utilisé par PIN.
+pour les non-administrateurs. Elle est exécutée par la CI avec le script Bubble épinglé déjà utilisé par PIN.
+
+### 2.0.1 — simplification et coût d’exécution
+
+- Actualisations HA actives ou inactives traitées sans reparcourir les règles ;
+  le démarrage de session n’est plus rappelé à chaque mise à jour.
+- Gestes ordinaires limités à la vérification du porteur et à l’horodatage ;
+  règles d’inactivité indexées, durées précalculées et porteur actif mémorisé.
+- Actions statiques réutilisées et détection Jinja commune ; aucun rendu d’une
+  action de retour si le retour est désactivé.
+- Écouteurs de navigation conditionnels, retrait d’états de retour inutilisés
+  et nettoyage des abonnements regroupé et tolérant aux erreurs.
+- Format YAML et formulaire inchangés depuis 2.0.0.
 
 ### 2.0.0 — migration
 

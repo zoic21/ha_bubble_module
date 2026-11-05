@@ -6,7 +6,7 @@ const definition=loadModule('signature-reactions');
 const plain=value=>JSON.parse(JSON.stringify(value));
 const nav=path=>({action:'navigate',navigation_path:path});
 const eventRule=(extra={})=>({trigger:'event',event_type:'signature_reaction',action:nav('/lovelace/bell'),return_after:60,...extra});
-function fixture({rules=[eventRule()],users=['tablet'],user='tablet',admin=true,options={},syncSubscription=false}={}) {
+function fixture({rules=[eventRule()],users=['tablet'],user='tablet',admin=true,options={},syncSubscription=false,unsubscribeError=false}={}) {
   let now=100000,timerId=0,reads=0;const timers=new Map(),requests=[],actions=[],warnings=[],connections=[];
   class Target {
     constructor(){this.listeners=new Map();this.isConnected=true;}
@@ -22,7 +22,7 @@ function fixture({rules=[eventRule()],users=['tablet'],user='tablet',admin=true,
   connection.subscribeMessage=(callback,message)=>{
     const sub={callback,message:plain(message),active:true,unsubscribes:0};requests.push(sub);
     if(syncSubscription&&message.type==='render_template')callback({result:true});
-    return Promise.resolve(()=>{sub.active=false;sub.unsubscribes++;});
+    return Promise.resolve(()=>{sub.active=false;sub.unsubscribes++;if(unsubscribeError)throw Error('unsubscribe failed');});
   };
   const states={'event.bell':{state:'first',attributes:{event_type:'ring'}}};
   const hass={user:{id:user,is_admin:admin},connection,states:new Proxy(states,{get(target,key){reads++;return target[key];}})};
@@ -105,6 +105,17 @@ test('non-admin bus rules are rejected before reading their event name or action
   assert.equal(mixed.requests.length,1);assert.equal(mixed.requests[0].message.type,'render_template');
   mixed.message({result:false});mixed.message({result:true});await mixed.flush();assert.deepEqual(mixed.targets,['/warning']);
 });
+test('inactive configurations are not parsed again on hass updates and activate after an admin role change',()=>{
+  let reads=0;const rules=[eventRule()];
+  const options={users:['tablet'],get rules(){reads++;return rules;}};
+  const f=fixture({admin:false}),host=f.create(options),before=reads;
+  for(let i=0;i<1000;i++)host.render();
+  assert.equal(reads,before);assert.equal(f.requests.length,0);assert.equal(f.timers.size,0);
+  assert.equal(f.window.listeners.size,0);assert.equal(f.window.__signatureReactions,undefined);
+  host.render({...f.hass,user:{id:'tablet',is_admin:true}});const active=reads;
+  for(let i=0;i<1000;i++)host.render();
+  assert.equal(reads,active);assert.equal(f.requests.length,1);assert.equal(f.reads,0);
+});
 test('removed entity and relay rules are inert for every account',()=>{
   for(const admin of [false,true]){
     const f=fixture({admin,rules:[{trigger:'entity',entity:'event.bell',action:nav('/old')},
@@ -126,6 +137,14 @@ test('identical module copies share one subscription and keep their return acros
   f.message({result:false});f.message({result:true});await f.flush();assert.equal(f.actions.length,1);
   a.remove();b.remove();await f.tick(1000);f.create();await f.tick(59000);
   assert.deepEqual(f.targets,['/bell','/lovelace/home']);assert.equal(f.requests.length,1);
+});
+test('the cached action carrier is revalidated and another allowed card takes over immediately',async()=>{
+  const f=fixture({rules:[eventRule({return_after:0})]}),a=f.create(),b=f.create();let first=0,second=0;
+  a.card.addEventListener('hass-action',()=>first++);b.card.addEventListener('hass-action',()=>second++);
+  f.event();await f.flush();assert.equal(first,1);assert.equal(second,0);
+  a.config.signature_reactions={users:['other'],rules:[]};
+  f.event();await f.flush();assert.equal(first,1);assert.equal(second,1);
+  b.remove();f.event();await f.flush();assert.equal(first,1);assert.equal(second,1);
 });
 test('hass snapshots cannot trigger or replay bus events and require no entity reads',async()=>{
   const f=fixture();const a=f.create(),b=f.create();
@@ -195,6 +214,38 @@ test('templated native action parameters retain bus data and unsubscribe one-sho
   assert.deepEqual(f.requests[1].message.variables.event.data,{name:'bell',message:'Bonjour'});
   f.message({result:'Bonjour'},1);await f.flush();assert.equal(f.requests[1].unsubscribes,1);
   assert.deepEqual(f.actions[0].config.tap_action,{...action,data:{message:'Bonjour'}});
+});
+test('literal actions keep their native values and reuse the object without any render subscription',async()=>{
+  const data=Object.freeze({value:0,enabled:false,optional:null,list:Object.freeze(['a',0,false])});
+  const action=Object.freeze({action:'perform-action',perform_action:'script.notify',data});
+  const f=fixture({rules:[eventRule({action,return_after:0})]}),host=f.create(),seen=[];
+  host.card.addEventListener('hass-action',event=>seen.push(event.detail.config.tap_action));
+  f.event();await f.flush();f.event();await f.flush();
+  assert.equal(f.requests.length,1);assert.equal(seen.length,2);
+  assert.ok(seen.every(value=>value===action));assert.deepEqual(f.actions[0].config.tap_action,plain(action));
+});
+test('a disabled return does not render unused Jinja or install navigation listeners',async()=>{
+  const f=fixture({rules:[eventRule({return_after:0,return_action:nav('{{ unused }}')})]});f.create();
+  for(const name of ['location-changed','popstate','hashchange'])assert.equal(f.window.listeners.has(name),false);
+  f.event();await f.flush();assert.equal(f.requests.length,1);assert.deepEqual(f.targets,['/lovelace/bell']);
+  await f.tick(60000);assert.equal(f.actions.length,1);
+});
+test('a repeated event cancels an older nested Jinja render and retains the new native result type',async()=>{
+  const action={action:'perform-action',perform_action:'script.notify',data:{items:[false,'{{ event.data.value }}',0]}};
+  const f=fixture({rules:[eventRule({action,return_after:0})]});f.create();
+  f.event({value:1});await f.flush();assert.equal(f.requests.length,2);
+  f.event({value:2});await f.flush();assert.equal(f.requests.length,3);assert.equal(f.requests[1].active,false);
+  f.message({result:'old'},1);await f.flush();assert.equal(f.actions.length,0);
+  f.message({result:[0,false]},2);await f.flush();
+  assert.deepEqual(f.actions[0].config.tap_action.data.items,[false,[0,false],0]);
+  assert.deepEqual(action.data.items,[false,'{{ event.data.value }}',0]);assert.equal(f.requests[2].unsubscribes,1);
+});
+test('a throwing unsubscribe cannot interrupt cleanup of other subscriptions or timers',async()=>{
+  const f=fixture({unsubscribeError:true,rules:[{trigger:'template',template:'{{ first }}',action:nav('/first')},
+    {trigger:'template',template:'{{ second }}',action:nav('/second')}]});const host=f.create();await f.flush();
+  host.config.signature_reactions={enabled:false};assert.doesNotThrow(()=>host.render());await f.flush();
+  assert.ok(f.requests.every(sub=>!sub.active&&sub.unsubscribes===1));assert.equal(f.timers.size,0);
+  for(const listeners of f.window.listeners.values())assert.equal(listeners.size,0);
 });
 test('losing the targeted account immediately unsubscribes, removes listeners and cancels pending work',async()=>{
   const f=fixture({rules:[{id:'x',trigger:'template',template:'{{ demo }}',action:nav('/x'),delay:5},

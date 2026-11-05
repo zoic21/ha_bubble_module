@@ -25,7 +25,7 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 | Signature Weather — forecasts and optional local measurements | 1.4.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.6.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Signature Group — popup activity summaries | 1.2.0 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
-| Signature Reactions — targeted interface rules and timed returns | 2.0.0 | [signature-reactions.yaml](signature-reactions/dist/signature-reactions.yaml) | [Guide](signature-reactions/doc/README.md) |
+| Signature Reactions — targeted interface rules and timed returns | 2.0.1 | [signature-reactions.yaml](signature-reactions/dist/signature-reactions.yaml) | [Guide](signature-reactions/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Signature Hue — native Hue presentation companion | 1.2.0 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
 | Signature Irrigation — calendar reader and weekday controls | 1.1.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
