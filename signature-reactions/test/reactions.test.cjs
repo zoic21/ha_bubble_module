@@ -89,6 +89,13 @@ test('identical module copies share one subscription and keep their return acros
   a.remove();b.remove();await f.tick(1000);f.create();await f.tick(59000);
   assert.deepEqual(f.targets,['/bell','/lovelace/home']);assert.equal(f.requests.length,1);
 });
+test('an older hass snapshot from another carrier cannot replay a previous occurrence',async()=>{
+  const f=fixture();
+  f.states['event.bell']={state:'first',last_updated:'2026-11-05T10:00:00Z',attributes:{event_type:'ring'}};
+  const old={...f.hass,states:{...f.states}};const a=f.create(),b=f.create();
+  const fresh={...f.hass,states:{'event.bell':{state:'second',last_updated:'2026-11-05T10:00:01Z',attributes:{event_type:'ring'}}}};
+  a.render(fresh);await f.flush();b.render(old);a.render(fresh);await f.flush();assert.equal(f.actions.length,1);
+});
 test('template fires only on false to true, with optional first-load execution and no replay on reconnect',async()=>{
   for(const fire_on_load of [false,true]){
     const f=fixture({rules:[{id:'x',trigger:'template',template:'{{ demo }}',action:nav('/x'),fire_on_load}]});f.create();

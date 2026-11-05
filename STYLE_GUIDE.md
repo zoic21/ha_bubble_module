@@ -1459,7 +1459,7 @@ n’est installé sur les cartes pour ces formulaires ; les événements d’éd
 restent dans les formulaires. Les versions comportent leur code d’éditeur
 autonome, ce qui augmente la taille des distributions sans changer les styles.
 
-### Signature Reactions 1.0.0 — comportement sans présentation
+### Signature Reactions 1.0.1 — comportement sans présentation
 
 Compagnon facultatif sans surface, élément DOM ou CSS de carte. L’ajouter à
 une carte existante conserve sa présentation et ses actions natives. Le

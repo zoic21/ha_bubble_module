@@ -1,6 +1,6 @@
 # Signature Reactions
 
-Version **1.0.0**, Bubble Card **3.4.3 ou plus récent**.
+Version **1.0.1**, Bubble Card **3.4.3 ou plus récent**.
 
 Module facultatif sans élément visuel : exécuter des actions Home Assistant
 dans l’interface lorsqu’un template Jinja devient vrai, qu’une entité reçoit
@@ -218,3 +218,9 @@ La fixture `styles/test/reactions.browser.cjs` charge aussi Bubble Card 3.4.3
 réel avec un backend simulé : compte exclu sans abonnement, partage entre
 cartes, actions natives, relais entre vues et dépendances d’une entité. Elle
 est exécutée par la CI avec le script Bubble épinglé déjà utilisé par PIN.
+
+### 1.0.1
+
+Une mise à jour d’entité plus ancienne, reçue depuis une autre carte pendant
+un changement de vue, est ignorée selon son horodatage HA. Le test de snapshots
+intercalés vérifie qu’elle ne rejoue pas une occurrence précédente.

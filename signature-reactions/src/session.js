@@ -206,6 +206,11 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
         const state=owner.hass.states[entry.rule.entity];
         const token=state?.state;
         if (!state || !token || ['unknown','unavailable'].includes(token)) {entry.seeded=false;continue;}
+        // Cards can render different hass snapshots during a view handoff.
+        // Never interpret an older snapshot as a new occurrence.
+        const revision=Date.parse(state.last_updated || state.last_changed || '');
+        if (Number.isFinite(revision) && Number.isFinite(entry.revision) && revision<entry.revision) continue;
+        if (Number.isFinite(revision)) entry.revision=revision;
         const old=entry.value,seeded=entry.seeded;entry.value=token;entry.seeded=true;
         const data=state.attributes?.data ?? state.attributes ?? {};
         if (seeded && token!==old && (!entry.rule.entity_event_type || state.attributes?.event_type===entry.rule.entity_event_type)
