@@ -51,9 +51,8 @@ La taille par défaut du navigateur est de 1400 × 1400 px. Les options de conte
 La CI utilise le même point d’entrée `npm run test:styles`. Les tests fonctionnels restent dans `npm test` et ne demandent pas de navigateur installé.
 
 `reactions.browser.cjs` charge Bubble 3.4.3 réel avec un backend simulé pour
-vérifier le ciblage, le partage automatique des règles anonymes, les entités
-événement, les retours entre vues et les choix de formulaire qui ne doivent
-pas ajouter de clés au YAML. Le filtre commun reste disponible sans champ dédié
-au type d’occurrence, même pour une entité proposant plusieurs types.
-La source native est la même que celle de PIN
-(`BUBBLE_PIN_NATIVE_SCRIPT_PATH`).
+vérifier le ciblage, le partage des règles anonymes, les événements du bus
+réservés aux administrateurs, les templates non administrateurs et les retours
+entre vues. Le formulaire ne propose aucune source d’entité ni de relais, et
+son choix de retour n’ajoute pas de clé YAML. La source native est la même
+que celle de PIN (`BUBBLE_PIN_NATIVE_SCRIPT_PATH`).

@@ -7,7 +7,7 @@ const {loadModule}=require('../../shared/test/module.cjs');
 const reactions=loadModule('signature-reactions');
 const nativePath=process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
 const native={skip:!nativePath};
-async function setup(t,user='tablet',rules) {
+async function setup(t,user='tablet',rules,admin=false) {
   const bytes=fs.readFileSync(nativePath);
   assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
   const page=await fixture(t,{prepare:null});page.setDefaultTimeout(7000);
@@ -26,11 +26,11 @@ async function setup(t,user='tablet',rules) {
     document.querySelector('home-assistant').attachShadow({mode:'open'});
   });
   await page.addScriptTag({path:nativePath});
-  await page.evaluate(({user,rules})=>{
+  await page.evaluate(({user,rules,admin})=>{
     window.requests=[];window.actions=[];window.hosts=[];
     const connection={haVersion:'2026.10.4',subscribeEvents:async()=>()=>{},subscribeMessage:async(callback,message)=>{
       const request={callback,message,active:true};requests.push(request);return()=>{request.active=false;};}};
-    window.hass={connection,user:{id:user,name:user,is_admin:false},
+    window.hass={connection,user:{id:user,name:user,is_admin:admin},
       states:{'input_select.mode':{entity_id:'input_select.mode',state:'Présent',attributes:{options:['Présent','Absent'],friendly_name:'Mode'}}},
       config:{version:'2026.10.4',time_zone:'Europe/Paris',unit_system:{temperature:'°C'}},
       locale:{language:'fr',number_format:'language'},language:'fr',themes:{darkMode:false},localize:()=>undefined,
@@ -49,7 +49,7 @@ async function setup(t,user='tablet',rules) {
       if(action.action==='navigate'){history.pushState({from:location.pathname},'',action.navigation_path);window.dispatchEvent(new CustomEvent('location-changed'));}
     });
     window.first=mount();window.second=mount();window.contexts=[{teardown:()=>hosts.forEach(host=>host.remove())}];
-  },{user,rules});
+  },{user,rules,admin});
   await page.waitForFunction(()=>hosts.every(host=>!host.initialLoad));
   return page;
 }
@@ -59,20 +59,19 @@ test('real Bubble 3.4.3 creates no Reactions runtime or Jinja subscription for t
     templates:requests.filter(request=>request.message.type==='render_template').length,actions:actions.length})),
     {runtimes:0,templates:0,actions:0});
 });
-test('real Bubble dependency tracking follows an event entity only on the targeted session',{...native,timeout:30000},async t=>{
-  const page=await setup(t,'tablet',[{trigger:'event',entity:'event.bell',action:{action:'navigate',navigation_path:'/lovelace/bell'}}]);
-  await page.evaluate(()=>{
-    window.hass={...hass,states:{...hass.states,'event.bell':{state:'first',attributes:{event_type:'ring'}}}};
-    for(const card of hosts)card.hass=hass;
-  });
-  await page.waitForTimeout(100);
-  assert.equal(await page.evaluate(()=>actions.length),0);
-  await page.evaluate(()=>{
-    window.hass={...hass,states:{...hass.states,'event.bell':{state:'second',attributes:{event_type:'ring'}}}};
-    for(const card of hosts)card.hass=hass;
-  });
-  await page.waitForFunction(()=>location.pathname==='/lovelace/bell');
-  assert.equal(await page.evaluate(()=>actions.length),1);
+test('real Bubble listens once to the generic bus for admin and creates nothing for a non-admin',{...native,timeout:30000},async t=>{
+  for(const admin of [false,true]){
+    const page=await setup(t,'tablet',[{trigger:'event',event_type:'signature_reaction',action:{action:'navigate',navigation_path:'/lovelace/bell'}}],admin);
+    if(admin){
+      await page.waitForFunction(()=>requests.some(request=>request.message.type==='subscribe_events'));
+      assert.equal(await page.evaluate(()=>requests.filter(request=>request.message.type==='subscribe_events').length),1);
+      await page.evaluate(()=>requests.find(request=>request.message.type==='subscribe_events').callback({data:{name:'bell'}}));
+      await page.waitForFunction(()=>location.pathname==='/lovelace/bell');assert.equal(await page.evaluate(()=>actions.length),1);
+    } else {
+      assert.deepEqual(await page.evaluate(()=>({events:requests.filter(request=>request.message.type==='subscribe_events').length,
+        runtimes:hosts.filter(host=>host._signatureReactions).length,actions:actions.length})),{events:0,runtimes:0,actions:0});
+    }
+  }
 });
 test('real Bubble module copies share Jinja and dispatch native actions, retaining the return on view handoff',{...native,timeout:30000},async t=>{
   const page=await setup(t);
@@ -87,12 +86,11 @@ test('real Bubble module copies share Jinja and dispatch native actions, retaini
   assert.equal(await page.evaluate(()=>actions.length),2);
   assert.equal(await page.evaluate(()=>requests.filter(request=>request.message.type==='render_template').length),1);
 });
-test('real Bubble editor keeps anonymous YAML and source/return choices in transient native list state',{...native,timeout:30000},async t=>{
+test('real Bubble editor exposes generic events without entity sources and keeps the return choice transient',{...native,timeout:30000},async t=>{
   const page=await setup(t);
   const result=await page.evaluate(async schema=>{
     if(!customElements.get('ha-selector-bc_object'))throw Error('Native Bubble object selector missing');
-    const rule={trigger:'event',entity:'event.bell',return_after:60,action:{action:'navigate',navigation_path:'/bell'},future:false};
-    hass.states['event.bell']={state:'first',attributes:{event_types:['single','double']}};
+    const rule={trigger:'event',event_type:'signature_reaction',return_after:60,action:{action:'navigate',navigation_path:'/bell'},future:false};
     const form=document.createElement('ha-form-signature_reactions_options_v1');
     Object.assign(form,{hass,schema,data:{users:['tablet'],rules:[rule]}});document.body.append(form);await Promise.resolve();
     const field=form._form.schema.find(field=>field.name==='rules');
@@ -104,22 +102,22 @@ test('real Bubble editor keeps anonymous YAML and source/return choices in trans
     const generated=list._generateSchema(list.selector.bc_object.fields,list._itemFormData(list.value[0],0),0);
     const initial={writes:values.length,formType:field.type,hasSelector:Object.hasOwn(field,'selector'),
       timingCollapsed:generated.some(field=>field.title==='Temporisations et retour'&&field.expanded===false),
-      dedicatedTypeAbsent:!leaves(generated).some(field=>field.name==='entity_event_type'),
+      entitySourceAbsent:!leaves(generated).some(field=>['entity','entity_event_type','__event_source'].includes(field.name)),
+      eventNamePresent:leaves(generated).some(field=>field.name==='event_type'),
       genericFilterPresent:leaves(generated).some(field=>field.name==='event_data')};
     const change=patch=>{
       list._itemChanged(new CustomEvent('value-changed',{detail:{value:{...list._itemFormData(list.value[0],0),...patch}}}),0);
       return JSON.parse(JSON.stringify(values.at(-1)));
     };
-    const bus=change({__event_source:'bus',event_type:'demo'});await Promise.resolve();
-    const entity=change({__event_source:'entity',entity:'event.bell'});await Promise.resolve();
+    const bus=change({event_type:'demo'});await Promise.resolve();
     const returned=change({__return_mode:'action',return_action:{action:'navigate',navigation_path:'/home'}});await Promise.resolve();
     const previous=change({__return_mode:'previous'});rows.remove();form.remove();
-    return {initial,bus,entity,returned,previous};
+    return {initial,bus,returned,previous};
   },reactions.editor.find(field=>field.fields));
-  const rule={trigger:'event',entity:'event.bell',return_after:60,action:{action:'navigate',navigation_path:'/bell'},future:false};
-  const {entity,...bus}=rule;
-  assert.deepEqual(result.initial,{writes:0,formType:'signature_reactions_rules_v1',hasSelector:false,timingCollapsed:true,dedicatedTypeAbsent:true,genericFilterPresent:true});
-  assert.deepEqual(result.bus,[{...bus,event_type:'demo'}]);assert.deepEqual(result.entity,[rule]);
-  assert.deepEqual(result.returned,[{...rule,return_action:{action:'navigate',navigation_path:'/home'}}]);
-  assert.deepEqual(result.previous,[rule]);
+  const rule={trigger:'event',event_type:'signature_reaction',return_after:60,action:{action:'navigate',navigation_path:'/bell'},future:false};
+  const bus={...rule,event_type:'demo'};
+  assert.deepEqual(result.initial,{writes:0,formType:'signature_reactions_rules_v1',hasSelector:false,timingCollapsed:true,entitySourceAbsent:true,eventNamePresent:true,genericFilterPresent:true});
+  assert.deepEqual(result.bus,[bus]);
+  assert.deepEqual(result.returned,[{...bus,return_action:{action:'navigate',navigation_path:'/home'}}]);
+  assert.deepEqual(result.previous,[bus]);
 });

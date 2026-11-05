@@ -5,8 +5,8 @@ const {loadModule}=require('../../shared/test/module.cjs');
 const definition=loadModule('signature-reactions');
 const plain=value=>JSON.parse(JSON.stringify(value));
 const nav=path=>({action:'navigate',navigation_path:path});
-const entityRule=(extra={})=>({trigger:'event',entity:'event.bell',action:nav('/lovelace/bell'),return_after:60,...extra});
-function fixture({rules=[entityRule()],users=['tablet'],user='tablet',admin=false,options={},syncSubscription=false}={}) {
+const eventRule=(extra={})=>({trigger:'event',event_type:'signature_reaction',action:nav('/lovelace/bell'),return_after:60,...extra});
+function fixture({rules=[eventRule()],users=['tablet'],user='tablet',admin=true,options={},syncSubscription=false}={}) {
   let now=100000,timerId=0,reads=0;const timers=new Map(),requests=[],actions=[],warnings=[],connections=[];
   class Target {
     constructor(){this.listeners=new Map();this.isConnected=true;}
@@ -52,13 +52,14 @@ function fixture({rules=[entityRule()],users=['tablet'],user='tablet',admin=fals
   const state=(token,attributes={event_type:'ring'},id='event.bell')=>{
     states[id]={state:token,attributes};for(const host of connections)if(host.isConnected)host.render();
   };
+  const event=(data={},type='signature_reaction')=>{for(const sub of requests)if(sub.active&&sub.message.type==='subscribe_events'&&sub.message.event_type===type)sub.callback({data});};
   const message=(value,index=0)=>requests[index].callback(value);
-  return {create,hass,connection,window,timers,requests,actions,warnings,states,context,flush,tick,state,message,setPath,
+  return {create,hass,connection,window,timers,requests,actions,warnings,states,context,flush,tick,state,event,message,setPath,
     get reads(){return reads;},get timerCount(){return timerId;},get path(){return location.pathname+location.search+location.hash;},
     get targets(){return actions.map(action=>action.config.tap_action.navigation_path);}};
 }
 test('untargeted, missing and disabled accounts do no state reads, subscriptions, listeners or timers',()=>{
-  for(const args of [{user:'other'},{user:undefined},{options:{enabled:false}},{rules:[{...entityRule(),users:['other']}] }]){
+  for(const args of [{user:'other'},{user:undefined},{options:{enabled:false}},{rules:[{...eventRule(),users:['other']}] }]){
     const f=fixture(args);if(Object.hasOwn(args,'user')&&args.user===undefined)f.hass.user={};
     f.create();assert.equal(f.reads,0);assert.deepEqual(f.requests,[]);assert.equal(f.timers.size,0);
     assert.equal(f.window.listeners.size,0);assert.equal(f.window.__signatureReactions,undefined);
@@ -77,29 +78,47 @@ test('editor and detached previews are inert even for a targeted administrator',
   }
 });
 test('a mixed configuration never reads or subscribes rules excluded for the current user',()=>{
-  const f=fixture({rules:[entityRule(),{id:'for-other',users:['other'],trigger:'template',template:'{{ expensive }}',action:nav('/other')},
+  const f=fixture({rules:[eventRule(),{id:'for-other',users:['other'],trigger:'template',template:'{{ expensive }}',action:nav('/other')},
     {id:'other-event',users:['other'],trigger:'event',event_type:'other',action:nav('/other')}]});
-  f.create();assert.equal(f.requests.length,0);assert.equal(f.reads,1);assert.equal(f.warnings.length,0);
+  f.create();assert.equal(f.requests.length,1);assert.equal(f.reads,0);assert.equal(f.warnings.length,0);
 });
-test('an event entity seeds its restored value, reacts once per occurrence and restarts the return deadline',async()=>{
+test('a bus event runs once per occurrence and restarts the return deadline without replay on load',async()=>{
   const f=fixture();f.create();await f.flush();assert.equal(f.actions.length,0);
-  f.state('second');await f.flush();assert.deepEqual(f.targets,['/lovelace/bell']);
-  await f.tick(40000);f.state('third');await f.flush();assert.equal(f.actions.length,2);
+  f.event();await f.flush();assert.deepEqual(f.targets,['/lovelace/bell']);
+  await f.tick(40000);f.event();await f.flush();assert.equal(f.actions.length,2);
   await f.tick(59000);assert.equal(f.path,'/lovelace/bell');
   await f.tick(1000);assert.deepEqual(f.targets,['/lovelace/bell','/lovelace/bell','/lovelace/home']);
 });
-test('generic event_data filters event types and still accepts repeated matching occurrences',async()=>{
-  for(const filter of [{event_data:{event_type:'double'}},{entity_event_type:'double'}]){
-    const f=fixture({rules:[entityRule({...filter,return_after:0})]});f.create();
-    f.state('single',{event_type:'single'});await f.flush();assert.equal(f.actions.length,0);
-    f.state('double-one',{event_type:'double'});await f.flush();assert.equal(f.actions.length,1);
-    f.state('double-two',{event_type:'double'});await f.flush();assert.equal(f.actions.length,2);
-    assert.equal(f.requests.length,0);
+test('event_data filters nested bus payloads and accepts repeated matching events',async()=>{
+  const f=fixture({rules:[eventRule({event_data:{name:'bell',source:{room:'garden'}},return_after:0})]});f.create();
+  f.event({name:'bell',source:{room:'hall'}});await f.flush();assert.equal(f.actions.length,0);
+  const payload={name:'bell',source:{room:'garden',device:'doorbell'}};
+  f.event(payload);await f.flush();f.event(payload);await f.flush();
+  assert.equal(f.actions.length,2);assert.equal(f.requests.length,1);assert.equal(f.reads,0);
+});
+test('non-admin bus rules are rejected before reading their event name or action',async()=>{
+  const bus={trigger:'event',get event_type(){throw Error('must not inspect admin event');},get action(){throw Error('must not inspect admin action');}};
+  const f=fixture({admin:false,rules:[bus]});f.create();
+  assert.equal(f.requests.length,0);assert.equal(f.reads,0);assert.equal(f.timers.size,0);
+  assert.equal(f.window.__signatureReactions,undefined);assert.equal(f.window.listeners.size,0);
+  const mixed=fixture({admin:false,rules:[bus,{trigger:'template',template:'{{ demo }}',action:nav('/warning')}]});mixed.create();
+  assert.equal(mixed.requests.length,1);assert.equal(mixed.requests[0].message.type,'render_template');
+  mixed.message({result:false});mixed.message({result:true});await mixed.flush();assert.deepEqual(mixed.targets,['/warning']);
+});
+test('removed entity and relay rules are inert for every account',()=>{
+  for(const admin of [false,true]){
+    const f=fixture({admin,rules:[{trigger:'entity',entity:'event.bell',action:nav('/old')},
+      {trigger:'event',entity:'sensor.signature_reactions_relay',action:nav('/old')}]});f.create();
+    f.state('next');assert.equal(f.requests.length,0);assert.equal(f.reads,0);assert.equal(f.timers.size,0);
+    assert.equal(f.window.__signatureReactions,undefined);assert.equal(f.window.listeners.size,0);
   }
-  // A legacy filter applies to the outer entity type, even on a data relay.
-  const relay=fixture({rules:[entityRule({entity_event_type:'double',event_data:{name:'bell'},return_after:0})]});relay.create();
-  relay.state('other',{event_type:'single',data:{name:'bell'}});await relay.flush();assert.equal(relay.actions.length,0);
-  relay.state('match',{event_type:'double',data:{name:'bell'}});await relay.flush();assert.equal(relay.actions.length,1);
+});
+test('losing admin rights cancels events and pending work for the same user, restoring rights resubscribes',async()=>{
+  const f=fixture({rules:[eventRule({delay:5,return_after:0})]});const host=f.create();await f.flush();f.event();
+  host.render({...f.hass,user:{id:'tablet',is_admin:false}});await f.flush();
+  assert.equal(f.requests[0].active,false);assert.equal(f.timers.size,0);
+  f.message({data:{}});await f.tick(5000);assert.equal(f.actions.length,0);
+  host.render(f.hass);assert.equal(f.requests.length,2);f.event();await f.tick(5000);assert.deepEqual(f.targets,['/lovelace/bell']);
 });
 test('identical module copies share one subscription and keep their return across view teardown/mount',async()=>{
   const rule={id:'x',trigger:'template',template:'{{ demo }}',action:nav('/bell'),return_after:60};
@@ -108,16 +127,14 @@ test('identical module copies share one subscription and keep their return acros
   a.remove();b.remove();await f.tick(1000);f.create();await f.tick(59000);
   assert.deepEqual(f.targets,['/bell','/lovelace/home']);assert.equal(f.requests.length,1);
 });
-test('an older hass snapshot from another carrier cannot replay a previous occurrence',async()=>{
-  const f=fixture();
-  f.states['event.bell']={state:'first',last_updated:'2026-11-05T10:00:00Z',attributes:{event_type:'ring'}};
-  const old={...f.hass,states:{...f.states}};const a=f.create(),b=f.create();
-  const fresh={...f.hass,states:{'event.bell':{state:'second',last_updated:'2026-11-05T10:00:01Z',attributes:{event_type:'ring'}}}};
-  a.render(fresh);await f.flush();b.render(old);a.render(fresh);await f.flush();assert.equal(f.actions.length,1);
+test('hass snapshots cannot trigger or replay bus events and require no entity reads',async()=>{
+  const f=fixture();const a=f.create(),b=f.create();
+  f.state('second');a.render({...f.hass,states:{}});b.render();await f.flush();assert.equal(f.actions.length,0);
+  f.event();await f.flush();a.render();b.render();await f.flush();assert.equal(f.actions.length,1);assert.equal(f.reads,0);
 });
 test('template fires only on false to true, with optional first-load execution and no replay on reconnect',async()=>{
   for(const fire_on_load of [false,true]){
-    const f=fixture({rules:[{id:'x',trigger:'template',template:'{{ demo }}',action:nav('/x'),fire_on_load}]});f.create();
+    const f=fixture({admin:false,rules:[{id:'x',trigger:'template',template:'{{ demo }}',action:nav('/x'),fire_on_load}]});f.create();
     f.message({result:true});await f.flush();assert.equal(f.actions.length,Number(fire_on_load));
     f.message({result:true});await f.flush();assert.equal(f.actions.length,Number(fire_on_load));
     f.message({result:false});f.message({result:'True'});await f.flush();assert.equal(f.actions.length,1+Number(fire_on_load));
@@ -138,17 +155,17 @@ test('false cancels delayed actions and can return immediately from a temporary 
   await f.tick(60000);assert.equal(f.actions.length,2);
 });
 test('leaving manually cancels the previous-page return and preserves URL/query/hash when returning',async()=>{
-  const f=fixture();f.setPath('/dashboard-room/bedroom?mode=tablet#climate');f.create();f.state('next');await f.flush();
+  const f=fixture();f.setPath('/dashboard-room/bedroom?mode=tablet#climate');f.create();f.event();await f.flush();
   await f.tick(60000);assert.equal(f.path,'/dashboard-room/bedroom?mode=tablet#climate');
-  f.state('again');await f.flush();f.setPath('/dashboard-security/summary');await f.tick(60000);
+  f.event();await f.flush();f.setPath('/dashboard-security/summary');await f.tick(60000);
   assert.equal(f.path,'/dashboard-security/summary');assert.equal(f.actions.length,3);
 });
 test('an explicit native return action selects the configured destination',async()=>{
-  const f=fixture({rules:[entityRule({return_mode:'action',return_action:nav('/overview')})]});f.create();f.state('next');await f.flush();
+  const f=fixture({rules:[eventRule({return_mode:'action',return_action:nav('/overview')})]});f.create();f.event();await f.flush();
   await f.tick(60000);assert.equal(f.path,'/overview');
 });
 test('idle uses human activity, not hass updates; it fires once and does not churn timers during scrolling',async()=>{
-  const f=fixture({rules:[{id:'idle',trigger:'idle',seconds:300,action:nav('/overview')}]});const host=f.create();
+  const f=fixture({admin:false,rules:[{id:'idle',trigger:'idle',seconds:300,action:nav('/overview')}]});const host=f.create();
   await f.tick(240000);const count=f.timerCount;
   for(let i=0;i<100;i++){f.window.emit('pointermove',{isTrusted:true});host.render();}
   assert.equal(f.timerCount,count,'Pointer movement should only update a timestamp');
@@ -157,26 +174,26 @@ test('idle uses human activity, not hass updates; it fires once and does not chu
   f.window.emit('scroll',{isTrusted:true});await f.tick(300000);assert.equal(f.actions.length,2);
 });
 test('temporary camera return takes priority over an already almost-expired idle deadline',async()=>{
-  const f=fixture({rules:[entityRule(),{id:'idle',trigger:'idle',seconds:300,action:nav('/overview')}]});f.create();
-  await f.tick(299000);f.state('next');await f.flush();await f.tick(59000);assert.deepEqual(f.targets,['/lovelace/bell']);
+  const f=fixture({rules:[eventRule(),{id:'idle',trigger:'idle',seconds:300,action:nav('/overview')}]});f.create();
+  await f.tick(299000);f.event();await f.flush();await f.tick(59000);assert.deepEqual(f.targets,['/lovelace/bell']);
   await f.tick(1000);assert.equal(f.path,'/lovelace/home');await f.tick(299000);assert.equal(f.actions.length,2);
   await f.tick(1000);assert.equal(f.path,'/overview');
 });
 test('direct events are shared by event type, filtered and never subscribed by a limited user',async()=>{
   const rule={id:'event',trigger:'event',event_type:'signature_reaction',event_data:{name:'bell'},action:nav('/bell')};
-  const denied=fixture({rules:[rule]});denied.create();assert.equal(denied.requests.length,0);assert.equal(denied.warnings.length,1);
+  const denied=fixture({admin:false,rules:[rule]});denied.create();assert.equal(denied.requests.length,0);assert.equal(denied.window.__signatureReactions,undefined);
   const f=fixture({admin:true,rules:[rule,{...rule,id:'other',event_data:{name:'other'},action:nav('/other')}]});
   f.create();f.create();assert.equal(f.requests.length,1);
   f.message({data:{name:'skip'}});await f.flush();assert.equal(f.actions.length,0);
   f.message({data:{name:'bell'}});await f.flush();assert.deepEqual(f.targets,['/bell']);
 });
-test('relay filters and templated native action parameters retain event data and unsubscribe one-shot renders',async()=>{
+test('templated native action parameters retain bus data and unsubscribe one-shot renders',async()=>{
   const action={action:'perform-action',perform_action:'script.notify',data:{message:'{{ event.data.message }}'},target:{entity_id:'script.notify'}};
-  const f=fixture({rules:[entityRule({event_data:{name:'bell'},action,return_after:0})]});f.create();
-  f.state('skip',{data:{name:'other'}});await f.flush();assert.equal(f.requests.length,0);
-  f.state('next',{data:{name:'bell',message:'Bonjour'}});await f.flush();assert.equal(f.requests.length,1);
-  assert.deepEqual(f.requests[0].message.variables.event.data,{name:'bell',message:'Bonjour'});
-  f.message({result:'Bonjour'});await f.flush();assert.equal(f.requests[0].unsubscribes,1);
+  const f=fixture({rules:[eventRule({event_data:{name:'bell'},action,return_after:0})]});f.create();
+  f.event({name:'other'});await f.flush();assert.equal(f.requests.length,1);
+  f.event({name:'bell',message:'Bonjour'});await f.flush();assert.equal(f.requests.length,2);
+  assert.deepEqual(f.requests[1].message.variables.event.data,{name:'bell',message:'Bonjour'});
+  f.message({result:'Bonjour'},1);await f.flush();assert.equal(f.requests[1].unsubscribes,1);
   assert.deepEqual(f.actions[0].config.tap_action,{...action,data:{message:'Bonjour'}});
 });
 test('losing the targeted account immediately unsubscribes, removes listeners and cancels pending work',async()=>{
@@ -207,23 +224,23 @@ test('a template error cancels an already delayed action and reseeds its recover
   f.message({result:false});f.message({result:true});await f.tick(5000);assert.deepEqual(f.targets,['/x']);
 });
 test('different configurations coexist without a scope and invalid destinations cannot navigate',async()=>{
-  const f=fixture();f.create();f.create({users:['tablet'],rules:[entityRule({action:nav('/other')})]});
-  assert.equal(f.warnings.length,0);f.state('next');await f.flush();assert.equal(f.actions.length,2);
-  const invalid=fixture({rules:[entityRule({action:nav('//external.test')})]});invalid.create();invalid.state('next');await invalid.flush();
+  const f=fixture();f.create();f.create({users:['tablet'],rules:[eventRule({action:nav('/other')})]});
+  assert.equal(f.warnings.length,0);f.event();await f.flush();assert.equal(f.actions.length,2);
+  const invalid=fixture({rules:[eventRule({action:nav('//external.test')})]});invalid.create();invalid.event();await invalid.flush();
   assert.equal(invalid.actions.length,0);
 });
 test('anonymous duplicate rules and copies with legacy IDs, scopes or reordered keys execute only once',async()=>{
-  const rule=entityRule();
+  const rule=eventRule();
   const f=fixture({rules:[rule,plain(rule)]});f.create();
   f.create({users:['tablet'],scope:'old',rules:[{return_after:60,action:{navigation_path:'/lovelace/bell',action:'navigate'},
-    entity:'event.bell',trigger:'entity',id:'legacy',name:'Old name'}]});
+    event_type:'signature_reaction',trigger:'event',id:'legacy',name:'Old name'}]});
   assert.equal(f.window.__signatureReactions.engines.size,1);
-  f.state('next');await f.flush();assert.deepEqual(f.targets,['/lovelace/bell']);
+  f.event();await f.flush();assert.deepEqual(f.targets,['/lovelace/bell']);
   await f.tick(60000);assert.equal(f.path,'/lovelace/home');assert.equal(f.actions.length,2);
 });
 test('different anonymous rules are not lost when old IDs collide',async()=>{
-  const f=fixture({rules:[entityRule({id:'same',return_after:0}),entityRule({id:'same',action:nav('/other'),return_after:0})]});
-  f.create();f.state('next');await f.flush();assert.deepEqual(f.targets,['/lovelace/bell','/other']);
+  const f=fixture({rules:[eventRule({id:'same',return_after:0}),eventRule({id:'same',action:nav('/other'),return_after:0})]});
+  f.create();f.event();await f.flush();assert.deepEqual(f.targets,['/lovelace/bell','/other']);
 });
 test('an equivalent configuration replacement keeps the subscription and pending return deadline',async()=>{
   const f=fixture({rules:[{trigger:'template',template:'{{ demo }}',action:nav('/bell'),return_after:60}]});
@@ -232,9 +249,9 @@ test('an equivalent configuration replacement keeps the subscription and pending
   assert.equal(f.requests.length,1);await f.tick(20000);assert.equal(f.path,'/lovelace/home');
 });
 test('return_action implies a custom return without return_mode and shares its legacy equivalent',async()=>{
-  const rule=entityRule({return_action:nav('/overview')});
+  const rule=eventRule({return_action:nav('/overview')});
   const f=fixture({rules:[rule]});f.create();f.create({users:['tablet'],rules:[{...rule,id:'legacy',return_mode:'action'}]});
-  f.state('next');await f.flush();assert.equal(f.actions.length,1);
+  f.event();await f.flush();assert.equal(f.actions.length,1);
   await f.tick(60000);assert.deepEqual(f.targets,['/lovelace/bell','/overview']);
 });
 test('detached carriers stop acting and release the shared session after its bounded handoff grace',async()=>{

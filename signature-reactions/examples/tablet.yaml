@@ -1,6 +1,8 @@
 # Add the same signature_reactions configuration to an existing, unprotected
 # Bubble card on every participating view, including the doorbell view.
-# Replace TABLET_USER_ID with the HA account ID, and adapt your paths/entities.
+# Requires an administrator account for HA bus events.
+# Replace TABLET_USER_ID with its HA account ID and adapt the paths.
+# Emit the action from event.yaml whenever the doorbell rings.
 modules:
   - signature_navigation
   - signature_reactions
@@ -8,7 +10,8 @@ signature_reactions:
   users: [TABLET_USER_ID]
   rules:
     - trigger: event
-      entity: event.jardin_portillon_sonnette
+      event_type: signature_reaction
+      event_data: {name: doorbell}
       action:
         action: navigate
         navigation_path: /lovelace/sonnette

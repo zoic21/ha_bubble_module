@@ -1,0 +1,20 @@
+# Works for non-admin and admin accounts. Replace the account, entity and paths.
+# A boolean condition fires on false -> true; it must become false to fire again.
+modules:
+  - signature_reactions
+signature_reactions:
+  users: [TABLET_USER_ID]
+  rules:
+    - trigger: template
+      template: "{{ is_state('binary_sensor.warning', 'on') }}"
+      action:
+        action: navigate
+        navigation_path: /lovelace/warning
+      return_after: 60
+      return_on_false: true
+    - trigger: idle
+      seconds: 300
+      action:
+        action: navigate
+        navigation_path: /lovelace/summary-home
+        navigation_replace: true

@@ -1,8 +1,8 @@
 name: Signature Reactions
-version: 1.1.1
+version: 2.0.0
 creator: Loïc
 supported: [button, select, cover, climate, media-player, separator, sub-buttons]
-description: Réactions de l’interface aux templates Jinja, événements et périodes d’inactivité. Actions natives HA, ciblage utilisateur, délais et retours. Aucun élément visuel. Bubble Card 3.4.3 ou plus récent.
+description: Réactions de l’interface aux templates Jinja, événements du bus HA pour les administrateurs et périodes d’inactivité. Actions natives HA, ciblage utilisateur, délais et retours. Aucun élément visuel. Bubble Card 3.4.3 ou plus récent.
 editor:
   - type: constant
     label: Ajouter à une carte existante sur chaque vue concernée. Les copies des mêmes règles partagent automatiquement leurs abonnements et délais. Les actions s’exécutent dans chaque session ciblée.
@@ -20,7 +20,7 @@ editor:
           bc_object:
             multiple: true
             label_field: trigger
-            description_field: [entity, event_type, template]
+            description_field: [event_type, template]
             fields:
               trigger:
                 label: Déclencheur
@@ -28,30 +28,17 @@ editor:
                   select:
                     options:
                       - {label: Template Jinja devenant vrai, value: template}
-                      - {label: Événement, value: event}
+                      - {label: Événement HA (administrateur), value: event}
                       - {label: Inactivité de l’interface, value: idle}
               template:
                 label: Condition Jinja
                 description: Déclenche au passage faux → vrai. Le serveur suit les dépendances, sans interrogation périodique du navigateur.
                 visible_if: item.trigger === 'template'
                 selector: {template: {}}
-              __event_source:
-                label: Source de l’événement
-                visible_if: item.trigger === 'event'
-                selector:
-                  select:
-                    options:
-                      - {label: Entité événement ou relais, value: entity}
-                      - {label: Événement HA (administrateur), value: bus}
-              entity:
-                label: Entité événement ou relais
-                description: Une nouvelle occurrence relance le délai, même si son type est identique.
-                visible_if: item.trigger === 'event' && item.__event_source !== 'bus'
-                selector: {entity: {}}
               event_type:
                 label: Nom de l’événement HA
-                description: Réservé aux administrateurs. Pour un autre compte, choisir une entité événement ou le relais Template.
-                visible_if: item.trigger === 'event' && item.__event_source === 'bus'
+                description: Réservé aux comptes administrateurs. Pour un autre compte, utiliser une condition Jinja.
+                visible_if: item.trigger === 'event'
                 selector: {text: {}}
               seconds:
                 label: Secondes sans interaction
@@ -96,7 +83,7 @@ editor:
                 selector: {boolean: {}}
               event_data:
                 label: Filtre des données
-                description: "Facultatif. Exemple pour un type d’appui : {event_type: double}. Pour le relais, filtre le contenu de son attribut data."
+                description: "Facultatif. Filtre les données envoyées par l’événement, par exemple {name: doorbell}."
                 visible_if: item.trigger === 'event'
                 group: Filtres avancés
                 selector: {object: {}}

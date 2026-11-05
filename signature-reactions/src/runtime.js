@@ -13,14 +13,18 @@ if (!root || !host.isConnected || !root.isConnected || host.editor || host.previ
   drop(true); return '';
 }
 let link = host._signatureReactions;
+const admin = !!hass.user?.is_admin;
 // Ordinary hass updates take this short path: no rule traversal, signatures,
 // registry work or recreated session closures when configuration is unchanged.
 if (link && link.version === version && link.options === options && link.connection === hass.connection
-    && link.user === user && link.root === root) {
+    && link.user === user && link.admin === admin && link.root === root) {
   link.hass=hass;link.engine.update(link);return '';
 }
 const rules = Array.isArray(options.rules) ? options.rules : [];
-const targeted = rules.filter(rule => rule && rule.enabled !== false && allowed(rule.users,user));
+const targeted = rules.filter(rule => rule && rule.enabled !== false && allowed(rule.users,user)
+  && ['template','event','idle'].includes(rule.trigger)
+  // Reject admin-only events before reading their payload or action config.
+  && (rule.trigger !== 'event' || (admin && typeof rule.event_type === 'string' && rule.event_type.trim())));
 if (!targeted.length || !hass.connection) { drop(true); return ''; }
 
 // Content, rather than user-supplied IDs/scopes, identifies a configuration.
@@ -30,7 +34,6 @@ const stable = value => Array.isArray(value) ? value.map(stable)
 const unique = new Map();
 for (const source of targeted) {
   const {id,name,users,enabled,...rule} = source;
-  if (rule.trigger === 'entity') rule.trigger = 'event';
   if (rule.return_mode === 'previous') delete rule.return_action;
   if (rule.return_mode === 'previous' || rule.return_action) delete rule.return_mode;
   const key = JSON.stringify(stable(rule));
@@ -40,7 +43,7 @@ const activeRules = [...unique.values()];
 const signature = JSON.stringify([...unique.keys()]);
 if (link && link.version === version && link.connection === hass.connection && link.user === user
     && link.root === root && link.engine.signature === signature) {
-  link.options=options;link.hass=hass;link.engine.update(link);return '';
+  link.options=options;link.admin=admin;link.hass=hass;link.engine.update(link);return '';
 }
 
 /* @include signature-reactions/src/session.js */
@@ -67,7 +70,7 @@ if (!link) {
     });
     sessions.set(key,engine); registry.engines.add(engine);
   }
-  link = host._signatureReactions = {version,options,connection:hass.connection,user,root,host,engine,hass,
+  link = host._signatureReactions = {version,options,connection:hass.connection,user,admin,root,host,engine,hass,
     release(immediate) { engine.remove(this,immediate); }};
   engine.add(link);
 }

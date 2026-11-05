@@ -1,0 +1,5 @@
+# Action to paste into an automation or script, for example on each doorbell ring.
+# No relay entity is required. The receiving interface account must be admin.
+- event: signature_reaction
+  event_data:
+    name: doorbell

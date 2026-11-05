@@ -43,7 +43,7 @@ registerOptionsForm('ha-form-signature_reactions_options_v1', {
 });
 
 // Reuse Bubble's list, sort/duplicate controls, conditional fields and groups.
-// Source/return choices are transient UI state, never extra YAML options.
+// The return choice is transient UI state, never an extra YAML option.
 registerOptionsForm('ha-form-signature_reactions_rules_v1', {
   _renderSpecial() {
     this._form.hidden=true;
@@ -51,29 +51,25 @@ registerOptionsForm('ha-form-signature_reactions_rules_v1', {
       const list=this._list=document.createElement('ha-selector-bc_object');
       const formData=list._itemFormData.bind(list), changed=list._itemChanged.bind(list);
       list._itemFormData=(item,index) => ({
-        __event_source:item?.event_type ? 'bus' : 'entity',
         __return_mode:item?.return_mode==='previous' ? 'previous'
           : item?.return_action || item?.return_mode==='action' ? 'action' : 'previous',
-        ...formData(item?.trigger==='entity' ? {...item,trigger:'event'} : item,index)
+        ...formData(item,index)
       });
       list._itemChanged=(event,index) => {
         const value={...event.detail.value};
-        if (value.trigger==='event') {
-          if (value.__event_source==='bus') {delete value.entity;delete value.entity_event_type;}
-          else delete value.event_type;
-        }
         if (value.__return_mode==='previous') delete value.return_action;
         delete value.return_mode;delete value.id;delete value.name;
+        delete value.entity;delete value.entity_event_type;
         changed({stopPropagation:()=>event.stopPropagation(),detail:{value}},index);
       };
-      list._formatValue=item => ({template:'Template',event:'Événement',entity:'Événement',idle:'Inactivité'}[item?.trigger] || 'Règle');
+      list._formatValue=item => ({template:'Template',event:'Événement HA',idle:'Inactivité'}[item?.trigger] || 'Règle');
       list.addEventListener('value-changed',event => {
         event.stopPropagation();this._emit(event.detail.value);
       });
       this.shadowRoot.append(list);
     }
     Object.assign(this._list,{hass:this.hass,disabled:this.disabled,value:this.data || [],
-      selector:{bc_object:{multiple:true,description_field:['entity','event_type','template'],fields:this.schema.fields}},
+      selector:{bc_object:{multiple:true,description_field:['event_type','template'],fields:this.schema.fields}},
       localizeValue:this.localizeValue});
     return true;
   }

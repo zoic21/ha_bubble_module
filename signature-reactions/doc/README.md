@@ -1,10 +1,10 @@
 # Signature Reactions
 
-Version **1.1.1**, Bubble Card **3.4.3 ou plus récent**.
+Version **2.0.0**, Bubble Card **3.4.3 ou plus récent**.
 
 Module facultatif sans élément visuel : exécuter des actions Home Assistant
 dans l’interface lorsqu’un template Jinja devient vrai, qu’un événement arrive
-(entité ou bus HA) ou que l’écran reste inutilisé.
+sur le bus HA pour un administrateur ou que l’écran reste inutilisé.
 Il fonctionne avec les cartes existantes et peut accompagner Signature Navigation.
 
 ## Installation
@@ -23,7 +23,11 @@ Il fonctionne avec les cartes existantes et peut accompagner Signature Navigatio
 Ce module ne crée pas de carte, vue vidéo, ressource frontend séparée ou
 intégration. L’[exemple tablette](../examples/tablet.yaml) est un fragment à
 ajouter à une carte existante : sonnette 60 s, retour Aperçu, inactivité 300 s.
-La page Sonnette et ses boutons restent à configurer dans le dashboard.
+Cet exemple utilise un **compte administrateur** pour écouter le bus HA.
+L’[action événement](../examples/event.yaml) s’ajoute à l’automatisation qui
+réagit à la sonnerie ; aucun capteur intermédiaire n’est nécessaire.
+L’[exemple Jinja](../examples/template.yaml) fonctionne aussi pour les comptes
+non administrateurs. La page Sonnette et ses boutons restent à configurer.
 
 ## Ciblage et coût
 
@@ -31,13 +35,16 @@ La page Sonnette et ses boutons restent à configurer dans le dashboard.
 les entités `person`. Une liste vide ou absente cible toutes les sessions :
 choisir explicitement le compte Tablette pour cet usage.
 
-Avant toute lecture d’état, parsing des règles actives, abonnement ou écoute,
+Avant tout parsing des règles actives, abonnement ou écoute,
 le runtime vérifie l’identité courante et le ciblage. Un compte exclu, une
 identité non chargée, un module désactivé et une prévisualisation d’éditeur ne
 créent aucun abonnement Jinja/événement, écouteur d’interaction ou timer.
 Une sélection `users` par règle peut restreindre celle du module ; elle est
-filtrée avant les abonnements. L’énumération des comptes est réservée au
-formulaire avec un administrateur, jamais au runtime.
+filtrée avant les abonnements. Les règles `event` sont écartées pour les non
+administrateurs avant de lire leur nom d’événement ou leurs actions. Un compte
+qui n’a aucune règle autorisée ne crée aucun runtime ni écouteur.
+L’énumération des comptes est réservée au formulaire avec un administrateur,
+jamais au runtime.
 
 Le partage est **automatique par connexion, utilisateur et contenu des règles**.
 Deux copies identiques n’exécutent pas deux fois l’action ; un même template
@@ -49,9 +56,10 @@ Deux listes différentes ayant seulement certaines règles en commun restent
 indépendantes : elles ne sont pas fusionnées.
 
 Les templates suivent les dépendances côté serveur via `render_template`.
-Les entités réutilisent les dépendances suivies par Bubble, sans abonnement
-global `state_changed` supplémentaire et sans polling. Les interactions ne
-modifient qu’un horodatage : un déplacement de pointeur ne reconstruit pas
+Le module ne suit plus d’entité et ne lit pas leurs états dans le navigateur.
+Aucun abonnement global `state_changed` n’est créé implicitement, ni aucun
+polling. Les interactions ne modifient qu’un horodatage : un déplacement
+de pointeur ne reconstruit pas
 les timers. Les délais ne sont pas réinitialisés par les mises à jour HA.
 
 ## Configuration
@@ -75,8 +83,7 @@ Chaque règle associe un déclencheur à une `action` au format natif. Aucun
 `id`, nom, `scope` ou `enabled` n’est nécessaire : ajouter ou retirer le module
 suffit pour activer ou arrêter ses réactions. Le formulaire regroupe les
 temporisations et retours dans une section repliable ; les filtres sont avancés.
-Le choix de source d’événement et celui du retour sont propres au formulaire
-et n’ajoutent aucune clé YAML.
+Le choix du retour est propre au formulaire et n’ajoute aucune clé YAML.
 
 | Option | Fonction / valeur par défaut |
 |---|---|
@@ -85,8 +92,7 @@ et n’ajoutent aucune clé YAML.
 | `trigger` | `template`, `event` ou `idle` |
 | `template` | Jinja du déclencheur `template` ; variable `user_id` disponible |
 | `fire_on_load` | Déclencher si le premier résultat est déjà vrai ; `false` par défaut |
-| `entity` | Source d’un déclencheur `event` : entité événement ou relais |
-| `event_type` | Autre source pour `event` : nom d’un événement bus HA, administrateur seulement ; utiliser `entity` ou `event_type` |
+| `event_type` | Nom de l’événement du bus HA à écouter, administrateur seulement |
 | `event_data` | Filtre partiel des données, avec objets imbriqués et valeurs exactes |
 | `seconds` | Durée sans interaction pour `idle`, de 1 à 86 400 secondes |
 | `action` | Objet au format d’un `tap_action` HA |
@@ -104,29 +110,21 @@ une référence, sauf `fire_on_load: true`. Une reconnexion réinitialise cette
 référence sans rejouer le résultat déjà vrai. Une erreur de template annule
 une action retardée et ne déclenche pas d’action.
 
-### Entités et événements répétés
+### Événements du bus HA — administrateurs
 
-`trigger: event` avec `entity` observe un **changement de l’état**, pas seulement des
-attributs. L’état d’une entité `event.*` contient l’horodatage de sa dernière
-occurrence : deux sonneries `ring` successives sont donc distinctes. Les
-entités inexistantes/indisponibles ne déclenchent pas ; leur récupération
-fournit une nouvelle référence. Le chargement d’une ancienne valeur ne joue
-pas à nouveau une sonnerie. Ce mécanisme convient aussi à un compteur relais.
+Le déclencheur `event` écoute uniquement le bus général Home Assistant. Le nom
+et les données sont libres ; aucune entité source ou commune n’est utilisée.
 
-Un seul filtre facultatif, `event_data`, sélectionne les données à accepter.
-Pour une entité événement exposant plusieurs types d’appui :
+Une automatisation ou un script peut émettre :
 
 ```yaml
-trigger: event
-entity: event.bouton
-event_data: {event_type: double}
+- event: signature_reaction
+  event_data:
+    name: doorbell
+    path: /lovelace/sonnette
 ```
 
-Sans `event_data`, toutes les nouvelles occurrences sont acceptées.
-
-### Événements bus et relais non administrateur
-
-Un compte administrateur peut utiliser directement :
+Le module écoute par exemple :
 
 ```yaml
 - trigger: event
@@ -138,15 +136,18 @@ Un compte administrateur peut utiliser directement :
   return_after: 60
 ```
 
-HA interdit l’abonnement à un événement bus personnalisé aux comptes non
-administrateurs. Le module détecte ce cas **avant toute demande** et indique
-d’utiliser le [relais Template natif](../examples/event-relay.yaml).
-Un seul capteur relaie tous les événements `signature_reaction` avec un
-compteur d’occurrences et leurs données dans `attributes.data`. L’automatisation
-continue à émettre des événements ordinaires ; la règle utilise `trigger: event`
-et `entity: sensor.signature_reactions_relay`.
-Le filtre `event_data` s’applique au contenu de `data` du relais ; pour une
-entité événement sans cet attribut, il s’applique à ses attributs.
+`event_data` filtre partiellement les données reçues, y compris les objets
+imbriqués. Sans filtre, chaque événement de ce nom est accepté. Deux messages
+identiques successifs restent deux occurrences et relancent le délai.
+
+Un compte non administrateur utilise des règles `template` et/ou `idle` :
+aucun abonnement au bus ni mécanisme de relais n’est ouvert pour lui. Les
+administrateurs peuvent également utiliser les templates. Un changement de
+rôle nettoie les abonnements devenus interdits et les actions en attente.
+
+Pour réagir à chaque sonnerie répétée, l’exemple tablette utilise le bus avec
+un administrateur. Une condition Jinja qui reste vraie ne distingue pas deux
+sonneries ; elle doit redevenir fausse avant de pouvoir déclencher à nouveau.
 
 Une chaîne Jinja dans les paramètres d’une action est rendue **une seule fois
 au déclenchement**, avec `event.data` et `user_id` disponibles. Les types
@@ -160,8 +161,8 @@ action:
 
 Une action sans Jinja ne crée aucun abonnement supplémentaire. Les abonnements
 ponctuels sont fermés dès leur résultat, annulation ou expiration de 10 s.
-Le relais n’est pas une file de messages : un écran déconnecté ne rejoue pas
-une commande ancienne. Les destinations de navigation restent internes à HA.
+Un événement reçu pendant une déconnexion n’est pas rejoué au retour. Les
+destinations de navigation restent internes à HA.
 
 ## Temporisations et retour
 
@@ -229,36 +230,33 @@ Home Assistant réel ou Safari/iPadOS.
 
 La fixture `styles/test/reactions.browser.cjs` charge aussi Bubble Card 3.4.3
 réel avec un backend simulé : compte exclu sans abonnement, partage entre
-cartes, actions natives, relais entre vues et dépendances d’une entité. Elle
+cartes, actions natives, retours entre vues et absence d’abonnement au bus
+pour les non-administrateurs. Elle
 est exécutée par la CI avec le script Bubble épinglé déjà utilisé par PIN.
 
-### 1.1.1
+### 2.0.0 — migration
 
-Suppression du champ dédié au type d’occurrence dans le formulaire et le tableau
-YAML. Le filtre commun `event_data` suffit, y compris pour `event_type` sur une
-entité événement. Le formulaire réutilise directement le schéma natif Bubble,
-sans lecture de la liste des types disponibles. Les anciennes configurations
-conservent leur filtrage à l’exécution.
+- Événements du bus HA réservés aux administrateurs ; templates Jinja et
+  inactivité disponibles pour tous les comptes ciblés.
+- Suppression de la source entité, du sélecteur de source et de l’exemple de
+  capteur commun. Aucune lecture d’état ni suivi d’entité côté navigateur.
+- Les abonnements sont initialisés une fois ; les actualisations ordinaires
+  n’itèrent plus sur les règles pour observer des états.
+- Révocation des abonnements et des actions différées si le compte perd ses
+  droits administrateur.
 
-### 1.1.0
+**Les anciennes règles `trigger: entity`, et les règles `event` avec seulement
+une source `entity`, ne s’exécutent plus.** Les remplacer par `event_type` et
+un compte administrateur, ou par une condition `template` pour un compte non
+administrateur. Les paramètres de source d’entité ne font plus partie du
+format. L’éditeur les retire lorsque la règle est modifiée.
 
-- Règles anonymes : suppression des identifiants/noms, du groupe et de
-  l’activation explicite dans le formulaire et les exemples YAML.
-- Partage automatique selon le contenu ; copies identiques dédupliquées,
-  configurations différentes acceptées, délais conservés lors des changements
-  de vue et des remplacements de configuration équivalents.
-- Un seul déclencheur Événement, avec entité ou bus HA. Inactivité séparée.
-- Retour déduit de la présence de `return_action`. Choix de source/retour
-  temporaires dans le formulaire ; filtres de type proposés selon l’entité.
+Les anciens `id`, nom et `scope` restent ignorés. `return_mode` est encore
+compris, et un ancien `enabled: false` reste respecté. Réimporter le module puis
+recharger l’interface après la migration.
 
-Les anciennes configurations restent lisibles : `trigger: entity` est reconnu,
-`id`, nom et `scope` sont ignorés, et `return_mode` reste compris. Un ancien
-`enabled: false` reste respecté pour ne pas réactiver une configuration coupée ;
-retirer cette ancienne clé pour la réactiver. Les nouveaux exemples n’utilisent
-aucun de ces champs. Aucune migration manuelle n’est requise avant import.
+### Versions précédentes
 
-### 1.0.1
-
-Une mise à jour d’entité plus ancienne, reçue depuis une autre carte pendant
-un changement de vue, est ignorée selon son horodatage HA. Le test de snapshots
-intercalés vérifie qu’elle ne rejoue pas une occurrence précédente.
+1.1.1 a regroupé les filtres dans `event_data`. 1.1.0 a rendu les règles
+anonymes, le partage automatique et les retours déduits de `return_action`.
+Ces versions acceptaient encore les sources d’entité, retirées en 2.0.0.

@@ -11,6 +11,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
   const live = () => [...owners].find(owner => owner.host.isConnected && owner.root.isConnected
     && !owner.host.editor && !owner.host.preview && !owner.host.inEditorPreview
     && owner.host._hass?.user?.id === user && owner.host.config?.signature_reactions?.enabled !== false
+    && !!owner.host._hass?.user?.is_admin === owner.admin
     && owner.host.config?.signature_reactions === owner.options
     && allowed(owner.host.config?.signature_reactions?.users,user));
   const ready = () => !disposed && !suspension && connection.connected !== false && !!live();
@@ -45,7 +46,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     // Delegate to HA's native action handler, exactly as Bubble's callAction.
     // PIN/confirmation companions on the carrier card remain in the event path.
     return owner.root.dispatchEvent(new CustomEvent('hass-action',{bubbles:true,composed:true,cancelable:true,
-      detail:{action:'tap',config:{entity:entry.rule.entity || owner.host.config.entity,tap_action:action}}}));
+      detail:{action:'tap',config:{entity:owner.host.config.entity,tap_action:action}}}));
   };
   const resolveAction = async (entry,config,generation) => {
     // Plain native action objects pay no template subscription cost. Templates
@@ -201,24 +202,6 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
         else cleanup=setTimeout(()=>session.dispose(),20000);
       }
     },
-    update(owner) {
-      for (const entry of entries.values()) if (entry.entityEvent) {
-        // Use Bubble's tracked hass only AFTER the account and rule gates.
-        const state=owner.hass.states[entry.rule.entity];
-        const token=state?.state;
-        if (!state || !token || ['unknown','unavailable'].includes(token)) {entry.seeded=false;continue;}
-        // Cards can render different hass snapshots during a view handoff.
-        // Never interpret an older snapshot as a new occurrence.
-        const revision=Date.parse(state.last_updated || state.last_changed || '');
-        if (Number.isFinite(revision) && Number.isFinite(entry.revision) && revision<entry.revision) continue;
-        if (Number.isFinite(revision)) entry.revision=revision;
-        const old=entry.value,seeded=entry.seeded;entry.value=token;entry.seeded=true;
-        const data=state.attributes?.data ?? state.attributes ?? {};
-        // Legacy type filter remains readable; new rules use event_data only.
-        if (seeded && token!==old && (!entry.rule.entity_event_type || state.attributes?.event_type===entry.rule.entity_event_type)
-            && match(data,entry.rule.event_data)) fire(entry,data);
-      }
-    },
     dispose() {
       if (disposed) return;disposed=true;epoch++;
       clearTimeout(cleanup);stopReturn();
@@ -236,18 +219,16 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
   };
   for (const rule of rules) {
     if (!rule.action?.action || !['template','event','idle'].includes(rule.trigger)) continue;
-    const entityEvent=rule.trigger==='event' && !rule.event_type;
-    if (entityEvent && (typeof rule.entity!=='string' || !/^[a-z_]+\.[a-z0-9_]+$/.test(rule.entity))) continue;
     if (rule.trigger==='idle' && !seconds(rule.seconds)) continue;
-    const entry={rule,number:entries.length+1,entityEvent,generation:0,seeded:false};entries.push(entry);
-    if (rule.trigger==='template' || (rule.trigger==='event' && !entityEvent)) entry.start=true;
+    const entry={rule,number:entries.length+1,generation:0,seeded:false};entries.push(entry);
   }
-  const update=session.update;
+  let started=false;
   session.update=owner => {
-    if (disposed) return;
+    if (disposed || started) return;
     if (owner.hass.user?.id!==user) {session.dispose();return;}
-    for (const entry of entries.values()) if (entry.start) {
-      entry.start=false;
+    started=true;
+    for (const entry of entries) {
+      if (entry.rule.trigger==='idle') continue;
       if (entry.rule.trigger==='template') {
         if (typeof entry.rule.template!=='string' || !entry.rule.template.trim()) continue;
         entry.subscription='template:'+entry.rule.template;
@@ -256,14 +237,12 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
         continue;
       }
       // No forbidden request, even once, from a limited user's session.
-      if (!owner.hass.user?.is_admin) {warn(entry,'événement direct réservé aux administrateurs ; utiliser le relais Template.');continue;}
-      if (!entry.rule.event_type) continue;
+      if (!owner.hass.user?.is_admin) continue;
       entry.subscription='event:'+entry.rule.event_type;
       subscribe(entry.subscription,{type:'subscribe_events',event_type:entry.rule.event_type},event => {
-        if (ready() && match(event?.data,entry.rule.event_data)) fire(entry,event.data || {});
+        if (ready() && live()?.hass.user?.is_admin && match(event?.data,entry.rule.event_data)) fire(entry,event.data || {});
       });
     }
-    update(owner);
   };
   if (hasIdle) for (const name of inputs) window.addEventListener(name,activity,eventOptions);
   window.addEventListener('location-changed',handleRoute);window.addEventListener('popstate',handleRoute);
