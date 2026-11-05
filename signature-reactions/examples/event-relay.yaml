@@ -1,0 +1,29 @@
+# Merge this block into a Home Assistant package or the existing template list.
+# One native entity relays every signature_reaction event; no custom integration.
+template:
+  - triggers:
+      - trigger: event
+        event_type: signature_reaction
+    sensor:
+      - name: Signature Reactions Relay
+        unique_id: signature_reactions_relay
+        default_entity_id: sensor.signature_reactions_relay
+        state: "{{ (this.state | int(0)) + 1 }}"
+        attributes:
+          data: "{{ trigger.event.data }}"
+
+# An automation can emit:
+# - event: signature_reaction
+#   event_data:
+#     name: doorbell
+#     path: /lovelace/sonnette
+#
+# The module rule uses:
+# id: received-doorbell
+# trigger: entity
+# entity: sensor.signature_reactions_relay
+# event_data: {name: doorbell}
+# action:
+#   action: navigate
+#   navigation_path: "{{ event.data.path }}"
+# return_after: 60

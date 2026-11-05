@@ -1,0 +1,4 @@
+${(() => {
+  /* @include signature-reactions/src/editor.js */
+  /* @include signature-reactions/src/runtime.js */
+})()}

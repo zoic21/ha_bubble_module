@@ -1,6 +1,6 @@
 # Sources communes et build de tous les modules Bubble
 
-Les quinze modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
+Les seize modules du dépôt sont générés à partir de sources. Chaque YAML dans `*/dist` reste autonome : Home Assistant ne charge aucun fichier de ce dossier, aucun module de base ni dépendance npm.
 
 ## Organisation
 
@@ -55,7 +55,7 @@ Les suites fonctionnelles partagent également leurs [helpers de test](test/READ
 
 Le workflow [Build module distributions](../.github/workflows/build.yml) démarre après un push qui modifie un fichier `**/src/**`, un script de build, `package.json`, `package-lock.json` ou le workflow lui-même. Il fonctionne sur les branches du dépôt, y compris `main`, et peut aussi être lancé manuellement depuis l'onglet Actions.
 
-Il installe les dépendances, reconstruit les quinze modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
+Il installe les dépendances, reconstruit les seize modules, exécute `check:modules` et `npm test`, puis commit uniquement les YAML modifiés dans `*/dist` sur la même branche. S'ils sont déjà à jour, il ne crée aucun commit. Les versions et leur documentation restent à modifier dans les sources ; le workflow ne les augmente pas automatiquement.
 
 Les builds d'une même branche sont sérialisés. Si un autre commit arrive pendant le build, le script reprend la dernière révision et reconstruit avant de retenter le push, au maximum trois fois, sans push forcé. La publication utilise le `GITHUB_TOKEN` du job avec `contents: write` ; les branches protégées conservent leurs règles. Aucun secret supplémentaire n'est requis. Les commits du bot limités à `dist` ne correspondent pas au filtre des sources ; GitHub ne déclenche pas non plus de nouveau workflow `push` pour un commit publié avec ce token ([documentation GitHub](https://docs.github.com/en/actions/concepts/security/github_token)).
 
@@ -95,7 +95,7 @@ Une modification du catalogue doit actualiser tous ses consommateurs affectés e
 
 ## Distributions minifiées
 
-Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux quinze distributions, y compris dans le workflow automatique GitHub :
+Le build applique [minify-module.cjs](../scripts/minify-module.cjs) aux seize distributions, y compris dans le workflow automatique GitHub :
 
 - Terser raccourcit les identifiants locaux, simplifie les expressions et retire les commentaires JavaScript. Les noms des propriétés, options, composants et espaces d'état restent inchangés. Les transformations `unsafe` et les hypothèses de getters purs sont désactivées pour préserver les lectures suivies par Home Assistant.
 - clean-css réduit les espaces et commentaires des feuilles CSS embarquées complètes. Les expressions JavaScript sont remplacées temporairement par des marqueurs de syntaxe valide puis rétablies dans leur ordre initial, sans être exécutées. Les fragments incomplets et les templates taggés ne sont pas transformés. L'ordre des règles, leurs valeurs, leurs unités et les variables CSS restent conservés.
@@ -110,3 +110,12 @@ Mesure du 5 octobre 2026 sur les neuf distributions, comparées au commit `1e041
 Les couleurs nommées de la palette suivent les variables natives du thème ; les valeurs CSS explicites restent littérales. Les sources Jinja partagent une heuristique de cible, pas un parseur complet. La précision du registre des entités précède les suggestions puis les anciens attributs, sans uniformiser les bornes métier. Les adaptateurs d’éditeur conservent leurs scopes et conversions YAML. Voir [STYLE_GUIDE.md](../STYLE_GUIDE.md) pour les priorités et la migration des noms de couleur.
 
 Les adaptateurs de `src/editor-guided.js` présentent les objets YAML avec des contrôles HA, en conservant les clés et types existants. Leurs états transitoires ne sont pas enregistrés. Les tests de `editors/test/guided-editors.test.cjs` couvrent les modifications ciblées et les données anciennes.
+
+## Réactions de l’interface
+
+[Signature Reactions](../signature-reactions/doc/README.md) réutilise le formulaire
+`editor-base`, les listes `bc_object`, les sélecteurs `ui_action`, la connexion
+WebSocket HA et la diffusion native `hass-action` de Bubble. Son runtime partagé
+par connexion/utilisateur/portée ne crée rien pour les comptes exclus. Les
+transitions et retours appartiennent à ce module ; aucun module de présentation
+ni mécanisme de navigation existant n’est modifié.

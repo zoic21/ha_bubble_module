@@ -1,0 +1,30 @@
+# Add the same signature_reactions configuration to an existing, unprotected
+# Bubble card on every participating view, including the doorbell view.
+# Replace TABLET_USER_ID with the HA account ID, and adapt your paths/entities.
+modules:
+  - signature_navigation
+  - signature_reactions
+signature_reactions:
+  users: [TABLET_USER_ID]
+  scope: tablet
+  rules:
+    - id: doorbell
+      trigger: entity
+      entity: event.jardin_portillon_sonnette
+      entity_event_type: ring
+      action:
+        action: navigate
+        navigation_path: /lovelace/sonnette
+      return_after: 60
+      return_mode: action
+      return_action:
+        action: navigate
+        navigation_path: /lovelace/summary-home
+        navigation_replace: true
+    - id: idle-home
+      trigger: idle
+      seconds: 300
+      action:
+        action: navigate
+        navigation_path: /lovelace/summary-home
+        navigation_replace: true

@@ -1458,3 +1458,14 @@ après réimportation en direct. Aucun nouvel écouteur, observateur ou polling
 n’est installé sur les cartes pour ces formulaires ; les événements d’édition
 restent dans les formulaires. Les versions comportent leur code d’éditeur
 autonome, ce qui augmente la taille des distributions sans changer les styles.
+
+### Signature Reactions 1.0.0 — comportement sans présentation
+
+Compagnon facultatif sans surface, élément DOM ou CSS de carte. L’ajouter à
+une carte existante conserve sa présentation et ses actions natives. Le
+formulaire français utilise `editor-base`, les listes et sélecteurs HA natifs.
+Le filtrage utilisateur précède toute lecture d’état ou souscription ; aucun
+écouteur ni timer sur un compte exclu. Les règles identiques se partagent par
+connexion, utilisateur et portée entre vues. Voir le
+[guide](signature-reactions/doc/README.md) pour les déclencheurs, retours,
+relais Template non administrateur et limites de session.

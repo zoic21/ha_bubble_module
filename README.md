@@ -25,6 +25,7 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 | Signature Weather — forecasts and optional local measurements | 1.4.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.6.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Signature Group — popup activity summaries | 1.2.0 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
+| Signature Reactions — targeted interface rules and timed returns | 1.0.0 | [signature-reactions.yaml](signature-reactions/dist/signature-reactions.yaml) | [Guide](signature-reactions/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Signature Hue — native Hue presentation companion | 1.2.0 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
 | Signature Irrigation — calendar reader and weekday controls | 1.1.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
@@ -50,7 +51,7 @@ Distribution files include metadata and code. Import them as modules; they are n
 
 ## Module IDs
 
-The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_panel`, `signature_header`, `signature_flow`, `signature_energy_balance`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_group`, `signature_hue`, `signature_irrigation`, `signature_pin` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
+The YAML IDs are `signature_square`, `signature_compact`, `signature_room`, `signature_panel`, `signature_header`, `signature_flow`, `signature_energy_balance`, `signature_weather`, `signature_wind_rose`, `signature_navigation`, `signature_reactions`, `signature_group`, `signature_hue`, `signature_irrigation`, `signature_pin` and `alert_manager`. Standalone Signature folders use hyphens in place of their module ID's underscore.
 
 ## Updates and Module Store
 
@@ -78,7 +79,7 @@ Compact and Square support numeric `color_thresholds.values` on their main icons
 
 ## Source maintenance
 
-All fifteen module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
+All sixteen module YAML distributions are generated and minified: local JavaScript identifiers and expressions, complete embedded stylesheets and YAML metadata. Edit each module’s `src` files and the [common functions](shared/README.md), then run `npm run build:modules` (or `npm run build`) and `npm run check:modules` to test locally. The [automatic build workflow](.github/workflows/build.yml) also rebuilds and validates modules after a source/build/dependency push, then commits changed YAML distributions on the same repository branch. It creates no commit when they are already current. Never edit `dist` directly; versions and documentation remain maintained in the sources. Installation paths and module IDs are unchanged.
 
 ## Configuration
 
@@ -93,6 +94,8 @@ Signature Wind Rose replaces the button content with a time-weighted, 16-directi
 Weather, Wind Rose and Alert Manager also provide French module forms. Weather exposes all forecast/current settings and ten optional local sources with entity and attribute selectors. Wind Rose exposes sources, history, calm filtering and color. Alert Manager exposes card display, source sensors, colors/icons, activated packs and per-entity exceptions. Repeated pack/entity entries are converted to the existing keyed mappings, retaining inheritance and exclusions. Existing YAML configurations remain valid; automatic defaults are preserved and the visual forms rely on Bubble Card 3.4.1 object helpers.
 
 Signature Navigation styles a native `sub-buttons` footer with a directional glass rim and automatic active-dashboard selection. Icons and navigation actions remain in Bubble's native editor; mobile margins, blur and opacity have their own French module form. It uses a 64 px bar, 26 px icons, concentric selection corners and a visible neutral selection inherited from the light/dark theme. The footer stays below Bubble popups and their backdrop so it cannot cover popup content or intercept clicks through the backdrop. See the [six-route example](signature-navigation/examples/home.yaml) and remove the former navigation `styles` block when adopting it.
+
+**[Signature Reactions](signature-reactions/doc/README.md)** adds optional, per-user interface rules to an existing Bubble card: Jinja transitions, event entities, direct admin events, idle actions and timed/previous-page returns. Identical carriers share one session runtime; excluded users create no subscriptions, entity reads, input listeners or timers. Includes a native Template event relay for non-admin sessions and a French editor with native HA action selectors.
 
 ## Signature theme
 
@@ -117,9 +120,9 @@ npm run check:modules
 npm test
 ```
 
-Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose`, `npm run test:signature-navigation` or `npm run test:alert-manager` to test a single existing module. Shared editor round-trip and condition tests are in `editors/test` and read the actual YAML distributions. YAML, Terser and Playwright are development dependencies; none is needed in Home Assistant.
+Use `npm run test:signature`, `npm run test:signature-flow`, `npm run test:signature-weather`, `npm run test:signature-wind-rose`, `npm run test:signature-navigation`, `npm run test:signature-reactions` or `npm run test:alert-manager` to test a single existing module. Shared editor round-trip and condition tests are in `editors/test` and read the actual YAML distributions. YAML, Terser and Playwright are development dependencies; none is needed in Home Assistant.
 
-Run `npm run build:modules` after editing any module or common source; `npm run check:modules` rejects stale distributions for all eleven modules. See the [shared-source build guide](shared/README.md). `build:signature` and `check:signature` remain available for the five standalone presentations. `npm run test:signature-split` checks the standalone presentation behaviors, editor forms and documentation. `npm run test:styles:split` is a compatibility alias for the full browser suite.
+Run `npm run build:modules` after editing any module or common source; `npm run check:modules` rejects stale distributions for all sixteen modules. See the [shared-source build guide](shared/README.md). `build:signature` and `check:signature` remain available for the five standalone presentations. `npm run test:signature-split` checks the standalone presentation behaviors, editor forms and documentation. `npm run test:styles:split` is a compatibility alias for the full browser suite.
 
 For browser style checks, run `npx playwright install chromium` once, then `npm run test:styles`. These tests load the actual module distributions in a minimal Bubble-shaped DOM and check computed styles, theme switching, keyboard focus, dividers and touch targets. All suites share [browser setup, isolated contexts, error checks and cleanup](styles/README.md). They do not run Home Assistant itself.
 

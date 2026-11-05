@@ -18,7 +18,8 @@
     "check:signature": "node scripts/build-signature.cjs --check",
     "test:signature-split": "node --test signature-shared/test/*.test.cjs",
     "test:styles:split": "npm run test:styles",
-    "test:signature-group": "node --test signature-group/test/*.test.cjs"
+    "test:signature-group": "node --test signature-group/test/*.test.cjs",
+    "test:signature-reactions": "node --test signature-reactions/test/*.test.cjs"
   },
   "engines": {
     "node": ">=22"
