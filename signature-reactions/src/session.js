@@ -1,5 +1,5 @@
 const createReactionsSession = (connection,user,rules,signature,onDispose) => {
-  const owners = new Set(), entries = new Map(), subscriptions = new Map(), renders = new Set();
+  const owners = new Set(), entries = [], subscriptions = new Map(), renders = new Set();
   const seconds = value => { const n=Number(value);return Number.isFinite(n) && n>0 ? Math.min(n,86400)*1000 : 0; };
   const path = () => window.location.pathname + window.location.search + window.location.hash;
   const truth = value => value === true || value === 1 || ['true','on','yes','1'].includes(String(value).trim().toLowerCase());
@@ -16,7 +16,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
   const ready = () => !disposed && !suspension && connection.connected !== false && !!live();
   const warn = (entry,message) => {
     if (entry.warning === message) return;
-    entry.warning=message;console.warn('Signature Reactions ['+entry.rule.id+']: '+message);
+    entry.warning=message;console.warn('Signature Reactions [règle '+entry.number+']: '+message);
   };
   const cancel = entry => {
     clearTimeout(entry.delayTimer);entry.delayTimer=undefined;entry.generation++;
@@ -110,19 +110,20 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     const {rule}=entry;
     const generation=entry.generation;
     const action=await resolveAction(entry,rule.action,generation);
-    const explicitReturn=rule.return_mode==='action' ? await resolveAction(entry,rule.return_action,generation) : null;
-    if (!ready() || generation!==entry.generation || !action || (rule.return_mode==='action' && !explicitReturn)) return;
+    const customReturn=rule.return_mode==='action' || !!rule.return_action;
+    const explicitReturn=customReturn ? await resolveAction(entry,rule.return_action,generation) : null;
+    if (!ready() || generation!==entry.generation || !action || (customReturn && !explicitReturn)) return;
     const target=action.action==='navigate' ? navigatePath(action.navigation_path) : null;
     if (action.action==='navigate' && !target) { warn(entry,'destination interne invalide.');return; }
     const origin=activeReturn?.entry===entry ? activeReturn.origin : path();
     const duration=seconds(rule.return_after);
-    const returnAction=rule.return_mode==='action' ? explicitReturn
+    const returnAction=customReturn ? explicitReturn
       : {action:'navigate',navigation_path:origin,navigation_replace:true};
     if (!dispatch(entry,action)) return;
     // A more-info action has no URL we can reliably restore. Its explicit
     // return_action is supported; previous-page return belongs to navigation.
     if (duration || rule.return_on_false) {
-      if (!target && rule.return_mode!=='action') { warn(entry,'le retour précédent nécessite une action de navigation.');return; }
+      if (!target && !customReturn) { warn(entry,'le retour précédent nécessite une action de navigation.');return; }
       stopReturn();
       activeReturn={entry,origin,expected:target,action:returnAction,epoch,
         deadline:duration ? Date.now()+duration : 0,landed:!target || path()===target};
@@ -201,7 +202,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
       }
     },
     update(owner) {
-      for (const entry of entries.values()) if (entry.rule.trigger==='entity') {
+      for (const entry of entries.values()) if (entry.entityEvent) {
         // Use Bubble's tracked hass only AFTER the account and rule gates.
         const state=owner.hass.states[entry.rule.entity];
         const token=state?.state;
@@ -233,12 +234,12 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     }
   };
   for (const rule of rules) {
-    if (!rule.id || entries.has(rule.id) || !rule.action?.action) continue;
-    if (!['template','entity','event','idle'].includes(rule.trigger)) continue;
-    if (rule.trigger==='entity' && (typeof rule.entity!=='string' || !/^[a-z_]+\.[a-z0-9_]+$/.test(rule.entity))) continue;
+    if (!rule.action?.action || !['template','event','idle'].includes(rule.trigger)) continue;
+    const entityEvent=rule.trigger==='event' && !rule.event_type;
+    if (entityEvent && (typeof rule.entity!=='string' || !/^[a-z_]+\.[a-z0-9_]+$/.test(rule.entity))) continue;
     if (rule.trigger==='idle' && !seconds(rule.seconds)) continue;
-    const entry={rule,generation:0,seeded:false};entries.set(rule.id,entry);
-    if (rule.trigger==='template' || rule.trigger==='event') entry.start=true;
+    const entry={rule,number:entries.length+1,entityEvent,generation:0,seeded:false};entries.push(entry);
+    if (rule.trigger==='template' || (rule.trigger==='event' && !entityEvent)) entry.start=true;
   }
   const update=session.update;
   session.update=owner => {

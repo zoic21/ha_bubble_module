@@ -23,6 +23,26 @@ const rules = Array.isArray(options.rules) ? options.rules : [];
 const targeted = rules.filter(rule => rule && rule.enabled !== false && allowed(rule.users,user));
 if (!targeted.length || !hass.connection) { drop(true); return ''; }
 
+// Content, rather than user-supplied IDs/scopes, identifies a configuration.
+// This work happens only after user filtering and on real config changes.
+const stable = value => Array.isArray(value) ? value.map(stable)
+  : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key,stable(value[key])])) : value;
+const unique = new Map();
+for (const source of targeted) {
+  const {id,name,users,enabled,...rule} = source;
+  if (rule.trigger === 'entity') rule.trigger = 'event';
+  if (rule.return_mode === 'previous') delete rule.return_action;
+  if (rule.return_mode === 'previous' || rule.return_action) delete rule.return_mode;
+  const key = JSON.stringify(stable(rule));
+  if (!unique.has(key)) unique.set(key,rule);
+}
+const activeRules = [...unique.values()];
+const signature = JSON.stringify([...unique.keys()]);
+if (link && link.version === version && link.connection === hass.connection && link.user === user
+    && link.root === root && link.engine.signature === signature) {
+  link.options=options;link.hass=hass;link.engine.update(link);return '';
+}
+
 /* @include signature-reactions/src/session.js */
 
 let registry = window.__signatureReactions;
@@ -30,28 +50,22 @@ if (registry?.version !== version) {
   registry?.engines.forEach(engine => engine.dispose());
   registry = window.__signatureReactions = {version,connections:new WeakMap(),engines:new Set()};
 }
-let scopes = registry.connections.get(hass.connection);
-if (!scopes) registry.connections.set(hass.connection,scopes = new Map());
-const key = user + ':' + (options.scope || 'main');
+let sessions = registry.connections.get(hass.connection);
+if (!sessions) registry.connections.set(hass.connection,sessions = new Map());
+const key = user + ':' + signature;
 // Configuration references are immutable in Bubble. Serialize only on a real
 // configuration change, never for each unrelated hass update.
 if (link && (link.version !== version || link.options !== options || link.connection !== hass.connection || link.user !== user || link.root !== root)) {
   drop(true); link = null;
 }
 if (!link) {
-  const signature = JSON.stringify(targeted);
-  let engine = scopes.get(key);
-  if (engine && engine.signature !== signature) {
-    if (!engine.owners.size) engine.dispose();
-    else { console.warn('Signature Reactions: règles différentes pour la même portée ; copie ignorée.'); return ''; }
-    engine = null;
-  }
+  let engine = sessions.get(key);
   if (!engine) {
-    engine = createReactionsSession(hass.connection,user,targeted,signature,() => {
-      if (scopes.get(key) === engine) scopes.delete(key);
+    engine = createReactionsSession(hass.connection,user,activeRules,signature,() => {
+      if (sessions.get(key) === engine) sessions.delete(key);
       registry.engines.delete(engine);
     });
-    scopes.set(key,engine); registry.engines.add(engine);
+    sessions.set(key,engine); registry.engines.add(engine);
   }
   link = host._signatureReactions = {version,options,connection:hass.connection,user,root,host,engine,hass,
     release(immediate) { engine.remove(this,immediate); }};

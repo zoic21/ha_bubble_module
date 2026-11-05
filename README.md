@@ -25,7 +25,7 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 | Signature Weather — forecasts and optional local measurements | 1.4.0 | [signature-weather.yaml](signature-weather/dist/signature-weather.yaml) | [Guide](signature-weather/doc/README.md) |
 | Signature Wind Rose — wind direction frequencies | 1.6.0 | [signature-wind-rose.yaml](signature-wind-rose/dist/signature-wind-rose.yaml) | [Guide](signature-wind-rose/doc/README.md) |
 | Signature Group — popup activity summaries | 1.2.0 | [signature-group.yaml](signature-group/dist/signature-group.yaml) | [Guide](signature-group/doc/README.md) |
-| Signature Reactions — targeted interface rules and timed returns | 1.0.1 | [signature-reactions.yaml](signature-reactions/dist/signature-reactions.yaml) | [Guide](signature-reactions/doc/README.md) |
+| Signature Reactions — targeted interface rules and timed returns | 1.1.0 | [signature-reactions.yaml](signature-reactions/dist/signature-reactions.yaml) | [Guide](signature-reactions/doc/README.md) |
 | Signature Navigation — floating glass footer | 1.0.8 | [signature-navigation.yaml](signature-navigation/dist/signature-navigation.yaml) | [Guide](signature-navigation/doc/README.md) |
 | Signature Hue — native Hue presentation companion | 1.2.0 | [signature-hue.yaml](signature-hue/dist/signature-hue.yaml) | [Guide](signature-hue/doc/README.md) |
 | Signature Irrigation — calendar reader and weekday controls | 1.1.0 | [signature-irrigation.yaml](signature-irrigation/dist/signature-irrigation.yaml) | [Guide](signature-irrigation/doc/README.md) |
@@ -95,7 +95,7 @@ Weather, Wind Rose and Alert Manager also provide French module forms. Weather e
 
 Signature Navigation styles a native `sub-buttons` footer with a directional glass rim and automatic active-dashboard selection. Icons and navigation actions remain in Bubble's native editor; mobile margins, blur and opacity have their own French module form. It uses a 64 px bar, 26 px icons, concentric selection corners and a visible neutral selection inherited from the light/dark theme. The footer stays below Bubble popups and their backdrop so it cannot cover popup content or intercept clicks through the backdrop. See the [six-route example](signature-navigation/examples/home.yaml) and remove the former navigation `styles` block when adopting it.
 
-**[Signature Reactions](signature-reactions/doc/README.md)** adds optional, per-user interface rules to an existing Bubble card: Jinja transitions, event entities, direct admin events, idle actions and timed/previous-page returns. Identical carriers share one session runtime; excluded users create no subscriptions, entity reads, input listeners or timers. Includes a native Template event relay for non-admin sessions and a French editor with native HA action selectors.
+**[Signature Reactions](signature-reactions/doc/README.md)** adds optional, per-user interface rules to an existing Bubble card: Jinja transitions, event entities, direct admin events, idle actions and timed/previous-page returns. Anonymous rules share a session runtime automatically by content, with no rule IDs or scopes to configure; excluded users create no subscriptions, entity reads, input listeners or timers. Includes a native Template event relay for non-admin sessions and a French editor with native HA action selectors.
 
 ## Signature theme
 

@@ -49,3 +49,9 @@ La taille par défaut du navigateur est de 1400 × 1400 px. Les options de conte
 [test/browser-harness.browser.cjs](test/browser-harness.browser.cjs) vérifie l’isolation, les options tactiles, le nettoyage et la fermeture des pages. Il lance aussi un processus de test séparé avec deux erreurs intentionnelles : ce processus doit échouer pour que le contrôle du socle passe. Ces vérifications complètent les scénarios visuels propres aux modules.
 
 La CI utilise le même point d’entrée `npm run test:styles`. Les tests fonctionnels restent dans `npm test` et ne demandent pas de navigateur installé.
+
+`reactions.browser.cjs` charge Bubble 3.4.3 réel avec un backend simulé pour
+vérifier le ciblage, le partage automatique des règles anonymes, les entités
+événement, les retours entre vues et les choix de formulaire qui ne doivent
+pas ajouter de clés au YAML. La source native est la même que celle de PIN
+(`BUBBLE_PIN_NATIVE_SCRIPT_PATH`).

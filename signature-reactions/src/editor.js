@@ -5,11 +5,9 @@ registerOptionsForm('ha-form-signature_reactions_options_v1', {
     this._status.setAttribute('style', 'color:var(--secondary-text-color);font-size:13px;margin-top:8px');
     this.shadowRoot.append(this._status);
   },
-  _display() { return {...this.data,enabled:this.data?.enabled ?? true}; },
   _valueChanged(event) {
     event.stopPropagation();
     const value={...event.detail.value};
-    if (this.data?.enabled === undefined && value.enabled === true) delete value.enabled;
     if (JSON.stringify(value)!==JSON.stringify(this.data || {})) this._emit(value);
   },
   _formData(data) {
@@ -38,6 +36,54 @@ registerOptionsForm('ha-form-signature_reactions_options_v1', {
     if (current?.id && !users.has(current.id)) users.set(current.id,{value:current.id,label:current.name || current.id});
     for (const id of this.data?.users || []) if (!users.has(id)) users.set(id,{value:id,label:id});
     return entries.map(field => field.name === 'users'
-      ? {...field,selector:{select:{multiple:true,custom_value:true,options:[...users.values()]}}} : field);
+      ? {...field,selector:{select:{multiple:true,custom_value:true,options:[...users.values()]}}}
+      : field.name === 'rules' ? {name:field.name,type:'signature_reactions_rules_v1',
+          fields:this.schema.fields.rules.selector.bc_object.fields} : field);
+  }
+});
+
+// Reuse Bubble's list, sort/duplicate controls, conditional fields and groups.
+// Source/return choices are transient UI state, never extra YAML options.
+registerOptionsForm('ha-form-signature_reactions_rules_v1', {
+  _renderSpecial() {
+    this._form.hidden=true;
+    if (!this._list) {
+      const list=this._list=document.createElement('ha-selector-bc_object');
+      const formData=list._itemFormData.bind(list), changed=list._itemChanged.bind(list);
+      const generate=list._generateSchema.bind(list);
+      list._itemFormData=(item,index) => ({
+        __event_source:item?.event_type ? 'bus' : 'entity',
+        __return_mode:item?.return_mode==='previous' ? 'previous'
+          : item?.return_action || item?.return_mode==='action' ? 'action' : 'previous',
+        ...formData(item?.trigger==='entity' ? {...item,trigger:'event'} : item,index)
+      });
+      list._itemChanged=(event,index) => {
+        const value={...event.detail.value};
+        if (value.trigger==='event') {
+          if (value.__event_source==='bus') {delete value.entity;delete value.entity_event_type;}
+          else delete value.event_type;
+        }
+        if (value.__return_mode==='previous') delete value.return_action;
+        delete value.return_mode;delete value.id;delete value.name;
+        changed({stopPropagation:()=>event.stopPropagation(),detail:{value}},index);
+      };
+      list._generateSchema=(fields,data,index) => {
+        const decorate=entries => entries.map(field => field.schema
+          ? {...field,schema:decorate(field.schema)}
+          : field.name==='entity_event_type' ? {...field,selector:{select:{custom_value:true,
+              options:[...new Set([...(this.hass?.states[data.entity]?.attributes?.event_types || []),
+                ...(data.entity_event_type ? [data.entity_event_type] : [])])]}}} : field);
+        return decorate(generate(fields,data,index));
+      };
+      list._formatValue=item => ({template:'Template',event:'Événement',entity:'Événement',idle:'Inactivité'}[item?.trigger] || 'Règle');
+      list.addEventListener('value-changed',event => {
+        event.stopPropagation();this._emit(event.detail.value);
+      });
+      this.shadowRoot.append(list);
+    }
+    Object.assign(this._list,{hass:this.hass,disabled:this.disabled,value:this.data || [],
+      selector:{bc_object:{multiple:true,description_field:['entity','event_type','template'],fields:this.schema.fields}},
+      localizeValue:this.localizeValue});
+    return true;
   }
 });

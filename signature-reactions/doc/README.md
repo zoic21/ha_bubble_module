@@ -1,10 +1,10 @@
 # Signature Reactions
 
-Version **1.0.1**, Bubble Card **3.4.3 ou plus récent**.
+Version **1.1.0**, Bubble Card **3.4.3 ou plus récent**.
 
 Module facultatif sans élément visuel : exécuter des actions Home Assistant
-dans l’interface lorsqu’un template Jinja devient vrai, qu’une entité reçoit
-une nouvelle occurrence, qu’un événement arrive ou que l’écran reste inutilisé.
+dans l’interface lorsqu’un template Jinja devient vrai, qu’un événement arrive
+(entité ou bus HA) ou que l’écran reste inutilisé.
 Il fonctionne avec les cartes existantes et peut accompagner Signature Navigation.
 
 ## Installation
@@ -17,7 +17,8 @@ Il fonctionne avec les cartes existantes et peut accompagner Signature Navigatio
 3. Dans **Modules → Signature Reactions**, sélectionner les comptes concernés
    et ajouter les règles dans le formulaire français. Les actions utilisent
    le sélecteur natif HA, comme un `tap_action`.
-4. Conserver les mêmes `scope` et règles sur les vues concernées, puis recharger.
+4. Conserver les mêmes règles sur les vues concernées, puis recharger.
+   Aucun identifiant, nom, groupe ou indicateur d’activation à renseigner.
 
 Ce module ne crée pas de carte, vue vidéo, ressource frontend séparée ou
 intégration. L’[exemple tablette](../examples/tablet.yaml) est un fragment à
@@ -34,15 +35,18 @@ Avant toute lecture d’état, parsing des règles actives, abonnement ou écout
 le runtime vérifie l’identité courante et le ciblage. Un compte exclu, une
 identité non chargée, un module désactivé et une prévisualisation d’éditeur ne
 créent aucun abonnement Jinja/événement, écouteur d’interaction ou timer.
-`users` et `enabled: false` sont aussi possibles par règle en YAML ; ils sont
-filtrés avant les abonnements. L’énumération des comptes est réservée au
+Une sélection `users` par règle peut restreindre celle du module ; elle est
+filtrée avant les abonnements. L’énumération des comptes est réservée au
 formulaire avec un administrateur, jamais au runtime.
 
-Une session partage ses règles par **connexion, utilisateur et `scope`**.
+Le partage est **automatique par connexion, utilisateur et contenu des règles**.
 Deux copies identiques n’exécutent pas deux fois l’action ; un même template
-ou type d’événement n’a qu’un abonnement dans cette portée. Des copies
-différentes dans une portée active sont ignorées avec un avertissement.
-Utiliser un autre scope uniquement pour un groupe réellement indépendant.
+ou type d’événement n’a qu’un abonnement dans ce groupe. L’ordre des clés YAML
+et les anciens identifiants n’interviennent pas ; les règles identiques répétées
+sont dédupliquées. Des configurations différentes peuvent coexister. Pour
+conserver les délais entre vues, copier la liste complète dans le même ordre.
+Deux listes différentes ayant seulement certaines règles en commun restent
+indépendantes : elles ne sont pas fusionnées.
 
 Les templates suivent les dépendances côté serveur via `render_template`.
 Les entités réutilisent les dépendances suivies par Bubble, sans abonnement
@@ -58,39 +62,38 @@ modules:
   - signature_reactions
 signature_reactions:
   users: [TABLET_USER_ID]
-  scope: tablet
   rules:
-    - id: show-warning
-      trigger: template
+    - trigger: template
       template: "{{ is_state('binary_sensor.warning', 'on') }}"
       action:
         action: navigate
         navigation_path: /lovelace/warning
       return_after: 60
-      return_mode: previous
 ```
 
-Chaque règle doit avoir un `id` unique et une `action` au format natif.
+Chaque règle associe un déclencheur à une `action` au format natif. Aucun
+`id`, nom, `scope` ou `enabled` n’est nécessaire : ajouter ou retirer le module
+suffit pour activer ou arrêter ses réactions. Le formulaire regroupe les
+temporisations et retours dans une section repliable ; les filtres sont avancés.
+Le choix de source d’événement et celui du retour sont propres au formulaire
+et n’ajoutent aucune clé YAML.
 
 | Option | Fonction / valeur par défaut |
 |---|---|
-| `enabled` | Actif sauf `false` ; possible au niveau du module et de chaque règle |
 | `users` | Comptes ciblés ; vide = tous ; une sélection par règle restreint encore celle du module |
-| `scope` | Groupe partagé entre vues ; `main` par défaut |
 | `rules` | Liste des règles ; absence = aucun travail runtime |
-| `trigger` | `template`, `entity`, `event` ou `idle` |
+| `trigger` | `template`, `event` ou `idle` |
 | `template` | Jinja du déclencheur `template` ; variable `user_id` disponible |
 | `fire_on_load` | Déclencher si le premier résultat est déjà vrai ; `false` par défaut |
-| `entity` | Entité à observer ; sert aussi de cible par défaut aux actions natives |
-| `entity_event_type` | Filtre facultatif de l’attribut `event_type` de l’entité, par exemple `ring` |
-| `event_type` | Nom de l’événement bus pour `trigger: event` |
+| `entity` | Source d’un déclencheur `event` : entité événement ou relais |
+| `entity_event_type` | Filtre facultatif de l’attribut `event_type` ; le formulaire le propose si plusieurs types existent ou si un filtre est déjà défini |
+| `event_type` | Autre source pour `event` : nom d’un événement bus HA, administrateur seulement ; utiliser `entity` ou `event_type` |
 | `event_data` | Filtre partiel des données, avec objets imbriqués et valeurs exactes |
 | `seconds` | Durée sans interaction pour `idle`, de 1 à 86 400 secondes |
 | `action` | Objet au format d’un `tap_action` HA |
 | `delay` | Secondes avant l’action ; 0 par défaut ; maximum 86 400 |
 | `return_after` | Retour après ce nombre de secondes ; 0/absent = désactivé ; maximum 86 400 |
-| `return_mode` | `previous` (défaut, navigation seulement) ou `action` |
-| `return_action` | Action native exécutée au retour avec `return_mode: action` |
+| `return_action` | Action native du retour ; absente = page précédente, pour une action de navigation |
 | `return_on_false` | Retour aussi lorsque le template redevient faux ; `false` par défaut |
 
 ### Templates
@@ -104,7 +107,7 @@ une action retardée et ne déclenche pas d’action.
 
 ### Entités et événements répétés
 
-`trigger: entity` observe un **changement de l’état**, pas seulement des
+`trigger: event` avec `entity` observe un **changement de l’état**, pas seulement des
 attributs. L’état d’une entité `event.*` contient l’horodatage de sa dernière
 occurrence : deux sonneries `ring` successives sont donc distinctes. Les
 entités inexistantes/indisponibles ne déclenchent pas ; leur récupération
@@ -116,8 +119,7 @@ pas à nouveau une sonnerie. Ce mécanisme convient aussi à un compteur relais.
 Un compte administrateur peut utiliser directement :
 
 ```yaml
-- id: received-bell
-  trigger: event
+- trigger: event
   event_type: signature_reaction
   event_data: {name: doorbell}
   action:
@@ -131,7 +133,8 @@ administrateurs. Le module détecte ce cas **avant toute demande** et indique
 d’utiliser le [relais Template natif](../examples/event-relay.yaml).
 Un seul capteur relaie tous les événements `signature_reaction` avec un
 compteur d’occurrences et leurs données dans `attributes.data`. L’automatisation
-continue à émettre des événements ordinaires ; la règle utilise `trigger: entity`.
+continue à émettre des événements ordinaires ; la règle utilise `trigger: event`
+et `entity: sensor.signature_reactions_relay`.
 Le filtre `event_data` s’applique au contenu de `data` du relais ; pour une
 entité événement sans cet attribut, il s’applique à ses attributs.
 
@@ -158,10 +161,10 @@ reste celle capturée avant la première occurrence. Un template redevenu faux
 annule l’action encore retardée ; `return_on_false` peut également terminer
 l’affichage temporaire.
 
-Le retour `previous` mémorise explicitement chemin, paramètres et hash, sans
+Sans `return_action`, le retour mémorise explicitement chemin, paramètres et hash, sans
 utiliser aveuglément `history.back()`. Un changement volontaire de destination
 annule le retour : l’utilisateur n’est pas ramené ailleurs après avoir quitté
-la page. Un retour fixé utilise n’importe quelle `return_action` native.
+la page. Un retour fixé utilise n’importe quelle `return_action` native, sans champ de mode supplémentaire.
 Pour fermer une popup Bubble, cette action peut naviguer vers `#` ou une vue.
 Pour un `more-info`, prévoir une action de retour explicite ; aucune fermeture
 arbitraire de dialogue HA n’est inventée.
@@ -218,6 +221,23 @@ La fixture `styles/test/reactions.browser.cjs` charge aussi Bubble Card 3.4.3
 réel avec un backend simulé : compte exclu sans abonnement, partage entre
 cartes, actions natives, relais entre vues et dépendances d’une entité. Elle
 est exécutée par la CI avec le script Bubble épinglé déjà utilisé par PIN.
+
+### 1.1.0
+
+- Règles anonymes : suppression des identifiants/noms, du groupe et de
+  l’activation explicite dans le formulaire et les exemples YAML.
+- Partage automatique selon le contenu ; copies identiques dédupliquées,
+  configurations différentes acceptées, délais conservés lors des changements
+  de vue et des remplacements de configuration équivalents.
+- Un seul déclencheur Événement, avec entité ou bus HA. Inactivité séparée.
+- Retour déduit de la présence de `return_action`. Choix de source/retour
+  temporaires dans le formulaire ; filtres de type proposés selon l’entité.
+
+Les anciennes configurations restent lisibles : `trigger: entity` est reconnu,
+`id`, nom et `scope` sont ignorés, et `return_mode` reste compris. Un ancien
+`enabled: false` reste respecté pour ne pas réactiver une configuration coupée ;
+retirer cette ancienne clé pour la réactiver. Les nouveaux exemples n’utilisent
+aucun de ces champs. Aucune migration manuelle n’est requise avant import.
 
 ### 1.0.1
 

@@ -5,7 +5,7 @@ const {loadModule}=require('../../shared/test/module.cjs');
 const definition=loadModule('signature-reactions');
 const plain=value=>JSON.parse(JSON.stringify(value));
 const nav=path=>({action:'navigate',navigation_path:path});
-const entityRule=(extra={})=>({id:'bell',trigger:'entity',entity:'event.bell',action:nav('/lovelace/bell'),return_after:60,...extra});
+const entityRule=(extra={})=>({trigger:'event',entity:'event.bell',action:nav('/lovelace/bell'),return_after:60,...extra});
 function fixture({rules=[entityRule()],users=['tablet'],user='tablet',admin=false,options={},syncSubscription=false}={}) {
   let now=100000,timerId=0,reads=0;const timers=new Map(),requests=[],actions=[],warnings=[],connections=[];
   class Target {
@@ -63,6 +63,12 @@ test('untargeted, missing and disabled accounts do no state reads, subscriptions
     f.create();assert.equal(f.reads,0);assert.deepEqual(f.requests,[]);assert.equal(f.timers.size,0);
     assert.equal(f.window.listeners.size,0);assert.equal(f.window.__signatureReactions,undefined);
   }
+});
+test('the excluded account gate precedes any access to rules or their configuration',()=>{
+  const f=fixture({user:'other'});
+  f.create({users:['tablet'],get rules(){throw Error('must not inspect excluded rules');}});
+  assert.equal(f.reads,0);assert.equal(f.requests.length,0);assert.equal(f.timers.size,0);
+  assert.equal(f.window.__signatureReactions,undefined);
 });
 test('editor and detached previews are inert even for a targeted administrator',()=>{
   for(const flags of [{editor:true},{preview:true},{inEditorPreview:true},{isConnected:false}]){
@@ -187,11 +193,36 @@ test('a template error cancels an already delayed action and reseeds its recover
   assert.equal(f.actions.length,0);f.message({result:true});await f.tick(5000);assert.equal(f.actions.length,0);
   f.message({result:false});f.message({result:true});await f.tick(5000);assert.deepEqual(f.targets,['/x']);
 });
-test('different configurations cannot double-run under one scope and invalid destinations cannot navigate',async()=>{
+test('different configurations coexist without a scope and invalid destinations cannot navigate',async()=>{
   const f=fixture();f.create();f.create({users:['tablet'],rules:[entityRule({action:nav('/other')})]});
-  assert.equal(f.warnings.length,1);f.state('next');await f.flush();assert.equal(f.actions.length,1);
+  assert.equal(f.warnings.length,0);f.state('next');await f.flush();assert.equal(f.actions.length,2);
   const invalid=fixture({rules:[entityRule({action:nav('//external.test')})]});invalid.create();invalid.state('next');await invalid.flush();
   assert.equal(invalid.actions.length,0);
+});
+test('anonymous duplicate rules and copies with legacy IDs, scopes or reordered keys execute only once',async()=>{
+  const rule=entityRule();
+  const f=fixture({rules:[rule,plain(rule)]});f.create();
+  f.create({users:['tablet'],scope:'old',rules:[{return_after:60,action:{navigation_path:'/lovelace/bell',action:'navigate'},
+    entity:'event.bell',trigger:'entity',id:'legacy',name:'Old name'}]});
+  assert.equal(f.window.__signatureReactions.engines.size,1);
+  f.state('next');await f.flush();assert.deepEqual(f.targets,['/lovelace/bell']);
+  await f.tick(60000);assert.equal(f.path,'/lovelace/home');assert.equal(f.actions.length,2);
+});
+test('different anonymous rules are not lost when old IDs collide',async()=>{
+  const f=fixture({rules:[entityRule({id:'same',return_after:0}),entityRule({id:'same',action:nav('/other'),return_after:0})]});
+  f.create();f.state('next');await f.flush();assert.deepEqual(f.targets,['/lovelace/bell','/other']);
+});
+test('an equivalent configuration replacement keeps the subscription and pending return deadline',async()=>{
+  const f=fixture({rules:[{trigger:'template',template:'{{ demo }}',action:nav('/bell'),return_after:60}]});
+  const host=f.create();f.message({result:false});f.message({result:true});await f.flush();await f.tick(40000);
+  host.config.signature_reactions=plain(host.config.signature_reactions);host.render();
+  assert.equal(f.requests.length,1);await f.tick(20000);assert.equal(f.path,'/lovelace/home');
+});
+test('return_action implies a custom return without return_mode and shares its legacy equivalent',async()=>{
+  const rule=entityRule({return_action:nav('/overview')});
+  const f=fixture({rules:[rule]});f.create();f.create({users:['tablet'],rules:[{...rule,id:'legacy',return_mode:'action'}]});
+  f.state('next');await f.flush();assert.equal(f.actions.length,1);
+  await f.tick(60000);assert.deepEqual(f.targets,['/lovelace/bell','/overview']);
 });
 test('detached carriers stop acting and release the shared session after its bounded handoff grace',async()=>{
   const f=fixture({rules:[{id:'x',trigger:'template',template:'{{ demo }}',action:nav('/x')}]});const host=f.create();await f.flush();

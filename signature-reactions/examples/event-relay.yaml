@@ -19,8 +19,7 @@ template:
 #     path: /lovelace/sonnette
 #
 # The module rule uses:
-# id: received-doorbell
-# trigger: entity
+# trigger: event
 # entity: sensor.signature_reactions_relay
 # event_data: {name: doorbell}
 # action:

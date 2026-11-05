@@ -116,6 +116,7 @@ Les adaptateurs de `src/editor-guided.js` présentent les objets YAML avec des c
 [Signature Reactions](../signature-reactions/doc/README.md) réutilise le formulaire
 `editor-base`, les listes `bc_object`, les sélecteurs `ui_action`, la connexion
 WebSocket HA et la diffusion native `hass-action` de Bubble. Son runtime partagé
-par connexion/utilisateur/portée ne crée rien pour les comptes exclus. Les
+par connexion/utilisateur/contenu des règles ne crée rien pour les comptes exclus.
+Les identifiants et groupes de règles sont calculés, sans clé YAML à renseigner. Les
 transitions et retours appartiennent à ce module ; aucun module de présentation
 ni mécanisme de navigation existant n’est modifié.

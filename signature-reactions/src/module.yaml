@@ -1,74 +1,58 @@
 name: Signature Reactions
-version: 1.0.1
+version: 1.1.0
 creator: Loïc
 supported: [button, select, cover, climate, media-player, separator, sub-buttons]
 description: Réactions de l’interface aux templates Jinja, événements et périodes d’inactivité. Actions natives HA, ciblage utilisateur, délais et retours. Aucun élément visuel. Bubble Card 3.4.3 ou plus récent.
 editor:
   - type: constant
-    label: Ajouter à une carte existante sur chaque vue concernée. Conserver la même portée et les mêmes règles sur ces vues. Les actions s’exécutent dans chaque session ciblée.
+    label: Ajouter à une carte existante sur chaque vue concernée. Les copies des mêmes règles partagent automatiquement leurs abonnements et délais. Les actions s’exécutent dans chaque session ciblée.
   - name: ""
     label: Réactions de l’interface
     type: signature_reactions_options_v1
     fields:
-      enabled:
-        label: Activer les réactions
-        selector: {boolean: {}}
       users:
         label: Utilisateurs concernés
         description: Liste vide = tous. Les comptes exclus n’ouvrent aucun abonnement et ne suivent aucune entité ou interaction.
         selector: {select: {multiple: true, custom_value: true, options: []}}
-      scope:
-        label: Identifiant du groupe de règles
-        description: "Défaut : main. Utiliser la même valeur et les mêmes règles sur toutes les vues pour conserver les délais."
-        selector: {text: {}}
       rules:
         label: Règles
         selector:
           bc_object:
             multiple: true
-            label_field: id
+            label_field: trigger
+            description_field: [entity, event_type, template]
             fields:
-              id:
-                label: Identifiant unique de la règle
-                selector: {text: {}}
               trigger:
                 label: Déclencheur
                 selector:
                   select:
                     options:
                       - {label: Template Jinja devenant vrai, value: template}
-                      - {label: Nouvelle occurrence d’une entité, value: entity}
-                      - {label: Événement direct (administrateur), value: event}
+                      - {label: Événement, value: event}
                       - {label: Inactivité de l’interface, value: idle}
               template:
                 label: Condition Jinja
                 description: Déclenche au passage faux → vrai. Le serveur suit les dépendances, sans interrogation périodique du navigateur.
                 visible_if: item.trigger === 'template'
                 selector: {template: {}}
-              fire_on_load:
-                label: Déclencher aussi si déjà vrai au premier chargement
-                visible_if: item.trigger === 'template'
-                selector: {boolean: {}}
+              __event_source:
+                label: Source de l’événement
+                visible_if: item.trigger === 'event'
+                selector:
+                  select:
+                    options:
+                      - {label: Entité événement ou relais, value: entity}
+                      - {label: Événement HA (administrateur), value: bus}
               entity:
-                label: Entité à observer / entité de l’action
-                description: Pour une sonnette ou un relais, son état horodaté change à chaque occurrence, même répétée.
-                visible_if: item.trigger !== 'idle' && item.trigger !== 'event'
+                label: Entité événement ou relais
+                description: Une nouvelle occurrence relance le délai, même si son type est identique.
+                visible_if: item.trigger === 'event' && item.__event_source !== 'bus'
                 selector: {entity: {}}
-              entity_event_type:
-                label: Type d’occurrence à accepter (facultatif)
-                description: "Exemple : ring. Compare l’attribut event_type de l’entité."
-                visible_if: item.trigger === 'entity'
-                selector: {text: {}}
               event_type:
                 label: Nom de l’événement HA
-                description: "Un compte non administrateur doit utiliser l’entité du relais Template, avec le déclencheur Nouvelle occurrence."
-                visible_if: item.trigger === 'event'
+                description: Réservé aux administrateurs. Pour un autre compte, choisir une entité événement ou le relais Template.
+                visible_if: item.trigger === 'event' && item.__event_source === 'bus'
                 selector: {text: {}}
-              event_data:
-                label: Filtre des données (facultatif)
-                description: Correspondance partielle des clés et valeurs. Pour le relais, lit son attribut data.
-                visible_if: item.trigger === 'event' || item.trigger === 'entity'
-                selector: {object: {}}
               seconds:
                 label: Secondes sans interaction
                 visible_if: item.trigger === 'idle'
@@ -79,29 +63,46 @@ editor:
               delay:
                 label: Délai avant l’action (secondes)
                 description: Une nouvelle occurrence relance ce délai. Un template redevenu faux l’annule.
-                group: Délais et retour
+                group: Temporisations et retour
                 selector: {number: {min: 0, max: 86400, mode: box, unit_of_measurement: s}}
               return_after:
                 label: Retour après (secondes)
                 description: Zéro ou vide désactive le retour temporisé. L’inactivité est suspendue pendant cet affichage temporaire.
-                group: Délais et retour
+                group: Temporisations et retour
                 selector: {number: {min: 0, max: 86400, mode: box, unit_of_measurement: s}}
               return_on_false:
                 label: Revenir aussi lorsque le template devient faux
                 visible_if: item.trigger === 'template'
-                group: Délais et retour
+                group: Temporisations et retour
                 selector: {boolean: {}}
-              return_mode:
+              __return_mode:
                 label: Destination du retour
-                default: previous
-                group: Délais et retour
+                visible_if: Number(item.return_after) > 0 || item.return_on_false || item.return_action || item.return_mode === 'action'
+                group: Temporisations et retour
                 selector:
                   select:
                     options:
-                      - {label: Page précédente (navigation), value: previous}
+                      - {label: Page précédente, value: previous}
                       - {label: Action définie ci-dessous, value: action}
               return_action:
                 label: Action de retour
-                visible_if: item.return_mode === 'action'
-                group: Délais et retour
+                visible_if: item.__return_mode === 'action'
+                group: Temporisations et retour
                 selector: {ui_action: {default_action: none}}
+              fire_on_load:
+                label: Déclencher aussi si déjà vrai au premier chargement
+                visible_if: item.trigger === 'template'
+                group: Options avancées
+                selector: {boolean: {}}
+              entity_event_type:
+                label: Type d’occurrence à accepter
+                description: Vide = toutes les occurrences. Proposé lorsque l’entité fournit plusieurs types.
+                visible_if: item.trigger === 'event' && item.__event_source !== 'bus' && (item.entity_event_type || (hass.states[item.entity]?.attributes?.event_types || []).length > 1)
+                group: Filtres avancés
+                selector: {select: {custom_value: true, options: []}}
+              event_data:
+                label: Filtre des données
+                description: Correspondance partielle des clés et valeurs. Pour le relais, lit son attribut data.
+                visible_if: item.trigger === 'event'
+                group: Filtres avancés
+                selector: {object: {}}
