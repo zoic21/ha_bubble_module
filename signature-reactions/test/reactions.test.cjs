@@ -88,6 +88,19 @@ test('an event entity seeds its restored value, reacts once per occurrence and r
   await f.tick(59000);assert.equal(f.path,'/lovelace/bell');
   await f.tick(1000);assert.deepEqual(f.targets,['/lovelace/bell','/lovelace/bell','/lovelace/home']);
 });
+test('generic event_data filters event types and still accepts repeated matching occurrences',async()=>{
+  for(const filter of [{event_data:{event_type:'double'}},{entity_event_type:'double'}]){
+    const f=fixture({rules:[entityRule({...filter,return_after:0})]});f.create();
+    f.state('single',{event_type:'single'});await f.flush();assert.equal(f.actions.length,0);
+    f.state('double-one',{event_type:'double'});await f.flush();assert.equal(f.actions.length,1);
+    f.state('double-two',{event_type:'double'});await f.flush();assert.equal(f.actions.length,2);
+    assert.equal(f.requests.length,0);
+  }
+  // A legacy filter applies to the outer entity type, even on a data relay.
+  const relay=fixture({rules:[entityRule({entity_event_type:'double',event_data:{name:'bell'},return_after:0})]});relay.create();
+  relay.state('other',{event_type:'single',data:{name:'bell'}});await relay.flush();assert.equal(relay.actions.length,0);
+  relay.state('match',{event_type:'double',data:{name:'bell'}});await relay.flush();assert.equal(relay.actions.length,1);
+});
 test('identical module copies share one subscription and keep their return across view teardown/mount',async()=>{
   const rule={id:'x',trigger:'template',template:'{{ demo }}',action:nav('/bell'),return_after:60};
   const f=fixture({rules:[rule]});const a=f.create(),b=f.create();assert.equal(f.requests.length,1);

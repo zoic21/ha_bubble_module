@@ -214,6 +214,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
         if (Number.isFinite(revision)) entry.revision=revision;
         const old=entry.value,seeded=entry.seeded;entry.value=token;entry.seeded=true;
         const data=state.attributes?.data ?? state.attributes ?? {};
+        // Legacy type filter remains readable; new rules use event_data only.
         if (seeded && token!==old && (!entry.rule.entity_event_type || state.attributes?.event_type===entry.rule.entity_event_type)
             && match(data,entry.rule.event_data)) fire(entry,data);
       }

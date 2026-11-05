@@ -1,5 +1,5 @@
 name: Signature Reactions
-version: 1.1.0
+version: 1.1.1
 creator: Loïc
 supported: [button, select, cover, climate, media-player, separator, sub-buttons]
 description: Réactions de l’interface aux templates Jinja, événements et périodes d’inactivité. Actions natives HA, ciblage utilisateur, délais et retours. Aucun élément visuel. Bubble Card 3.4.3 ou plus récent.
@@ -94,15 +94,9 @@ editor:
                 visible_if: item.trigger === 'template'
                 group: Options avancées
                 selector: {boolean: {}}
-              entity_event_type:
-                label: Type d’occurrence à accepter
-                description: Vide = toutes les occurrences. Proposé lorsque l’entité fournit plusieurs types.
-                visible_if: item.trigger === 'event' && item.__event_source !== 'bus' && (item.entity_event_type || (hass.states[item.entity]?.attributes?.event_types || []).length > 1)
-                group: Filtres avancés
-                selector: {select: {custom_value: true, options: []}}
               event_data:
                 label: Filtre des données
-                description: Correspondance partielle des clés et valeurs. Pour le relais, lit son attribut data.
+                description: "Facultatif. Exemple pour un type d’appui : {event_type: double}. Pour le relais, filtre le contenu de son attribut data."
                 visible_if: item.trigger === 'event'
                 group: Filtres avancés
                 selector: {object: {}}

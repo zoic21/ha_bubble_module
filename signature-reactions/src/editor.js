@@ -50,7 +50,6 @@ registerOptionsForm('ha-form-signature_reactions_rules_v1', {
     if (!this._list) {
       const list=this._list=document.createElement('ha-selector-bc_object');
       const formData=list._itemFormData.bind(list), changed=list._itemChanged.bind(list);
-      const generate=list._generateSchema.bind(list);
       list._itemFormData=(item,index) => ({
         __event_source:item?.event_type ? 'bus' : 'entity',
         __return_mode:item?.return_mode==='previous' ? 'previous'
@@ -66,14 +65,6 @@ registerOptionsForm('ha-form-signature_reactions_rules_v1', {
         if (value.__return_mode==='previous') delete value.return_action;
         delete value.return_mode;delete value.id;delete value.name;
         changed({stopPropagation:()=>event.stopPropagation(),detail:{value}},index);
-      };
-      list._generateSchema=(fields,data,index) => {
-        const decorate=entries => entries.map(field => field.schema
-          ? {...field,schema:decorate(field.schema)}
-          : field.name==='entity_event_type' ? {...field,selector:{select:{custom_value:true,
-              options:[...new Set([...(this.hass?.states[data.entity]?.attributes?.event_types || []),
-                ...(data.entity_event_type ? [data.entity_event_type] : [])])]}}} : field);
-        return decorate(generate(fields,data,index));
       };
       list._formatValue=item => ({template:'Template',event:'Événement',entity:'Événement',idle:'Inactivité'}[item?.trigger] || 'Règle');
       list.addEventListener('value-changed',event => {

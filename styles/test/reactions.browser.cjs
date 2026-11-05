@@ -92,7 +92,7 @@ test('real Bubble editor keeps anonymous YAML and source/return choices in trans
   const result=await page.evaluate(async schema=>{
     if(!customElements.get('ha-selector-bc_object'))throw Error('Native Bubble object selector missing');
     const rule={trigger:'event',entity:'event.bell',return_after:60,action:{action:'navigate',navigation_path:'/bell'},future:false};
-    hass.states['event.bell']={state:'first',attributes:{event_types:['ring']}};
+    hass.states['event.bell']={state:'first',attributes:{event_types:['single','double']}};
     const form=document.createElement('ha-form-signature_reactions_options_v1');
     Object.assign(form,{hass,schema,data:{users:['tablet'],rules:[rule]}});document.body.append(form);await Promise.resolve();
     const field=form._form.schema.find(field=>field.name==='rules');
@@ -104,7 +104,8 @@ test('real Bubble editor keeps anonymous YAML and source/return choices in trans
     const generated=list._generateSchema(list.selector.bc_object.fields,list._itemFormData(list.value[0],0),0);
     const initial={writes:values.length,formType:field.type,hasSelector:Object.hasOwn(field,'selector'),
       timingCollapsed:generated.some(field=>field.title==='Temporisations et retour'&&field.expanded===false),
-      singleTypeHidden:!leaves(generated).some(field=>field.name==='entity_event_type')};
+      dedicatedTypeAbsent:!leaves(generated).some(field=>field.name==='entity_event_type'),
+      genericFilterPresent:leaves(generated).some(field=>field.name==='event_data')};
     const change=patch=>{
       list._itemChanged(new CustomEvent('value-changed',{detail:{value:{...list._itemFormData(list.value[0],0),...patch}}}),0);
       return JSON.parse(JSON.stringify(values.at(-1)));
@@ -117,7 +118,7 @@ test('real Bubble editor keeps anonymous YAML and source/return choices in trans
   },reactions.editor.find(field=>field.fields));
   const rule={trigger:'event',entity:'event.bell',return_after:60,action:{action:'navigate',navigation_path:'/bell'},future:false};
   const {entity,...bus}=rule;
-  assert.deepEqual(result.initial,{writes:0,formType:'signature_reactions_rules_v1',hasSelector:false,timingCollapsed:true,singleTypeHidden:true});
+  assert.deepEqual(result.initial,{writes:0,formType:'signature_reactions_rules_v1',hasSelector:false,timingCollapsed:true,dedicatedTypeAbsent:true,genericFilterPresent:true});
   assert.deepEqual(result.bus,[{...bus,event_type:'demo'}]);assert.deepEqual(result.entity,[rule]);
   assert.deepEqual(result.returned,[{...rule,return_action:{action:'navigate',navigation_path:'/home'}}]);
   assert.deepEqual(result.previous,[rule]);

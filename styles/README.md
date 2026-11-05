@@ -53,5 +53,7 @@ La CI utilise le même point d’entrée `npm run test:styles`. Les tests foncti
 `reactions.browser.cjs` charge Bubble 3.4.3 réel avec un backend simulé pour
 vérifier le ciblage, le partage automatique des règles anonymes, les entités
 événement, les retours entre vues et les choix de formulaire qui ne doivent
-pas ajouter de clés au YAML. La source native est la même que celle de PIN
+pas ajouter de clés au YAML. Le filtre commun reste disponible sans champ dédié
+au type d’occurrence, même pour une entité proposant plusieurs types.
+La source native est la même que celle de PIN
 (`BUBBLE_PIN_NATIVE_SCRIPT_PATH`).

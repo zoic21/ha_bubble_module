@@ -46,7 +46,7 @@ test('French editor uses native repeated rules, action selectors, Jinja and cond
   const list=schema.fields.rules.selector.bc_object;
   assert.equal(list.multiple,true);assert.equal(list.label_field,'trigger');
   assert.deepEqual(Object.keys(schema.fields),['users','rules']);
-  for(const key of ['id','name','enabled','scope','return_mode'])assert.equal(Object.hasOwn(list.fields,key),false);
+  for(const key of ['id','name','enabled','scope','return_mode','entity_event_type'])assert.equal(Object.hasOwn(list.fields,key),false);
   assert.deepEqual(list.fields.trigger.selector.select.options.map(option=>option.value),['template','event','idle']);
   assert.deepEqual(list.fields.action.selector,{ui_action:{default_action:'none'}});
   assert.deepEqual(list.fields.return_action.selector,{ui_action:{default_action:'none'}});
@@ -69,7 +69,7 @@ test('rule editor infers event sources and return choices without writing on ope
   assert.deepEqual(custom,[{...rule,entity:'event.other',return_action:{action:'navigate',navigation_path:'/home'}}]);
   assert.deepEqual(list.change({__return_mode:'previous'}),[{...rule,entity:'event.other'}]);
 });
-test('legacy rule fields migrate only on edit and event type filters follow the entity capabilities',()=>{
+test('legacy rule fields migrate only on edit and their hidden filter is preserved',()=>{
   const hass={user:{id:'tablet'},connection:{},states:{'event.bell':{attributes:{event_types:['single','double']}}}};
   const env=setup(hass),list=env.mountRules([{id:'old',trigger:'entity',entity:'event.bell',entity_event_type:'double',return_mode:'action',
     return_action:{action:'navigate',navigation_path:'/home'},future:0}]);
@@ -77,12 +77,11 @@ test('legacy rule fields migrate only on edit and event type filters follow the 
   const data=list.form._list._itemFormData(list.form._list.value[0],0);
   assert.equal(data.trigger,'event');assert.equal(data.__return_mode,'action');
   const generated=list.form._list._generateSchema(list.form.schema.fields,data,0);
-  assert.deepEqual(plain(generated.find(field=>field.name==='entity_event_type').selector.select.options),['single','double']);
+  assert.equal(generated.some(field=>field.name==='entity_event_type'),false);
+  assert.deepEqual(plain(generated.find(field=>field.name==='event_data').selector),{object:{}});
   const value=list.change({return_after:60})[0];assert.equal(Object.hasOwn(value,'id'),false);assert.equal(Object.hasOwn(value,'return_mode'),false);
   assert.equal(value.future,0);assert.equal(value.trigger,'event');
-  const fields=list.form.schema.fields,visible=new Function('item','hass','return !!('+fields.entity_event_type.visible_if+')');
-  assert.equal(visible({trigger:'event',entity:'event.bell'},hass),true);
-  assert.equal(visible({trigger:'event',entity:'event.single'},{states:{'event.single':{attributes:{event_types:['ring']}}}}),false);
+  assert.equal(value.entity_event_type,'double');
 });
 test('opening or reconnecting the editor never writes defaults or modifies nested unknown YAML fields',()=>{
   const original={scope:'tablette',users:['tablet'],rules:[{id:'one',trigger:'template',template:'{{ demo }}',delay:0,enabled:false,future:{x:0}}],future:false};

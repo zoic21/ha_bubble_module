@@ -1,6 +1,6 @@
 # Signature Reactions
 
-Version **1.1.0**, Bubble Card **3.4.3 ou plus récent**.
+Version **1.1.1**, Bubble Card **3.4.3 ou plus récent**.
 
 Module facultatif sans élément visuel : exécuter des actions Home Assistant
 dans l’interface lorsqu’un template Jinja devient vrai, qu’un événement arrive
@@ -86,7 +86,6 @@ et n’ajoutent aucune clé YAML.
 | `template` | Jinja du déclencheur `template` ; variable `user_id` disponible |
 | `fire_on_load` | Déclencher si le premier résultat est déjà vrai ; `false` par défaut |
 | `entity` | Source d’un déclencheur `event` : entité événement ou relais |
-| `entity_event_type` | Filtre facultatif de l’attribut `event_type` ; le formulaire le propose si plusieurs types existent ou si un filtre est déjà défini |
 | `event_type` | Autre source pour `event` : nom d’un événement bus HA, administrateur seulement ; utiliser `entity` ou `event_type` |
 | `event_data` | Filtre partiel des données, avec objets imbriqués et valeurs exactes |
 | `seconds` | Durée sans interaction pour `idle`, de 1 à 86 400 secondes |
@@ -113,6 +112,17 @@ occurrence : deux sonneries `ring` successives sont donc distinctes. Les
 entités inexistantes/indisponibles ne déclenchent pas ; leur récupération
 fournit une nouvelle référence. Le chargement d’une ancienne valeur ne joue
 pas à nouveau une sonnerie. Ce mécanisme convient aussi à un compteur relais.
+
+Un seul filtre facultatif, `event_data`, sélectionne les données à accepter.
+Pour une entité événement exposant plusieurs types d’appui :
+
+```yaml
+trigger: event
+entity: event.bouton
+event_data: {event_type: double}
+```
+
+Sans `event_data`, toutes les nouvelles occurrences sont acceptées.
 
 ### Événements bus et relais non administrateur
 
@@ -221,6 +231,14 @@ La fixture `styles/test/reactions.browser.cjs` charge aussi Bubble Card 3.4.3
 réel avec un backend simulé : compte exclu sans abonnement, partage entre
 cartes, actions natives, relais entre vues et dépendances d’une entité. Elle
 est exécutée par la CI avec le script Bubble épinglé déjà utilisé par PIN.
+
+### 1.1.1
+
+Suppression du champ dédié au type d’occurrence dans le formulaire et le tableau
+YAML. Le filtre commun `event_data` suffit, y compris pour `event_type` sur une
+entité événement. Le formulaire réutilise directement le schéma natif Bubble,
+sans lecture de la liste des types disponibles. Les anciennes configurations
+conservent leur filtrage à l’exécution.
 
 ### 1.1.0
 
