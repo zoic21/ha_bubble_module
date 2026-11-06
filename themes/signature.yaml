@@ -49,6 +49,7 @@ Signature:
   ha-font-weight-medium: "var(--signature-font-weight-medium)"
   ha-font-weight-bold: "var(--signature-font-weight-semibold)"
   primary-font-family: "var(--signature-font-family)"
+  paper-font-body1_-_font-family: "var(--signature-font-family)"
   secondary-font-family: "var(--signature-font-family)"
   mdc-typography-font-family: "var(--signature-font-family)"
   ha-card-header-font-family: "var(--signature-font-family)"

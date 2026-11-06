@@ -1,5 +1,11 @@
 # Signature theme
 
+## 6 November 2026 — Dreame Mower font
+
+Dreame Mower 2.0.3 uses the Signature font through the theme variable
+`paper-font-body1_-_font-family`. Replace the theme file and run
+`frontend.reload_themes` to apply it.
+
 ## 30 October 2026 — clearer hover in light mode
 
 Light mode uses primary text at 10% for native control `ha-ripple` feedback.
