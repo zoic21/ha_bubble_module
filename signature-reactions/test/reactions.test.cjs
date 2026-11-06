@@ -165,6 +165,37 @@ test('a synchronous subscription result is handled after the owner is attached',
   const f=fixture({syncSubscription:true,rules:[{id:'x',trigger:'template',template:'{{ true }}',action:nav('/x'),fire_on_load:true}]});
   f.create();await f.flush();assert.deepEqual(f.targets,['/x']);
 });
+test('a non-admin template reacts to each new ring timestamp and ignores old or restored values',async()=>{
+  const f=fixture({admin:false,rules:[{
+    trigger:'template',template:'{{ ring_timestamp }}',on_change:true,
+    action:nav('/lovelace/sonnette'),return_after:60
+  }]});
+  f.create();
+  assert.equal(f.requests.length,1);
+  assert.equal(f.requests[0].message.type,'render_template');
+  f.message({result:1793946242});
+  await f.flush();
+  assert.equal(f.actions.length,0,'stored timestamp seeds the rule');
+  f.message({result:1793946243});
+  await f.tick(500);
+  f.message({result:1793946243.5});
+  await f.flush();
+  assert.deepEqual(f.targets,['/lovelace/sonnette','/lovelace/sonnette']);
+  f.message({result:null});
+  f.message({result:1793946243.5});
+  await f.tick(59999);
+  assert.equal(f.path,'/lovelace/sonnette');
+  assert.equal(f.actions.length,2,'availability recovery does not replay the ring');
+  await f.tick(1);
+  assert.equal(f.path,'/lovelace/home');
+  f.connection.emit('disconnected');f.connection.emit('ready');
+  f.message({result:1793946305});
+  await f.flush();
+  assert.equal(f.actions.length,3,'the first timestamp after reconnect is a baseline');
+  f.message({result:1793946306});
+  await f.flush();
+  assert.equal(f.actions.length,4);
+});
 test('false cancels delayed actions and can return immediately from a temporary page',async()=>{
   const f=fixture({rules:[{id:'x',trigger:'template',template:'{{ demo }}',action:nav('/x'),delay:5,return_after:60,return_on_false:true}]});
   f.create();f.message({result:false});f.message({result:true});await f.tick(4000);f.message({result:false});await f.tick(5000);

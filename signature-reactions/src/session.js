@@ -4,6 +4,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
   const seconds = value => { const n=Number(value);return Number.isFinite(n) && n>0 ? Math.min(n,86400)*1000 : 0; };
   const path = () => window.location.pathname + window.location.search + window.location.hash;
   const truth = value => value === true || value === 1 || ['true','on','yes','1'].includes(String(value).trim().toLowerCase());
+  const signal = value => typeof value === 'string' ? value.trim() || null : Number.isFinite(value) ? value : null;
   const match = (actual,expected) => !expected || Object.entries(expected).every(([key,value]) =>
     value && typeof value === 'object' && !Array.isArray(value) ? match(actual?.[key],value)
       : JSON.stringify(actual?.[key]) === JSON.stringify(value));
@@ -160,12 +161,16 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
       cancel(entry);entry.seeded=false;entry.initial=false;
       warn(entry,'template invalide ; aucune action exécutée.');return;
     }
-    const current=truth(message?.result),previous=entry.value,seeded=entry.seeded;
+    const current=entry.onChange ? signal(message?.result) : truth(message?.result);
+    const active=current!==null && current!==false;
+    const previous=entry.value,seeded=entry.seeded;
     const initial=entry.initial!==false;entry.initial=false;
-    entry.value=current;entry.seeded=true;
+    // Keep the last signal through a temporary unavailable result.
+    if (active || !entry.onChange) entry.value=current;
+    entry.seeded=true;
     if (!ready()) return;
-    if (current && (seeded ? !previous : initial && entry.rule.fire_on_load===true)) fire(entry,{});
-    if (!current) {
+    if (active && (seeded ? current!==previous : initial && entry.rule.fire_on_load===true)) fire(entry,{});
+    if (!active) {
       cancel(entry);
       if (entry.rule.return_on_false && activeReturn?.entry===entry) returnNow();
     }
@@ -241,7 +246,7 @@ const createReactionsSession = (connection,user,rules,signature,onDispose) => {
     if (!rule.action?.action || !['template','event','idle'].includes(rule.trigger)) continue;
     const idleAfter=rule.trigger==='idle' ? seconds(rule.seconds) : 0;
     if (rule.trigger==='idle' && !idleAfter) continue;
-    const entry={rule,number:entries.length+1,generation:0,seeded:false,
+    const entry={rule,number:entries.length+1,generation:0,seeded:false,onChange:rule.on_change===true,
       delay:seconds(rule.delay),returnAfter:seconds(rule.return_after),idleAfter,
       actionTemplate:hasTemplate(rule.action),returnTemplate:hasTemplate(rule.return_action)};
     entries.push(entry);

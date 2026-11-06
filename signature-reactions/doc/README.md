@@ -1,9 +1,9 @@
 # Signature Reactions
 
-Version **2.0.1**, Bubble Card **3.4.3 ou plus récent**.
+Version **2.1.0**, Bubble Card **3.4.3 ou plus récent**.
 
 Module facultatif sans élément visuel : exécuter des actions Home Assistant
-dans l’interface lorsqu’un template Jinja devient vrai, qu’un événement arrive
+dans l’interface lorsqu’un template Jinja devient vrai ou change de valeur, qu’un événement arrive
 sur le bus HA pour un administrateur ou que l’écran reste inutilisé.
 Il fonctionne avec les cartes existantes et peut accompagner Signature Navigation.
 
@@ -96,7 +96,8 @@ Le choix du retour est propre au formulaire et n’ajoute aucune clé YAML.
 | `rules` | Liste des règles ; absence = aucun travail runtime |
 | `trigger` | `template`, `event` ou `idle` |
 | `template` | Jinja du déclencheur `template` ; variable `user_id` disponible |
-| `fire_on_load` | Déclencher si le premier résultat est déjà vrai ; `false` par défaut |
+| `on_change` | Pour un template, déclencher sur une nouvelle valeur texte ou numérique ; `false` par défaut |
+| `fire_on_load` | Déclencher si le premier résultat est actif dans le mode choisi ; `false` par défaut |
 | `event_type` | Nom de l’événement du bus HA à écouter, administrateur seulement |
 | `event_data` | Filtre partiel des données, avec objets imbriqués et valeurs exactes |
 | `seconds` | Durée sans interaction pour `idle`, de 1 à 86 400 secondes |
@@ -104,16 +105,23 @@ Le choix du retour est propre au formulaire et n’ajoute aucune clé YAML.
 | `delay` | Secondes avant l’action ; 0 par défaut ; maximum 86 400 |
 | `return_after` | Retour après ce nombre de secondes ; 0/absent = désactivé ; maximum 86 400 |
 | `return_action` | Action native du retour ; absente = page précédente, pour une action de navigation |
-| `return_on_false` | Retour aussi lorsque le template redevient faux ; `false` par défaut |
+| `return_on_false` | Retour aussi lorsque le résultat devient faux ou vide selon le mode du template ; `false` par défaut |
 
 ### Templates
 
-Déclenchement au passage **faux → vrai**, pas à chaque mise à jour pendant
+Par défaut, déclenchement au passage **faux → vrai**, pas à chaque mise à jour pendant
 que la condition est vraie. Les valeurs vraies reconnues sont `true`, `on`,
 `yes`, `1` et les booléens/nombres correspondants. Un résultat initial est
 une référence, sauf `fire_on_load: true`. Une reconnexion réinitialise cette
 référence sans rejouer le résultat déjà vrai. Une erreur de template annule
 une action retardée et ne déclenche pas d’action.
+
+Avec `on_change: true`, le template déclenche une action à chaque nouveau
+texte non vide ou nombre fini. Un premier résultat sert de référence par
+défaut. Une valeur vide ou `none` laisse en mémoire la dernière valeur et
+annule une action retardée. Après une reconnexion, le premier résultat sert
+de nouveau de référence. Un compte non administrateur peut ainsi réagir à
+l’horodatage d’une entité `event.*` exposée par une intégration.
 
 ### Événements du bus HA — administrateurs
 
@@ -150,9 +158,8 @@ aucun abonnement au bus ni mécanisme de relais n’est ouvert pour lui. Les
 administrateurs peuvent également utiliser les templates. Un changement de
 rôle nettoie les abonnements devenus interdits et les actions en attente.
 
-Pour réagir à chaque sonnerie répétée, l’exemple tablette utilise le bus avec
-un administrateur. Une condition Jinja qui reste vraie ne distingue pas deux
-sonneries ; elle doit redevenir fausse avant de pouvoir déclencher à nouveau.
+Pour réagir à chaque sonnerie, utiliser le bus avec un administrateur ou un
+template `on_change` qui renvoie l’horodatage de chaque appui.
 
 Une chaîne Jinja dans les paramètres d’une action est rendue **une seule fois
 au déclenchement**, avec `event.data` et `user_id` disponibles. Les types
@@ -244,6 +251,11 @@ La fixture `styles/test/reactions.browser.cjs` charge aussi Bubble Card 3.4.3
 réel avec un backend simulé : compte exclu sans abonnement, partage entre
 cartes, actions natives, retours entre vues et absence d’abonnement au bus
 pour les non-administrateurs. Elle est exécutée par la CI avec le script Bubble épinglé déjà utilisé par PIN.
+
+### 2.1.0 — nouvelle valeur de template
+
+- Les règles Jinja avec `on_change: true` réagissent à chaque nouvelle valeur,
+  notamment l’horodatage d’une sonnerie fourni par une intégration.
 
 ### 2.0.1 — simplification et coût d’exécution
 

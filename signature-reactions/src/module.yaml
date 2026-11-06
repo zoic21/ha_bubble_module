@@ -1,5 +1,5 @@
 name: Signature Reactions
-version: 2.0.1
+version: 2.1.0
 creator: Loïc
 supported: [button, select, cover, climate, media-player, separator, sub-buttons]
 description: Réactions de l’interface aux templates Jinja, événements du bus HA pour les administrateurs et périodes d’inactivité. Actions natives HA, ciblage utilisateur, délais et retours. Aucun élément visuel. Bubble Card 3.4.3 ou plus récent.
@@ -27,14 +27,19 @@ editor:
                 selector:
                   select:
                     options:
-                      - {label: Template Jinja devenant vrai, value: template}
+                      - {label: Template Jinja, value: template}
                       - {label: Événement HA (administrateur), value: event}
                       - {label: Inactivité de l’interface, value: idle}
               template:
-                label: Condition Jinja
-                description: Déclenche au passage faux → vrai. Le serveur suit les dépendances, sans interrogation périodique du navigateur.
+                label: Expression Jinja
+                description: Déclenche au passage faux → vrai par défaut. Le serveur suit les dépendances du template.
                 visible_if: item.trigger === 'template'
                 selector: {template: {}}
+              on_change:
+                label: Déclencher à chaque nouvelle valeur
+                description: Pour un texte ou un nombre, par exemple l’horodatage d’une sonnerie.
+                visible_if: item.trigger === 'template'
+                selector: {boolean: {}}
               event_type:
                 label: Nom de l’événement HA
                 description: Réservé aux comptes administrateurs. Pour un autre compte, utiliser une condition Jinja.
@@ -49,7 +54,7 @@ editor:
                 selector: {ui_action: {default_action: none}}
               delay:
                 label: Délai avant l’action (secondes)
-                description: Une nouvelle occurrence relance ce délai. Un template redevenu faux l’annule.
+                description: Une nouvelle occurrence relance ce délai. Un résultat faux ou vide selon le mode du template l’annule.
                 group: Temporisations et retour
                 selector: {number: {min: 0, max: 86400, mode: box, unit_of_measurement: s}}
               return_after:
@@ -58,7 +63,7 @@ editor:
                 group: Temporisations et retour
                 selector: {number: {min: 0, max: 86400, mode: box, unit_of_measurement: s}}
               return_on_false:
-                label: Revenir aussi lorsque le template devient faux
+                label: Revenir aussi lorsque le template devient inactif
                 visible_if: item.trigger === 'template'
                 group: Temporisations et retour
                 selector: {boolean: {}}
@@ -77,7 +82,7 @@ editor:
                 group: Temporisations et retour
                 selector: {ui_action: {default_action: none}}
               fire_on_load:
-                label: Déclencher aussi si déjà vrai au premier chargement
+                label: Déclencher aussi si le premier résultat est actif
                 visible_if: item.trigger === 'template'
                 group: Options avancées
                 selector: {boolean: {}}
