@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.7.0
+version: 1.8.0
 creator: Loïc
 supported:
   - button
@@ -39,6 +39,12 @@ editor:
               - label: Grand lecteur
                 value: expanded
         description: Commandes alignées à 132 px ou grand lecteur à hauteur automatique. Le masquage du volume Bubble reste prioritaire.
+      media_progress:
+        label: Progression de la lecture en pied de carte
+        visible_if: (!card || card.card_type === 'media-player') && item.media_layout === 'aligned'
+        selector:
+          boolean: {}
+        description: Affiche le temps écoulé et la durée totale sous les commandes quand le lecteur fournit ces données.
       metric_icon:
         label: Icône de la mesure principale
         visible_if: (!card || (card.card_type || 'button') === 'button') && ["heading","strip"].includes(item.variant)

@@ -605,6 +605,52 @@ test('aligned media keeps the native controls, artwork fallback and a fixed fram
   }
 });
 
+test('aligned playback progress sits below the controls and follows playback on Bubble 3.4.3',
+  {skip:!alignedMediaNativePath},async t=>{
+  const page = await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
+  await page.clock.install({time:new Date('2026-11-09T20:00:00Z')});
+  for (const hideVolume of [false,true]) {
+    const attributes = {media_title:'Un morceau',supported_features:16829,volume_level:.38,
+      media_position:1104,media_duration:2768};
+    await draw(page,{width:272,media:true,panel:{media_layout:'aligned',media_progress:true},
+      native:{hide:{volume_button:hideVolume}},extraStates:{'media_player.demo':{state:'paused',attributes}}});
+    const footer = page.locator('bubble-card').getByRole('progressbar');
+    await footer.waitFor();
+    assert.equal(await footer.getAttribute('aria-valuetext'),'18:24 / 46:08');
+    const geometry = await page.evaluate(()=>{
+      const root = card.card;
+      const box = selector => root.querySelector(selector).getBoundingClientRect();
+      const frame = box('.bubble-container'), footer = box('.dp-media-progress');
+      return {
+        frameHeight:frame.height, frameBottom:frame.bottom, footerHeight:footer.height,
+        footerTop:footer.top, footerBottom:footer.bottom, controlsBottom:box('.bubble-buttons-container').bottom,
+        volumeBottom:box('.bubble-volume-slider-wrapper').bottom, trackWidth:box('.dp-media-progress-track').width
+      };
+    });
+    assert.equal(geometry.frameHeight,156);
+    assert.equal(geometry.footerHeight,24);
+    assert.ok(geometry.footerTop >= Math.max(geometry.controlsBottom,geometry.volumeBottom) - 1);
+    assert.ok(geometry.footerBottom <= geometry.frameBottom && geometry.trackWidth > 100);
+
+    const setPlayback = (state,attributes) => page.evaluate(({state,attributes})=>{
+      const entity = hass.states['media_player.demo'];
+      hass = {...hass,states:{...hass.states,'media_player.demo':{...entity,entity_id:'media_player.demo',state,attributes}}};
+      card.hass = hass;
+      card.updateBubbleCard();
+    },{state,attributes});
+    const timestamp = await page.evaluate(()=>new Date().toISOString());
+    await setPlayback('playing',{...attributes,media_position_updated_at:timestamp});
+    await page.clock.runFor(2100);
+    assert.equal(await footer.getAttribute('aria-valuetext'),'18:26 / 46:08');
+    await setPlayback('paused',{...attributes,media_position:1106,media_position_updated_at:timestamp});
+    await page.clock.runFor(2200);
+    assert.equal(await footer.getAttribute('aria-valuetext'),'18:26 / 46:08');
+    await setPlayback('playing',{...attributes,media_position:null});
+    await footer.waitFor({state:'detached'});
+    assert.equal((await snapshot(page)).frame.height,132);
+  }
+});
+
 test('expanded media keeps artwork, metadata and the native controls in distinct rows on Bubble 3.4.3',
   {skip:!alignedMediaNativePath},async t=>{
   const page = await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');

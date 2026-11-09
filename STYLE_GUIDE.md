@@ -1043,6 +1043,15 @@ alignés peuvent ajouter un sous-bouton de navigation sur la pochette,
 identifié par `signature-media-open`. Le module positionne ce sous-bouton.
 La navigation et le retour restent gérés par Bubble.
 
+### Progression en pied de carte — Panel 1.8.0
+
+Sur un lecteur aligné avec `media_progress: true`, le pied de 24 px aligne le
+temps écoulé, une barre neutre et la durée totale sous les commandes. Le
+volume conserve sa rangée native. Sans position et durée valides, le lecteur
+reprend sa hauteur de 132 px. La progression lit les attributs Home Assistant,
+avec un timer local uniquement pendant la lecture horodatée, arrêté en pause,
+à la fin du média ou au démontage.
+
 ### État média explicite — Panel 1.3.1
 
 Sur `media-player`, un `state` explicite visible remplace les métadonnées

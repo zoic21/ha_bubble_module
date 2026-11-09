@@ -1,6 +1,6 @@
 ha-card[data-dp-media-layout="aligned"] .bubble-container {
   --dp-panel-media-artwork-size: min(var(--dp-panel-artwork-size),76px);
-  height: 132px !important;
+  height: calc(132px + var(--dp-media-progress-height,0px)) !important;
   padding: 8px 11px 2px;
   grid-template-columns: minmax(0,1fr) auto;
   grid-template-rows: 18px minmax(0,1fr) 16px 44px;
@@ -43,6 +43,30 @@ ha-card[data-dp-media-layout="aligned"] .bubble-buttons-container .bubble-play-p
 }
 ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="inline"] .bubble-volume-slider-wrapper {
   grid-row: 4; grid-column: 1;
+}
+ha-card[data-dp-media-layout="aligned"] .bubble-container:has(> .dp-media-progress) {
+  --dp-media-progress-height: 24px;
+}
+ha-card[data-dp-media-layout="aligned"] .dp-media-progress {
+  grid-row: 5; grid-column: 1 / -1;
+  height: var(--dp-media-progress-height); box-sizing: border-box;
+  display: grid; grid-template-columns: auto minmax(0,1fr) auto;
+  align-items: center; gap: 8px;
+  border-block-start: 1px solid color-mix(in srgb,var(--primary-text-color) 12%,transparent);
+  color: var(--secondary-text-color);
+  font-size: var(--signature-caption-font-size,12px); font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+ha-card[data-dp-media-layout="aligned"] .dp-media-progress > :first-child {
+  color: var(--primary-text-color);
+}
+ha-card[data-dp-media-layout="aligned"] .dp-media-progress-track {
+  height: 4px; overflow: hidden; border-radius: 999px;
+  background: color-mix(in srgb,var(--primary-text-color) 18%,transparent);
+}
+ha-card[data-dp-media-layout="aligned"] .dp-media-progress-track::before {
+  content: ''; display: block; height: 100%; width: var(--dp-media-played,0%);
+  border-radius: inherit; background: var(--primary-text-color);
 }
 /* The regular Bubble sub-button supplies the navigation, focus and actions. */
 ha-card[data-dp-media-layout="aligned"] .bubble-sub-button-container:has(> .signature-media-open):not(:has(> :not(.signature-media-open))) {

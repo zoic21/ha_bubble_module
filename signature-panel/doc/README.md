@@ -1,5 +1,14 @@
 # Signature Panel
 
+## 1.8.0 — 9 novembre 2026 — progression en pied de carte
+
+`signature_panel.media_progress: true` ajoute le temps écoulé, une barre
+et la durée totale sous les commandes du lecteur `media_layout: aligned`.
+Utiliser `grid_options.rows: auto`. Le pied s’affiche quand le lecteur fournit
+une position et une durée valide. Le temps avance en lecture lorsque
+l’horodatage est disponible et reste fixe en pause. Le volume garde sa
+rangée native et son masquage configuré.
+
 ## 1.7.0 — 9 novembre 2026 — grand lecteur
 
 `signature_panel.media_layout: expanded` affiche la pochette carrée (250 px

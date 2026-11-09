@@ -125,7 +125,7 @@ test('generated modules are current, autonomous and limited to their own present
     assert.match(definitions[layout].version,/^\d+\.\d+\.\d+$/);
     assert.ok(definitions[layout].editor[1].fields);
     assert.ok(!Object.hasOwn(definitions[layout].editor[1].fields,'layout'));
-    assert.ok(Buffer.byteLength(output.content)<(layout==='panel'?105000:95000));
+    assert.ok(Buffer.byteLength(output.content)<(layout==='panel'?108000:95000));
     for(const other of layouts.filter(name=>name!==layout))assert.ok(!definitions[layout].code.includes('ha-card[data-dp-layout="'+other+'"]'),layout+' contains '+other+' CSS');
   }
 });
@@ -204,7 +204,11 @@ test('module forms expose only their useful fields and preserve mixed YAML types
       const visible=new Function('item','hass','card','return !!('+field.visible_if+');');
       assert.doesNotThrow(()=>visible({}, {},undefined));
       assert.equal(visible({}, {},{card_type:'pop-up'}),false);
-      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['secondary_bold','title','tap_action','secondary_lines','variant','metric_icon','primary_enabled','icon_opacity_unavailable'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
+      assert.equal(visible({}, {},{card_type:'media-player'}),layout==='panel'&&!['secondary_bold','title','tap_action','secondary_lines','variant','metric_icon','primary_enabled','icon_opacity_unavailable','media_progress'].includes(name) || layout==='compact'&&['color','color_background'].includes(name));
+      if (name==='media_progress') {
+        assert.equal(visible({media_layout:'aligned'}, {},{card_type:'media-player'}),true);
+        assert.equal(visible({media_layout:'expanded'}, {},{card_type:'media-player'}),false);
+      }
       if(layout==='square')assert.equal(visible({activity:true}, {},{card_type:'media-player'}),false,'retired activity options must not expose unsupported Square media fields');
     }
   }

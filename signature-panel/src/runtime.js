@@ -37,6 +37,7 @@ if (styledMedia) {
   attr('data-dp-media-mute',features & 8 ? 'yes' : 'no');
   attr('data-dp-media-artwork',mediaArtwork ? 'yes' : 'no');
 }
+/* @include signature-panel/src/media-progress.js */
 /* @include signature-shared/src/secondary.js */
 /* @include signature-shared/src/actions.js */
 /* @include signature-shared/src/appearance.js */
