@@ -12,16 +12,6 @@ ha-card[data-dp-media-layout="aligned"] .bubble-container::after {
   inset-block-start: 8px; inset-inline-end: 11px;
   width: var(--dp-panel-media-artwork-size);
 }
-ha-card[data-dp-media-layout="aligned"][data-dp-media-artwork="yes"] .bubble-background::before {
-  content: '';
-  position: absolute;
-  inset: -14px;
-  pointer-events: none;
-  background: center / cover no-repeat var(--dp-illustration-image);
-  filter: blur(14px) saturate(1.1);
-  opacity: .5;
-  mask-image: linear-gradient(to right,transparent,#0009 62%,#000);
-}
 ha-card[data-dp-media-layout="aligned"] :is(.bubble-name,.bubble-media-info-container,.bubble-state,.dp-secondary) {
   grid-column: 1 / -1;
   max-width: calc(100% - var(--dp-panel-media-artwork-size) - 8px);
@@ -34,9 +24,6 @@ ha-card[data-dp-media-layout="aligned"] .bubble-name {
 ha-card[data-dp-media-layout="aligned"] .bubble-title {
   font-size: var(--signature-value-unit-font-size,16px);
   font-weight: var(--signature-font-weight-semibold,600);
-}
-ha-card[data-dp-media-layout="aligned"][data-dp-media-metadata="yes"] .bubble-state {
-  display: none !important;
 }
 ha-card[data-dp-media-layout="aligned"] .bubble-buttons-container {
   grid-row: 4; grid-column: 2;
@@ -54,40 +41,30 @@ ha-card[data-dp-media-layout="aligned"] .bubble-buttons-container .bubble-play-p
   border-radius: 8px;
   background-color: color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
-ha-card[data-dp-media-layout="aligned"] .bubble-volume-slider-wrapper {
-  display: none;
-}
-ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="inline"] :is(.bubble-volume-button,.bubble-volume-slider-close-button),
-ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="hidden"] .bubble-volume-button,
-ha-card[data-dp-media-layout="aligned"][data-dp-media-mute="no"] .bubble-volume-slider-mute-button {
-  display: none !important;
-}
-/* Bubble still owns the slider, mute button and their handlers. Only its
-   presentation changes, so opening and closing the native overlay is unnecessary. */
 ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="inline"] .bubble-volume-slider-wrapper {
-  display: flex; position: static; inset: auto;
   grid-row: 4; grid-column: 1;
-  width: auto; min-width: 0; height: 44px;
-  margin: 0; padding: 0; gap: 4px;
-  opacity: 1 !important; transform: none; transition: none; pointer-events: auto;
 }
-ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="native"] .bubble-volume-slider-wrapper:not(.is-hidden) {
-  display: flex;
+/* The regular Bubble sub-button supplies the navigation, focus and actions. */
+ha-card[data-dp-media-layout="aligned"] .bubble-sub-button-container:has(> .signature-media-open):not(:has(> :not(.signature-media-open))) {
+  display: contents !important;
 }
-ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="inline"] .bubble-volume-slider {
-  min-width: 0; height: 28px;
-  border-radius: 10px;
-  background: color-mix(in srgb,var(--primary-text-color) 8%,transparent);
+ha-card[data-dp-media-layout="aligned"] .bubble-sub-button.signature-media-open {
+  position: absolute !important;
+  inset-block-start: 8px; inset-inline-end: 11px;
+  width: var(--dp-panel-media-artwork-size) !important;
+  height: var(--dp-panel-media-artwork-size) !important;
+  padding: 0 4px 4px !important;
+  justify-content: flex-end; align-items: flex-end;
+  border-radius: 12px;
+  z-index: 2;
+  pointer-events: auto;
 }
-ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="inline"] .bubble-range-fill {
-  background: color-mix(in srgb,var(--primary-text-color) 22%,transparent);
-}
-ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="inline"] .bubble-range-value {
-  height: 28px; padding-inline: 6px; opacity: 1;
-  font-size: var(--signature-caption-font-size,12px);
-  font-variant-numeric: tabular-nums;
-}
-ha-card[data-dp-media-layout="aligned"][data-dp-media-volume="inline"] .bubble-volume-slider-mute-button {
-  height: 44px; width: 28px;
-  background: transparent;
+ha-card[data-dp-media-layout="aligned"] .signature-media-open .bubble-sub-button-icon {
+  display: grid; place-items: center;
+  width: 23px; height: 23px;
+  margin: 0;
+  border-radius: 7px;
+  background: #101018b0;
+  color: white !important;
+  --mdc-icon-size: 13px;
 }

@@ -1,0 +1,51 @@
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-artwork="yes"] .bubble-background::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  pointer-events: none;
+  background: center / cover no-repeat var(--dp-illustration-image);
+  filter: blur(14px) saturate(1.1);
+  opacity: .5;
+  mask-image: var(--dp-panel-media-mask,linear-gradient(to right,transparent,#0009 62%,#000));
+}
+
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-metadata="yes"] .bubble-state {
+  display: none !important;
+}
+
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"]) .bubble-volume-slider-wrapper {
+  display: none;
+}
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="inline"] :is(.bubble-volume-button,.bubble-volume-slider-close-button),
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="hidden"] .bubble-volume-button,
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-mute="no"] .bubble-volume-slider-mute-button {
+  display: none !important;
+}
+/* Bubble still owns the slider, mute button and their handlers. Only its
+   presentation changes, so opening and closing the native overlay is unnecessary. */
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="inline"] .bubble-volume-slider-wrapper {
+  display: flex; position: static; inset: auto;
+  width: auto; min-width: 0; height: 44px;
+  margin: 0; padding: 0; gap: 4px;
+  opacity: 1 !important; transform: none; transition: none; pointer-events: auto;
+}
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="native"] .bubble-volume-slider-wrapper:not(.is-hidden) {
+  display: flex;
+}
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="inline"] .bubble-volume-slider {
+  min-width: 0; height: 28px;
+  border-radius: 10px;
+  background: color-mix(in srgb,var(--primary-text-color) 8%,transparent);
+}
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="inline"] .bubble-range-fill {
+  background: color-mix(in srgb,var(--primary-text-color) 22%,transparent);
+}
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="inline"] .bubble-range-value {
+  height: 28px; padding-inline: 6px; opacity: 1;
+  font-size: var(--signature-caption-font-size,12px);
+  font-variant-numeric: tabular-nums;
+}
+ha-card:is([data-dp-media-layout="aligned"],[data-dp-media-layout="expanded"])[data-dp-media-volume="inline"] .bubble-volume-slider-mute-button {
+  height: 44px; width: 28px;
+  background: transparent;
+}

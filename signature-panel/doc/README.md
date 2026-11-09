@@ -1,5 +1,22 @@
 # Signature Panel
 
+## 1.7.0 — 9 novembre 2026 — grand lecteur
+
+`signature_panel.media_layout: expanded` affiche la pochette carrée (250 px
+au maximum), les métadonnées et les boutons natifs centrés. Le panneau prend
+la hauteur de son contenu. Utiliser `grid_options.rows: auto`. La pochette
+teinte le fond et l’illustration configurée sert de repli. Le curseur natif
+est affiché sous la lecture lorsque le volume absolu est disponible et que
+`hide.volume_button` le permet.
+
+Le lecteur aligné peut utiliser un sous-bouton Bubble natif avec
+`css_class: signature-media-open` sur la pochette. Configurer son
+`tap_action: navigate` vers le hash d’une popup sœur dans la vue.
+Dans la popup cible, `show_previous_button: true` permet à Bubble de
+revenir à la popup précédente. Les actions de lecture restent indépendantes.
+
+Importer **Signature Panel 1.7.0** avant les dashboards qui activent ce mode.
+
 ## 1.6.0 — 9 novembre 2026 — lecteur avec commandes alignées
 
 Activer `signature_panel.media_layout: aligned` sur une carte Bubble `media-player`.
@@ -477,7 +494,7 @@ icône. Le défaut reste le fond doux à 16 %. Voir le
 [guide des seuils](../../signature-shared/doc/COLOR_THRESHOLDS.md).
 
 
-Version **1.6.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
+Version **1.7.0**. ID YAML : **`signature_panel`**. [Distribution à importer](../dist/signature-panel.yaml).
 
 Carte illustrée pleine largeur, deux pas de hauteur : **118 px visibles** avec le pas standard de 56 px et l’écart de 8 px. L’illustration de 80 px reste à droite et centrée sur toute la hauteur. Une seule grille place les titres, valeurs, détails et commandes ; aucun CSS par carte n’est nécessaire. Utiliser un seul module de présentation par carte.
 

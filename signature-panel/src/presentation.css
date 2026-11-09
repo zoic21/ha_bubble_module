@@ -133,8 +133,14 @@ ha-card[data-dp-layout="panel"] [aria-disabled="true"] > ha-ripple { display: no
 ${kind === 'media-player' ? `
 /* @include signature-panel/src/media.css */
 ` : ''}
-${alignedMedia ? `
+${styledMedia ? `
+/* @include signature-panel/src/media-enhanced.css */
+` : ''}
+${mediaLayout === 'aligned' ? `
 /* @include signature-panel/src/media-aligned.css */
+` : ''}
+${mediaLayout === 'expanded' ? `
+/* @include signature-panel/src/media-expanded.css */
 ` : ''}
 ha-card[data-dp-layout="panel"] :is(.hidden,[hidden]) { display: none !important; }
 ha-card[data-dp-layout="panel"][data-dp-panel-count="3"] .bubble-container {

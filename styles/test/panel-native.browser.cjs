@@ -604,3 +604,86 @@ test('aligned media keeps the native controls, artwork fallback and a fixed fram
     assert.doesNotMatch(idle.css,/album\.webp/);
   }
 });
+
+test('expanded media keeps artwork, metadata and the native controls in distinct rows on Bubble 3.4.3',
+  {skip:!alignedMediaNativePath},async t=>{
+  const page = await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
+  for (const width of [272, 420]) for (const hideVolume of [false, true]) {
+    const panel = {media_layout:'expanded',illustration:{media_artwork:true,image:'/local/device.webp'}};
+    const attributes = {media_title:'Titre du morceau',media_artist:'Artiste',entity_picture:'/local/album.webp',supported_features:16829,volume_level:.24};
+    await draw(page,{width,mode:'dark',media:true,panel,native:{name:'Lecteur',show_name:false,hide:{volume_button:hideVolume}},
+      extraStates:{'media_player.demo':{state:'playing',attributes}}});
+    await page.waitForFunction(()=>card.card.dataset.dpMediaArtwork === 'yes');
+    const metrics = await page.evaluate(()=>{
+      const root=card.card, frame=root.querySelector('.bubble-container'), box=el=>el.getBoundingClientRect();
+      const art=getComputedStyle(frame,'::after'), buttons=root.querySelector('.bubble-buttons-container');
+      const volume=root.querySelector('.bubble-volume-slider-wrapper');
+      const info=root.querySelector('.bubble-media-info-container');
+      return {
+        height:box(frame).height, bottom:box(frame).bottom,
+        artWidth:parseFloat(art.width), artHeight:parseFloat(art.height), artwork:art.backgroundImage,
+        backdrop:getComputedStyle(root.querySelector('.bubble-background'),'::before').backgroundImage,
+        device:getComputedStyle(root.querySelector('.bubble-name')).display,
+        infoWidth:box(info).width, infoBottom:box(info).bottom, buttonsTop:box(buttons).top, buttonsBottom:box(buttons).bottom,
+        volumeVisible:getComputedStyle(volume).display!=='none', volumeTop:box(volume).top, volumeBottom:box(volume).bottom,
+        playLeft:box(buttons.querySelector('.bubble-play-pause-button')).left,
+        nextLeft:box(buttons.querySelector('.bubble-next-button')).left,
+        direction:getComputedStyle(buttons).flexDirection,
+        orders:[...buttons.children].map(el=>[el.className,getComputedStyle(el).order]),
+      };
+    });
+    const hint=JSON.stringify(metrics);
+    assert.ok(metrics.height>315,hint);
+    assert.equal(metrics.artHeight,metrics.artWidth,hint);
+    assert.ok(metrics.artWidth>=230&&metrics.artWidth<=250,hint);
+    assert.equal(metrics.infoWidth,metrics.artWidth,hint);
+    assert.match(metrics.artwork,/album\.webp/);
+    assert.match(metrics.backdrop,/album\.webp/);
+    assert.equal(metrics.device,'none',hint);
+    assert.ok(metrics.buttonsTop>metrics.infoBottom&&metrics.nextLeft>metrics.playLeft,hint);
+    assert.equal(metrics.volumeVisible,!hideVolume);
+    if (!hideVolume) {
+      assert.ok(metrics.volumeTop>=metrics.buttonsBottom&&metrics.volumeBottom<metrics.bottom,hint);
+      await page.evaluate(()=>{hass.callService=(domain,service,data)=>calls.push({domain,service,data});});
+      const slider=page.locator('bubble-card').locator('.bubble-volume-slider');
+      const box=await slider.boundingBox();
+      await page.mouse.click(box.x+box.width*.6,box.y+box.height/2);
+      await page.waitForFunction(()=>calls.some(call=>call.service==='volume_set'&&call.data.entity_id==='media_player.demo'));
+    }
+    await page.evaluate(()=>{
+      const current=hass.states['media_player.demo'];
+      hass={...hass,states:{...hass.states,'media_player.demo':{...current,state:'idle'}}};
+      card.hass=hass;
+    });
+    await page.waitForFunction(()=>card.card.dataset.dpMediaArtwork==='no');
+    assert.match((await snapshot(page)).css,/device\.webp/);
+  }
+});
+
+test('the aligned media artwork uses the native navigation sub-button without intercepting playback',
+  {skip:!alignedMediaNativePath},async t=>{
+  const page=await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
+  await draw(page,{width:272,media:true,
+    panel:{media_layout:'aligned',illustration:{image:'/local/device.webp'}},
+    native:{sub_button:{main:[{entity:'media_player.demo',name:'Agrandir le lecteur',icon:'mdi:arrow-expand',css_class:'signature-media-open',show_name:false,show_background:false,tap_action:{action:'navigate',navigation_path:'#lecteur-demo'}}]}},
+    extraStates:{'media_player.demo':{state:'playing',attributes:{media_title:'Un morceau',supported_features:16829,volume_level:.24}}}});
+  const boxes=await page.evaluate(()=>{
+    const root=card.card, frame=root.querySelector('.bubble-container'), opener=root.querySelector('.signature-media-open');
+    const outer=frame.getBoundingClientRect(), hit=opener.getBoundingClientRect();
+    return {width:hit.width,height:hit.height,right:outer.right-hit.right,top:hit.top-outer.top,
+      footer:root.querySelector('.bubble-buttons-container').getBoundingClientRect().top,hitBottom:hit.bottom,
+      visible:getComputedStyle(opener).display!=='none',frameHeight:outer.height};
+  });
+  assert.equal(boxes.frameHeight,132);
+  assert.equal(boxes.width,76,JSON.stringify(boxes));
+  assert.equal(boxes.height,76);
+  assert.ok(boxes.right>=11&&boxes.right<=12&&boxes.top>=8&&boxes.top<=9&&boxes.hitBottom<=boxes.footer&&boxes.visible,JSON.stringify(boxes));
+  await page.evaluate(()=>{hass.callService=(domain,service,data)=>calls.push({domain,service,data});});
+  await page.locator('bubble-card').locator('.bubble-play-pause-button').click();
+  assert(await page.evaluate(()=>calls.some(call=>call.service==='media_pause')));
+  await page.locator('bubble-card').locator('.signature-media-open').click();
+  await page.waitForFunction(()=>calls.some(call=>call.action==='tap'));
+  const events=await page.evaluate(()=>calls.filter(call=>call.action==='tap'));
+  assert.equal(events.length,1,JSON.stringify(events));
+  assert.equal(events[0].config.tap_action.navigation_path,'#lecteur-demo',JSON.stringify(events));
+});

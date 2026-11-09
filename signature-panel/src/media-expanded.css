@@ -1,0 +1,72 @@
+ha-card[data-dp-layout="panel"][data-dp-media-layout="expanded"] .bubble-container {
+  --dp-panel-media-body-width: min(100%,250px);
+  --dp-panel-media-mask: linear-gradient(#000,#0005 75%,transparent);
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 14px 16px 10px;
+  grid-template-columns: minmax(0,1fr);
+  grid-template-rows: none !important;
+  justify-items: center;
+}
+ha-card[data-dp-layout="panel"][data-dp-media-layout="expanded"] .bubble-container::after {
+  grid-row: 1; grid-column: 1;
+  width: var(--dp-panel-media-body-width);
+  aspect-ratio: 1;
+  border-radius: max(0px,calc(var(--signature-card-border-radius,22px) - 5px));
+}
+ha-card[data-dp-layout="panel"][data-dp-media-layout="expanded"] :is(.bubble-name,.bubble-media-info-container,.bubble-state,.dp-secondary) {
+  grid-column: 1;
+  width: var(--dp-panel-media-body-width);
+  min-width: 0;
+  justify-self: center;
+}
+ha-card[data-dp-media-layout="expanded"] .bubble-name {
+  grid-row: 2;
+  color: var(--secondary-text-color);
+  font-size: var(--signature-caption-font-size,12px);
+  margin-top: 8px;
+}
+ha-card[data-dp-layout="panel"][data-dp-media-layout="expanded"] :is(.bubble-media-info-container,.bubble-state) {
+  grid-row: 3;
+  margin-top: 10px;
+}
+ha-card[data-dp-layout="panel"][data-dp-media-layout="expanded"] :is(.bubble-title,.bubble-state) {
+  font-size: var(--signature-heading-font-size,20px) !important;
+  font-weight: var(--signature-font-weight-semibold,600);
+  line-height: 1.25;
+}
+ha-card[data-dp-media-layout="expanded"] .bubble-artist {
+  line-height: 1.4;
+}
+ha-card[data-dp-media-layout="expanded"] .dp-secondary {
+  grid-row: 4;
+  margin-top: 3px;
+}
+ha-card[data-dp-media-layout="expanded"] .bubble-buttons-container {
+  grid-row: 5; grid-column: 1;
+  height: auto !important;
+  margin-block-start: 6px !important;
+  gap: 8px;
+  justify-content: center;
+  flex-direction: row !important;
+  align-items: center;
+}
+ha-card[data-dp-media-layout="expanded"] .bubble-buttons-container .bubble-media-button {
+  width: 44px; min-width: 44px !important;
+  height: 48px !important;
+  background-color: transparent;
+  transition-property: background-color, color;
+  --mdc-icon-size: 20px;
+}
+ha-card[data-dp-media-layout="expanded"] .bubble-buttons-container .bubble-play-pause-button {
+  width: 52px; min-width: 52px !important; height: 52px !important;
+  border-radius: 50%;
+  background-color: color-mix(in srgb,var(--primary-text-color) 16%,transparent);
+}
+ha-card[data-dp-media-layout="expanded"] .bubble-buttons-container .bubble-next-button { order: 1 !important; }
+ha-card[data-dp-media-layout="expanded"] .bubble-buttons-container .bubble-volume-button { order: 2 !important; }
+ha-card[data-dp-media-layout="expanded"][data-dp-media-volume="inline"] .bubble-volume-slider-wrapper {
+  grid-row: 6; grid-column: 1;
+  width: var(--dp-panel-media-body-width);
+  justify-self: center;
+}

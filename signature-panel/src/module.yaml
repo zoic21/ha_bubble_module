@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.6.0
+version: 1.7.0
 creator: Loïc
 supported:
   - button
@@ -36,7 +36,9 @@ editor:
                 value: classic
               - label: Commandes alignées
                 value: aligned
-        description: Carte fixe de 132 px. Le volume natif passe à gauche si le réglage absolu est disponible. Le masquage Bubble reste prioritaire.
+              - label: Grand lecteur
+                value: expanded
+        description: Commandes alignées à 132 px ou grand lecteur à hauteur automatique. Le masquage du volume Bubble reste prioritaire.
       metric_icon:
         label: Icône de la mesure principale
         visible_if: (!card || (card.card_type || 'button') === 'button') && ["heading","strip"].includes(item.variant)

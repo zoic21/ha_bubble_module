@@ -8,13 +8,15 @@ if (!tileEnabled) return '';
 /* @include shared/src/render-gate.js */
 /* @include shared/src/media-artwork.js */
 const configured = c.signature_panel || {};
-const alignedMedia = kind === 'media-player' && configured.media_layout === 'aligned';
-const mediaEntity = alignedMedia ? hass.states[c.entity] : undefined;
+const mediaLayout = kind === 'media-player' && ['aligned','expanded'].includes(configured.media_layout)
+  ? configured.media_layout : 'classic';
+const styledMedia = mediaLayout !== 'classic';
+const mediaEntity = styledMedia ? hass.states[c.entity] : undefined;
 const mediaAttributes = mediaEntity?.attributes;
 const hasMedia = ['playing','paused','buffering'].includes(mediaEntity?.state)
   || (mediaEntity?.state === 'on' && mediaAttributes?.media_title
     && mediaAttributes.media_title !== mediaAttributes.source);
-const mediaArtwork = !alignedMedia || hasMedia ? mediaArtworkFor(c, configured.illustration) : '';
+const mediaArtwork = !styledMedia || hasMedia ? mediaArtworkFor(c, configured.illustration) : '';
 const o = mediaArtwork ? {...configured, illustration: {image: mediaArtwork}} : configured;
 const panelVariant = kind === 'button' && ['heading','strip'].includes(o.variant) ? o.variant : '';
 /* @include signature-shared/src/helpers.js */
@@ -24,8 +26,8 @@ const numberEnabled = false;
 /* @include signature-shared/src/value-config.js */
 /* @include signature-shared/src/value-render.js */
 /* @include signature-panel/src/media-metadata.js */
-attr('data-dp-media-layout',alignedMedia ? 'aligned' : 'classic');
-if (alignedMedia) {
+attr('data-dp-media-layout',mediaLayout);
+if (styledMedia) {
   const features = Number(mediaAttributes?.supported_features) || 0;
   const volume = mediaAttributes?.volume_level;
   // Match Home Assistant's VOLUME_SET (4) and VOLUME_MUTE (8) capabilities.
@@ -61,7 +63,7 @@ if (transparentButtons.length) css += 'ha-card[data-dp-layout="panel"] .bubble-s
   +transparentButtons.join(',')+') { background: transparent !important; }';
 if (o.hover === false) css += 'ha-card[data-dp-layout="panel"] ha-ripple { --ha-ripple-hover-opacity: 0; }';
 const twoLineDetails = kind === 'button' && flat.length === 0 && o.secondary_lines === 2;
-const styleKey = [kind, surface, !!secondary, information.length, flat.length, commandStyles.length > 0, twoLineDetails, !!panelTitle, panelVariant, alignedMedia].join('\u0001');
+const styleKey = [kind, surface, !!secondary, information.length, flat.length, commandStyles.length > 0, twoLineDetails, !!panelTitle, panelVariant, mediaLayout].join('\u0001');
 if (runtime.styleKey !== styleKey) {
   runtime.styleCSS = `
     /* @include signature-panel/src/presentation.css */

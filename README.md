@@ -16,7 +16,7 @@ Compact 1.6.10, Square 2.0.10, Room 1.4.4, Header 1.4.1 and Panel 1.4.18 add opt
 |---|---|---|---|
 | Signature Square — square tiles | 2.1.0 | [signature-square.yaml](signature-square/dist/signature-square.yaml) | [Guide](signature-square/doc/README.md) |
 | Signature Compact — information, control rows and media players | 1.7.0 | [signature-compact.yaml](signature-compact/dist/signature-compact.yaml) | [Guide](signature-compact/doc/README.md) |
-| Signature Panel — illustrated full-width panels | 1.6.0 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
+| Signature Panel — illustrated full-width panels | 1.7.0 | [signature-panel.yaml](signature-panel/dist/signature-panel.yaml) | [Guide](signature-panel/doc/README.md) |
 | Signature PIN — card-wide keypad with per-user selection | 1.2.1 | [signature-pin.yaml](signature-pin/dist/signature-pin.yaml) | [Guide](signature-pin/doc/README.md) |
 | Signature Room — room summaries and controls | 1.5.0 | [signature-room.yaml](signature-room/dist/signature-room.yaml) | [Guide](signature-room/doc/README.md) |
 | Signature Header — page headers and section titles | 1.5.0 | [signature-header.yaml](signature-header/dist/signature-header.yaml) | [Guide](signature-header/doc/README.md) |
@@ -142,6 +142,11 @@ Signature Panel 1.0.0 owns the two-step (118px) full-width format: 80px artwork 
 
 Square 2.0.0 removes `summary` and `activity`; Room 1.4.0 removes equipment-only `room_compact`, `room_inline_metrics` and `room_state_centered`. Room remains for room summaries, Square for measurement tiles. Install Panel and migrate wide equipment cards before upgrading these modules. Group 1.1.1 reads Panel illustrations for its activity chips. See the [Panel migration guide](signature-panel/doc/README.md#migration).
 
+
+Panel 1.7.0 adds `media_layout: expanded` for a full player in a Bubble
+pop-up. The aligned layout positions a native sub-button with the class
+`signature-media-open` over the artwork when configured. Define the target
+pop-up as a sibling in the view and use Bubble's previous button to return.
 
 Panel 1.6.0 adds opt-in `media_layout: aligned` for Bubble media players. The fixed
 132px layout places artwork at the right and uses it to tint the background during

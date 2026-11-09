@@ -1034,6 +1034,15 @@ natif et les commandes de lecture partagent la rangée inférieure. Respecter
 `hide.volume_button` et les capacités du lecteur. Le Panel classique reste à
 118 px.
 
+### Grand lecteur — Panel 1.7.0
+
+Le lecteur `media_layout: expanded` utilise une pochette carrée de 250 px
+au maximum, suivie du titre, de l’artiste et des commandes natives. Le
+volume, quand il est disponible, s’affiche sous les commandes. Les lecteurs
+alignés peuvent ajouter un sous-bouton de navigation sur la pochette,
+identifié par `signature-media-open`. Le module positionne ce sous-bouton.
+La navigation et le retour restent gérés par Bubble.
+
 ### État média explicite — Panel 1.3.1
 
 Sur `media-player`, un `state` explicite visible remplace les métadonnées
