@@ -8,9 +8,9 @@ const {loadModule}=require('../../shared/test/module.cjs');
 const code=loadModule('signature-panel').code;
 const nativePath=process.env.BUBBLE_NATIVE_SCRIPT_PATH;
 
-async function setup(t){
- const bytes=fs.readFileSync(nativePath);
- assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),'5fe8799e8070e3169e1b2889c6d5d268632f9082');
+async function setup(t,scriptPath=nativePath,sha='5fe8799e8070e3169e1b2889c6d5d268632f9082'){
+ const bytes=fs.readFileSync(scriptPath);
+ assert.equal(crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),sha);
  const page=await fixture(t,{prepare:null});
  page.on('console',m=>{if(m.type()==='error') console.error(m.text());});
  await page.route('**/*',r=>r.fulfill({contentType:'application/json',body:'{}'}));
@@ -25,7 +25,7 @@ async function setup(t){
   customElements.define('ha-ripple',class extends HTMLElement{});
   document.querySelector('home-assistant').attachShadow({mode:'open'});
  });
- await page.addScriptTag({path:nativePath});
+ await page.addScriptTag({path:scriptPath});
  return page;
 }
 async function draw(page,{width=328,mode='light',plain=false,count=1,buttons=0,detail=false,media=false,scrolling=false,unavailable=false,panel={},native={},extraStates={},templateResults={}}={}){
@@ -544,4 +544,63 @@ test('explicit media state occupies the native title row and restores metadata w
   await page.waitForFunction(()=>card.card.getAttribute('data-dp-media-custom-state')==='no');
   assert.notEqual(await page.evaluate(()=>getComputedStyle(card.elements.mediaInfoContainer).display),'none');
  }
+});
+
+const alignedMediaNativePath = process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
+test('aligned media keeps the native controls, artwork fallback and a fixed frame on Bubble 3.4.3',
+  {skip:!alignedMediaNativePath},async t=>{
+  const page = await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
+  for (const width of [272, 328, 600]) for (const hideVolume of [false, true]) {
+    const panel = {media_layout:'aligned',illustration:{media_artwork:true,image:'/local/device.webp'}};
+    const attributes = {media_title:'Titre très long qui doit rester sur une ligne',media_artist:'Artiste',entity_picture:'/local/album.webp',supported_features:16829,volume_level:.24};
+    await draw(page,{width,media:true,panel,native:{name:'Lecteur',hide:{volume_button:hideVolume}},
+      extraStates:{'media_player.demo':{state:'playing',attributes}}});
+    await page.waitForFunction(()=>card.card.dataset.dpMediaArtwork === 'yes');
+    const metrics = await page.evaluate(()=>{
+      const root = card.card;
+      const frame = root.querySelector('.bubble-container');
+      const volume = root.querySelector('.bubble-volume-slider-wrapper');
+      const buttons = root.querySelector('.bubble-buttons-container');
+      const visible = el => getComputedStyle(el).display !== 'none';
+      const box = el => el.getBoundingClientRect();
+      return {
+        height:box(frame).height, width:box(frame).width, right:box(frame).right,
+        artwork:getComputedStyle(frame,'::after').backgroundImage,
+        backdrop:getComputedStyle(root.querySelector('.bubble-background'),'::before').backgroundImage,
+        name:visible(root.querySelector('.bubble-name')),
+        volume:visible(volume), volumeButton:visible(root.querySelector('.bubble-volume-button')),
+        volumePointer:getComputedStyle(volume).pointerEvents, transform:getComputedStyle(volume).transform, grid:getComputedStyle(frame).gridTemplateColumns, gap:getComputedStyle(frame).columnGap, volumeClass:volume.className, buttonsClass:buttons.className, volumeWidth:box(volume).width,
+        volumeRight:box(volume).right, volumeTop:box(volume).top,
+        sliderWidth:box(root.querySelector('.bubble-volume-slider')).width,
+        buttonsLeft:box(buttons).left, buttonsRight:box(buttons).right, buttonsTop:box(buttons).top,
+      };
+    });
+    assert.equal(metrics.height,132,JSON.stringify(metrics));
+    assert.equal(metrics.name,true);
+    assert.match(metrics.artwork,/album\.webp/);
+    assert.match(metrics.backdrop,/album\.webp/);
+    assert.equal(metrics.volume,!hideVolume);
+    assert.equal(metrics.volumeButton,false);
+    assert.ok(metrics.buttonsRight <= metrics.right);
+    if (!hideVolume) {
+      assert.equal(metrics.volumePointer,'auto');
+      assert.equal(metrics.volumeTop,metrics.buttonsTop);
+      assert.ok(metrics.volumeRight < metrics.buttonsLeft && metrics.sliderWidth >= 40,JSON.stringify(metrics));
+      await page.evaluate(()=>{hass.callService=(domain,service,data)=>calls.push({domain,service,data});});
+      const slider = page.locator('bubble-card').locator('.bubble-volume-slider');
+      const box = await slider.boundingBox();
+      await page.mouse.click(box.x + box.width * .7,box.y + box.height / 2);
+      await page.waitForFunction(()=>calls.some(call=>call.service==='volume_set' && call.data.entity_id==='media_player.demo'));
+    }
+    await page.evaluate(()=>{
+      const current = hass.states['media_player.demo'];
+      hass = {...hass,states:{...hass.states,'media_player.demo':{...current,state:'idle'}}};
+      card.hass=hass;
+    });
+    await page.waitForFunction(()=>card.card.dataset.dpMediaArtwork === 'no');
+    const idle = await snapshot(page);
+    assert.equal(idle.frame.height,132);
+    assert.match(idle.css,/device\.webp/);
+    assert.doesNotMatch(idle.css,/album\.webp/);
+  }
 });

@@ -1,5 +1,5 @@
 name: Signature Panel
-version: 1.5.0
+version: 1.6.0
 creator: Loïc
 supported:
   - button
@@ -26,6 +26,17 @@ editor:
               - label: Bandeau de mesures
                 value: strip
         description: Facultatif. Les présentations heading et strip ont une hauteur automatique et restent sans effet sur les lecteurs.
+      media_layout:
+        label: Présentation du lecteur
+        visible_if: (!card || card.card_type === 'media-player')
+        selector:
+          select:
+            options:
+              - label: Lecteur classique
+                value: classic
+              - label: Commandes alignées
+                value: aligned
+        description: Carte fixe de 132 px. Le volume natif passe à gauche si le réglage absolu est disponible. Le masquage Bubble reste prioritaire.
       metric_icon:
         label: Icône de la mesure principale
         visible_if: (!card || (card.card_type || 'button') === 'button') && ["heading","strip"].includes(item.variant)

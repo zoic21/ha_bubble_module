@@ -1024,6 +1024,16 @@ Power est superflu pour un lecteur ; téléviseurs et amplificateurs peuvent
 garder leur commande d'alimentation. Aucun masquage fondé sur un nom d'entité
 ni mutation de configuration depuis le module.
 
+### Commandes média alignées — Panel 1.6.0
+
+L’option `media_layout: aligned` sépare les métadonnées des commandes. La carte
+reste à 132 px avec ou sans titre. Réserver 76 px à droite à la pochette ou à
+l’illustration de l’appareil. Teinter le fond à partir de la pochette avec un
+flou et un masque qui préservent la lisibilité du texte. Le curseur de volume
+natif et les commandes de lecture partagent la rangée inférieure. Respecter
+`hide.volume_button` et les capacités du lecteur. Le Panel classique reste à
+118 px.
+
 ### État média explicite — Panel 1.3.1
 
 Sur `media-player`, un `state` explicite visible remplace les métadonnées

@@ -133,6 +133,9 @@ ha-card[data-dp-layout="panel"] [aria-disabled="true"] > ha-ripple { display: no
 ${kind === 'media-player' ? `
 /* @include signature-panel/src/media.css */
 ` : ''}
+${alignedMedia ? `
+/* @include signature-panel/src/media-aligned.css */
+` : ''}
 ha-card[data-dp-layout="panel"] :is(.hidden,[hidden]) { display: none !important; }
 ha-card[data-dp-layout="panel"][data-dp-panel-count="3"] .bubble-container {
   grid-template-columns: repeat(3,minmax(0,max-content)) var(--dp-panel-artwork-width);
