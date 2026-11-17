@@ -14,6 +14,7 @@ async function setup(t,scriptPath=nativePath,sha='5fe8799e8070e3169e1b2889c6d5d2
  const page=await fixture(t,{prepare:null});
  page.on('console',m=>{if(m.type()==='error') console.error(m.text());});
  await page.route('**/*',r=>r.fulfill({contentType:'application/json',body:'{}'}));
+ await page.goto('https://ha.example.test/');
  await page.setContent('<style>body{margin:16px}#cards{width:500px}</style><home-assistant></home-assistant><div id="cards"></div>');
  await page.evaluate(()=>{
   customElements.define('ha-card',class extends HTMLElement{connectedCallback(){this.attachShadow({mode:'open'}).innerHTML='<style>:host{display:block;position:relative}</style><slot></slot>'}});
@@ -547,6 +548,52 @@ test('explicit media state occupies the native title row and restores metadata w
 });
 
 const alignedMediaNativePath = process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
+test('aligned artwork loads the current proxy URL and repaints after token changes and hide/show',
+  {skip:!alignedMediaNativePath},async t=>{
+  const page=await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
+  await page.route('**/api/media_player_proxy/**',route=>route.fulfill({contentType:'image/svg+xml',
+    body:'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="'
+      +(route.request().url().includes('token=two')?'#00ff00':'#ff0000')+'"/></svg>'}));
+  const picture='/api/media_player_proxy/media_player.demo?token=one&cache=album';
+  const loaded=page.waitForResponse(response=>response.url().includes(picture));
+  await draw(page,{width:328,mode:'dark',media:true,
+    panel:{media_layout:'aligned',media_progress:true,illustration:{media_artwork:true,image:'/local/device.webp'}},
+    extraStates:{'media_player.demo':{state:'paused',attributes:{media_title:'Thunderclouds',media_artist:'LSD',
+      entity_picture:picture,volume_level:.38,supported_features:16829,media_position:154,media_duration:187}}}});
+  assert.equal((await loaded).ok(),true);
+  const metrics=()=>page.evaluate(()=>{
+    const frame=card.card.querySelector('.bubble-container'),art=getComputedStyle(frame,'::after');
+    return{url:art.backgroundImage,width:art.width,height:art.height,size:art.backgroundSize,
+      frame:frame.getBoundingClientRect().height};
+  });
+  const before=await metrics();
+  assert.match(before.url,/token=one&cache=album/);assert.equal(before.width,'76px');assert.equal(before.height,'76px');
+  assert.equal(before.size,'contain');assert.equal(before.frame,156);
+  const frame=page.locator('bubble-card').locator('.bubble-container');
+  const first=await frame.screenshot();
+  const nextLoaded=page.waitForResponse(response=>response.url().includes('token=two&cache=album'));
+  await page.evaluate(()=>{
+    window.keptMedia=card.card.querySelector('.bubble-media-info-container');
+    card.style.display='none';
+    const current=hass.states['media_player.demo'];
+    hass={...hass,states:{...hass.states,'media_player.demo':{...current,attributes:{...current.attributes,
+      entity_picture:'/api/media_player_proxy/media_player.demo?token=two&cache=album'}}}};
+    card.hass=hass;card.updateBubbleCard();card.style.display='';
+  });
+  assert.equal((await nextLoaded).ok(),true);
+  const after=await metrics();assert.match(after.url,/token=two&cache=album/);
+  assert.deepEqual({...after,url:before.url},before);
+  assert.equal(await page.evaluate(()=>keptMedia===card.card.querySelector('.bubble-media-info-container')),true);
+  const second=await frame.screenshot();assert.notDeepEqual(second,first,'the decoded image must actually repaint');
+  if(process.env.PANEL_CAPTURE_DIR){fs.mkdirSync(process.env.PANEL_CAPTURE_DIR,{recursive:true});
+    fs.writeFileSync(process.env.PANEL_CAPTURE_DIR+'/media-proxy-one.png',first);
+    fs.writeFileSync(process.env.PANEL_CAPTURE_DIR+'/media-proxy-two.png',second);}
+  await page.evaluate(()=>{const current=hass.states['media_player.demo'];
+    hass={...hass,states:{...hass.states,'media_player.demo':{...current,state:'idle'}}};card.hass=hass;card.updateBubbleCard();});
+  await page.waitForFunction(()=>card.card.dataset.dpMediaArtwork==='no');
+  assert.match((await metrics()).url,/device\.webp/);
+});
+
 test('aligned media keeps the native controls, artwork fallback and a fixed frame on Bubble 3.4.3',
   {skip:!alignedMediaNativePath},async t=>{
   const page = await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');

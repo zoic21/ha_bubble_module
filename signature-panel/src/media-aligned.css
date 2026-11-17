@@ -11,6 +11,7 @@ ha-card[data-dp-media-layout="aligned"] .bubble-container::after {
   grid-area: auto;
   inset-block-start: 8px; inset-inline-end: 11px;
   width: var(--dp-panel-media-artwork-size);
+  height: var(--dp-panel-media-artwork-size);
 }
 ha-card[data-dp-media-layout="aligned"] :is(.bubble-name,.bubble-media-info-container,.bubble-state,.dp-secondary) {
   grid-column: 1 / -1;

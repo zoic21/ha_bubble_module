@@ -47,7 +47,18 @@ const illustrationWidthInput = Number(render(illustration.width_ratio ?? 1).trim
 const illustrationWidthRatio = !mediaArtwork && Number.isFinite(illustrationWidthInput)
   && illustrationWidthInput > 0 && illustrationWidthInput <= 1 ? illustrationWidthInput : 1;
 css += 'ha-card[data-dp-layout="panel"] {--dp-panel-artwork-ratio:' + illustrationWidthRatio + ';}';
-if (mediaArtwork) css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}ha-card[data-dp-illustration="yes"] .bubble-container::after {border-radius:max(0px,calc(var(--signature-card-border-radius,22px) - 10px));}';
+if (mediaArtwork) {
+  // Apply the live URL to the painted layers as Group does for its chip,
+  // rather than relying only on an inherited URL inside a background shorthand.
+  // Keep this outside the structural cache: track/token changes and a popup
+  // reopening must receive the current artwork even with identical geometry.
+  const artworkImage = 'url(' + JSON.stringify(mediaArtwork) + ')';
+  css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}'
+    + 'ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .bubble-container::after {'
+    + 'background-image:' + artworkImage + ';background-size:contain;background-position:center;'
+    + 'border-radius:max(0px,calc(var(--signature-card-border-radius,22px) - 10px));}';
+  if (styledMedia) css += 'ha-card[data-dp-media-artwork="yes"] .bubble-background::before {background-image:' + artworkImage + ';}';
+}
 const roles = [], roomColumns = 3;
 /* @include signature-shared/src/sub-buttons.js */
 /* @include signature-panel/src/statistics.js */

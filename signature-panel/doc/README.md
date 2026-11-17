@@ -1,5 +1,18 @@
 # Signature Panel
 
+## 1.8.1 — 17 novembre 2026 — fiabilisation des pochettes
+
+L’URL courante de la pochette est appliquée directement aux calques de l’image
+et du fond teinté, en plus des variables d’illustration. Elle suit les changements
+de morceau et de jeton hors du cache de disposition. Le lecteur aligné définit
+explicitement les deux dimensions de sa pochette de 76 px.
+
+Cette correction cible le signalement d’une pochette visible dans la barre
+d’activités mais absente dans sa popup sur iPhone. Le défaut exact n’a pas été
+reproduit avec les données simulées ; le résultat dans l’application iOS reste
+à confirmer. Importer **Signature Panel 1.8.1**, puis recharger le frontend.
+Les dashboards existants restent compatibles, sans réimportation nécessaire.
+
 ## 1.8.0 — 9 novembre 2026 — progression en pied de carte
 
 `signature_panel.media_progress: true` ajoute le temps écoulé, une barre

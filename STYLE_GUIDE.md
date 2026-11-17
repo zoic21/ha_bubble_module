@@ -1034,6 +1034,16 @@ natif et les commandes de lecture partagent la rangée inférieure. Respecter
 `hide.volume_button` et les capacités du lecteur. Le Panel classique reste à
 118 px.
 
+### Pochettes dynamiques — Panel 1.8.1
+
+Appliquer l’URL de la pochette directement au pseudo-élément illustré et au
+fond teinté, hors du cache structurel, sans dépendre uniquement d’une URL
+héritée dans le raccourci `background`. Le lecteur aligné fixe explicitement
+la largeur et la hauteur à 76 px maximum. Les illustrations de repli, sprites,
+actions, contrôles natifs et dimensions de la carte restent conservés.
+Ce renforcement cible le signalement iOS ; les fixtures ne prouvent pas la
+résolution du défaut dans l’application réelle.
+
 ### Grand lecteur — Panel 1.7.0
 
 Le lecteur `media_layout: expanded` utilise une pochette carrée de 250 px
