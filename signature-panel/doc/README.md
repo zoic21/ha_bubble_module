@@ -1,6 +1,28 @@
 # Signature Panel
 
+## 1.8.2 — 17 novembre 2026 — pochettes Apple avec marqueurs de dimensions
+
+Certaines pochettes Apple Music ajoutent une URL contenant `{w}`, `{h}`, `{c}`
+et `{f}` au paramètre `cache` du proxy Home Assistant. Le nettoyage CSS de
+Bubble 3.4.3 traite ces accolades comme des blocs et retire les déclarations
+de l’image, même lorsqu’elles sont entre guillemets. La barre Group fonctionne
+car elle applique son image directement au DOM.
+
+Panel encode uniquement les accolades de l’URL avant de produire le CSS ;
+le proxy reçoit le même paramètre après décodage. Aucun attribut de l’entité,
+jeton, média ou réglage du dashboard n’est modifié. Le contournement de rendu
+1.8.1, sans effet sur cette cause, est retiré ; la hauteur explicite est conservée.
+
+Le défaut est reproduit avec une URL de même forme et le vrai Bubble 3.4.3 :
+`background-image` vaut `none` avant correction. Le contrôle couvre la pochette,
+le fond teinté, le décodage du paramètre `cache` et le chargement de l’image.
+Importer **Signature Panel 1.8.2**, puis recharger le frontend. Aucun dashboard
+à réimporter. Le résultat dans l’installation réelle reste à confirmer.
+
 ## 1.8.1 — 17 novembre 2026 — fiabilisation des pochettes
+
+**Cette version ne résout pas le défaut signalé sur le HomePod du Salon ;
+utiliser 1.8.2.**
 
 L’URL courante de la pochette est appliquée directement aux calques de l’image
 et du fond teinté, en plus des variables d’illustration. Elle suit les changements

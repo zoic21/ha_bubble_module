@@ -1034,15 +1034,19 @@ natif et les commandes de lecture partagent la rangée inférieure. Respecter
 `hide.volume_button` et les capacités du lecteur. Le Panel classique reste à
 118 px.
 
-### Pochettes dynamiques — Panel 1.8.1
+### URLs de pochettes Apple — Panel 1.8.2
 
-Appliquer l’URL de la pochette directement au pseudo-élément illustré et au
-fond teinté, hors du cache structurel, sans dépendre uniquement d’une URL
-héritée dans le raccourci `background`. Le lecteur aligné fixe explicitement
-la largeur et la hauteur à 76 px maximum. Les illustrations de repli, sprites,
-actions, contrôles natifs et dimensions de la carte restent conservés.
-Ce renforcement cible le signalement iOS ; les fixtures ne prouvent pas la
-résolution du défaut dans l’application réelle.
+Encoder les accolades littérales des URL de pochettes avant leur insertion
+dans le CSS. Le paramètre `cache` du proxy peut inclure une URL Apple avec
+`{w}`, `{h}`, `{c}` et `{f}` ; le nettoyage natif Bubble traite autrement ces
+accolades comme des blocs et perd les déclarations d’image. Conserver les
+délimiteurs, jetons et séquences déjà encodées ; ne pas encoder l’URL entière.
+La valeur de `cache` après décodage doit rester identique, et les attributs de
+l’entité restent intacts. Ce traitement concerne Panel ; Group utilise le DOM.
+Le rendu hérité de la pochette et du fond teinté est conservé, sans recopier
+l’URL sur plusieurs règles CSS. Le lecteur aligné fixe explicitement la largeur
+et la hauteur à 76 px maximum. Les illustrations de repli, sprites, actions,
+contrôles natifs et dimensions de la carte restent conservés.
 
 ### Grand lecteur — Panel 1.7.0
 

@@ -16,7 +16,12 @@ const mediaAttributes = mediaEntity?.attributes;
 const hasMedia = ['playing','paused','buffering'].includes(mediaEntity?.state)
   || (mediaEntity?.state === 'on' && mediaAttributes?.media_title
     && mediaAttributes.media_title !== mediaAttributes.source);
-const mediaArtwork = !styledMedia || hasMedia ? mediaArtworkFor(c, configured.illustration) : '';
+const artworkURL = !styledMedia || hasMedia ? mediaArtworkFor(c, configured.illustration) : '';
+// Apple artwork cache keys can contain literal {w}/{h}/{c}/{f} placeholders.
+// Bubble cleans the resulting CSS with brace-based rules, including inside
+// quoted URLs. Encode braces before CSS interpolation; the proxy receives the
+// original query value after normal URL decoding. Group's DOM image is unaffected.
+const mediaArtwork = artworkURL.replace(/[{}]/g, character => character === '{' ? '%7B' : '%7D');
 const o = mediaArtwork ? {...configured, illustration: {image: mediaArtwork}} : configured;
 const panelVariant = kind === 'button' && ['heading','strip'].includes(o.variant) ? o.variant : '';
 /* @include signature-shared/src/helpers.js */
@@ -47,18 +52,7 @@ const illustrationWidthInput = Number(render(illustration.width_ratio ?? 1).trim
 const illustrationWidthRatio = !mediaArtwork && Number.isFinite(illustrationWidthInput)
   && illustrationWidthInput > 0 && illustrationWidthInput <= 1 ? illustrationWidthInput : 1;
 css += 'ha-card[data-dp-layout="panel"] {--dp-panel-artwork-ratio:' + illustrationWidthRatio + ';}';
-if (mediaArtwork) {
-  // Apply the live URL to the painted layers as Group does for its chip,
-  // rather than relying only on an inherited URL inside a background shorthand.
-  // Keep this outside the structural cache: track/token changes and a popup
-  // reopening must receive the current artwork even with identical geometry.
-  const artworkImage = 'url(' + JSON.stringify(mediaArtwork) + ')';
-  css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}'
-    + 'ha-card[data-dp-layout="panel"][data-dp-illustration="yes"] .bubble-container::after {'
-    + 'background-image:' + artworkImage + ';background-size:contain;background-position:center;'
-    + 'border-radius:max(0px,calc(var(--signature-card-border-radius,22px) - 10px));}';
-  if (styledMedia) css += 'ha-card[data-dp-media-artwork="yes"] .bubble-background::before {background-image:' + artworkImage + ';}';
-}
+if (mediaArtwork) css += 'ha-card[data-dp-illustration="yes"] {--dp-illustration-size:contain;--dp-illustration-position:center;}ha-card[data-dp-illustration="yes"] .bubble-container::after {border-radius:max(0px,calc(var(--signature-card-border-radius,22px) - 10px));}';
 const roles = [], roomColumns = 3;
 /* @include signature-shared/src/sub-buttons.js */
 /* @include signature-panel/src/statistics.js */

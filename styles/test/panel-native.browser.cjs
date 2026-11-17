@@ -548,6 +548,39 @@ test('explicit media state occupies the native title row and restores metadata w
 });
 
 const alignedMediaNativePath = process.env.BUBBLE_PIN_NATIVE_SCRIPT_PATH;
+test('Apple artwork cache placeholders survive native Bubble CSS cleaning',
+  {skip:!alignedMediaNativePath},async t=>{
+  const page=await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
+  await page.route('**/api/media_player_proxy/**',route=>route.fulfill({contentType:'image/svg+xml',
+    body:'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#ff0000"/></svg>'}));
+  const cache='https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/demo/cover.jpg/{w}x{h}{c}.{f}';
+  const pictures=[
+    '/api/media_player_proxy/media_player.demo?token=fixture-token&cache='+cache,
+    '/api/media_player_proxy/media_player.demo?'+new URLSearchParams({token:'fixture-encoded',cache}).toString()
+  ];
+  for(const picture of pictures){
+  await draw(page,{width:368,mode:'dark',media:true,
+    panel:{media_layout:'aligned',media_progress:true,illustration:{media_artwork:true,
+      image:'/local/atlas.webp',columns:4,rows:6,index:3,index_dark:15,offset_x:7.03125,offset_y:25.390625,offset_y_dark:8.59375}},
+    native:{name:'HomePod Salon',hide:{power_button:true}},
+    extraStates:{'media_player.demo':{state:'playing',attributes:{media_title:'Mala Vida',media_artist:'Nouvelle Vague',
+      entity_picture:picture,volume_level:.312,supported_features:448439,media_position:1,media_duration:218}}}});
+  const art=await page.evaluate(()=>{
+    const root=card.card,frame=root.querySelector('.bubble-container');
+    return{image:getComputedStyle(frame,'::after').backgroundImage,
+      backdrop:getComputedStyle(root.querySelector('.bubble-background'),'::before').backgroundImage,
+      original:hass.states['media_player.demo'].attributes.entity_picture};
+  });
+  assert.match(art.image,/media_player_proxy\/media_player.demo/,'the actual native CSS must retain the artwork URL');
+  assert.match(art.backdrop,/media_player_proxy\/media_player.demo/,'the tinted background must retain the same artwork');
+  assert.equal(art.original,picture,'entity attributes remain literal');
+  const imageURL=art.image.slice(5,-2);
+  assert.equal(new URL(imageURL).searchParams.get('cache'),cache,'encoding must preserve the Apple cache value');
+  assert.ok(!/[{}]/.test(art.image),'literal braces must not enter Bubble CSS cleaning');
+  await page.evaluate(async imageURL=>{const image=new Image();image.src=imageURL;await image.decode();},imageURL);
+  }
+});
+
 test('aligned artwork loads the current proxy URL and repaints after token changes and hide/show',
   {skip:!alignedMediaNativePath},async t=>{
   const page=await setup(t,alignedMediaNativePath,'26f2c84116f20fa21f4cf3812a18f7aa1498246c');
