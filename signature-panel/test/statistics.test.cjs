@@ -205,6 +205,23 @@ test('water converts daily cubic metres to litres while cost keeps its own unit'
   f.summary.statistics.factor=1;f.run();assert.equal(f.value(),'0L');await flush();assert.equal(f.calls.length,1);
 });
 
+test('a signed daily compensation stays separate from the main cost',async t=>{
+  const f=fixture();t.after(()=>f.ctx.teardown());
+  const compensation='sensor.grid_compensation';
+  f.summary.secondary_statistics={statistic_ids:[compensation],unit:'€',decimals:2,negate:true};
+  f.hass.states[compensation]={state:'1234',attributes:{unit_of_measurement:'EUR'}};
+  for(const [index,[total,expected]] of [[.0726,'-0,07 €'],[0,'-0,00 €'],[null,'—']].entries()){
+    f.setTime(Date.parse('2026-10-16T10:00:00Z')+index*60000);
+    f.reply(req=>({
+      ...Object.fromEntries(ids.map(id=>[id,[{start:req.start_time,change:1}]])),
+      [compensation]:total===null?[]:[{start:req.start_time,change:total}]
+    }));
+    f.run();await flush();
+    assert.equal(f.value(),'2,00€');
+    assert.equal(f.root.querySelector('.dp-panel-secondary').textContent,expected);
+  }
+});
+
 test('a missing cost cannot hide consumption and a missing consumption cannot invent a partial total',async t=>{
   const f=fixture();t.after(()=>f.ctx.teardown());
   f.summary.statistics={statistic_ids:['sensor.hc','sensor.hp'],unit:'kWh',decimals:2};

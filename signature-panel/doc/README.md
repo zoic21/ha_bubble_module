@@ -1,5 +1,11 @@
 # Signature Panel
 
+## 1.8.3 — 19 novembre 2026 — signe des statistiques journalières
+
+L’option YAML `negate: true` inverse le signe d’une statistique journalière.
+Elle permet par exemple d’afficher le gain de revente comme un montant déduit
+sous un coût. Une statistique indisponible s’affiche avec le tiret habituel.
+
 ## 1.8.2 — 17 novembre 2026 — pochettes Apple avec marqueurs de dimensions
 
 Certaines pochettes Apple Music ajoutent une URL contenant `{w}`, `{h}`, `{c}`
@@ -732,6 +738,9 @@ Aucun nouvel abonnement, observateur, nœud ou gestionnaire de commande.
 ## Statistiques journalières
 
 Une information peut fournir `statistics` au lieu d’une entité : `statistic_ids`, `unit`, `decimals`, `time_zone`, `factor` positif facultatif. `secondary_statistics` affiche le coût sous la consommation avec une requête commune. `subtract_statistic_ids` retire des flux ; `operation: remaining_percentage` et `part_statistic_ids` donnent la part restante, par exemple l’autosuffisance.
+
+Dans `statistics` ou `secondary_statistics`, le mode YAML avancé accepte
+`negate: true` pour inverser le signe du résultat après conversion d’unité.
 
 ```yaml
 signature_panel:

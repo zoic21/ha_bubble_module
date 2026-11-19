@@ -20,7 +20,7 @@ const statisticsConfig = options => {
     && typeof factor === 'number' && Number.isFinite(factor) && factor > 0
     && (operation === 'sum' && !partIds.length || operation === 'remaining_percentage'
       && partIds.length > 0 && partIds.every(id => totalIds.includes(id)))
-    ? {totalIds,subtractIds,partIds,operation,factor,ids} : null;
+    ? {totalIds,subtractIds,partIds,operation,factor: options.negate === true ? -factor : factor,ids} : null;
 };
 const primaryStatistics = statisticsConfig(statisticOptions);
 const statisticsEnabled = !!primaryStatistics;
